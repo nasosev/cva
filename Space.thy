@@ -3,41 +3,59 @@ imports Main
 
 begin
 
-type_synonym 't Open = "'t set"
+type_synonym 'A Open = "'A set"
 
 
-record 't Space = 
-  opens :: "'t Open set"
-  universe :: "'t set"
+record 'A Space = 
+  opens :: "'A Open set"
+  universe :: "'A set"
 
-definition isValid :: "'t Space \<Rightarrow> bool" where
-  "isValid t = 
-    ({} \<in> opens t \<and> universe t \<in> opens t \<and>
-    (\<forall>a. a \<in> opens t \<longrightarrow> a \<subseteq> universe t) \<and>
-    (\<forall>a b. a \<in> opens t \<longrightarrow> b \<in> opens t \<longrightarrow> a \<inter> b \<in> opens t) \<and>
-    (\<forall>U. U \<subseteq> opens t  \<longrightarrow> (\<Union>U) \<in> opens t))"
+definition isValid :: "'A Space \<Rightarrow> bool" where
+  "isValid T = 
+    ({} \<in> opens T \<and> universe T \<in> opens T \<and>
+    (\<forall>A. A \<in> opens T \<longrightarrow> A \<subseteq> universe T) \<and>
+    (\<forall>A B. A \<in> opens T \<longrightarrow> B \<in> opens T \<longrightarrow> A \<inter> B \<in> opens T) \<and>
+    (\<forall>U. U \<subseteq> opens T  \<longrightarrow> (\<Union>U) \<in> opens T))"
 
-record 't Inclusion = 
-  space :: "'t Space"
-  dom :: "'t Open"
-  cod :: "'t Open"
+record 'A Inclusion = 
+  space :: "'A Space"
+  dom :: "'A Open"
+  cod :: "'A Open"
 
-definition isValidInclusion :: "'t Inclusion \<Rightarrow> bool" where
+definition isValidInclusion :: "'A Inclusion \<Rightarrow> bool" where
   "isValidInclusion i = 
     (dom i \<subseteq> cod i \<and> dom i \<in> opens (space i) \<and> cod i \<in> opens (space i))"
 
  
 
 
-definition inclusions :: "'t Space \<Rightarrow> 't Inclusion set" where
-  "inclusions t = {i. isValidInclusion i \<and> space i = t}"
+definition inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
+  "inclusions T = {i. isValidInclusion i \<and> space i = T}"
   
-definition ident :: "'t Space \<Rightarrow> 't Open \<Rightarrow> 't Inclusion" where
-  "ident t a = \<lparr> space = t, dom = a, cod = a \<rparr>"
+definition ident :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
+  "ident T A = \<lparr> space = T, dom = A, cod = A \<rparr>"
 
-definition compose :: "'t Inclusion \<Rightarrow> 't Inclusion \<Rightarrow> 't Inclusion" where
+definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A Inclusion" where
   "compose j i \<equiv> 
     if (space j = space i \<and> dom j = cod i) 
     then \<lparr> space = space j, dom = dom i, cod = cod j \<rparr> 
     else undefined"
+
+
+
+(* Examples *)
+
+definition exSierpinski :: "bool Space" where
+  "exSierpinski = \<lparr> opens = {{}, {False},{False,True}}, universe = {False,True} \<rparr>"
+
+lemma "isValid exSierpinski"
+  unfolding exSierpinski_def isValid_def by auto
+
+
+definition exDiscrete :: "'a set \<Rightarrow> 'a Space" where
+  "exDiscrete X = \<lparr> opens = Pow X, universe = X \<rparr>"
+
+lemma "isValid (exDiscrete X)"
+  unfolding exDiscrete_def isValid_def by auto
+  
 end

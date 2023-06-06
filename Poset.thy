@@ -40,4 +40,14 @@ definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr 
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
   "ident p \<equiv> \<lparr> func = id, dom = p, cod = p \<rparr>"
 
+
+(* Examples *)
+
+definition ex1 :: "nat Poset" where
+  "ex1 \<equiv> \<lparr>  elements = {0, 1, 2, 4} , le = \<lambda> x y . x \<le> y  \<rparr>"
+
+lemma "isValid ex1"
+  by (smt (verit) Poset.Poset.select_convs(2) dual_order.refl ex1_def isValid_def order_antisym order_trans)
+  
+
 end

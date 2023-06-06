@@ -8,10 +8,10 @@ record ('a, 'b) Function =
   func :: "'a \<Rightarrow> 'b" 
 
 definition isValidMap :: "('a, 'b) Function \<Rightarrow> bool" where
-"isValidMap f \<equiv> \<forall>x. x \<in> dom f \<longrightarrow> func f x \<in> cod f"
+"isValidMap f \<equiv> \<forall>a. a \<in> dom f \<longrightarrow> func f a \<in> cod f"
 
 definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 0) where 
-"app f x \<equiv> if x \<in> dom f then func f x else undefined"
+"app f a \<equiv> if a \<in> dom f then func f a else undefined"
 
 
 end
