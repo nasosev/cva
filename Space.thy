@@ -48,20 +48,20 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
 definition exSierpinski :: "bool Space" where
   "exSierpinski = \<lparr> opens = {{}, {False},{False,True}}, universe = {False,True} \<rparr>"
 
-lemma "isValid exSierpinski"
+lemma exSierpinski_isValid : "isValid exSierpinski"
   unfolding exSierpinski_def isValid_def by auto
 
 
 definition exDiscrete :: "'a set \<Rightarrow> 'a Space" where
   "exDiscrete X = \<lparr> opens = Pow X, universe = X \<rparr>"
 
-lemma "isValid (exDiscrete X)"
+lemma exDiscrete_isValid :  "isValid (exDiscrete X)"
   unfolding exDiscrete_def isValid_def by auto
 
 definition exCodiscrete :: "'a set \<Rightarrow> 'a Space" where
   "exCodiscrete X = \<lparr> opens = {{}, X}, universe = X \<rparr>"
 
-lemma "isValid (exCodiscrete X)"
+lemma exCodiscrete_isValid : "isValid (exCodiscrete X)"
   unfolding exCodiscrete_def isValid_def by auto
 
 

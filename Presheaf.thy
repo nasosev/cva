@@ -39,21 +39,19 @@ definition exConstantDiscrete :: "'A set \<Rightarrow> ('A, 'a) Presheaf" where
     in
     (| space = space, ob = ob, ar = ar |)" 
 
-lemma exConstantDiscrete_space : "Space.isValid (Space.exDiscrete X)"
-  unfolding Space.isValid_def Space.exDiscrete_def
-  apply (auto simp add: Let_def)
-  done
 
-lemma exDiscrete_isValid : "Poset.isValid (Poset.exDiscrete )"
-  unfolding Poset.isValid_def Poset.exDiscrete_def
-  apply (auto simp add: Let_def)
-  done
 
 lemma exConstantDiscrete_isValid : "isValid (exConstantDiscrete X)"
   unfolding isValid_def exConstantDiscrete_def
   apply (auto simp add: Let_def)
-      apply (simp add: exConstantDiscrete_space)
-  by auto
+      apply (simp add: Space.exDiscrete_isValid)
+  unfolding Function.const_def exDiscrete_def  Function.app_def
+     apply (simp add: Poset.exDiscrete_isValid Function.app_def Function.const_def)
+    apply (simp add: ident_isValid)
+  apply (smt (verit, ccfv_SIG) Function.select_convs(1) Function.select_convs(3) Poset.ident_def PosetMap.select_convs(2) inclusions_def isValidInclusion_def mem_Collect_eq)
+  by (smt (verit) Function.select_convs(1) Function.select_convs(3) Poset.ident_def PosetMap.select_convs(3) inclusions_def isValidInclusion_def mem_Collect_eq)
+
+
             
 
   
