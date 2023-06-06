@@ -41,13 +41,29 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
   "ident p \<equiv> \<lparr> func = id, dom = p, cod = p \<rparr>"
 
 
-(* Examples *)
+(* EXAMPLES *)
 
-definition ex1 :: "nat Poset" where
-  "ex1 \<equiv> \<lparr>  elements = {0, 1, 2, 4} , le = \<lambda> x y . x \<le> y  \<rparr>"
 
-lemma "isValid ex1"
-  by (smt (verit) Poset.Poset.select_convs(2) dual_order.refl ex1_def isValid_def order_antisym order_trans)
-  
+
+definition exNaturals :: "nat Poset" where
+  "exNaturals \<equiv> \<lparr>  elements = UNIV , le = \<lambda> x y . x \<le> y  \<rparr>"
+
+
+
+lemma "isValid exNaturals"
+  by (smt (verit) Poset.Poset.select_convs(2) dual_order.refl exNaturals_def isValid_def order_antisym order_trans)
+
+
+definition exDivisibility :: "nat Poset" where
+  "exDivisibility \<equiv> \<lparr>  elements = UNIV , le = \<lambda> x y . x dvd y  \<rparr>"
+
+lemma "isValid exDivisibility"
+  by (smt (verit, del_insts) Poset.Poset.select_convs(2) dvd_antisym exDivisibility_def gcd_nat.refl gcd_nat.trans isValid_def)
+
+definition exDiscrete :: "'a Poset" where
+  "exDiscrete \<equiv> \<lparr>  elements = UNIV , le = \<lambda> x y . x = y   \<rparr>"
+
+lemma "isValid exDiscrete"
+  by (smt (verit) Poset.Poset.select_convs(2) exDiscrete_def isValid_def)
 
 end
