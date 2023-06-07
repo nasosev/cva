@@ -22,12 +22,20 @@ definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr 
 "app f a \<equiv> if a \<in> dom f then (THE b. (a, b) \<in> func f) else undefined"
 
 definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) Function" where
-"const A B b \<equiv> \<lparr>cod = B, func = { (a, b) | a. a \<in> A }\<rparr>"
+"const A B b \<equiv> if b \<in> B then  \<lparr>cod = B, func = { (a, b) | a. a \<in> A }\<rparr> else undefined"
 
-(* 
-lemma fun_app [simp]: "a \<in> dom f \<Longrightarrow> (f $ a) = func f a"
-  by (simp add: app_def)  *)
+
+(* LEMMAS *)
+
+lemma fun_app [simp]: "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
+  by (simp add: app_def validMap_def dom_def, metis (mono_tags, lifting) theI')
+
   
+lemma const_app [simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
+  unfolding const_def
+  by (simp add: Function.dom_def app_def)
+  
+
 
 
 

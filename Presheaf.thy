@@ -29,6 +29,66 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
 (* EXAMPLES *)
 
 
+definition exConstantDiscrete :: "('A, 'a) Presheaf" where
+  "exConstantDiscrete  \<equiv>
+    let 
+      space = Space.exDiscrete;
+      discretePoset = Poset.exDiscrete; 
+      ob = Function.const (opens space) UNIV discretePoset;
+      ar = Function.const (inclusions space) UNIV (Poset.ident discretePoset) 
+    in
+    (| space = space, ob = ob, ar = ar |)" 
+
+
+
+lemma exConstantDiscrete_valid : "valid exConstantDiscrete"
+  unfolding valid_def
+  apply (simp_all add: Let_def)
+  apply safe
+  apply (simp_all add: exConstantDiscrete_def)
+        apply (intro Space.exDiscrete_valid Poset.exDiscrete_valid)
+  apply (intro Space.exDiscrete_valid Poset.exDiscrete_valid)
+      apply (intro Poset.ident_valid)
+     apply (simp_all add: Poset.ident_def Space.exDiscrete_def Space.ident_def)
+   apply (intro Function.const_app)
+    apply (simp_all add: Space.exDiscrete_def Space.ident_def Space.inclusions_def Space.validInclusion_def Space.compose_def Id_on_def)
+  apply safe
+  apply (simp_all add: Poset.exDiscrete_def relcomp_def Poset.compose_def)
+  apply auto
+  done
+
+  
+
+end
+
+(*
+
+record ('A, 'a) Presheaf =
+  space :: "'A Space"
+  ob :: "('A Open, 'a Poset) Function "
+  ar :: "('A Inclusion, ('a, 'a) PosetMap) Function"
+
+definition isValid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
+  "isValid \<Phi> \<equiv> 
+    let 
+      space = (space \<Phi>);
+      \<Phi>0 = ob \<Phi>;
+      \<Phi>1 = ar \<Phi>;
+      welldefined = Space.isValid space 
+                    \<and> (\<forall>x. x \<in> opens space \<longrightarrow> Poset.isValid (\<Phi>0 $ x))
+                    \<and> (\<forall>i. i \<in> inclusions space \<longrightarrow> Poset.isValidMap (\<Phi>1 $ i)
+                           \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
+                           \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) );
+      identity = (\<forall>a. a \<in> opens space \<longrightarrow> (\<Phi>1 $ (Space.ident space a)) = Poset.ident (\<Phi>0 $ a));
+      composition = (\<forall>j i. j \<in> inclusions space \<longrightarrow> i \<in> inclusions space \<longrightarrow>
+        Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<circ> (\<Phi>1 $ j))     
+    in
+    (welldefined \<and> identity \<and> composition)" 
+
+
+(* EXAMPLES *)
+
+
 definition exConstantDiscrete :: "'A set \<Rightarrow> ('A, 'a) Presheaf" where
   "exConstantDiscrete X \<equiv>
     let 
@@ -39,65 +99,76 @@ definition exConstantDiscrete :: "'A set \<Rightarrow> ('A, 'a) Presheaf" where
     in
     (| space = space, ob = ob, ar = ar |)" 
 
-
-
-(* lemma exConstantDiscrete_valid : "valid (exConstantDiscrete X)"
-  unfolding valid_def exConstantDiscrete_def
+lemma exConstantDiscrete_space : "Space.isValid (Space.exDiscrete X)"
+  unfolding Space.isValid_def Space.exDiscrete_def
   apply (auto simp add: Let_def)
-      apply (simp add: Space.exDiscrete_valid)
-  unfolding Function.const_def exDiscrete_def  Function.app_def
-     apply (simp add: Poset.exDiscrete_valid Function.app_def Function.const_def Function.dom_def)
-  unfolding Poset.validMap_def Poset.ident_def *)
+  done
 
+lemma exDiscrete_isValid : "Poset.isValid (Poset.exDiscrete )"
+  unfolding Poset.isValid_def Poset.exDiscrete_def
+  apply (auto simp add: Let_def)
+  done
 
-(*lemma exConstantDiscrete_valid : "valid (exConstantDiscrete X)"
-  unfolding valid_def exConstantDiscrete_def Space.exDiscrete_def Poset.exDiscrete_def Poset.validMap_def
-  apply ( simp add: Let_def) 
-  apply safe
-  unfolding Space.valid_def
-            apply safe
-                apply simp_all
-  unfolding Poset.valid_def
-           apply simp_all
-  unfolding Function.app_def Function.const_def
-              apply simp_all
-  apply (simp add: subset_iff)
-              apply blast
-             apply blast
-  apply (simp add: Function.dom_def Space.inclusions_def)
-  unfolding Space.inclusions_def Space.validInclusion_def
-          apply simp_all
-          apply (smt (verit) CollectI Function.dom_def Function.select_convs(2) Poset.Poset.select_convs(1) Poset.ident_def PosetMap.select_convs(2) UNIV_I)
-         apply (smt (z3) Function.dom_def Function.select_convs(2) Poset.Poset.select_convs(1) Poset.ident_def PosetMap.select_convs(3) UNIV_I mem_Collect_eq)
-*)
+lemma pos_le_refl: "Poset.isValid P \<Longrightarrow> x \<in> elements P \<Longrightarrow> le P x x"
+  by (clarsimp simp: Poset.isValid_def)
 
 lemma space_discrete: "(Presheaf.space (exConstantDiscrete X)) = Space.exDiscrete X"
   by (clarsimp simp: exConstantDiscrete_def Let_unfold)
 
 
-lemma exConstantDiscrete_valid : "valid (exConstantDiscrete X)"
-unfolding valid_def 
-  apply ( simp_all add: Let_def)
-  apply safe
-      apply (clarsimp simp: exConstantDiscrete_def Let_unfold)
-  apply ( simp_all add: Space.valid_def)
-      apply safe
-          apply (simp_all add: Space.exDiscrete_def space_discrete Function.app_def Poset.valid_def)
-        apply blast
-       apply blast
-      apply blast
-     apply (simp_all add: Function.dom_def)
-     apply safe
-                    apply (clarsimp simp: exConstantDiscrete_def Space.exDiscrete_def Poset.exDiscrete_def Function.const_def)
-                    apply (smt (verit, best) Function.select_convs(2) Poset.Poset.select_convs(2) Presheaf.select_convs(2) mem_Collect_eq old.prod.inject theI)
-  apply (simp add: Poset.valid_def)
-   
-  
-
-      
+lemma ob_exConstantDiscrete[simp]: 
+  "ob (exConstantDiscrete X) = Function.const (opens (Space.exDiscrete X)) UNIV Poset.exDiscrete"
+  by (clarsimp simp: exConstantDiscrete_def Let_unfold)
 
 
-(*  unfolding valid_def 
+lemma ar_exConstantDiscrete[simp]: 
+  "ar (exConstantDiscrete X) = Function.const (inclusions (Space.exDiscrete X)) UNIV (Poset.ident Poset.exDiscrete)"
+  by (clarsimp simp: exConstantDiscrete_def Let_unfold)
+
+
+lemma app_iff_dom: "x \<in> dom f \<Longrightarrow> (f $ x) = func f x"
+  by (clarsimp simp: app_def)
+
+lemma func_const[simp]: "Function.func (const d d' x ) y = x"
+  by (clarsimp simp: const_def)
+
+lemma dom_const[simp]: "Function.dom (const d d' x) = d"
+  by (clarsimp simp: const_def)
+
+
+lemma isValidMapI:
+      "(\<And>x. x \<in> elements (PosetMap.dom F) \<Longrightarrow> PosetMap.func F x \<in> elements (PosetMap.cod F)) \<Longrightarrow> 
+       (\<And>x y. x \<in> elements (PosetMap.dom F) \<Longrightarrow> y \<in> elements (PosetMap.dom F) \<Longrightarrow> le (PosetMap.dom F) x y \<Longrightarrow> le (PosetMap.cod F) (PosetMap.func F x) (PosetMap.func F y)) \<Longrightarrow>
+       Poset.isValidMap F"
+  by (clarsimp simp: Poset.isValidMap_def)
+
+lemma dom_ident[simp]: "PosetMap.dom (Poset.ident f) = f"
+  by (clarsimp simp: Poset.ident_def)
+
+
+lemma cod_ident[simp]: "PosetMap.cod (Poset.ident f) = f"
+  by (clarsimp simp: Poset.ident_def)
+
+lemma ident_func[simp]: "PosetMap.func (Poset.ident x) = id"
+   by (clarsimp simp: Poset.ident_def)
+
+lemma cod_in_valid_inclusions: "i \<in> inclusions S \<Longrightarrow> Inclusion.cod i \<in> opens (S)"
+  using inclusions_def isValidInclusion_def apply force
+  done
+
+lemma dom_in_valid_inclusions: "i \<in> inclusions S \<Longrightarrow> Inclusion.dom i \<in> opens (S)"
+  using inclusions_def isValidInclusion_def apply force
+  done
+
+
+lemma space_of_ident[simp]: " Inclusion.space (Space.ident S a) = S"
+  by (clarsimp simp: Space.ident_def)
+
+lemma in_inclusions_when: "i \<in> inclusions S \<Longrightarrow> Inclusion.space i = S"
+  by (clarsimp simp: inclusions_def)
+
+lemma exConstantDiscrete_isValid : "isValid (exConstantDiscrete X)"
+  unfolding isValid_def 
   apply (auto simp add: Let_def)
   apply (clarsimp simp: exConstantDiscrete_def Let_unfold)
       apply (rule exConstantDiscrete_space)
@@ -105,12 +176,12 @@ unfolding valid_def
      apply (subst app_iff_dom)
       apply (clarsimp simp: const_def)
      apply (simp)
-     apply (rule exDiscrete_valid)
+     apply (rule exDiscrete_isValid)
      apply (subst app_iff_dom)
      apply (clarsimp)
      apply (clarsimp simp: space_discrete)
     apply (clarsimp)
-    apply (rule validMapI; clarsimp simp: space_discrete)
+    apply (rule isValidMapI; clarsimp simp: space_discrete)
    apply (clarsimp simp: space_discrete app_iff_dom)
    apply (subst app_iff_dom; clarsimp)
   apply (erule cod_in_valid_inclusions)
@@ -122,7 +193,7 @@ unfolding valid_def
     apply (clarsimp)
     apply (clarsimp simp: inclusions_def)
   apply (clarsimp simp: ident_def)
-    apply (clarsimp simp: validInclusion_def)
+    apply (clarsimp simp: isValidInclusion_def)
    apply (clarsimp)
    apply (clarsimp simp: app_iff_dom)
   apply (subst app_iff_dom)
@@ -130,19 +201,12 @@ unfolding valid_def
    apply (clarsimp simp: Space.compose_def, safe)
   apply (clarsimp simp: in_inclusions_when)
     apply (clarsimp simp: inclusions_def)
-    apply (metis Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) validInclusion_def order_trans)
+    apply (metis Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) isValidInclusion_def order_trans)
   apply (clarsimp simp: in_inclusions_when)
   apply (clarsimp simp: app_iff_dom space_discrete)
   by (clarsimp simp: Poset.compose_def)
 
-*)
-
-          
-  
-              
-           
-           
-
+         
   
 
-end
+end *)

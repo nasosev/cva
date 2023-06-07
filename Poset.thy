@@ -52,7 +52,7 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident p \<equiv> \<lparr> func = Id_on (el p), dom = p, cod = p \<rparr>" 
 
 
-
+(* LEMMAS *)
 
 lemma ident_valid : "validMap (ident p)"
   unfolding validMap_def  ident_def app_def

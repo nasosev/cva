@@ -51,16 +51,16 @@ lemma exSierpinski_valid : "valid exSierpinski"
   unfolding exSierpinski_def valid_def by auto
 
 
-definition exDiscrete :: "'a set \<Rightarrow> 'a Space" where
-  "exDiscrete X = \<lparr> opens = Pow X, universe = X \<rparr>"
+definition exDiscrete :: "'a Space" where
+  "exDiscrete = \<lparr> opens = Pow UNIV, universe = UNIV \<rparr>"
 
-lemma exDiscrete_valid :  "valid (exDiscrete X)"
+lemma exDiscrete_valid :  "valid (exDiscrete )"
   unfolding exDiscrete_def valid_def by auto
 
-definition exCodiscrete :: "'a set \<Rightarrow> 'a Space" where
-  "exCodiscrete X = \<lparr> opens = {{}, X}, universe = X \<rparr>"
+definition exCodiscrete :: "'a Space" where
+  "exCodiscrete = \<lparr> opens = {{}, UNIV}, universe = UNIV \<rparr>"
 
-lemma exCodiscrete_valid : "valid (exCodiscrete X)"
+lemma exCodiscrete_valid : "valid exCodiscrete"
   unfolding exCodiscrete_def valid_def by auto
 
 
