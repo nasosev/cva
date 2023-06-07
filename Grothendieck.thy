@@ -50,7 +50,7 @@ shows "le (\<Phi>0 $ A) ((\<Phi>1 $ (\<lparr>Inclusion.space = Presheaf.space \<
 
 
 
-lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<longrightarrow> Poset.valid (gc \<Phi>)"
+lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
   unfolding gc_def
   apply safe
   apply (simp_all add: Poset.valid_def Let_def)
@@ -64,8 +64,8 @@ lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<longrightarrow> Poset.valid (gc 
     apply (subst Poset.reflexivity)
       apply (subst Presheaf.posetsValid)
         apply safe
-   apply (smt (verit, best) Poset.valid_def ident_app isValidGcPoset_1 posetsValid)
-apply (subst isValidGcPoset_2)
+
+
   
    
   

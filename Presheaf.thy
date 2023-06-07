@@ -15,7 +15,8 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
       \<Phi>0 = ob \<Phi>;
       \<Phi>1 = ar \<Phi>;
 
-      welldefined = Space.valid space 
+      welldefined = (Space.valid space) 
+                    \<and> (Function.validMap \<Phi>0) \<and> (Function.validMap \<Phi>1)
                     \<and> (\<forall>A. A \<in> opens space \<longrightarrow> Poset.valid (\<Phi>0 $ A))
                     \<and> (\<forall>i. i \<in> inclusions space \<longrightarrow> Poset.validMap (\<Phi>1 $ i)
                            \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
@@ -33,7 +34,7 @@ lemma spaceValid : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>)"
   by (metis Presheaf.valid_def)
 
 
-lemma posetsValid : "valid \<Phi> \<Longrightarrow>\<forall>A. A \<in> opens (space \<Phi>) \<longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
+lemma posetsValid : "valid \<Phi> \<Longrightarrow> \<forall>A. A \<in> opens (space \<Phi>) \<Longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
   by (metis Presheaf.valid_def)
   
 
@@ -63,8 +64,16 @@ lemma exConstantDiscrete_valid : "valid exConstantDiscrete"
   apply safe
   apply (simp_all add: exConstantDiscrete_def)
         apply (intro Space.exDiscrete_valid Poset.exDiscrete_valid)
-  apply (intro Space.exDiscrete_valid Poset.exDiscrete_valid)
-     apply (simp_all add: Poset.ident_def Space.exDiscrete_def Space.ident_def)
+        apply (simp_all add: Function.validMap_def)
+apply (simp_all add: Poset.ident_def Space.exDiscrete_def Space.ident_def)
+      apply safe
+            apply (simp_all add :  Function.dom_def)
+          apply auto
+        apply (simp add:Function.const_def)
+       apply (simp add:Function.const_def)
+      apply (simp add:Function.const_def)
+     apply (simp add:Function.const_def)
+    apply (intro  Poset.exDiscrete_valid )
    apply (intro Function.const_app)
     apply (simp_all add: Space.exDiscrete_def Space.ident_def Space.inclusions_def Space.validInclusion_def Space.compose_def Id_on_def)
   apply safe
@@ -72,6 +81,6 @@ lemma exConstantDiscrete_valid : "valid exConstantDiscrete"
   apply auto
   done
 
-  
+
 
 end
