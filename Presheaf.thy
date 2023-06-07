@@ -64,6 +64,14 @@ lemma exConstantDiscrete_isValid : "isValid (exConstantDiscrete X)"
   apply (simp add: subset_iff)
               apply blast
              apply blast
+  apply (simp add: Function.dom_def Space.inclusions_def)
+  unfolding Space.inclusions_def Space.isValidInclusion_def
+          apply simp_all
+          apply (smt (verit) CollectI Function.dom_def Function.select_convs(2) Poset.Poset.select_convs(1) Poset.ident_def PosetMap.select_convs(2) UNIV_I)
+         apply (smt (z3) Function.dom_def Function.select_convs(2) Poset.Poset.select_convs(1) Poset.ident_def PosetMap.select_convs(3) UNIV_I mem_Collect_eq)
+
+
+          
   
               
            
