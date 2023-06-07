@@ -28,7 +28,6 @@ definition isValidInclusion :: "'A Inclusion \<Rightarrow> bool" where
 
  
 
-
 definition inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
   "inclusions T = {i. isValidInclusion i \<and> space i = T}"
   

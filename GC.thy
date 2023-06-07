@@ -23,6 +23,16 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
 
 
 lemma isValidGcPoset:  "\<forall> \<Phi> . Presheaf.isValid \<Phi> \<longrightarrow> Poset.isValid (gc \<Phi>)"
+  unfolding gc_def
+  apply ( simp add: Let_unfold  )
+  apply safe
+  unfolding Poset.isValid_def
+apply ( simp add: Let_unfold  )
+  apply safe
+apply ( simp add: Function.app_def Poset.app_def Space.ident_def)
+     
+
+
 
 
 
