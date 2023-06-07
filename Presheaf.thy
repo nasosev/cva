@@ -14,6 +14,7 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
       space = (space \<Phi>);
       \<Phi>0 = ob \<Phi>;
       \<Phi>1 = ar \<Phi>;
+
       welldefined = Space.valid space 
                     \<and> (\<forall>A. A \<in> opens space \<longrightarrow> Poset.valid (\<Phi>0 $ A))
                     \<and> (\<forall>i. i \<in> inclusions space \<longrightarrow> Poset.validMap (\<Phi>1 $ i)
@@ -24,6 +25,21 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
         Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<circ> (\<Phi>1 $ j))     
     in
     (welldefined \<and> identity \<and> composition)" 
+
+
+(* LEMMAS *)
+
+lemma spaceValid : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>)"
+  by (metis Presheaf.valid_def)
+
+
+lemma posetsValid : "valid \<Phi> \<Longrightarrow>\<forall>A. A \<in> opens (space \<Phi>) \<longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
+  by (metis Presheaf.valid_def)
+  
+
+lemma posetMapsValid : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> Poset.validMap ((ar \<Phi>) $ i)"
+  by (metis Presheaf.valid_def)
+
 
 
 (* EXAMPLES *)

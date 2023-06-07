@@ -59,9 +59,28 @@ lemma ident_valid [simp] : "validMap (ident P)"
   apply ( simp add: Let_unfold Id_on_def )
   done
 
+lemma ident_app[simp] : 
+  fixes a :: "'a"
+  assumes "a \<in> el P" 
+  shows "((ident P) ! a) = a"
+  unfolding ident_def app_def
+  apply ( simp add: Let_unfold Id_on_def )
+  by (simp add: assms)
+  
+
+lemma monotonicity[simp] : "validMap f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f ! a) (f ! a')"
+  unfolding validMap_def app_def
+  apply (simp add: Let_unfold)
+  done
 
 lemma reflexivity: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
-  unfolding valid_def by simp
+  by (simp add: valid_def)
+  
+
+lemma transitivity: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
+  unfolding valid_def
+  by meson
+  
 
   
   
