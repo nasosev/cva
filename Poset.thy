@@ -7,8 +7,8 @@ record 'a Poset =
   el :: "'a set"
   le :: "'a  \<Rightarrow>  'a  \<Rightarrow> bool" 
 
-definition isValid :: "'a Poset   \<Rightarrow> bool" where
-  "isValid p \<equiv>
+definition valid :: "'a Poset   \<Rightarrow> bool" where
+  "valid p \<equiv>
     let
       reflexivity = (\<forall>x. x \<in> el p \<longrightarrow> le p x x); 
       antisymmetry = (\<forall>x y. x \<in> el p \<longrightarrow> y \<in> el p \<longrightarrow>  le p x y \<longrightarrow> le p y x \<longrightarrow> x = y); 
@@ -25,8 +25,8 @@ record ('a, 'b) PosetMap =
 definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 0) where 
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
-definition isValidMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
-"isValidMap f \<equiv> 
+definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"validMap f \<equiv> 
   let 
       le_dom = le (dom f);
       le_cod = le (cod f);
@@ -54,8 +54,8 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 
 
 
-lemma ident_isValid : "isValidMap (ident p)"
-  unfolding isValidMap_def  ident_def app_def
+lemma ident_valid : "validMap (ident p)"
+  unfolding validMap_def  ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   done
 
@@ -77,21 +77,21 @@ definition exNaturals :: "nat Poset" where
 
 
 
-lemma exNaturals_isValid : "isValid exNaturals"
-  by (smt (verit) Poset.Poset.select_convs(2) dual_order.refl exNaturals_def isValid_def order_antisym order_trans)
+lemma exNaturals_valid : "valid exNaturals"
+  by (smt (verit) Poset.Poset.select_convs(2) dual_order.refl exNaturals_def valid_def order_antisym order_trans)
 
 
 definition exDivisibility :: "nat Poset" where
   "exDivisibility \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x dvd y  \<rparr>"
 
-lemma exDivisibility_isValid : "isValid exDivisibility"
-  by (smt (verit, del_insts) Poset.Poset.select_convs(2) dvd_antisym exDivisibility_def gcd_nat.refl gcd_nat.trans isValid_def)
+lemma exDivisibility_valid : "valid exDivisibility"
+  by (smt (verit, del_insts) Poset.Poset.select_convs(2) dvd_antisym exDivisibility_def gcd_nat.refl gcd_nat.trans valid_def)
 
 definition exDiscrete :: "'a Poset" where
   "exDiscrete \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x = y   \<rparr>"
 
-lemma exDiscrete_isValid : "isValid exDiscrete"
-  by (smt (verit) Poset.Poset.select_convs(2) exDiscrete_def isValid_def)
+lemma exDiscrete_valid : "valid exDiscrete"
+  by (smt (verit) Poset.Poset.select_convs(2) exDiscrete_def valid_def)
 
 
 

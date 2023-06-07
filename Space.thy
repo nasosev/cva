@@ -10,8 +10,8 @@ record 'A Space =
   opens :: "'A Open set"
   universe :: "'A set"
 
-definition isValid :: "'A Space \<Rightarrow> bool" where
-  "isValid T = 
+definition valid :: "'A Space \<Rightarrow> bool" where
+  "valid T = 
     ({} \<in> opens T \<and> universe T \<in> opens T \<and>
     (\<forall>A. A \<in> opens T \<longrightarrow> A \<subseteq> universe T) \<and>
     (\<forall>A B. A \<in> opens T \<longrightarrow> B \<in> opens T \<longrightarrow> A \<inter> B \<in> opens T) \<and>
@@ -22,14 +22,14 @@ record 'A Inclusion =
   dom :: "'A Open"
   cod :: "'A Open"
 
-definition isValidInclusion :: "'A Inclusion \<Rightarrow> bool" where
-  "isValidInclusion i = 
+definition validInclusion :: "'A Inclusion \<Rightarrow> bool" where
+  "validInclusion i = 
     (dom i \<subseteq> cod i \<and> dom i \<in> opens (space i) \<and> cod i \<in> opens (space i))"
 
  
 
 definition inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
-  "inclusions T = {i. isValidInclusion i \<and> space i = T}"
+  "inclusions T = {i. validInclusion i \<and> space i = T}"
   
 definition ident :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
   "ident T A = \<lparr> space = T, dom = A, cod = A \<rparr>"
@@ -47,21 +47,21 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
 definition exSierpinski :: "bool Space" where
   "exSierpinski = \<lparr> opens = {{}, {False},{False,True}}, universe = {False,True} \<rparr>"
 
-lemma exSierpinski_isValid : "isValid exSierpinski"
-  unfolding exSierpinski_def isValid_def by auto
+lemma exSierpinski_valid : "valid exSierpinski"
+  unfolding exSierpinski_def valid_def by auto
 
 
 definition exDiscrete :: "'a set \<Rightarrow> 'a Space" where
   "exDiscrete X = \<lparr> opens = Pow X, universe = X \<rparr>"
 
-lemma exDiscrete_isValid :  "isValid (exDiscrete X)"
-  unfolding exDiscrete_def isValid_def by auto
+lemma exDiscrete_valid :  "valid (exDiscrete X)"
+  unfolding exDiscrete_def valid_def by auto
 
 definition exCodiscrete :: "'a set \<Rightarrow> 'a Space" where
   "exCodiscrete X = \<lparr> opens = {{}, X}, universe = X \<rparr>"
 
-lemma exCodiscrete_isValid : "isValid (exCodiscrete X)"
-  unfolding exCodiscrete_def isValid_def by auto
+lemma exCodiscrete_valid : "valid (exCodiscrete X)"
+  unfolding exCodiscrete_def valid_def by auto
 
 
 

@@ -9,8 +9,8 @@ record ('a, 'b) Function =
 definition dom :: "('a, 'b) Function \<Rightarrow> 'a set" where
 "dom f \<equiv> {a. \<exists>b. (a, b) \<in> func f}"
 
-definition isValidMap :: "('a, 'b) Function \<Rightarrow> bool" where
-"isValidMap f \<equiv> 
+definition validMap :: "('a, 'b) Function \<Rightarrow> bool" where
+"validMap f \<equiv> 
   let welldefined = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom f \<and> b \<in> cod f);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
       total = (\<forall>a. a \<in> dom f \<longrightarrow> (\<exists>b. (a, b) \<in> func f))
