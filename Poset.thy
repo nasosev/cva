@@ -54,13 +54,13 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 
 (* LEMMAS *)
 
-lemma ident_valid : "validMap (ident P)"
+lemma ident_valid [simp] : "validMap (ident P)"
   unfolding validMap_def  ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   done
 
 
-lemma reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
+lemma reflexivity: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
   unfolding valid_def by simp
 
   

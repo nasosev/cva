@@ -22,10 +22,19 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
     \<lparr> Poset.el = el, Poset.le = le \<rparr>"
 
 
+(* LEMMAS *)
+
+
 lemma isValidGcPoset:  "\<forall> \<Phi> . Presheaf.valid \<Phi> \<longrightarrow> Poset.valid (gc \<Phi>)"
   unfolding gc_def
   apply safe
   apply (simp_all add: Poset.valid_def)
+  apply safe
+      apply (rule Poset.reflexivity)
+       apply safe
+
+
+
 
       
      
