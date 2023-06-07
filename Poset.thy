@@ -8,11 +8,11 @@ record 'a Poset =
   le :: "'a  \<Rightarrow>  'a  \<Rightarrow> bool" 
 
 definition valid :: "'a Poset   \<Rightarrow> bool" where
-  "valid p \<equiv>
+  "valid P \<equiv>
     let
-      reflexivity = (\<forall>x. x \<in> el p \<longrightarrow> le p x x); 
-      antisymmetry = (\<forall>x y. x \<in> el p \<longrightarrow> y \<in> el p \<longrightarrow>  le p x y \<longrightarrow> le p y x \<longrightarrow> x = y); 
-      transitivity = (\<forall>x y z. x \<in> el p \<longrightarrow> y \<in> el p \<longrightarrow> z \<in> el p \<longrightarrow> le p x y \<longrightarrow> le p y z \<longrightarrow> le p x z)
+      reflexivity = (\<forall>x. x \<in> el P\<longrightarrow> le P x x); 
+      antisymmetry = (\<forall>x y. x \<in> el P\<longrightarrow> y \<in> el P\<longrightarrow>  le P x y \<longrightarrow> le P y x \<longrightarrow> x = y); 
+      transitivity = (\<forall>x y z. x \<in> el P\<longrightarrow> y \<in> el P\<longrightarrow> z \<in> el P\<longrightarrow> le P x y \<longrightarrow> le P y z \<longrightarrow> le P x z)
     in
       reflexivity \<and> antisymmetry \<and> transitivity"
 
@@ -22,7 +22,7 @@ record ('a, 'b) PosetMap =
   cod :: "'b Poset"
 
 
-definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 0) where 
+definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "!" 0) where 
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
 definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
@@ -36,7 +36,7 @@ definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
       welldefined = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom \<and> b \<in> cod);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
       total = (\<forall>a. a \<in> dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
-      monotone = (\<forall>a a'. a \<in> dom \<and> a' \<in> dom \<and> le_dom a a' \<longrightarrow> le_cod (f $ a) (f $ a'))
+      monotone = (\<forall>a a'. a \<in> dom \<and> a' \<in> dom \<and> le_dom a a' \<longrightarrow> le_cod (f ! a) (f ! a'))
 
   in welldefined \<and> deterministic \<and> total \<and> monotone"
 
@@ -49,23 +49,21 @@ definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Right
   else undefined"
 
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
-"ident p \<equiv> \<lparr> func = Id_on (el p), dom = p, cod = p \<rparr>" 
+"ident P \<equiv> \<lparr> func = Id_on (el P), dom = P, cod = P \<rparr>" 
 
 
 (* LEMMAS *)
 
-lemma ident_valid : "validMap (ident p)"
+lemma ident_valid : "validMap (ident P)"
   unfolding validMap_def  ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   done
 
 
+lemma reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
+  unfolding valid_def by simp
+
   
-
-(* 
-lemma fun_app [simp]: "a \<in> el (dom f) \<Longrightarrow> (f $$ a) = func f a"
-  by (simp add: app_def) *)
-
   
     
 (* EXAMPLES *)
