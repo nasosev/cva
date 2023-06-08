@@ -45,7 +45,12 @@ lemma valid_ident [simp] : "valid T \<Longrightarrow> A \<in> opens T  \<Longrig
 
 lemma compose_valid [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i \<Longrightarrow> valid_inclusion (compose j i)"
   by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) compose_def dual_order.trans valid_inclusion_def)
-  
+
+lemma dom_compose [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> dom (compose j i) = dom i"
+  by (simp add: compose_def)
+
+lemma cod_compose [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> cod (compose j i) = cod j"
+  by (simp add: compose_def)
 
 (* EXAMPLES *)
 

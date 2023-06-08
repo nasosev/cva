@@ -21,10 +21,7 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
     in
     \<lparr> Poset.el = el, Poset.le = le \<rparr>"
 
-
 (* LEMMAS *)
-
-
 
 lemma isValidGcPoset_1 :
   fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"
@@ -44,28 +41,39 @@ shows "le (\<Phi>0 $ A) ((\<Phi>1 $ (\<lparr>Inclusion.space = Presheaf.space \<
 proof -
   define proj_BC where  "proj_BC = (\<Phi>1 $ i)"
   define proj_AB where  "proj_AB = (\<Phi>1 $ j)"
+  define \<Phi>_A where  "\<Phi>_A = \<Phi>0 $ A"
+  define \<Phi>_B where  "\<Phi>_B = \<Phi>0 $ B"
+  define \<Phi>_C where  "\<Phi>_C = \<Phi>0 $ C"
   have "valid \<Phi> " by fact
-  moreover have "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b" by fact
-  moreover have "a \<in> el (\<Phi>0 $ A)"   by (simp add: abc)
-  moreover have "b \<in> el (\<Phi>0 $ B)" by (simp add: abc)
-  moreover have "(proj_AB $$ a) \<in> el (\<Phi>0 $ B)" by (metis ABC assms(2) assms(4) assms(5) calculation(1) calculation(3) image proj_AB_def)
+  moreover have "le \<Phi>_B (proj_AB $$ a) b" by (simp add: \<Phi>_B_def a_Bb proj_AB_def)
+  moreover have "a \<in> el \<Phi>_A"   by (simp add: \<Phi>_A_def abc)
+  moreover have "b \<in> el \<Phi>_B" by (simp add: \<Phi>_B_def abc)
+  moreover have "(proj_AB $$ a) \<in> el \<Phi>_B"
+    by (metis ABC \<Phi>_B_def abc assms(2) assms(4) assms(5) calculation(1) image proj_AB_def)
   moreover have "Space.cod i = B" using ABC by auto
-  moreover have "Poset.valid_map proj_BC"  by (simp add: assms(3) assms(5) calculation(1) proj_BC_def) 
+  moreover have "Poset.valid_map proj_BC"  by (simp add: assms(3) assms(5) calculation(1) proj_BC_def)
   moreover have "Poset.cod proj_BC = ob \<Phi> $ C" using ABC assms(3) assms(5) calculation(1) cod_proj proj_BC_def by blast
   moreover have "Space.compose j i = \<lparr>Inclusion.space = Presheaf.space \<Phi>, dom = C, cod = A\<rparr>"
     by (smt (verit, del_insts) ABC Space.compose_def assms(2) assms(3) inclusions_def mem_Collect_eq)
-  moreover have "le (\<Phi>0 $ B) (proj_BC $$ (proj_AB $$ a)) (proj_BC $$ b)"
-  oops
+   moreover have "le \<Phi>_C (proj_BC $$ ( proj_AB $$ a)) (proj_BC $$ b)"
+     by (metis ABC \<Phi>_B_def \<Phi>_C_def a_Bb abc assms(3) assms(4) assms(5) calculation(1) calculation(5) calculation(7) calculation(8) dom_proj proj_AB_def proj_BC_def valid_map_monotone)
+    moreover have "le \<Phi>_C (proj_BC $$ b) c" by (simp add: \<Phi>_C_def b_Cc proj_BC_def)
+    moreover have "le \<Phi>_C (proj_BC $$ ( proj_AB $$ a)) c"
+      by (metis (mono_tags, lifting) ABC \<Phi>_B_def \<Phi>_C_def abc assms(3) assms(4) assms(5) calculation(1) calculation(10) calculation(11) calculation(5) image inclusions_def mem_Collect_eq posets_valid proj_BC_def valid_inclusion_def valid_transitivity)
+    oops
+
 qed
 
-
+(*ultimately show ?thesis *)
 
 
 
 lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
-  unfolding gc_def
+  unfolding gc_def Presheaf.valid_def
   apply (simp_all add: Let_def)
-  
+  apply safe
+  oops
+
 
 
 
