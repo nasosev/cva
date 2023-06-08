@@ -69,9 +69,14 @@ lemma valid_map_monotone [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom 
 lemma fun_app [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (a, f $$ a) \<in> func f"
   by (metis app_def the_equality valid_map_deterministic valid_map_total)
 
-
 lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f $$ a \<in> el (cod f)"
   by (meson fun_app valid_map_welldefined)
+
+lemma fun_ext [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f $$ a = g $$ a) \<Longrightarrow> f = g"
+  sorry
+
+lemma fun_ext2 [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a. a \<in> el (dom f) \<longrightarrow> f $$ a = g $$ a) \<Longrightarrow> f = g"
+  sorry
 
 lemma dom_compose [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
   unfolding compose_def
@@ -142,7 +147,12 @@ lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Lo
   sorry
 
 lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
-  sorry
+  unfolding compose_def ident_def
+  apply (simp add: Let_def  )
+  apply safe
+
+
+
 
 (* EXAMPLES *)
 
