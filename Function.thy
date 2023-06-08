@@ -2,6 +2,9 @@ theory Function
 imports Main  
 begin
 
+declare [[show_types]] 
+
+
 record ('a, 'b) Function =
   cod :: "'b set"
   func :: "('a \<times> 'b) set" 
@@ -18,7 +21,7 @@ definition validMap :: "('a, 'b) Function \<Rightarrow> bool" where
   in welldefined \<and> deterministic \<and> total"
   
 
-definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 0) where 
+definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 999) where 
 "app f a \<equiv> if a \<in> dom f then (THE b. (a, b) \<in> func f) else undefined"
 
 definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) Function" where
@@ -27,11 +30,39 @@ definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow
 
 (* LEMMAS *)
 
-lemma fun_app [simp]: "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
+lemma validMapWelldefined : "validMap f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
+  by (simp add: validMap_def)
+
+lemma validMapDeterministic : "validMap f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
+  by (simp add: validMap_def)
+
+lemma validMapTotal : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
+  by (simp add: validMap_def)
+  
+
+
+lemma fun_app : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
   by (simp add: app_def validMap_def dom_def, metis (mono_tags, lifting) theI')
 
+lemma fun_app2 : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
+  apply (frule (1) fun_app)
+  apply (frule (1) validMapWelldefined)
+  apply safe
+
   
-lemma const_app [simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
+
+
+  
+
+
+
+  
+  
+  
+
+
+  
+lemma const_app[simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
   unfolding const_def
   by (simp add: Function.dom_def app_def)
   

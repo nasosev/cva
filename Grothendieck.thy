@@ -47,13 +47,15 @@ proof -
   have "valid \<Phi> " by fact
   moreover have "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b" by fact
   moreover have "Poset.validMap proj_i"  by (simp add: assms(3) assms(5) calculation posetMapsValid proj_i_def) 
-  moreover have "a \<in> el (\<Phi>0 $ A) \<and> b \<in> el (\<Phi>0 $ B)" by (simp add: abc) 
-  moreover have "le (\<Phi>0 $ C) (proj_i $$ (proj_j $$ a)) (proj_i $$ b)" using Poset.monotonicity 
+  moreover have "a \<in> el (\<Phi>0 $ A)"   by (simp add: abc) 
+  moreover have "b \<in> el (\<Phi>0 $ B)" by (simp add: abc) 
+  moreover have "(proj_j $$ a) \<in> el (\<Phi>0 $ B)"  
+
 
 qed
 
 (*
-
+  moreover have "le (\<Phi>0 $ C) (proj_i $$ (proj_j $$ a)) (proj_i $$ b)" using Poset.monotonicity  
   ultimately have "A = Space.cod i \<and> C = Space.dom j" by simp
   moreover have "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b" by fact
   moreover have "le (\<Phi>0 $ C) ((\<Phi>1 $ i) $$ b) c" by fact

@@ -1,6 +1,7 @@
 theory Presheaf
 imports Main Poset Space Function
 begin
+declare [[show_types]] 
 
 record ('A, 'a) Presheaf =
   space :: "'A Space"
@@ -40,6 +41,15 @@ lemma posetsValid : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>)
 lemma posetMapsValid : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> Poset.validMap ((ar \<Phi>) $ i)"
   by (metis Presheaf.valid_def)
 
+
+lemma image : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> a \<in> Poset.el ((ob \<Phi>) $ (Space.cod i)) \<Longrightarrow>
+    (((ar \<Phi>) $ i) $$ a) \<in> Poset.el ((ob \<Phi>) $ (Space.dom i)) "
+  unfolding Presheaf.valid_def 
+  apply simp
+  apply (simp add: Let_def)
+  apply safe
+  
+  
 
 
 (* EXAMPLES *)

@@ -2,7 +2,7 @@ theory Poset
 imports Main 
 
 begin
-
+declare [[show_types]] 
 record 'a Poset = 
   el :: "'a set"
   le :: "'a  \<Rightarrow>  'a  \<Rightarrow> bool" 
@@ -22,7 +22,7 @@ record ('a, 'b) PosetMap =
   cod :: "'b Poset"
 
 
-definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 0) where 
+definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 999) where 
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
 definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
@@ -53,6 +53,18 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 
 
 (* LEMMAS *)
+
+lemma fun_app [simp]: "validMap f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (a, f $$ a) \<in> func f"
+  by (simp add: app_def validMap_def dom_def, metis (mono_tags, lifting) theI')
+
+lemma fun_app2 [simp]: "validMap f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f $$ a \<in> el (cod f)"
+  unfolding validMap_def
+  apply (simp_all add:Let_def)
+  apply safe
+  oops
+
+  
+
 
 lemma ident_valid [simp] : "validMap (ident P)"
   unfolding validMap_def  ident_def app_def
