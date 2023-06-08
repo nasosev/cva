@@ -62,7 +62,7 @@ proof -
       by (metis (mono_tags, lifting) ABC \<Phi>_B_def \<Phi>_C_def abc assms(3) assms(4) assms(5) calculation(1) calculation(10) calculation(11) calculation(5) image inclusions_def mem_Collect_eq posets_valid proj_BC_def valid_inclusion_def valid_transitivity)
     oops
 
-qed
+
 
 (*ultimately show ?thesis *)
 
