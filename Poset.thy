@@ -22,7 +22,7 @@ record ('a, 'b) PosetMap =
   cod :: "'b Poset"
 
 
-definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "!" 0) where 
+definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 100) where 
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
 definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
@@ -36,13 +36,13 @@ definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
       welldefined = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom \<and> b \<in> cod);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
       total = (\<forall>a. a \<in> dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
-      monotone = (\<forall>a a'. a \<in> dom \<and> a' \<in> dom \<and> le_dom a a' \<longrightarrow> le_cod (f ! a) (f ! a'))
+      monotone = (\<forall>a a'. a \<in> dom \<and> a' \<in> dom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))
 
   in welldefined \<and> deterministic \<and> total \<and> monotone"
 
 
 
-definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<circ>" 55) where
+definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<cdot>" 55) where
   "compose g f \<equiv> 
   if dom g = cod f 
   then \<lparr> func = relcomp (func f) (func g), dom = dom f, cod = cod g \<rparr>
@@ -62,16 +62,22 @@ lemma ident_valid [simp] : "validMap (ident P)"
 lemma ident_app[simp] : 
   fixes a :: "'a"
   assumes "a \<in> el P" 
-  shows "((ident P) ! a) = a"
+  shows "((ident P) $$ a) = a"
   unfolding ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   by (simp add: assms)
   
 
-lemma monotonicity[simp] : "validMap f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f ! a) (f ! a')"
-  unfolding validMap_def app_def
-  apply (simp add: Let_unfold)
-  done
+lemma monotonicity[simp] : 
+  "validMap f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> x = dom f \<Longrightarrow> y = cod f \<Longrightarrow> 
+    le x a a' \<Longrightarrow> le y (f $$ a) (f $$ a')"
+  unfolding validMap_def
+  apply safe
+  apply auto
+  by meson
+
+
+  
 
 lemma reflexivity: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
   by (simp add: valid_def)

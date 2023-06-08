@@ -2,7 +2,6 @@ theory Presheaf
 imports Main Poset Space Function
 begin
 
-
 record ('A, 'a) Presheaf =
   space :: "'A Space"
   ob :: "('A Open, 'a Poset) Function "
@@ -23,7 +22,7 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
                            \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) );
       identity = (\<forall>A. A \<in> opens space \<longrightarrow> (\<Phi>1 $ (Space.ident space A)) = Poset.ident (\<Phi>0 $ A));
       composition = (\<forall>j i. j \<in> inclusions space \<longrightarrow> i \<in> inclusions space \<longrightarrow>
-        Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<circ> (\<Phi>1 $ j))     
+        Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))     
     in
     (welldefined \<and> identity \<and> composition)" 
 
@@ -34,7 +33,7 @@ lemma spaceValid : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>)"
   by (metis Presheaf.valid_def)
 
 
-lemma posetsValid : "valid \<Phi> \<Longrightarrow> \<forall>A. A \<in> opens (space \<Phi>) \<Longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
+lemma posetsValid : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
   by (metis Presheaf.valid_def)
   
 

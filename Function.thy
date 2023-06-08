@@ -14,7 +14,7 @@ definition validMap :: "('a, 'b) Function \<Rightarrow> bool" where
   let welldefined = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom f \<and> b \<in> cod f);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
       total = (\<forall>a. a \<in> dom f \<longrightarrow> (\<exists>b. (a, b) \<in> func f))
-  
+   
   in welldefined \<and> deterministic \<and> total"
   
 
