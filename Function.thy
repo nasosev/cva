@@ -41,26 +41,19 @@ lemma validMapTotal : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarr
   
 
 
-lemma fun_app : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
+lemma fun_app [simp] : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
   by (simp add: app_def validMap_def dom_def, metis (mono_tags, lifting) theI')
 
-lemma fun_app2 : "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
+lemma fun_app2 [simp]: "validMap f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
   apply (frule (1) fun_app)
   apply (frule (1) validMapWelldefined)
   apply safe
+  done
 
   
 
 
   
-
-
-
-  
-  
-  
-
-
   
 lemma const_app[simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
   unfolding const_def

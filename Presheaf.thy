@@ -48,6 +48,8 @@ lemma image : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) 
   apply simp
   apply (simp add: Let_def)
   apply safe
+  by (metis Poset.fun_app Poset.validMap_def)
+  
   
   
 
