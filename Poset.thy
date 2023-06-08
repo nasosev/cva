@@ -22,7 +22,7 @@ record ('a, 'b) PosetMap =
   cod :: "'b Poset"
 
 
-definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 100) where 
+definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 0) where 
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
 definition validMap :: "('a, 'b) PosetMap \<Rightarrow> bool" where
