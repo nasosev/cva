@@ -77,7 +77,7 @@ lemma fun_app [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longri
 lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f $$ a \<in> el (cod f)"
   by (meson fun_app valid_map_welldefined)
 
-lemma valid_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
+lemma compose_valid [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
   unfolding valid_map_def compose_def
   apply (simp add: Let_def)
   apply safe
