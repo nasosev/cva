@@ -54,38 +54,18 @@ proof -
   moreover have "Poset.cod proj_BC = ob \<Phi> $ C" using ABC assms(3) assms(5) calculation(1) cod_proj proj_BC_def by blast
   moreover have "Space.compose j i = \<lparr>Inclusion.space = Presheaf.space \<Phi>, dom = C, cod = A\<rparr>"
     by (smt (verit, del_insts) ABC Space.compose_def assms(2) assms(3) inclusions_def mem_Collect_eq)
-  moreover have "le (\<Phi>0 $ B) (proj_BC $$ (proj_AB $$ a)) (proj_BC $$ b)" 
+  moreover have "le (\<Phi>0 $ B) (proj_BC $$ (proj_AB $$ a)) (proj_BC $$ b)"
+  oops
 qed
 
-(*
-  moreover have "Poset.dom ((ar \<Phi>) $ i) = (ob \<Phi>) $ (Space.cod i)"
-  moreover have "Poset.dom proj_i = (\<Phi>0 $ B) "
-  ultimately have "A = Space.cod i \<and> C = Space.dom j" by simp
-  moreover have "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b" by fact
-  moreover have "le (\<Phi>0 $ C) ((\<Phi>1 $ i) $$ b) c" by fact
-  ultimately show ?thesis
-    using your_axioms_or_lemmas
-    by (smt or auto)*)
 
 
 
 
 lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
   unfolding gc_def
-  apply (simp_all add: Poset.valid_def Let_def)
-  apply safe
-     apply auto
-    apply (simp_all add: Presheaf.valid_def[symmetric] Space.ident_def[symmetric])
-    apply (subst isValidGcPoset_1)
-      apply safe
-    apply (subst Poset.ident_app)
-     apply safe
-    apply (intro Poset.reflexivity)
-  apply safe
-      apply (intro Presheaf.posetsValid)
-     apply safe
-   apply (smt (verit, best) Poset.valid_def ident_app isValidGcPoset_1 posetsValid)
-  oops
+  apply (simp_all add: Let_def)
+  
 
 
 

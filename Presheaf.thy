@@ -27,7 +27,6 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
     in
     (welldefined \<and> identity \<and> composition)"
 
-
 (* LEMMAS *)
 
 lemma valid_welldefined [simp] : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>) \<and> Function.valid_map (ob \<Phi>) \<and> Function.valid_map (ar \<Phi>)"
@@ -64,12 +63,7 @@ lemma image [simp]: "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (sp
   apply safe
   by (metis Poset.fun_app Poset.valid_map_def)
 
-
-
-
-
 (* EXAMPLES *)
-
 
 definition ex_constant_discrete :: "('A, 'a) Presheaf" where
   "ex_constant_discrete  \<equiv>
@@ -81,22 +75,19 @@ definition ex_constant_discrete :: "('A, 'a) Presheaf" where
     in
     (| space = space, ob = ob, ar = ar |)"
 
-
-
 lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
   unfolding valid_def
   apply (simp_all add: Let_def)
   apply safe
           apply (simp add: Space.ex_discrete_valid ex_constant_discrete_def)
+         apply (simp add: ex_constant_discrete_def)
   apply (simp add: ex_constant_discrete_def)
-  apply (simp add: ex_constant_discrete_def)
-       apply (simp add: Poset.ex_discrete_valid ex_constant_discrete_def)
-  apply (metis Presheaf.select_convs(1) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def ident_valid)
-  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq validInclusion_def)
-    apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq validInclusion_def)
-   apply (simp add: Space.ident_def ex_constant_discrete_def inclusions_def validInclusion_def)
-  
-
+  apply (simp add: Poset.ex_discrete_valid ex_constant_discrete_def)
+      apply (simp add: ex_constant_discrete_def)
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq valid_inclusion_def)
+    apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (simp add: Space.ident_def ex_constant_discrete_def inclusions_def valid_inclusion_def)
+  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Presheaf.select_convs(1) Presheaf.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app ex_constant_discrete_def ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
 
 
 end

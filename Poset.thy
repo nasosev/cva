@@ -21,7 +21,6 @@ record ('a, 'b) PosetMap =
   dom :: "'a Poset"
   cod :: "'b Poset"
 
-
 definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 999) where
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
@@ -40,8 +39,6 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 
   in welldefined \<and> deterministic \<and> total \<and> monotone"
 
-
-
 definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<cdot>" 55) where
   "compose g f \<equiv>
   if dom g = cod f
@@ -50,7 +47,6 @@ definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Right
 
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident P \<equiv> \<lparr> func = Id_on (el P), dom = P, cod = P \<rparr>"
-
 
 (* LEMMAS *)
 
@@ -94,13 +90,11 @@ lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Lo
   unfolding compose_def ident_def
   apply (simp add: Let_def)
   apply safe
-  sorry
+ 
+
+
 
 lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
-  unfolding compose_def ident_def
-  apply (simp add: Let_def)
-  apply safe
-  sorry
 
 
 
@@ -120,7 +114,20 @@ lemma ident_app[simp] :
   by (simp add: assms)
 
 
-lemma monotonicity[simp] :
+lemma valid_reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
+  by (simp add: valid_def)
+
+
+lemma valid_transitivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
+  unfolding valid_def
+  by meson
+
+lemma valid_antisymmetry [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
+  unfolding valid_def
+  by meson
+
+
+lemma valid_monotonicity[simp] :
   "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> x = dom f \<Longrightarrow> y = cod f \<Longrightarrow>
     le x a a' \<Longrightarrow> le y (f $$ a) (f $$ a')"
   unfolding valid_map_def
@@ -128,16 +135,6 @@ lemma monotonicity[simp] :
   apply auto
   by meson
 
-
-
-
-lemma reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
-  by (simp add: valid_def)
-
-
-lemma transitivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
-  unfolding valid_def
-  by meson
 
 
 
