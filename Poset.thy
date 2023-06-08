@@ -48,6 +48,20 @@ definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Right
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident P \<equiv> \<lparr> func = Id_on (el P), dom = P, cod = P \<rparr>"
 
+definition product :: "'a Poset \<Rightarrow> 'b Poset \<Rightarrow> ('a \<times> 'b) Poset" (infixl "\<times>\<times>" 55) where
+"product P Q \<equiv> \<lparr> el = el P \<times> el Q, le = (\<lambda>(a, b) (a', b'). le P a a' \<and> le Q b b') \<rparr>"
+
+lemma product_valid [simp]: "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
+  unfolding valid_def product_def
+  apply simp
+  apply safe
+  apply meson
+  by meson
+
+definition discrete :: "'a Poset" where
+  "discrete \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x = y   \<rparr>"
+
+
 (* LEMMAS *)
 
 lemma valid_map_welldefined [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
@@ -76,7 +90,7 @@ lemma fun_ext [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
   sorry
 
 lemma fun_ext2 [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a. a \<in> el (dom f) \<longrightarrow> f $$ a = g $$ a) \<Longrightarrow> f = g"
-  sorry
+  by simp
 
 lemma dom_compose [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
   unfolding compose_def
@@ -150,9 +164,11 @@ lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Lon
   unfolding compose_def ident_def
   apply (simp add: Let_def  )
   apply safe
+  sorry
 
 
-
+lemma discrete_valid : "valid discrete"
+  by (smt (verit) Poset.Poset.select_convs(2) discrete_def valid_def)
 
 (* EXAMPLES *)
 
@@ -169,11 +185,7 @@ definition ex_divisibility :: "nat Poset" where
 lemma ex_divisibility_valid : "valid ex_divisibility"
   by (smt (verit, del_insts) Poset.Poset.select_convs(2) dvd_antisym ex_divisibility_def gcd_nat.refl gcd_nat.trans valid_def)
 
-definition ex_discrete :: "'a Poset" where
-  "ex_discrete \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x = y   \<rparr>"
 
-lemma ex_discrete_valid : "valid ex_discrete"
-  by (smt (verit) Poset.Poset.select_convs(2) ex_discrete_def valid_def)
 
 
 

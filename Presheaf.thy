@@ -27,6 +27,39 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
     in
     (welldefined \<and> identity \<and> composition)"
 
+record ('A, 'a, 'b) PresheafMap =
+  map_space :: "'A Space"
+  nat :: "('A Open, ('a, 'b) PosetMap) Function"
+  dom :: "('A, 'a) Presheaf"
+  cod :: "('A, 'b) Presheaf"
+
+definition valid_map :: "('A, 'a, 'b) PresheafMap \<Rightarrow> bool" where
+ "valid_map \<phi> \<equiv>
+    let
+      space = (map_space \<phi>);
+      f = nat \<phi>;
+
+      welldefined = Space.valid space
+                    \<and> valid (dom \<phi>) \<and> valid (cod \<phi>)
+                    \<and> (Function.valid_map f)
+                    \<and> (\<forall>A. A \<in> opens space \<longrightarrow> Poset.valid_map (f $ A))
+                    \<and> (\<forall>A. A \<in> opens space \<longrightarrow> Poset.dom (f $ A) = (ob (dom \<phi>) $ A))
+                    \<and> (\<forall>A. A \<in> opens space \<longrightarrow> Poset.cod (f $ A) = (ob (cod \<phi>) $ A));
+      naturality = (\<forall>i. i \<in> inclusions space \<longrightarrow>
+          (f $ Space.dom i) \<cdot> (ar (dom \<phi>) $ i) = (ar (cod \<phi>) $ i) \<cdot> (f $ Space.cod i))
+    in
+    (welldefined \<and> naturality)"
+
+definition terminal :: "'A Space \<Rightarrow> ('A, unit) Presheaf" where
+  "terminal T \<equiv>
+    let
+      space = T;
+      ob = Function.const (Space.opens T) UNIV (Poset.discrete);
+      ar = Function.const (Space.inclusions T) UNIV (Poset.ident Poset.discrete)
+    in
+    \<lparr> space = space, ob = ob, ar = ar \<rparr>
+"
+
 (* LEMMAS *)
 
 lemma valid_welldefined [simp] : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>) \<and> Function.valid_map (ob \<Phi>) \<and> Function.valid_map (ar \<Phi>)"
@@ -35,7 +68,7 @@ lemma valid_welldefined [simp] : "valid \<Phi> \<Longrightarrow> Space.valid (sp
 lemma valid_identity [simp] : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> ar \<Phi> $ (Space.ident (space \<Phi>) A) = Poset.ident obA"
   unfolding valid_def by (simp add: Let_def)
 
-lemma valid_composition [simp]: 
+lemma valid_composition [simp]:
   "valid \<Phi> \<Longrightarrow> j \<in> inclusions (space \<Phi>) \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
     ar \<Phi> $ (Space.compose j i) = (ar \<Phi> $ i) \<cdot> (ar \<Phi> $ j)"
   by (metis Presheaf.valid_def)
@@ -63,13 +96,24 @@ lemma image [simp]: "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (sp
   apply safe
   by (metis Poset.fun_app Poset.valid_map_def)
 
+lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
+  unfolding valid_def terminal_def
+  apply (simp add: Let_def)
+  apply safe
+      apply (simp add: discrete_valid)
+  apply (smt (verit, best) Poset.ident_def PosetMap.select_convs(2) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (smt (verit, ccfv_threshold) Poset.ident_def PosetMap.select_convs(3) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (smt (verit, best) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app inclusions_def mem_Collect_eq valid_ident)
+  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(2) Space.compose_def Space.compose_valid UNIV_I const_app ident_right_neutral ident_valid inclusions_def mem_Collect_eq)
+
+
 (* EXAMPLES *)
 
 definition ex_constant_discrete :: "('A, 'a) Presheaf" where
   "ex_constant_discrete  \<equiv>
     let
       space = Space.ex_discrete;
-      discretePoset = Poset.ex_discrete;
+      discretePoset = Poset.discrete;
       ob = Function.const (opens space) UNIV discretePoset;
       ar = Function.const (inclusions space) UNIV (Poset.ident discretePoset)
     in
@@ -82,12 +126,13 @@ lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
           apply (simp add: Space.ex_discrete_valid ex_constant_discrete_def)
          apply (simp add: ex_constant_discrete_def)
   apply (simp add: ex_constant_discrete_def)
-  apply (simp add: Poset.ex_discrete_valid ex_constant_discrete_def)
+  apply (simp add: Poset.discrete_valid ex_constant_discrete_def)
       apply (simp add: ex_constant_discrete_def)
-  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq valid_inclusion_def)
-    apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq valid_inclusion_def)
-  apply (simp add: Space.ident_def ex_constant_discrete_def inclusions_def valid_inclusion_def)
-  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Presheaf.select_convs(1) Presheaf.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app ex_constant_discrete_def ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
+  apply (metis Poset.ident_def PosetMap.select_convs(2) Pow_UNIV Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.Space.select_convs(1) const_app ex_constant_discrete_def ex_discrete_def iso_tuple_UNIV_I)
+    apply (metis Poset.ident_def PosetMap.select_convs(3) Pow_UNIV Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.Space.select_convs(1) const_app ex_constant_discrete_def ex_discrete_def iso_tuple_UNIV_I)
+  apply (smt (verit, best) Inclusion.select_convs(1) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.ident_def const_app ex_constant_discrete_def ex_discrete_valid inclusions_def iso_tuple_UNIV_I mem_Collect_eq valid_ident)
+  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app ex_constant_discrete_def ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
+
 
 
 end

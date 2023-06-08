@@ -43,10 +43,14 @@ lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> dom f \<Longrighta
   by (meson fun_app valid_map_welldefined)
 
 lemma fun_ext [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> f = g"
+  unfolding valid_map_def
+  apply simp
+  apply auto
   sorry
 
+(* nitpick finds counterexample? *)
 lemma fun_ext2 [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f \<longleftrightarrow> (a, g $ a) \<in> func g) \<Longrightarrow> f = g"
-
+  oops
 
 lemma const_app [simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
   unfolding const_def
