@@ -1,6 +1,7 @@
 theory Grothendieck
 imports Main Presheaf Poset
 begin
+declare [[show_types]]
 
 (* covariant Grothendieck construction *)
 

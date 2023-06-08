@@ -7,7 +7,7 @@ record 'a OrderedSemigroup =
   poset :: "'a Poset"
   mult :: "('a \<times> 'a,'a) PosetMap"
 
-
+(* wip *)
 definition valid :: "'a OrderedSemigroup \<Rightarrow> bool" where
 "valid S \<equiv> 
   let 
