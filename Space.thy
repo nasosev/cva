@@ -44,24 +44,24 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
 
 (* EXAMPLES *)
 
-definition exSierpinski :: "bool Space" where
-  "exSierpinski = \<lparr> opens = {{}, {False},{False,True}}, universe = {False,True} \<rparr>"
+definition ex_sierpinski :: "bool Space" where
+  "ex_sierpinski = \<lparr> opens = {{}, {False},{False,True}}, universe = {False,True} \<rparr>"
 
-lemma exSierpinski_valid : "valid exSierpinski"
-  unfolding exSierpinski_def valid_def by auto
+lemma ex_sierpinski_valid : "valid ex_sierpinski"
+  unfolding ex_sierpinski_def valid_def by auto
 
 
-definition exDiscrete :: "'a Space" where
-  "exDiscrete = \<lparr> opens = Pow UNIV, universe = UNIV \<rparr>"
+definition ex_discrete :: "'a Space" where
+  "ex_discrete = \<lparr> opens = Pow UNIV, universe = UNIV \<rparr>"
 
-lemma exDiscrete_valid :  "valid (exDiscrete )"
-  unfolding exDiscrete_def valid_def by auto
+lemma ex_discrete_valid :  "valid (ex_discrete )"
+  unfolding ex_discrete_def valid_def by auto
 
-definition exCodiscrete :: "'a Space" where
-  "exCodiscrete = \<lparr> opens = {{}, UNIV}, universe = UNIV \<rparr>"
+definition ex_codiscrete :: "'a Space" where
+  "ex_codiscrete = \<lparr> opens = {{}, UNIV}, universe = UNIV \<rparr>"
 
-lemma exCodiscrete_valid : "valid exCodiscrete"
-  unfolding exCodiscrete_def valid_def by auto
+lemma ex_codiscrete_valid : "valid ex_codiscrete"
+  unfolding ex_codiscrete_def valid_def by auto
 
 
 

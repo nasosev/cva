@@ -42,20 +42,24 @@ lemma isValidGcPoset_2 :
   and a_Bb : "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b"
 shows "le (\<Phi>0 $ A) ((\<Phi>1 $ (\<lparr>Inclusion.space = Presheaf.space \<Phi>, dom = C, cod = A\<rparr>)) $$ a) c"
 proof -
-  define proj_i where  "proj_i = (\<Phi>1 $ i)"
-  define proj_j where  "proj_j = (\<Phi>1 $ j)"
+  define proj_BC where  "proj_BC = (\<Phi>1 $ i)"
+  define proj_AB where  "proj_AB = (\<Phi>1 $ j)"
   have "valid \<Phi> " by fact
   moreover have "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b" by fact
-  moreover have "Poset.validMap proj_i"  by (simp add: assms(3) assms(5) calculation posetMapsValid proj_i_def) 
-  moreover have "a \<in> el (\<Phi>0 $ A)"   by (simp add: abc) 
-  moreover have "b \<in> el (\<Phi>0 $ B)" by (simp add: abc) 
-  moreover have "(proj_j $$ a) \<in> el (\<Phi>0 $ B)"  
-
-
+  moreover have "a \<in> el (\<Phi>0 $ A)"   by (simp add: abc)
+  moreover have "b \<in> el (\<Phi>0 $ B)" by (simp add: abc)
+  moreover have "(proj_AB $$ a) \<in> el (\<Phi>0 $ B)" by (metis ABC assms(2) assms(4) assms(5) calculation(1) calculation(3) image proj_AB_def)
+  moreover have "Space.cod i = B" using ABC by auto
+  moreover have "Poset.valid_map proj_BC"  by (simp add: assms(3) assms(5) calculation(1) proj_BC_def) 
+  moreover have "Poset.cod proj_BC = ob \<Phi> $ C" using ABC assms(3) assms(5) calculation(1) cod_proj proj_BC_def by blast
+  moreover have "Space.compose j i = \<lparr>Inclusion.space = Presheaf.space \<Phi>, dom = C, cod = A\<rparr>"
+    by (smt (verit, del_insts) ABC Space.compose_def assms(2) assms(3) inclusions_def mem_Collect_eq)
+  moreover have "le (\<Phi>0 $ B) (proj_BC $$ (proj_AB $$ a)) (proj_BC $$ b)" 
 qed
 
 (*
-  moreover have "le (\<Phi>0 $ C) (proj_i $$ (proj_j $$ a)) (proj_i $$ b)" using Poset.monotonicity  
+  moreover have "Poset.dom ((ar \<Phi>) $ i) = (ob \<Phi>) $ (Space.cod i)"
+  moreover have "Poset.dom proj_i = (\<Phi>0 $ B) "
   ultimately have "A = Space.cod i \<and> C = Space.dom j" by simp
   moreover have "le (\<Phi>0 $ B) ((\<Phi>1 $ j) $$ a) b" by fact
   moreover have "le (\<Phi>0 $ C) ((\<Phi>1 $ i) $$ b) c" by fact
