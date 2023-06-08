@@ -36,7 +36,8 @@ lemma valid_welldefined [simp] : "valid \<Phi> \<Longrightarrow> Space.valid (sp
 lemma valid_identity [simp] : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> ar \<Phi> $ (Space.ident (space \<Phi>) A) = Poset.ident obA"
   unfolding valid_def by (simp add: Let_def)
 
-lemma valid_composition [simp]: "valid \<Phi> \<Longrightarrow> j \<in> inclusions (space \<Phi>) \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
+lemma valid_composition [simp]: 
+  "valid \<Phi> \<Longrightarrow> j \<in> inclusions (space \<Phi>) \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
     ar \<Phi> $ (Space.compose j i) = (ar \<Phi> $ i) \<cdot> (ar \<Phi> $ j)"
   by (metis Presheaf.valid_def)
 
@@ -84,24 +85,18 @@ definition ex_constant_discrete :: "('A, 'a) Presheaf" where
 
 lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
   unfolding valid_def
-
+  apply (simp_all add: Let_def)
+  apply safe
+          apply (simp add: Space.ex_discrete_valid ex_constant_discrete_def)
+  apply (simp add: ex_constant_discrete_def)
+  apply (simp add: ex_constant_discrete_def)
+       apply (simp add: Poset.ex_discrete_valid ex_constant_discrete_def)
+  apply (metis Presheaf.select_convs(1) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def ident_valid)
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq validInclusion_def)
+    apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3) Presheaf.select_convs(1) Presheaf.select_convs(2) Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq validInclusion_def)
+   apply (simp add: Space.ident_def ex_constant_discrete_def inclusions_def validInclusion_def)
   
 
 
-(*        apply (simp_all add: Function.valid_map_def)
-apply (simp_all add: Poset.ident_def Space.ex_discrete_def Space.ident_def)
-      apply safe
-            apply (simp_all add :  Function.dom_def)
-          apply auto
-        apply (simp add:Function.const_def)
-       apply (simp add:Function.const_def)
-      apply (simp add:Function.const_def)
-     apply (simp add:Function.const_def)
-    apply (intro  Poset.ex_discrete_valid )
-   apply (intro Function.const_app)
-    apply (simp_all add: Space.ex_discrete_def Space.ident_def Space.inclusions_def Space.valid_inclusion_def Space.compose_def Id_on_def)
-  apply safe
-  apply (simp_all add: Poset.ex_discrete_def relcomp_def Poset.compose_def)
-  apply auto
-  done*)
+
 end
