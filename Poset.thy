@@ -89,8 +89,7 @@ lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longr
 lemma fun_ext [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f $$ a = g $$ a) \<Longrightarrow> f = g"
   sorry
 
-lemma fun_ext2 [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a. a \<in> el (dom f) \<longrightarrow> f $$ a = g $$ a) \<Longrightarrow> f = g"
-  by simp
+
 
 lemma dom_compose [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
   unfolding compose_def

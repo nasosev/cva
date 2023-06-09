@@ -53,7 +53,7 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
     in 
       welldefined \<and> domain_law \<and> neutral_law_left \<and> neutral_law_right \<and> comb_law_left \<and> comb_law_right"
 
-(* Doesnt show functoriality of extension *)
+
 theorem extension :
   fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa Bb :: "('A, 'a) Valuation"
   defines "\<Phi> \<equiv> presheaf ova"
@@ -62,11 +62,12 @@ theorem extension :
   defines "lessEq \<equiv> (\<lambda> A Aa Ab . le (\<Phi>0 A) (snd Aa) (snd Ab))"
   defines "mul \<equiv> comb ova"
   defines "\<epsilon> \<equiv> neut ova"
-  assumes "d a = Space.cod i \<and> d B = Space.dom i"
+  assumes "d Aa = Space.cod i \<and> d Bb = Space.dom i"
   assumes "valid ova" and "i \<in> inclusions (space ova)"
-  shows "lessEq (d Bb) (prj i Aa) b \<longleftrightarrow> lessEq (d Aa) Aa (mul (\<epsilon> A) Bb)"
+  shows "lessEq (d Bb) (prj i Aa) Bb \<longleftrightarrow> lessEq (d Aa) Aa (mul (\<epsilon> A) Bb)"
 proof -
+  oops
 
-
+(* theorem extension_functorial *)
 
 end
