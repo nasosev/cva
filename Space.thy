@@ -23,14 +23,14 @@ record 'A Inclusion =
   cod :: "'A Open"
 
 definition valid_inclusion :: "'A Inclusion \<Rightarrow> bool" where
-  "valid_inclusion i =
+  "valid_inclusion i \<equiv> valid (space i) \<and>
     (dom i \<subseteq> cod i \<and> dom i \<in> opens (space i) \<and> cod i \<in> opens (space i))"
 
 definition inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
-  "inclusions T = {i. valid_inclusion i \<and> space i = T}"
+  "inclusions T \<equiv> {i. valid_inclusion i \<and> space i = T}"
 
 definition ident :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
-  "ident T A = \<lparr> space = T, dom = A, cod = A \<rparr>"
+  "ident T A \<equiv> \<lparr> space = T, dom = A, cod = A \<rparr>"
 
 definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A Inclusion" where
   "compose j i \<equiv>
@@ -39,6 +39,10 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
     else undefined"
 
 (* LEMMAS *)
+
+lemma valid_inclusionI [simp] : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
+  using valid_inclusion_def by blast
+
 
 lemma valid_ident [simp] : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> valid_inclusion (ident T A)"
   by (simp add: ident_def valid_inclusion_def)

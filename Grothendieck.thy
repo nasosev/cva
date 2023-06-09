@@ -31,46 +31,57 @@ lemma isValidGcPoset_1 :
 
 
 lemma isValidGcPoset_2 :
-  fixes \<Phi> :: "('A,'a) Presheaf" and j i :: "'A Inclusion" and a b c :: "'a"
+  fixes \<Phi> :: "('A,'a) Presheaf" and A B C :: "'A Open" and a b c :: "'a"
   defines "\<Phi>0 \<equiv> (ob \<Phi>)" 
   defines "\<Phi>1 \<equiv> (ar \<Phi>)"
-  defines "A \<equiv> Space.cod j"
-  defines "B \<equiv> Space.dom j"
-  defines "C \<equiv> Space.dom i"
-  defines "proj_BC \<equiv> (\<lambda> b . (\<Phi>1 $ i) $$ b)"
-  defines "proj_AB \<equiv> (\<lambda> a. (\<Phi>1 $ j) $$ a)"
+  defines "T \<equiv> Presheaf.space \<Phi>"
   defines "\<Phi>_A \<equiv> \<Phi>0 $ A"
   defines "\<Phi>_B \<equiv> \<Phi>0 $ B"
   defines "\<Phi>_C \<equiv> \<Phi>0 $ C"
-  assumes "valid \<Phi>" and "j \<in> inclusions (space \<Phi>)" and "i \<in> inclusions (space \<Phi>)"
-  and ABC : "Space.dom j = Space.cod i"
-  and abc : "a \<in> el \<Phi>_A \<and> b \<in> el \<Phi>_B \<and> c \<in> el \<Phi>_C"
-  and b_Cc  : "le \<Phi>_C (proj_BC b) c"
-  and a_Bb : "le \<Phi>_B (proj_AB a) b"
-shows "le \<Phi>_C ((proj_BC o proj_AB) a) c"
+  defines "i_BA \<equiv> \<lparr>Inclusion.space = T, dom = B, cod = A\<rparr>"
+  defines "i_CB \<equiv> \<lparr>Inclusion.space = T, dom = C, cod = B\<rparr>"
+  defines "i_CA \<equiv> \<lparr>Inclusion.space = T, dom = C, cod = A\<rparr>"
+  defines "prj_AB \<equiv> (\<Phi>1 $ i_BA)"
+  defines "prj_BC \<equiv> (\<Phi>1 $ i_CB)"
+  defines "prj_AC \<equiv> (\<Phi>1 $ i_CA)"
+  assumes "valid \<Phi>" and "C \<subseteq> B" and "B \<subseteq> A" 
+  and "A \<in> Space.opens T" and "B \<in> Space.opens T" and "C \<in> Space.opens T" 
+  and "a \<in> el \<Phi>_A" and "b \<in> el \<Phi>_B" and "c \<in> el \<Phi>_C"
+  and "le \<Phi>_B (prj_AB $$ a) b"
+  and "le \<Phi>_C (prj_BC $$ b) c"
+shows "le \<Phi>_C (prj_AC $$ a) c"
 proof -
   have "valid \<Phi> "
-    by (simp add: assms(11)) 
- moreover have "le \<Phi>_B (proj_AB a) b"
-   by (simp add: a_Bb) 
+    by (simp add: assms(13)) 
+ moreover have "le \<Phi>_B (prj_AB $$ a) b"
+   by (simp add: assms(22)) 
    moreover have "a \<in> el \<Phi>_A"
-     using abc by auto
+     by (simp add: assms(19))
   moreover have "b \<in> el \<Phi>_B"
-    by (simp add: abc)
-  moreover have "(proj_AB a) \<in> el \<Phi>_B"
-    using A_def B_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def assms(12) calculation(1) calculation(3) proj_AB_def by auto 
-    moreover have "Space.cod i = B"
-      by (simp add: ABC B_def) 
-   moreover have "le \<Phi>_C (proj_BC  ( proj_AB  a)) (proj_BC  b)"
-     by (metis C_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def a_Bb abc assms(13) calculation(1) calculation(5) calculation(6) cod_proj dom_proj poset_maps_valid proj_BC_def valid_monotonicity) 
-   moreover have "le \<Phi>_C (proj_BC b) c"
-     by (simp add: b_Cc) 
-    moreover have "le \<Phi>_C (proj_BC  ( proj_AB  a)) c"
-      by (metis C_def Poset.fun_app2 \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def abc assms(13) b_Cc calculation(1) calculation(5) calculation(6) calculation(7) cod_proj dom_proj poset_maps_valid proj_BC_def valid_cod valid_transitivity) 
+    using assms(20) by blast  
+  moreover have "Space.valid T"
+    using T_def calculation(1) by force 
+  moreover have "Space.valid_inclusion i_BA"
+    by (simp add: assms(15) assms(16) assms(17) calculation(5) i_BA_def) 
+  moreover have "Poset.valid_map prj_AB"
+    using T_def \<Phi>1_def calculation(1) calculation(6) i_BA_def inclusions_def poset_maps_valid prj_AB_def by fastforce 
+  moreover have "Poset.cod prj_AB = \<Phi>_B"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def calculation(1) calculation(6) cod_proj i_BA_def inclusions_def mem_Collect_eq prj_AB_def) 
+    moreover have "(prj_AB $$ a) \<in> el \<Phi>_B"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def calculation(1) calculation(3) calculation(6) i_BA_def image inclusions_def mem_Collect_eq prj_AB_def) 
+  moreover have "Space.valid_inclusion i_CB"
+    using assms(14) assms(17) assms(18) calculation(5) i_CB_def by force 
+moreover have "Poset.valid_map prj_BC"
+  using T_def \<Phi>1_def assms(11) assms(8) calculation(1) calculation(10) inclusions_def poset_maps_valid by fastforce  
+  moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$  a)) (prj_BC $$  b)"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def calculation(1) calculation(10) calculation(11) calculation(2) calculation(4) calculation(9) cod_proj dom_proj i_CB_def inclusions_def mem_Collect_eq prj_BC_def valid_monotonicity)
+   moreover have "le \<Phi>_C (prj_BC $$ b) c"
+     by (simp add: assms(23)) 
+    moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$ a)) c"
+      by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(21) calculation(1) calculation(10) calculation(11) calculation(12) calculation(13) calculation(4) calculation(9) cod_proj i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_cod valid_transitivity)
     ultimately show ?thesis
-      by fastforce 
-qed
-
+      by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def compose_app dom_proj i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
+  qed
 
 lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
   unfolding gc_def
@@ -84,8 +95,10 @@ lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc 
   apply (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.valid_def Space.ident_def case_prod_conv ident_app isValidGcPoset_1 mem_Collect_eq posets_valid subset_antisym)
   apply (simp add: Let_def)
   apply safe
-  apply blast
-  using isValidGcPoset_2 sledgehammer
+   apply blast
+  by (simp add: isValidGcPoset_2)
+
+  
 
     
   
