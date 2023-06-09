@@ -2,7 +2,7 @@ theory Poset
 imports Main
 
 begin
-declare [[show_types]]
+
 record 'a Poset =
   el :: "'a set"
   le :: "'a  \<Rightarrow>  'a  \<Rightarrow> bool"
@@ -21,13 +21,6 @@ record ('a, 'b) PosetMap =
   dom :: "'a Poset"
   cod :: "'b Poset"
 
-lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
-  apply (rule PosetMap.equality, assumption)
-    apply (assumption)
-   apply (assumption)
-  by simp
-
-
 definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 997) where
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
@@ -36,22 +29,14 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
   let
       le_dom = le (dom f);
       le_cod = le (cod f);
-      welldefined  = valid (dom f) \<and> valid (cod f);
-      dom = el (dom f);
-      cod = el (cod f);
-      welldefined' = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom \<and> b \<in> cod);
+      edom = el (dom f);
+      ecod = el (cod f);
+      welldefined = valid (dom f) \<and> valid (cod f) \<and> (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> edom \<and> b \<in> ecod);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
-      total = (\<forall>a. a \<in> dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
-      monotone = (\<forall>a a'. a \<in> dom \<and> a' \<in> dom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))
+      total = (\<forall>a. a \<in> edom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
+      monotone = (\<forall>a a'. a \<in> edom \<and> a' \<in> edom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))
 
-  in welldefined \<and> welldefined' \<and> deterministic \<and> total \<and> monotone"
-
-lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow> 
-                   (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow> 
-                   (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
-                   (\<forall>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<longrightarrow> le (cod f) (f $$ a) (f $$ a')) 
-  \<Longrightarrow> valid_map f "
-  by (clarsimp simp: valid_map_def, intro conjI, fastforce+)
+  in welldefined \<and> deterministic \<and> total \<and> monotone"
 
 definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<cdot>" 55) where
   "compose g f \<equiv>
@@ -65,6 +50,20 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 definition product :: "'a Poset \<Rightarrow> 'b Poset \<Rightarrow> ('a \<times> 'b) Poset" (infixl "\<times>\<times>" 55) where
 "product P Q \<equiv> \<lparr> el = el P \<times> el Q, le = (\<lambda>(a, b) (a', b'). le P a a' \<and> le Q b b') \<rparr>"
 
+
+definition discrete :: "'a Poset" where
+  "discrete \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x = y   \<rparr>"
+
+
+(* LEMMAS *)
+
+lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow> 
+                   (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow> 
+                   (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
+                   (\<And>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a')) 
+  \<Longrightarrow> valid_map f "
+  by (clarsimp simp: valid_map_def, intro conjI, fastforce+)
+
 lemma product_valid [simp]: "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
   unfolding valid_def product_def
   apply simp
@@ -72,11 +71,35 @@ lemma product_valid [simp]: "valid P \<Longrightarrow> valid Q \<Longrightarrow>
   apply meson
   by meson
 
-definition discrete :: "'a Poset" where
-  "discrete \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x = y   \<rparr>"
+lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
+  apply (rule PosetMap.equality, assumption)
+    apply (assumption)
+   apply (assumption)
+  by simp
 
+theorem validI :
+  fixes P :: "'A Poset"
+  assumes reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
+  assumes antisymmetry : "(\<And>x y. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow>  le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y)"
+  assumes transitivity : "(\<And>x y z. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z)"
+    shows "valid P"
+  by (smt (verit, best) antisymmetry reflexivity transitivity valid_def)
 
-(* LEMMAS *)
+(*
+theorem valid_mapI :
+  fixes f :: "('A, 'a) PosetMap"
+  defines "le_dom \<equiv> le (dom f)"
+  defines "le_cod \<equiv> le (cod f)"
+  defines "edom \<equiv> el (dom f)"
+  defines "ecod \<equiv> el (cod f)"
+  assumes welldefined : "valid (dom f) \<and> valid (cod f) \<and> (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> edom \<and> b \<in> ecod)"
+  assumes deterministic : "(\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b')"
+  assumes total : "(\<forall>a. a \<in> edom \<longrightarrow> (\<exists>b. (a, b) \<in> func f))"
+  assumes monotone : "(\<forall>a a'. a \<in> edom \<and> a' \<in> edom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))"
+  shows "valid_map f"
+  by (smt (verit) deterministic ecod_def edom_def le_cod_def le_dom_def monotone total valid_map_def welldefined)
+*)
+
 
 lemma valid_map_welldefined [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
   unfolding valid_map_def

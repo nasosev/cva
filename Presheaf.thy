@@ -1,7 +1,6 @@
 theory Presheaf
 imports Main Poset Space Function
 begin
-declare [[show_types]]
 
 record ('A, 'a) Presheaf =
   space :: "'A Space"
@@ -100,11 +99,12 @@ lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   unfolding valid_def terminal_def
   apply (simp add: Let_def)
   apply safe
-      apply (simp add: discrete_valid)
-  apply (smt (verit, best) Poset.ident_def PosetMap.select_convs(2) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
-  apply (smt (verit, ccfv_threshold) Poset.ident_def PosetMap.select_convs(3) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
-  apply (smt (verit, best) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app inclusions_def mem_Collect_eq valid_ident)
-  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(2) Space.compose_def Space.compose_valid UNIV_I const_app ident_right_neutral ident_valid inclusions_def mem_Collect_eq)
+       apply (simp_all add: discrete_valid)
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (smt (verit, del_insts) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app inclusions_def mem_Collect_eq valid_ident)
+  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
+  
 
 
 (* EXAMPLES *)
@@ -128,10 +128,12 @@ lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
   apply (simp add: ex_constant_discrete_def)
   apply (simp add: Poset.discrete_valid ex_constant_discrete_def)
       apply (simp add: ex_constant_discrete_def)
-  apply (metis Poset.ident_def PosetMap.select_convs(2) Pow_UNIV Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.Space.select_convs(1) const_app ex_constant_discrete_def ex_discrete_def iso_tuple_UNIV_I)
-    apply (metis Poset.ident_def PosetMap.select_convs(3) Pow_UNIV Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.Space.select_convs(1) const_app ex_constant_discrete_def ex_discrete_def iso_tuple_UNIV_I)
-  apply (smt (verit, best) Inclusion.select_convs(1) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.ident_def const_app ex_constant_discrete_def ex_discrete_valid inclusions_def iso_tuple_UNIV_I mem_Collect_eq valid_ident)
-  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app ex_constant_discrete_def ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
+      apply (simp add: discrete_valid)
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) UNIV_I const_app ex_constant_discrete_def inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (metis Poset.ident_def PosetMap.select_convs(3) Pow_UNIV Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.Space.select_convs(1) const_app ex_constant_discrete_def ex_discrete_def iso_tuple_UNIV_I)
+            apply (simp_all add: Space.ex_discrete_valid ex_constant_discrete_def)
+  apply (smt (verit) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app ex_discrete_valid inclusions_def mem_Collect_eq valid_ident)
+  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
 
 
 
