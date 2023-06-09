@@ -21,6 +21,13 @@ record ('a, 'b) PosetMap =
   dom :: "'a Poset"
   cod :: "'b Poset"
 
+lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
+  apply (rule PosetMap.equality, assumption)
+    apply (assumption)
+   apply (assumption)
+  by simp
+
+
 definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 997) where
 "app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
 
@@ -29,15 +36,22 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
   let
       le_dom = le (dom f);
       le_cod = le (cod f);
+      welldefined  = valid (dom f) \<and> valid (cod f);
       dom = el (dom f);
       cod = el (cod f);
-
-      welldefined = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom \<and> b \<in> cod);
+      welldefined' = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom \<and> b \<in> cod);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
       total = (\<forall>a. a \<in> dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
       monotone = (\<forall>a a'. a \<in> dom \<and> a' \<in> dom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))
 
-  in welldefined \<and> deterministic \<and> total \<and> monotone"
+  in welldefined \<and> welldefined' \<and> deterministic \<and> total \<and> monotone"
+
+lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow> 
+                   (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow> 
+                   (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
+                   (\<forall>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<longrightarrow> le (cod f) (f $$ a) (f $$ a')) 
+  \<Longrightarrow> valid_map f "
+  by (clarsimp simp: valid_map_def, intro conjI, fastforce+)
 
 definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<cdot>" 55) where
   "compose g f \<equiv>
@@ -87,8 +101,11 @@ lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longr
   by (meson fun_app valid_map_welldefined)
 
 lemma fun_ext [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f $$ a = g $$ a) \<Longrightarrow> f = g"
-  sorry
-
+  apply (rule pom_eqI; clarsimp?)
+  apply (intro set_eqI iffI; clarsimp)
+   apply (metis fun_app valid_map_deterministic valid_map_welldefined)
+  apply (metis fun_app valid_map_deterministic valid_map_welldefined)
+  done
 
 
 lemma dom_compose [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
@@ -110,18 +127,44 @@ lemma compose_total [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrig
   unfolding compose_def
   by (smt (verit, best) PosetMap.select_convs(1) fun_app fun_app2 relcomp.relcompI)
 
+lemma fun_app_iff: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f $$ a) = b"
+  apply (clarsimp simp: app_def)
+  by fastforce
 
-lemma compose_monotone [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
-  unfolding compose_def valid_map_def
+
+lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
+  apply (clarsimp simp: app_def, safe; clarsimp?)
+   apply (smt (verit, del_insts) PosetMap.select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
+  by (metis app_def fun_app valid_map_welldefined)
+
+
+lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> 
+    a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
   apply (simp_all add: Let_def)
-  apply safe
-  sorry
+  by (clarsimp simp: compose_app)
 
+lemma valid_dom[simp]: "valid_map f \<Longrightarrow> valid (dom f)"
+  apply (subst (asm) valid_map_def)
+  by (clarsimp simp: Let_unfold) 
+
+
+lemma valid_cod[simp]: "valid_map f \<Longrightarrow> valid (cod f)"
+  apply (subst (asm) valid_map_def)
+  by (clarsimp simp: Let_unfold) 
+ 
 
 lemma compose_valid [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
-  by (smt (verit) cod_compose compose_deterministic compose_monotone compose_total compose_welldefined dom_compose valid_map_def)
+  apply (rule valid_mapI; clarsimp?)
+  by (metis cod_compose compose_monotone)
 
-lemma ident_valid [simp] : "valid_map (ident P)"
+lemma comp_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
+                (b, c) \<in> func g \<Longrightarrow> (g \<cdot> f) $$ a = c"
+  apply (rule fun_app_iff)
+   apply (erule (2) compose_valid)
+  by (clarsimp simp: compose_def, erule (1) relcompI)
+
+
+lemma ident_valid [simp] : "valid P \<Longrightarrow> valid_map (ident P)"
   unfolding valid_map_def  ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   done
@@ -153,17 +196,32 @@ lemma valid_monotonicity[simp] :
   apply auto
   by meson
 
+
+lemma valid_map_dom: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f)"
+  by simp
+
 lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Longrightarrow> f \<cdot> (ident x) = f"
   unfolding compose_def ident_def
   apply (simp add: Let_def)
   apply safe
-  sorry
+  apply (rule pom_eqI; clarsimp?)
+  apply (intro set_eqI iffI; clarsimp?)
+  apply (frule (1) valid_map_welldefined)
+  apply (erule relcompI[rotated])
+  apply (clarsimp)
+  done
 
 lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
   unfolding compose_def ident_def
-  apply (simp add: Let_def  )
+   apply (simp add: Let_def)
   apply safe
-  sorry
+  apply (rule pom_eqI; clarsimp?)
+  apply (intro set_eqI iffI; clarsimp?)
+  apply (frule (1) valid_map_welldefined)
+  apply (erule relcompI)
+  apply (clarsimp)
+  done
+
 
 
 lemma discrete_valid : "valid discrete"
