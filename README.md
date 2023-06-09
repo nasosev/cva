@@ -1,7 +1,6 @@
 # cva
-Concurrent Valuation Algebras (CVAs) formalised in isabelle
+Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL
 
-Reference:
 @misc{evangelouoost2023trace,
       title={Trace models of concurrent valuation algebras}, 
       author={Nasos Evangelou-Oost and Callum Bannister and Larissa Meinicke and Ian J. Hayes},
