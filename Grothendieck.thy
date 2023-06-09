@@ -82,7 +82,10 @@ lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc 
      apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subset_antisym)
     apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subsetD)
   apply (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.valid_def Space.ident_def case_prod_conv ident_app isValidGcPoset_1 mem_Collect_eq posets_valid subset_antisym)
-   using isValidGcPoset_2  Presheaf.valid_composition  Presheaf.valid_welldefined sledgehammer
+  apply (simp add: Let_def)
+  apply safe
+  apply blast
+  using isValidGcPoset_2 sledgehammer
 
     
   
