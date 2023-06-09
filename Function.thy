@@ -42,14 +42,18 @@ lemma fun_app [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrighta
 lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
-lemma fun_ext [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
+lemma fun_ext: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
   unfolding  dom_def 
-  apply (simp_all add: Let_def app_def)
+  apply (simp_all add: Let_def)
   apply auto
-  oops
+  apply (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
+  by (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
 
-  
-  
+lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> f = g"
+  apply simp
+  apply (frule fun_ext)
+      apply auto
+  done
 
 
 lemma const_app [simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
