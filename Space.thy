@@ -43,7 +43,6 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
 lemma valid_inclusionI [simp] : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
   using valid_inclusion_def by blast
 
-
 lemma valid_ident [simp] : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> valid_inclusion (ident T A)"
   by (simp add: ident_def valid_inclusion_def)
 
@@ -55,6 +54,12 @@ lemma dom_compose [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion 
 
 lemma cod_compose [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> cod (compose j i) = cod j"
   by (simp add: compose_def)
+
+lemma compose_ident_left [simp] : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose (ident T B) i = i"
+  by (simp add: compose_def ident_def)
+
+lemma compose_ident_right [simp] : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose i (ident T A) = i"
+  by (simp add: compose_def ident_def)
 
 (* EXAMPLES *)
 

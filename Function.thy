@@ -2,7 +2,9 @@ theory Function
 imports Main
 begin
 
-(* declare [[show_types]] *)
+(* declare [[show_types]]
+  declare [[show_sorts]]
+  declare [[show_consts]] *)
 
 record ('a, 'b) Function =
   cod :: "'b set"

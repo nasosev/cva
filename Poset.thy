@@ -85,22 +85,6 @@ theorem validI :
     shows "valid P"
   by (smt (verit, best) antisymmetry reflexivity transitivity valid_def)
 
-(*
-theorem valid_mapI :
-  fixes f :: "('A, 'a) PosetMap"
-  defines "le_dom \<equiv> le (dom f)"
-  defines "le_cod \<equiv> le (cod f)"
-  defines "edom \<equiv> el (dom f)"
-  defines "ecod \<equiv> el (cod f)"
-  assumes welldefined : "valid (dom f) \<and> valid (cod f) \<and> (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> edom \<and> b \<in> ecod)"
-  assumes deterministic : "(\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b')"
-  assumes total : "(\<forall>a. a \<in> edom \<longrightarrow> (\<exists>b. (a, b) \<in> func f))"
-  assumes monotone : "(\<forall>a a'. a \<in> edom \<and> a' \<in> edom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))"
-  shows "valid_map f"
-  by (smt (verit) deterministic ecod_def edom_def le_cod_def le_dom_def monotone total valid_map_def welldefined)
-*)
-
-
 lemma valid_map_welldefined [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
   unfolding valid_map_def
   by (simp add: Let_def)
