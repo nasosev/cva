@@ -57,8 +57,7 @@ lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> do
       apply auto
   done
 
-
-lemma const_app : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
+lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
   unfolding const_def
   by (simp add: Function.dom_def app_def)
 

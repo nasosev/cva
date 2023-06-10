@@ -40,34 +40,34 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
 
 (* LEMMAS *)
 
-lemma valid_inclusionI  : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
+lemma valid_inclusionI : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
   using valid_inclusion_def by blast
 
-lemma valid_ident  : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> valid_inclusion (ident T A)"
+lemma valid_ident : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> valid_inclusion (ident T A)"
   by (simp add: ident_def valid_inclusion_def)
 
-lemma compose_valid  : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i \<Longrightarrow> valid_inclusion (compose j i)"
+lemma compose_valid : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i \<Longrightarrow> valid_inclusion (compose j i)"
   by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) compose_def dual_order.trans valid_inclusion_def)
 
-lemma dom_compose  : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> dom (compose j i) = dom i"
+lemma dom_compose [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> dom (compose j i) = dom i"
   by (simp add: compose_def)
 
-lemma cod_compose  : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> cod (compose j i) = cod j"
+lemma cod_compose [simp] : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i  \<Longrightarrow> cod (compose j i) = cod j"
   by (simp add: compose_def)
 
-lemma compose_ident_left  : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose (ident T B) i = i"
+lemma compose_ident_left [simp] : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose (ident T B) i = i"
   by (simp add: compose_def ident_def)
 
-lemma compose_ident_right  : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose i (ident T A) = i"
+lemma compose_ident_right [simp] : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose i (ident T A) = i"
   by (simp add: compose_def ident_def)
 
-lemma valid_inclusions  : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> valid_inclusion i"
+lemma valid_inclusions : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> valid_inclusion i"
   using inclusions_def by blast
 
-lemma valid_inclusion_cod  : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> A = cod i \<Longrightarrow> A \<in> opens T"
+lemma valid_inclusion_cod : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> A = cod i \<Longrightarrow> A \<in> opens T"
   by (metis (mono_tags, lifting) inclusions_def mem_Collect_eq valid_inclusion_def)
 
-lemma valid_inclusion_dom  : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> B \<in> opens T"
+lemma valid_inclusion_dom : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> B \<in> opens T"
   by (metis (mono_tags, lifting) inclusions_def mem_Collect_eq valid_inclusion_def)
 
 (* EXAMPLES *)

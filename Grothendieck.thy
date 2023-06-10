@@ -35,8 +35,6 @@ d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Lo
  Poset.le P_A a a' "
   unfolding gc_def
   by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def prod.collapse valid_identity)
- 
-
 
 lemma isValidGcPoset_1 :
   fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"
@@ -98,7 +96,6 @@ moreover have "Poset.valid_map prj_BC"
       by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def compose_app dom_proj i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
   qed
 
-
 (* THEOREM *)
 
 theorem isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
@@ -107,7 +104,7 @@ theorem isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (g
         apply  (simp_all add : Let_def)
         apply safe
          apply auto
-  oops
+
         
 
    
