@@ -111,10 +111,20 @@ lemma local_inclusion_element [simp] : "valid ova \<Longrightarrow> Aa \<in> ele
 lemma local_inclusion_domain [simp] : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> T = space ova \<Longrightarrow> A \<in> opens T"
   by (metis OVA.space_def OVA.valid_welldefined elems_def local_dom)
  
-lemma id_le_gprj :
+lemma id_le_gprj [simp] :
   fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa :: "('A, 'a) Valuation"
   shows " valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> i \<in> inclusions (space ova) \<Longrightarrow> d Aa = Space.cod i \<Longrightarrow> Aa_B = (gprj ova i Aa) 
 \<Longrightarrow> gle ova Aa Aa_B"
+  unfolding gprj_def gle_def gc_def
+  apply clarsimp
+  apply (frule valid_welldefined)
+  apply (simp_all add: Let_def d_def gc_def gle_def gprj_def)
+  apply clarsimp
+  apply (simp add: Space.ident_def[symmetric])
+  oops
+  
+
+  
  
     
    
@@ -136,7 +146,7 @@ lemma extension_left :
     l (d Bb) (prj ova i Aa) Bb \<Longrightarrow> l (d Aa) Aa (mul (\<epsilon> A) Bb)"
   apply clarsimp
   apply (simp add: mul_def)
-
+  oops
 
 
 (* THEOREMS *)
