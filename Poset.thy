@@ -87,6 +87,29 @@ theorem validI :
     shows "valid P"
   by (smt (verit, best) antisymmetry reflexivity transitivity valid_def welldefined)
 
+lemma valid_welldefined : "valid P \<Longrightarrow> le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
+  unfolding valid_def
+  by meson
+
+lemma valid_reflexivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> le P x x"
+  using valid_def by fastforce
+
+lemma valid_transitivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
+  unfolding valid_def
+  by meson
+
+lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
+  unfolding valid_def
+  by meson
+
+lemma valid_monotonicity :
+  "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> x = dom f \<Longrightarrow> y = cod f \<Longrightarrow>
+    le x a a' \<Longrightarrow> le y (f $$ a) (f $$ a')"
+  unfolding valid_map_def
+  apply safe
+  apply auto
+  by meson
+
 lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
   unfolding valid_map_def
   by (simp add: Let_def)
@@ -186,29 +209,6 @@ lemma ident_app [simp] :
   unfolding ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   by (simp add: assms)
-
-lemma valid_welldefined : "valid P \<Longrightarrow> le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
-  unfolding valid_def
-  by meson
-
-lemma valid_reflexivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> le P x x"
-  using valid_def by fastforce
-
-lemma valid_transitivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
-  unfolding valid_def
-  by meson
-
-lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
-  unfolding valid_def
-  by meson
-
-lemma valid_monotonicity :
-  "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> x = dom f \<Longrightarrow> y = cod f \<Longrightarrow>
-    le x a a' \<Longrightarrow> le y (f $$ a) (f $$ a')"
-  unfolding valid_map_def
-  apply safe
-  apply auto
-  by meson
 
 lemma valid_map_dom: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f)"
   by (meson valid_map_welldefined)
