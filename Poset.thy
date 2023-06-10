@@ -5,16 +5,21 @@ begin
 
 record 'a Poset =
   el :: "'a set"
-  le :: "'a  \<Rightarrow>  'a  \<Rightarrow> bool"
+  le_rel :: "('a \<times> 'a) set"
+
+abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
+"le P a a' \<equiv>  (a, a') \<in> le_rel P"
+
 
 definition valid :: "'a Poset   \<Rightarrow> bool" where
   "valid P \<equiv>
     let
-      reflexivity = (\<forall>x. x \<in> el P\<longrightarrow> le P x x);
-      antisymmetry = (\<forall>x y. x \<in> el P\<longrightarrow> y \<in> el P\<longrightarrow>  le P x y \<longrightarrow> le P y x \<longrightarrow> x = y);
-      transitivity = (\<forall>x y z. x \<in> el P\<longrightarrow> y \<in> el P\<longrightarrow> z \<in> el P\<longrightarrow> le P x y \<longrightarrow> le P y z \<longrightarrow> le P x z)
+      welldefined = (\<forall>x y. le P x y \<longrightarrow> x \<in> el P \<and> y \<in> el P);
+      reflexivity = (\<forall>x. x \<in> el P \<longrightarrow> le P x x);
+      antisymmetry = (\<forall>x y. x \<in> el P \<longrightarrow> y \<in> el P  \<longrightarrow> le P x y \<longrightarrow> le P y x  \<longrightarrow> x = y);
+      transitivity = (\<forall>x y z. x \<in> el P\<longrightarrow> y \<in> el P \<longrightarrow> z \<in> el P\<longrightarrow> le P x y \<longrightarrow> le P y z \<longrightarrow> le P x z)
     in
-      reflexivity \<and> antisymmetry \<and> transitivity"
+      welldefined \<and> reflexivity \<and> antisymmetry \<and> transitivity"
 
 record ('a, 'b) PosetMap =
   func ::"('a \<times>'b) set"
@@ -48,42 +53,39 @@ definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident P \<equiv> \<lparr> func = Id_on (el P), dom = P, cod = P \<rparr>"
 
 definition product :: "'a Poset \<Rightarrow> 'b Poset \<Rightarrow> ('a \<times> 'b) Poset" (infixl "\<times>\<times>" 55) where
-"product P Q \<equiv> \<lparr> el = el P \<times> el Q, le = (\<lambda>(a, b) (a', b'). le P a a' \<and> le Q b b') \<rparr>"
-
+"product P Q \<equiv> \<lparr> el = el P \<times> el Q, le_rel =
+ {(x, y). fst x \<in> el P \<and> snd x \<in> el Q \<and> fst y \<in> el P \<and> snd y \<in> el Q \<and> (fst x, fst y) \<in> le_rel P \<and> (snd x, snd y) \<in> le_rel Q} \<rparr>"
 
 definition discrete :: "'a Poset" where
-  "discrete \<equiv> \<lparr>  el = UNIV , le = \<lambda> x y . x = y   \<rparr>"
+  "discrete \<equiv> \<lparr>  el = UNIV , le_rel = {(x, x). x \<in> UNIV} \<rparr>"
+
 
 
 (* LEMMAS *)
 
-lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow> 
-                   (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow> 
+lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
+                   (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
                    (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
-                   (\<And>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a')) 
+                   (\<And>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a'))
   \<Longrightarrow> valid_map f "
   by (clarsimp simp: valid_map_def, intro conjI, fastforce+)
 
 lemma product_valid [simp]: "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
   unfolding valid_def product_def
-  apply simp
-  apply safe
-  apply meson
-  by meson
+  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD case_prodI fst_conv mem_Collect_eq mem_Sigma_iff prod.collapse snd_conv)
+
 
 lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
-  apply (rule PosetMap.equality, assumption)
-    apply (assumption)
-   apply (assumption)
   by simp
 
 theorem validI :
   fixes P :: "'A Poset"
+  assumes welldefined : "(\<And>x y. le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P)"
   assumes reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
   assumes antisymmetry : "(\<And>x y. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow>  le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y)"
   assumes transitivity : "(\<And>x y z. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z)"
     shows "valid P"
-  by (smt (verit, best) antisymmetry reflexivity transitivity valid_def)
+  by (smt (verit, best) antisymmetry reflexivity transitivity valid_def welldefined)
 
 lemma valid_map_welldefined [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
   unfolding valid_map_def
@@ -145,20 +147,20 @@ lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> 
   by (metis app_def fun_app valid_map_welldefined)
 
 
-lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> 
+lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow>
     a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
   apply (simp_all add: Let_def)
   by (clarsimp simp: compose_app)
 
 lemma valid_dom[simp]: "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
-  by (clarsimp simp: Let_unfold) 
+  by (clarsimp simp: Let_unfold)
 
 
 lemma valid_cod[simp]: "valid_map f \<Longrightarrow> valid (cod f)"
   apply (subst (asm) valid_map_def)
-  by (clarsimp simp: Let_unfold) 
- 
+  by (clarsimp simp: Let_unfold)
+
 
 lemma compose_valid [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
   apply (rule valid_mapI; clarsimp?)
@@ -184,10 +186,20 @@ lemma ident_app[simp] :
   apply ( simp add: Let_unfold Id_on_def )
   by (simp add: assms)
 
-lemma valid_reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> le P x x"
-  by (simp add: valid_def)
+lemma valid_welldefined [simp]: "valid P \<Longrightarrow> le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
+  unfolding valid_def
+  by meson
 
-lemma valid_transitivity [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
+lemma valid_reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> le P x x"
+  using valid_def by fastforce
+
+
+
+
+lemma antisym : "x \<in> el discrete \<Longrightarrow> y \<in> el discrete \<Longrightarrow> (x, y) \<in> le_rel discrete \<Longrightarrow> (y, x) \<in> le_rel discrete \<Longrightarrow> x = y"
+
+
+lemma valid_transitivity [simp]: "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
   unfolding valid_def
   by meson
 
@@ -205,7 +217,8 @@ lemma valid_monotonicity[simp] :
 
 
 lemma valid_map_dom: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f)"
-  by simp
+  by (meson valid_map_welldefined)
+  
 
 lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Longrightarrow> f \<cdot> (ident x) = f"
   unfolding compose_def ident_def
@@ -215,8 +228,8 @@ lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Lo
   apply (intro set_eqI iffI; clarsimp?)
   apply (frule (1) valid_map_welldefined)
   apply (erule relcompI[rotated])
-  apply (clarsimp)
-  done
+  by blast
+ 
 
 lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
   unfolding compose_def ident_def
@@ -226,13 +239,12 @@ lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Lon
   apply (intro set_eqI iffI; clarsimp?)
   apply (frule (1) valid_map_welldefined)
   apply (erule relcompI)
-  apply (clarsimp)
-  done
+  by blast
 
 
 
 lemma discrete_valid : "valid discrete"
-  by (smt (verit) Poset.Poset.select_convs(2) discrete_def valid_def)
+
 
 (* EXAMPLES *)
 
