@@ -1,7 +1,6 @@
 theory OrderedSemigroup
   imports Main  Poset
 begin
-declare [[show_types]]
 
 record 'a OrderedSemigroup =
   poset :: "'a Poset"

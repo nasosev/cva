@@ -100,8 +100,8 @@ lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   apply (simp add: Let_def)
   apply safe
        apply (simp_all add: discrete_valid)
-  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
-  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3) UNIV_I const_app inclusions_def mem_Collect_eq valid_inclusion_def)
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(2))
+  apply (metis (mono_tags, lifting) Poset.ident_def PosetMap.select_convs(3))
   apply (smt (verit, del_insts) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app inclusions_def mem_Collect_eq valid_ident)
   by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
   

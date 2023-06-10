@@ -1,7 +1,7 @@
 theory OVA
 imports Main Presheaf OrderedSemigroup Grothendieck Poset
 begin
-declare [[show_types]]
+
 
 type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
 
@@ -15,9 +15,6 @@ definition comb :: "('A, 'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> 
 
 definition neut :: "('A, 'a) OVA \<Rightarrow> ('A set \<Rightarrow> ('A, 'a) Valuation)" where
 "neut ova  = (\<lambda> A. (A, (Presheaf.nat (neutral ova) $ A) $$ ()))"
-
-definition d :: "('A, 'a) Valuation \<Rightarrow> 'A set" where
-"d Aa = fst Aa"
 
 definition space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space ova = Presheaf.space (presheaf ova)"
@@ -107,30 +104,21 @@ lemma valid_comb_law_right [simp] :
   apply safe
   by presburger
 
-lemma domain [simp] : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = snd Aa \<Longrightarrow> a \<in> el (ob (presheaf ova) $ A)"
-  apply (frule valid_welldefined)
-  apply clarsimp
-  apply (simp_all add: Let_def)
-  apply auto
-  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD d_def elems_def gc_def)
+lemma local_inclusion_element [simp] : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = snd Aa 
+\<Longrightarrow> \<Phi> = (presheaf ova) \<Longrightarrow> ob_A = ob \<Phi> $ A \<Longrightarrow> a \<in> el ob_A"
+  by (metis OVA.valid_welldefined elems_def local_elem)
 
-lemma id_le_prj :
+lemma local_inclusion_domain [simp] : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> T = space ova \<Longrightarrow> A \<in> opens T"
+  by (metis OVA.space_def OVA.valid_welldefined elems_def local_dom)
+ 
+lemma id_le_gprj :
   fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa :: "('A, 'a) Valuation"
-  shows " valid ova \<Longrightarrow> i \<in> inclusions (space ova) \<Longrightarrow> d Aa = Space.cod i \<Longrightarrow> Aa_B = (gprj ova i Aa) 
+  shows " valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> i \<in> inclusions (space ova) \<Longrightarrow> d Aa = Space.cod i \<Longrightarrow> Aa_B = (gprj ova i Aa) 
 \<Longrightarrow> gle ova Aa Aa_B"
-  apply (simp_all add: Let_def gle_def gprj_def d_def gc_def)
-  apply (frule valid_welldefined)
-    apply (simp_all add: Let_def gc_def)
-  apply clarsimp
-apply (simp add: Space.ident_def[symmetric])
-  apply (subst Presheaf.ident_app)
-      apply auto
-    apply (metis (mono_tags, lifting) OVA.space_def inclusions_def mem_Collect_eq valid_inclusion_def)
-   apply (subst domain)
-       apply auto
+ 
+    
    
 
-    
  
 
  

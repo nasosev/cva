@@ -61,6 +61,15 @@ lemma compose_ident_left [simp] : "valid_inclusion i \<Longrightarrow> space i =
 lemma compose_ident_right [simp] : "valid_inclusion i \<Longrightarrow> space i = T \<Longrightarrow> dom i = A \<Longrightarrow> cod i = B \<Longrightarrow> compose i (ident T A) = i"
   by (simp add: compose_def ident_def)
 
+lemma valid_inclusions [simp] : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> valid_inclusion i"
+  using inclusions_def by blast
+
+lemma valid_inclusion_cod [simp] : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> A = cod i \<Longrightarrow> A \<in> opens T"
+  by (metis (mono_tags, lifting) inclusions_def mem_Collect_eq valid_inclusion_def)
+
+lemma valid_inclusion_dom [simp] : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> B \<in> opens T"
+  by (metis (mono_tags, lifting) inclusions_def mem_Collect_eq valid_inclusion_def)
+
 (* EXAMPLES *)
 
 definition ex_sierpinski :: "bool Space" where
