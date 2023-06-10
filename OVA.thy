@@ -2,7 +2,6 @@ theory OVA
 imports Main Presheaf OrderedSemigroup Grothendieck Poset
 begin
 
-
 type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
 
 record ('A, 'a) OVA =
@@ -122,18 +121,6 @@ lemma id_le_gprj :
   apply clarsimp
   apply (simp add: Space.ident_def[symmetric])
   oops
-  
-
-  
- 
-    
-   
-
- 
-
- 
-
-  
 
 lemma extension_left :
   fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa Bb :: "('A, 'a) Valuation"
@@ -147,7 +134,6 @@ lemma extension_left :
   apply clarsimp
   apply (simp add: mul_def)
   oops
-
 
 (* THEOREMS *)
 (*

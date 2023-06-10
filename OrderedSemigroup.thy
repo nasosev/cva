@@ -17,7 +17,6 @@ definition valid :: "'a OrderedSemigroup \<Rightarrow> bool" where
     mul = \<lambda> a b . (mult S) $$ (a,b);
     associative = \<forall> a b c . mul (mul a b) c = mul a (mul b c)
   in 
-    (welldefined \<and> associative)
-"
+    (welldefined \<and> associative)"
 
 end

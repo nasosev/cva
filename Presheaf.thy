@@ -131,10 +131,4 @@ lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
   apply (smt (verit) Inclusion.select_convs(1) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.ident_def UNIV_def const_app ex_constant_discrete_def ex_discrete_valid inclusions_def mem_Collect_eq valid_ident)
   by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ex_constant_discrete_def ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
 
-
-
-
-
-
-
 end

@@ -166,13 +166,11 @@ lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> 
   apply (metis app_def fun_app2)
   by (simp add: dom_compose)
 
-
 lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow>
     a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
   apply (subst (asm) valid_map_def)
   apply (clarsimp simp: Let_unfold)
   by (simp add: cod_compose compose_app fun_app2 valid_mapI valid_map_monotone)
-  
 
 lemma valid_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
@@ -203,8 +201,8 @@ lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
   done
 
 lemma ident_app [simp] :
-  fixes a :: "'a"
-  assumes "a \<in> el P"
+  fixes a :: "'a" and P :: "'a Poset"
+  assumes "valid P" and "a \<in> el P"
   shows "((ident P) $$ a) = a"
   unfolding ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )

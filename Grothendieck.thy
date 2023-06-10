@@ -13,7 +13,8 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
         opens = Space.opens space;
         el = { (A, a) .  A \<in> opens \<and> a \<in> Poset.el (\<Phi>0 $ A) };
         i = \<lambda> B A .  \<lparr> Space.Inclusion.space = space, dom = B, cod = A \<rparr>;
-        le_rel  = { ((A, a), (B, b)) . B \<subseteq> A \<and>  Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (i B A)) $$ a) b }
+        le_rel  = { ((A, a), (B, b)) . A \<in> opens \<and> B \<in> opens \<and> a \<in> Poset.el ((\<Phi>0 $ A)) \<and> b \<in> Poset.el ((\<Phi>0 $ B)) 
+                     \<and> B \<subseteq> A \<and> Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (i B A)) $$ a) b }
     in
     \<lparr> Poset.el = el, Poset.le_rel = le_rel \<rparr>"
 
@@ -34,14 +35,13 @@ lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longri
 d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a' = snd Aa' \<Longrightarrow>
  Poset.le P_A a a' "
   unfolding gc_def
-  by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def prod.collapse valid_identity)
+  by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def d_def old.prod.case posets_valid prod.exhaust_sel valid_identity)
 
 lemma valid_gc_1 :
   fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"
   assumes "valid \<Phi>" and "A \<in> opens (space \<Phi>)"
   shows "(ar \<Phi> $ (Space.ident (space \<Phi>) A)) = (Poset.ident (ob \<Phi> $ A))"
   by (simp add: assms(1) assms(2) valid_identity)
-
 
 lemma valid_gc_transitive :
   fixes \<Phi> :: "('A,'a) Presheaf" and A B C :: "'A Open" and a b c :: "'a"
@@ -96,50 +96,23 @@ moreover have "Poset.valid_map prj_BC"
       by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def compose_app dom_proj i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition)
   qed
 
-
 lemma valid_gc_welldefined : "Presheaf.valid \<Phi> \<Longrightarrow> le (gc \<Phi>) Aa Bb \<Longrightarrow> Aa \<in> el (gc \<Phi>) \<and> Bb \<in> el (gc \<Phi>)"
   unfolding gc_def
   apply (simp_all add: Let_def)
-  apply clarsimp
-  apply (subst Poset.valid_welldefined)
-    apply (frule Presheaf.posets_valid)
-     apply auto
-  oops
-
+  by clarsimp
 
 (* THEOREM *)
 
 theorem valid_gc:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
+  unfolding gc_def
 apply (intro Poset.validI)
      apply clarsimp
      apply auto
-  oops
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        apply (simp_all add: Let_def)
+  apply (metis Poset.ident_app Space.ident_def posets_valid valid_identity valid_reflexivity)
+  apply blast
+  apply auto[1]
+  apply (metis Poset.ident_app Space.ident_def posets_valid subset_antisym valid_antisymmetry valid_identity)
+  by (meson order_trans valid_gc_transitive)
 
 end
