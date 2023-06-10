@@ -12,32 +12,31 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
         space  = Presheaf.space \<Phi>;
         opens = Space.opens space;
         el = { (A, a) .  A \<in> opens \<and> a \<in> Poset.el (\<Phi>0 $ A) };
-        le  =  \<lambda>(A,a) (B,b) .
-            let
-              i = \<lparr> Space.Inclusion.space = space, dom = B, cod = A \<rparr>;
-              a_B = (\<Phi>1 $ i) $$ a;
-              le_B = Poset.le (\<Phi>0 $ B)
-            in  B \<subseteq> A \<and> le_B a_B b
+        i = \<lambda> B A .  \<lparr> Space.Inclusion.space = space, dom = B, cod = A \<rparr>;
+        le_rel  = { ((A, a), (B, b)) . B \<subseteq> A \<and>  Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (i B A)) $$ a) b }
     in
-    \<lparr> Poset.el = el, Poset.le = le \<rparr>"
+    \<lparr> Poset.el = el, Poset.le_rel = le_rel \<rparr>"
 
 definition d :: "('A set \<times> 'a)  \<Rightarrow> 'A set" where
 "d Aa = fst Aa"
 
 (* LEMMAS *)
 
-lemma local_dom [simp] : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa 
+lemma local_dom  : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa 
 \<Longrightarrow> T = Presheaf.space \<Phi>  \<Longrightarrow>  A \<in> opens T"
   by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD d_def gc_def)
 
-lemma local_elem [simp] : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa 
+lemma local_elem : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa 
 \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a \<in> Poset.el P_A"
   by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD d_def gc_def)
 
-lemma local_le [simp] : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Aa' \<in> Poset.el P \<Longrightarrow>
+lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Aa' \<in> Poset.el P \<Longrightarrow>
 d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a' = snd Aa' \<Longrightarrow>
  Poset.le P_A a a' "
-  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def gc_def prod.collapse valid_identity)
+  unfolding gc_def
+  by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def prod.collapse valid_identity)
+ 
+
 
 lemma isValidGcPoset_1 :
   fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"

@@ -89,11 +89,9 @@ lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions
 
 lemma image [simp]: "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> a \<in> Poset.el ((ob \<Phi>) $ (Space.cod i)) \<Longrightarrow>
     (((ar \<Phi>) $ i) $$ a) \<in> Poset.el ((ob \<Phi>) $ (Space.dom i)) "
-  unfolding Presheaf.valid_def
-  apply simp
-  apply (simp add: Let_def)
-  apply safe
-  by (metis Poset.fun_app Poset.valid_map_def)
+  by (metis Poset.fun_app2 cod_proj dom_proj poset_maps_valid)
+
+
 
 lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   unfolding valid_def terminal_def
@@ -107,7 +105,8 @@ lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   
 lemma ident_app [simp] :  "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> a \<in> el obA \<Longrightarrow> 
   ar \<Phi> $ (Space.ident (space \<Phi>) A) $$ a = Poset.ident obA $$ a"
-  by simp
+  by (metis valid_identity)
+
 
 (* EXAMPLES *)
 

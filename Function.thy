@@ -38,10 +38,10 @@ lemma valid_map_deterministic [simp]: "valid_map f \<Longrightarrow> (a, b) \<in
 lemma valid_map_total [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def by (simp add: Let_def)
 
-lemma fun_app [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
+lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
   by (metis app_def theI' valid_map_deterministic valid_map_total)
 
-lemma fun_app2 [simp]: "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
+lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
 lemma fun_ext: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
