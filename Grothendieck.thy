@@ -89,14 +89,17 @@ lemma isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc 
     apply clarsimp
     apply safe
       apply auto
-      apply (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Space.ident_def case_prod_conv dual_order.refl ident_app isValidGcPoset_1 mem_Collect_eq posets_valid valid_reflexivity)
-     apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subset_antisym)
-    apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subsetD)
-  apply (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.valid_def Space.ident_def case_prod_conv ident_app isValidGcPoset_1 mem_Collect_eq posets_valid subset_antisym)
-  apply (simp add: Let_def)
+  apply (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Presheaf.ident_app Space.ident_def case_prod_conv dual_order.refl mem_Collect_eq posets_valid valid_reflexivity)
+     apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subsetD)
+    apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subset_antisym)
+  apply (smt (verit, del_insts) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Poset.valid_def Space.ident_def case_prod_conv isValidGcPoset_1 mem_Collect_eq posets_valid subset_antisym)
+apply (simp add: Let_def)
   apply safe
    apply blast
   by (simp add: isValidGcPoset_2)
+
+   
+      
 
   
 

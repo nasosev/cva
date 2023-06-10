@@ -107,6 +107,13 @@ lemma valid_comb_law_right [simp] :
   apply safe
   by presburger
 
+lemma domain [simp] : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = snd Aa \<Longrightarrow> a \<in> el (ob (presheaf ova) $ A)"
+  apply (frule valid_welldefined)
+  apply clarsimp
+  apply (simp_all add: Let_def)
+  apply auto
+  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD d_def elems_def gc_def)
+
 lemma id_le_prj :
   fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa :: "('A, 'a) Valuation"
   shows " valid ova \<Longrightarrow> i \<in> inclusions (space ova) \<Longrightarrow> d Aa = Space.cod i \<Longrightarrow> Aa_B = (gprj ova i Aa) 
@@ -116,9 +123,15 @@ lemma id_le_prj :
     apply (simp_all add: Let_def gc_def)
   apply clarsimp
 apply (simp add: Space.ident_def[symmetric])
-  apply (frule Presheaf.valid_identity[symmetric])
-    apply auto
+  apply (subst Presheaf.ident_app)
+      apply auto
+    apply (metis (mono_tags, lifting) OVA.space_def inclusions_def mem_Collect_eq valid_inclusion_def)
+   apply (subst domain)
+       apply auto
    
+
+    
+ 
 
  
 
@@ -135,7 +148,7 @@ lemma extension_left :
     l (d Bb) (prj ova i Aa) Bb \<Longrightarrow> l (d Aa) Aa (mul (\<epsilon> A) Bb)"
   apply clarsimp
   apply (simp add: mul_def)
-  oops
+
 
 
 (* THEOREMS *)
