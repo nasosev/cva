@@ -75,9 +75,9 @@ proof -
   moreover have "b \<in> el \<Phi>_B"
     using assms(20) by blast  
   moreover have "Space.valid T"
-    using T_def calculation(1) by force 
+    by (simp add: T_def calculation(1) space_valid)
   moreover have "Space.valid_inclusion i_BA"
-    by (simp add: assms(15) assms(16) assms(17) calculation(5) i_BA_def) 
+    by (simp add: assms(15) assms(16) assms(17) calculation(5) i_BA_def valid_inclusion_def)
   moreover have "Poset.valid_map prj_AB"
     using T_def \<Phi>1_def calculation(1) calculation(6) i_BA_def inclusions_def poset_maps_valid prj_AB_def by fastforce 
   moreover have "Poset.cod prj_AB = \<Phi>_B"
@@ -85,8 +85,8 @@ proof -
     moreover have "(prj_AB $$ a) \<in> el \<Phi>_B"
     by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def calculation(1) calculation(3) calculation(6) i_BA_def image inclusions_def mem_Collect_eq prj_AB_def) 
   moreover have "Space.valid_inclusion i_CB"
-    using assms(14) assms(17) assms(18) calculation(5) i_CB_def by force 
-moreover have "Poset.valid_map prj_BC"
+    by (simp add: assms(14) assms(17) assms(18) calculation(5) i_CB_def valid_inclusion_def) 
+moreover have "Poset.valid_map prj_BC" 
   using T_def \<Phi>1_def assms(11) assms(8) calculation(1) calculation(10) inclusions_def poset_maps_valid by fastforce  
   moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$  a)) (prj_BC $$  b)"
     by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def calculation(1) calculation(10) calculation(11) calculation(2) calculation(4) calculation(9) cod_proj dom_proj i_CB_def inclusions_def mem_Collect_eq prj_BC_def valid_monotonicity)
@@ -104,17 +104,11 @@ moreover have "Poset.valid_map prj_BC"
 theorem isValidGcPoset:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
   unfolding gc_def
   apply (intro Poset.validI)
-    apply clarsimp
-    apply safe
-      apply auto
-  apply (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Presheaf.ident_app Space.ident_def case_prod_conv dual_order.refl mem_Collect_eq posets_valid valid_reflexivity)
-     apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subsetD)
-    apply (metis (no_types, lifting) Poset.Poset.select_convs(2) case_prod_conv subset_antisym)
-  apply (smt (verit, del_insts) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Poset.valid_def Space.ident_def case_prod_conv isValidGcPoset_1 mem_Collect_eq posets_valid subset_antisym)
-apply (simp add: Let_def)
-  apply safe
-   apply blast
-  by (simp add: isValidGcPoset_2)
+        apply  (simp_all add : Let_def)
+        apply safe
+         apply auto
+  oops
+        
 
    
       

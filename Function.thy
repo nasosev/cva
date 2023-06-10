@@ -29,13 +29,13 @@ definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow
 
 (* LEMMAS *)
 
-lemma valid_map_welldefined [simp] : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
+lemma valid_map_welldefined  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
   unfolding valid_map_def by (simp add: Let_def)
 
-lemma valid_map_deterministic [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
+lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
   unfolding valid_map_def by (simp add: Let_def)
 
-lemma valid_map_total [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
+lemma valid_map_total  : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def by (simp add: Let_def)
 
 lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
@@ -58,11 +58,11 @@ lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> do
   done
 
 
-lemma const_app [simp]: "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
+lemma const_app : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
   unfolding const_def
   by (simp add: Function.dom_def app_def)
 
-lemma const_valid [simp] : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
+lemma const_valid  : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
   unfolding valid_map_def const_def
   by (simp add: Function.dom_def app_def)
 

@@ -61,32 +61,32 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
 
 (* LEMMAS *)
 
-lemma valid_welldefined [simp] :
+lemma valid_welldefined  :
   fixes ova :: "('A,'a) OVA"
   shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; E = neutral ova; \<epsilon> = neut ova; T = space ova; S = ordered_semigroup ova in
     Presheaf.valid \<Phi> \<and> OrderedSemigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
     Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> OrderedSemigroup.poset S = gc \<Phi>"
   by (simp add: valid_def Let_def)
 
-lemma valid_domain_law [simp] :
+lemma valid_domain_law  :
   fixes ova :: "('A,'a) OVA"
   shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; E = neutral ova; \<epsilon> = neut ova; T = space ova; S = ordered_semigroup ova; comb = comb ova; elems = elems ova in
     \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow> d (comb a b) = d a \<union> d b"
   by (simp add: valid_def Let_def)
 
-lemma valid_neutral_law_left [simp] :
+lemma valid_neutral_law_left  :
   fixes ova :: "('A,'a) OVA"
   shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; E = neutral ova; \<epsilon> = neut ova; T = space ova; S = ordered_semigroup ova; comb = comb ova; elems = elems ova in
     \<forall>A a. A \<in> opens T \<longrightarrow> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> comb (\<epsilon> A) a = a"
   by (simp add: valid_def Let_def)
 
-lemma valid_neutral_law_right [simp] :
+lemma valid_neutral_law_right  :
   fixes ova :: "('A,'a) OVA"
   shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; E = neutral ova; \<epsilon> = neut ova; T = space ova; S = ordered_semigroup ova; comb = comb ova; elems = elems ova in
     \<forall>A a. A \<in> opens T \<and> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> comb a (\<epsilon> A) = a"
   by (simp add: valid_def Let_def)
 
-lemma valid_comb_law_left [simp] :
+lemma valid_comb_law_left  :
   fixes ova :: "('A,'a) OVA"
   shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; E = neutral ova; \<epsilon> = neut ova; T = space ova; S = ordered_semigroup ova; comb = comb ova; elems = elems ova; inc = \<lambda> B A . \<lparr> Space.Inclusion.space = T, dom = B, cod = A \<rparr>; gprj = gprj ova in
     \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow>
@@ -95,7 +95,7 @@ lemma valid_comb_law_left [simp] :
   apply safe
   by presburger
 
-lemma valid_comb_law_right [simp] :
+lemma valid_comb_law_right  :
   fixes ova :: "('A,'a) OVA"
   shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; E = neutral ova; \<epsilon> = neut ova; T = space ova; S = ordered_semigroup ova; comb = comb ova; elems = elems ova; inc = \<lambda> B A . \<lparr> Space.Inclusion.space = T, dom = B, cod = A \<rparr>; gprj = gprj ova in
     \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow>

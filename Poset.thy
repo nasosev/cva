@@ -71,7 +71,7 @@ lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarr
   \<Longrightarrow> valid_map f "
   by (clarsimp simp: valid_map_def, intro conjI, fastforce+)
 
-lemma product_valid [simp]: "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
+lemma product_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
   unfolding valid_def product_def
   by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD case_prodI fst_conv mem_Collect_eq mem_Sigma_iff prod.collapse snd_conv)
 
@@ -87,19 +87,19 @@ theorem validI :
     shows "valid P"
   by (smt (verit, best) antisymmetry reflexivity transitivity valid_def welldefined)
 
-lemma valid_map_welldefined [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
+lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
   unfolding valid_map_def
   by (simp add: Let_def)
 
-lemma valid_map_deterministic [simp]: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
+lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
   unfolding valid_map_def
   by (simp add: Let_def)
 
-lemma valid_map_total [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
+lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def
   by (simp add: Let_def)
 
-lemma valid_map_monotone [simp]: "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a')"
+lemma valid_map_monotone : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a')"
   unfolding valid_map_def
   by (simp add: Let_def)
 
@@ -116,63 +116,75 @@ lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom
   apply (metis fun_app valid_map_deterministic valid_map_welldefined)
   done
 
-lemma dom_compose [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
+lemma dom_compose : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
   unfolding compose_def
   by (simp add: Let_def)
 
-lemma cod_compose [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<cdot> f) = cod g"
+lemma cod_compose : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<cdot> f) = cod g"
   unfolding compose_def
   by (simp add: Let_def)
 
-lemma compose_welldefined [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod g)"
-  unfolding compose_def
-  by auto
+lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod g)"
+  by (metis PosetMap.select_convs(1) compose_def relcomp.simps valid_map_welldefined)
 
-lemma compose_deterministic [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> (a, b') \<in> func (g \<cdot> f) \<Longrightarrow> b = b'"
+
+lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> (a, b') \<in> func (g \<cdot> f) \<Longrightarrow> b = b'"
   by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) compose_def relcomp.simps valid_map_deterministic)
 
-lemma compose_total [simp]: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<cdot> f)"
+lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<cdot> f)"
   unfolding compose_def
   by (smt (verit, best) PosetMap.select_convs(1) fun_app fun_app2 relcomp.relcompI)
 
 lemma fun_app_iff: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f $$ a) = b"
-  apply (clarsimp simp: app_def)
-  by fastforce
+  by (meson fun_app valid_map_deterministic valid_map_welldefined)
 
 lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
   apply (clarsimp simp: app_def, safe; clarsimp?)
    apply (smt (verit, del_insts) PosetMap.select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
-  by (metis app_def fun_app valid_map_welldefined)
+  apply (metis app_def fun_app2)
+  by (simp add: dom_compose)
+
 
 lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow>
     a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
-  by (simp add: compose_app fun_app2)
+  apply (subst (asm) valid_map_def)
+  apply (clarsimp simp: Let_unfold)
+  by (simp add: cod_compose compose_app fun_app2 valid_mapI valid_map_monotone)
+  
 
-lemma valid_dom [simp]: "valid_map f \<Longrightarrow> valid (dom f)"
+lemma valid_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
   by (clarsimp simp: Let_unfold)
 
-lemma valid_cod [simp]: "valid_map f \<Longrightarrow> valid (cod f)"
+lemma valid_cod : "valid_map f \<Longrightarrow> valid (cod f)"
   apply (subst (asm) valid_map_def)
   by (clarsimp simp: Let_unfold)
 
-lemma compose_valid [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
+lemma compose_valid  : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
   apply (rule valid_mapI; clarsimp?)
-  by (metis cod_compose compose_monotone)
+       apply (simp add: dom_compose valid_dom)
+  apply (simp add: cod_compose valid_cod)
+  apply (simp add: cod_compose compose_welldefined dom_compose)
+  apply (simp add: compose_deterministic)
+   apply (simp add: compose_total dom_compose)
+  by (simp add: compose_monotone dom_compose)
+
+
 
 lemma comp_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
                 (b, c) \<in> func g \<Longrightarrow> (g \<cdot> f) $$ a = c"
   apply (rule fun_app_iff)
-   apply (erule (2) compose_valid)
-  by (clarsimp simp: compose_def, erule (1) relcompI)
+  apply (smt (verit) cod_compose compose_deterministic compose_monotone compose_total compose_welldefined dom_compose valid_cod valid_dom valid_mapI)
+  by (simp add: compose_def relcomp.relcompI)
 
 
-lemma ident_valid [simp] : "valid P \<Longrightarrow> valid_map (ident P)"
+
+lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
   unfolding valid_map_def  ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
   done
 
-lemma ident_app [simp] :
+lemma ident_app  :
   fixes a :: "'a"
   assumes "a \<in> el P"
   shows "((ident P) $$ a) = a"
@@ -180,22 +192,22 @@ lemma ident_app [simp] :
   apply ( simp add: Let_unfold Id_on_def )
   by (simp add: assms)
 
-lemma valid_welldefined [simp]: "valid P \<Longrightarrow> le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
+lemma valid_welldefined : "valid P \<Longrightarrow> le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
   unfolding valid_def
   by meson
 
-lemma valid_reflexivity [simp]: "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> le P x x"
+lemma valid_reflexivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> le P x x"
   using valid_def by fastforce
 
-lemma valid_transitivity [simp]: "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
+lemma valid_transitivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
   unfolding valid_def
   by meson
 
-lemma valid_antisymmetry [simp]: "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
+lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
   unfolding valid_def
   by meson
 
-lemma valid_monotonicity [simp] :
+lemma valid_monotonicity  :
   "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> x = dom f \<Longrightarrow> y = cod f \<Longrightarrow>
     le x a a' \<Longrightarrow> le y (f $$ a) (f $$ a')"
   unfolding valid_map_def
@@ -206,7 +218,7 @@ lemma valid_monotonicity [simp] :
 lemma valid_map_dom: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f)"
   by (meson valid_map_welldefined)
 
-lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Longrightarrow> f \<cdot> (ident x) = f"
+lemma ident_right_neutral  : "valid_map f \<Longrightarrow> dom f = x \<Longrightarrow> f \<cdot> (ident x) = f"
   unfolding compose_def ident_def
   apply (simp add: Let_def)
   apply safe
@@ -216,7 +228,7 @@ lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Lo
   apply (erule relcompI[rotated])
   by blast
 
-lemma ident_left_neutral [simp] : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
+lemma ident_left_neutral  : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
   unfolding compose_def ident_def
    apply (simp add: Let_def)
   apply safe
