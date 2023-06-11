@@ -10,18 +10,18 @@ record ('A, 'a) Presheaf =
 definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
   "valid \<Phi> \<equiv>
     let
-      space = (space \<Phi>);
+      T = space \<Phi>;
       \<Phi>0 = ob \<Phi>;
       \<Phi>1 = ar \<Phi>;
 
-      welldefined = (Space.valid space)
+      welldefined = (Space.valid T)
                     \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>A. A \<in> opens space \<longrightarrow> Poset.valid (\<Phi>0 $ A))
-                    \<and> (\<forall>i. i \<in> inclusions space \<longrightarrow> Poset.valid_map (\<Phi>1 $ i)
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid (\<Phi>0 $ A))
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 $ i)
                            \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
                            \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) );
-      identity = (\<forall>A. A \<in> opens space \<longrightarrow> (\<Phi>1 $ (Space.ident space A)) = Poset.ident (\<Phi>0 $ A));
-      composition = (\<forall>j i. j \<in> inclusions space \<longrightarrow> i \<in> inclusions space \<longrightarrow>
+      identity = (\<forall>A. A \<in> opens T \<longrightarrow> (\<Phi>1 $ (Space.ident T A)) = Poset.ident (\<Phi>0 $ A));
+      composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
         Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))
     in
     (welldefined \<and> identity \<and> composition)"
@@ -61,6 +61,35 @@ definition terminal :: "'A Space \<Rightarrow> ('A, unit) Presheaf" where
 
 (* LEMMAS *)
 
+(* Todo: can we prove this with meta implications?*)
+theorem validI :
+  fixes \<Phi> :: "('A,'a) Presheaf"
+  defines "T \<equiv> space \<Phi>" 
+  defines "\<Phi>0 \<equiv> ob \<Phi>"
+  defines "\<Phi>1 \<equiv> ar \<Phi>"
+  assumes welldefined : "(Space.valid T)
+                    \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid (\<Phi>0 $ A))
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 $ i)
+                           \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
+                           \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) )"
+  assumes identity : "(\<forall>A. A \<in> opens T \<longrightarrow> (\<Phi>1 $ (Space.ident T A)) = Poset.ident (\<Phi>0 $ A))"
+  assumes composition :" (\<forall> i j. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
+        Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))"
+  shows "valid \<Phi>"
+  unfolding valid_def
+  apply (simp add: Let_def)
+  apply safe
+  using T_def welldefined apply blast
+  using \<Phi>0_def welldefined apply blast
+  using \<Phi>1_def welldefined apply fastforce
+  using T_def \<Phi>0_def welldefined apply presburger
+  using T_def \<Phi>1_def welldefined apply blast
+  using T_def \<Phi>0_def \<Phi>1_def welldefined apply blast
+  using T_def \<Phi>0_def \<Phi>1_def welldefined apply blast
+  using T_def \<Phi>0_def \<Phi>1_def identity apply blast
+  using T_def \<Phi>1_def composition by blast
+
 lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>) \<and> Function.valid_map (ob \<Phi>) \<and> Function.valid_map (ar \<Phi>)"
   unfolding valid_def by (simp add: Let_def)
 
@@ -72,7 +101,7 @@ lemma valid_composition :
     ar \<Phi> $ (Space.compose j i) = (ar \<Phi> $ i) \<cdot> (ar \<Phi> $ j)"
   by (metis Presheaf.valid_def)
 
-lemma ident_app [simp] :  "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> a \<in> el obA \<Longrightarrow> 
+lemma ident_app [simp] :  "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> a \<in> el obA \<Longrightarrow>
   ar \<Phi> $ (Space.ident (space \<Phi>) A) $$ a = Poset.ident obA $$ a"
   by (simp add: valid_identity)
 
@@ -117,18 +146,15 @@ definition ex_constant_discrete :: "('A, 'a) Presheaf" where
     (| space = space, ob = ob, ar = ar |)"
 
 lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
-  unfolding valid_def
-  apply (simp_all add: Let_def)
-  apply safe
-          apply (simp add: Space.ex_discrete_valid ex_constant_discrete_def)
-         apply (simp add: ex_constant_discrete_def)
-  apply (simp add: const_valid)
-        apply (simp add: const_valid ex_constant_discrete_def)
-  apply (simp add: discrete_valid ex_constant_discrete_def)
-  apply (simp add: discrete_valid ex_constant_discrete_def ident_valid)
-  apply (simp add: Poset.ident_def ex_constant_discrete_def ex_discrete_valid valid_inclusion_cod)
-  apply (simp add: Poset.ident_def ex_constant_discrete_def ex_discrete_valid valid_inclusion_dom)
-  apply (smt (verit) Inclusion.select_convs(1) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) Presheaf.Presheaf.select_convs(3) Space.ident_def UNIV_def const_app ex_constant_discrete_def ex_discrete_valid inclusions_def mem_Collect_eq valid_ident)
-  by (smt (verit, del_insts) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ex_constant_discrete_def ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
+  apply (intro validI)
+    apply safe
+          apply (simp_all add: ex_constant_discrete_def ex_discrete_valid)
+         apply (simp_all add: const_valid)
+       apply (simp_all add: discrete_valid)
+      apply (simp_all add: discrete_valid ident_valid)
+     apply (simp_all add: Poset.ident_def ex_discrete_valid valid_inclusion_cod)
+    apply (simp_all add: ex_discrete_valid valid_inclusion_dom)
+  apply (smt (verit, del_insts) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app ex_discrete_valid inclusions_def mem_Collect_eq valid_ident)
+  by (smt (verit, ccfv_threshold) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
 
 end

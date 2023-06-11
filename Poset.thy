@@ -82,7 +82,7 @@ lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> 
   by simp
 
 theorem validI :
-  fixes P :: "'A Poset"
+  fixes P :: "'a Poset"
   assumes welldefined : "(\<And>x y. le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P)"
   assumes reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
   assumes antisymmetry : "(\<And>x y. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow>  le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y)"
