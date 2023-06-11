@@ -62,9 +62,9 @@ definition terminal :: "'A Space \<Rightarrow> ('A, unit) Presheaf" where
 (* LEMMAS *)
 
 (* Todo: can we prove this with meta implications?*)
-theorem validI :
+lemma validI :
   fixes \<Phi> :: "('A,'a) Presheaf"
-  defines "T \<equiv> space \<Phi>" 
+  defines "T \<equiv> space \<Phi>"
   defines "\<Phi>0 \<equiv> ob \<Phi>"
   defines "\<Phi>1 \<equiv> ar \<Phi>"
   assumes welldefined : "(Space.valid T)
@@ -101,7 +101,75 @@ lemma valid_composition :
     ar \<Phi> $ (Space.compose j i) = (ar \<Phi> $ i) \<cdot> (ar \<Phi> $ j)"
   by (metis Presheaf.valid_def)
 
-lemma ident_app [simp] :  "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> a \<in> el obA \<Longrightarrow>
+lemma valid_mapI :
+  fixes \<phi> :: "('A,'a,'b) PresheafMap"
+  defines "T \<equiv> map_space \<phi>"
+  defines "f \<equiv> nat \<phi>"
+  defines "\<Phi> \<equiv> dom \<phi>"
+  defines "\<Phi>' \<equiv> cod \<phi>"
+  assumes welldefined : "(Space.valid T)
+                    \<and> (Function.valid_map f)
+                    \<and> valid \<Phi> \<and> valid \<Phi>'
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid_map (f $ A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.dom (f $ A) = (ob \<Phi> $ A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.cod (f $ A) = (ob \<Phi>' $ A))"
+  assumes naturality : "(\<forall>i. i \<in> inclusions T \<longrightarrow>
+          (f $ Space.dom i) \<cdot> (ar \<Phi> $ i) = (ar \<Phi>' $ i) \<cdot> (f $ Space.cod i))"
+  shows "valid_map \<phi>"
+  unfolding valid_map_def
+  apply (simp add: Let_def)
+  apply safe
+  using T_def welldefined apply blast
+  using \<Phi>_def welldefined apply blast
+  using \<Phi>'_def welldefined apply blast
+  using f_def welldefined apply blast
+  using T_def f_def welldefined apply blast
+  using T_def \<Phi>_def f_def welldefined apply presburger
+  using T_def \<Phi>'_def f_def welldefined apply presburger
+  using T_def \<Phi>'_def \<Phi>_def f_def naturality by presburger
+
+lemma valid_map_welldefined :
+  "valid_map \<phi> \<Longrightarrow> let f = nat \<phi>; \<Phi> = dom \<phi>; \<Phi>' = cod \<phi>; T = map_space \<phi> in (Space.valid T)
+                    \<and> (Function.valid_map f)
+                    \<and> valid \<Phi> \<and> valid \<Phi>'
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid_map (f $ A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.dom (f $ A) = (ob \<Phi> $ A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.cod (f $ A) = (ob \<Phi>' $ A))"
+  by (metis Presheaf.valid_map_def)
+ 
+lemma valid_map_naturality :
+  "valid_map \<phi> \<Longrightarrow> i \<in> inclusions (map_space \<phi>) \<Longrightarrow>
+    (nat \<phi> $ Space.dom i) \<cdot> (ar (dom \<phi>) $ i) = (ar (cod \<phi>) $ i) \<cdot> (nat \<phi> $ Space.cod i)"
+  unfolding valid_map_def by (simp add: Let_def)
+
+lemma valid_map_image :
+  fixes \<phi> :: "('A, 'a, 'b) PresheafMap" and A :: "'A Open" and a :: "'a"
+  defines "\<Phi>A \<equiv> Presheaf.ob (dom \<phi>) $ A"
+  defines "\<Phi>'A \<equiv> Presheaf.ob (cod \<phi>) $ A"
+  defines "f \<equiv> (nat \<phi>) $ A"
+  assumes \<phi>_valid :"valid_map \<phi>"
+  and A_open : "A \<in> Space.opens (map_space \<phi>)"
+  and a_dom : "a \<in> Poset.el \<Phi>A"
+shows " f $$ a \<in> Poset.el \<Phi>'A"
+proof -
+  have "valid_map \<phi>"
+    using \<phi>_valid by force 
+  moreover have "A \<in> Space.opens (map_space \<phi>)"
+    using A_open by blast 
+  moreover have "a \<in> Poset.el \<Phi>A"
+    using a_dom by blast 
+  moreover have "Poset.dom f = \<Phi>A"
+    by (metis A_open Presheaf.valid_map_welldefined \<Phi>A_def \<phi>_valid f_def) 
+  moreover have "Poset.valid_map f"
+    by (metis A_open Presheaf.valid_map_welldefined \<phi>_valid f_def) 
+  moreover have "Poset.cod f = \<Phi>'A"
+    by (metis A_open Presheaf.valid_map_welldefined \<Phi>'A_def \<phi>_valid f_def) 
+  ultimately show ?thesis
+    by (meson Poset.fun_app2) 
+qed
+
+lemma ident_app [simp] : 
+ "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> a \<in> el obA \<Longrightarrow>
   ar \<Phi> $ (Space.ident (space \<Phi>) A) $$ a = Poset.ident obA $$ a"
   by (simp add: valid_identity)
 

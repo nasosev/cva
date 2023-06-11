@@ -20,6 +20,8 @@ definition valid :: "'a OrderedSemigroup \<Rightarrow> bool" where
   in
     (welldefined \<and> associative)"
 
+(* LEMMAS *)
+
 lemma validI :
   fixes S :: "'a OrderedSemigroup"
   assumes welldefined : "(Poset.valid (poset S)) \<and> (Poset.valid_map (mult S)) \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"

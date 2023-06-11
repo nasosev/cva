@@ -143,6 +143,16 @@ lemma valid_comb_law_right  :
   apply safe
   by presburger
 
+lemma neutral_element : "valid ova \<Longrightarrow> A \<in> Space.opens (space ova) \<Longrightarrow> d (neut ova A) = A "
+  by (simp add: d_def neut_def)
+
+lemma neutral_local_element : "valid ova \<Longrightarrow> A \<in> Space.opens (space ova) \<Longrightarrow> \<epsilon>A = e (neut ova A) 
+\<Longrightarrow> \<Phi>A = Presheaf.ob (presheaf ova) $ A \<Longrightarrow> \<epsilon>A \<in> Poset.el \<Phi>A "
+  unfolding neut_def e_def
+  apply (simp add: valid_welldefined)
+  oops
+  
+
 lemma local_inclusion_element : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = snd Aa
 \<Longrightarrow> \<Phi> = (presheaf ova) \<Longrightarrow> ob_A = ob \<Phi> $ A \<Longrightarrow> a \<in> el ob_A"
   by (metis OVA.valid_welldefined elems_def local_elem)
@@ -209,8 +219,12 @@ proof -
     by (simp add: B_def \<open>OVA.valid ova \<and> local_le (d Bb) (gprj ova i Aa) Bb\<close>)
   moreover have "Poset.valid (\<Phi>0 A)"
     by (metis A_def OVA.space_def OVA.valid_welldefined \<Phi>0_def \<Phi>_def elems local_inclusion_domain posets_valid valid_ova)  
-  moreover have "local_le A \<epsilon>A \<epsilon>A" using Poset.valid_reflexivity 
-  (* moreover have "local_le A (mul \<epsilon>A (gprj ova i Aa)) (mul \<epsilon>A Bb)" using OrderedSemigroup.valid_monotone *)
+  moreover have "d \<epsilon>A = A"
+    by (simp add: A_def \<epsilon>A_def d_def neut_def) 
+  moreover have "local_le A \<epsilon>A \<epsilon>A" using Poset.valid_reflexivity  
+
+(*
+  moreover have "local_le A (mul \<epsilon>A (gprj ova i Aa)) (mul \<epsilon>A Bb)" using OrderedSemigroup.valid_monotone *)
     oops
 
 (* THEOREMS *)

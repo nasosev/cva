@@ -21,6 +21,9 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
 definition d :: "('A set \<times> 'a)  \<Rightarrow> 'A set" where
 "d Aa = fst Aa"
 
+definition e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
+"e Aa = snd Aa"
+
 (* LEMMAS *)
 
 lemma local_dom : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa
