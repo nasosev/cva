@@ -75,7 +75,7 @@ theorem validI :
                            \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) )"
   assumes identity : "(\<forall>A. A \<in> opens T \<longrightarrow> (\<Phi>1 $ (Space.ident T A)) = Poset.ident (\<Phi>0 $ A))"
   assumes composition :" (\<forall> i j. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
-        Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))"
+        Space.dom j = Space.cod i \<longrightarrow> (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))"
   shows "valid \<Phi>"
   unfolding valid_def
   apply (simp add: Let_def)
