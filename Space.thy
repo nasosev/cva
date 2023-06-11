@@ -37,6 +37,9 @@ definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A 
     then \<lparr> space = space j, dom = dom i, cod = cod j \<rparr>
     else undefined"
 
+definition make_inclusion :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
+"make_inclusion T B A \<equiv> \<lparr> space = T, dom = B, cod = A \<rparr>"
+
 (* LEMMAS *)
 
 lemma valid_inclusionI : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
@@ -68,6 +71,9 @@ lemma valid_inclusion_cod : "valid T \<Longrightarrow> i \<in> inclusions T \<Lo
 
 lemma valid_inclusion_dom : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> B \<in> opens T"
   by (metis (mono_tags, lifting) inclusions_def mem_Collect_eq valid_inclusion_def)
+
+lemma valid_make_inclusion : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> B \<subseteq> A \<Longrightarrow> i = make_inclusion T B A \<Longrightarrow> valid_inclusion i"
+  by (simp add: make_inclusion_def valid_inclusion_def)
 
 (* EXAMPLES *)
 

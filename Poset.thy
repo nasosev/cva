@@ -58,9 +58,12 @@ definition product :: "'a Poset \<Rightarrow> 'b Poset \<Rightarrow> ('a \<times
 definition discrete :: "'a Poset" where
   "discrete \<equiv> \<lparr>  el = UNIV , le_rel = {x. fst x = snd x} \<rparr>"
 
+(* Warning: this tuple builder syntax gives unexpected result (defines the total relation)
 definition discrete_fake :: "bool Poset" where
-  "discrete_fake \<equiv> \<lparr>  el = UNIV , le_rel = {(x,x) . x \<in> UNIV} \<rparr>"
+  "discrete_fake \<equiv> \<lparr>  el = UNIV , le_rel = {(x,x) . True} \<rparr>"
 
+value discrete_fake
+ *)
 
 (* LEMMAS *)
 

@@ -9,12 +9,12 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
     let
         \<Phi>0 = Presheaf.ob \<Phi>;
         \<Phi>1 = Presheaf.ar \<Phi>;
-        space  = Presheaf.space \<Phi>;
-        opens = Space.opens space;
+        T = Presheaf.space \<Phi>;
+        opens = Space.opens T;
         el = { (A, a) .  A \<in> opens \<and> a \<in> Poset.el (\<Phi>0 $ A) };
-        i = \<lambda> B A .  \<lparr> Space.Inclusion.space = space, dom = B, cod = A \<rparr>;
+        inc = Space.make_inclusion T;
         le_rel  = { ((A, a), (B, b)) . A \<in> opens \<and> B \<in> opens \<and> a \<in> Poset.el ((\<Phi>0 $ A)) \<and> b \<in> Poset.el ((\<Phi>0 $ B)) 
-                     \<and> B \<subseteq> A \<and> Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (i B A)) $$ a) b }
+                     \<and> B \<subseteq> A \<and> Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (inc B A)) $$ a) b }
     in
     \<lparr> Poset.el = el, Poset.le_rel = le_rel \<rparr>"
 
@@ -35,7 +35,8 @@ lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longri
 d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a' = snd Aa' \<Longrightarrow>
  Poset.le P_A a a' "
   unfolding gc_def
-  by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def d_def old.prod.case posets_valid prod.exhaust_sel valid_identity)
+  by (smt (verit, del_insts) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def make_inclusion_def posets_valid prod.collapse valid_identity)
+
 
 lemma valid_gc_1 :
   fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"
@@ -109,10 +110,10 @@ apply (intro Poset.validI)
      apply clarsimp
      apply auto
         apply (simp_all add: Let_def)
-  apply (metis Poset.ident_app Space.ident_def posets_valid valid_identity valid_reflexivity)
+  apply (metis Poset.ident_app Space.ident_def make_inclusion_def posets_valid valid_identity valid_reflexivity)
   apply blast
-  apply auto[1]
-  apply (metis Poset.ident_app Space.ident_def posets_valid subset_antisym valid_antisymmetry valid_identity)
-  by (meson order_trans valid_gc_transitive)
+    apply auto[1]
+  apply (metis Poset.ident_app Presheaf.ident_app Space.ident_def make_inclusion_def posets_valid subset_antisym valid_antisymmetry)
+  by (smt (verit, best) make_inclusion_def order_trans valid_gc_transitive)
 
 end
