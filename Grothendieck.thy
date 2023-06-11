@@ -40,7 +40,6 @@ d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Lo
   unfolding gc_def
   by (smt (verit, del_insts) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def make_inclusion_def posets_valid prod.collapse valid_identity)
 
-
 lemma valid_gc_1 :
   fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"
   assumes "valid \<Phi>" and "A \<in> opens (space \<Phi>)"
