@@ -265,13 +265,56 @@ lemma gprj_monotone : "valid ova \<Longrightarrow> i \<in> inclusions (space ova
    apply (simp add: OVA.space_def image)
   by (metis (no_types, lifting) OVA.space_def Poset.ident_app Presheaf.valid_map_welldefined image make_inclusion_ident posets_valid prj_monotone valid_identity valid_inclusion_dom)
 
-
-
-lemma stability : "valid ova \<Longrightarrow> i \<in> Space.inclusions (space ova) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
-\<Longrightarrow> \<epsilon>A = neut ova A \<Longrightarrow> \<epsilon>B = neut ova B \<Longrightarrow> \<epsilon>A_B = gprj ova i \<epsilon>A
-\<Longrightarrow> \<epsilon>A_B = \<epsilon>B"
-
-
+lemma stability:
+  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa :: "('A, 'a) Valuation"
+  defines A_def: "A \<equiv> Space.cod i"
+  defines B_def: "B \<equiv> Space.dom i"
+  defines \<epsilon>A_def: "\<epsilon>A \<equiv> neut ova A"
+  defines \<epsilon>B_def: "\<epsilon>B \<equiv> neut ova B"
+  defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> gprj ova i \<epsilon>A"
+  assumes valid_ova: "valid ova"
+  assumes i_in_space: "i \<in> Space.inclusions (space ova)"
+  shows "\<epsilon>A_B = \<epsilon>B"
+proof -
+  define "\<phi>" where "\<phi> \<equiv> neutral ova"
+  define "one" where "one \<equiv> dom \<phi>"
+  define "\<Phi>" where "\<Phi> = cod \<phi>"
+  define "f" where "f = nat \<phi>"
+  have "valid ova"
+    using valid_ova by blast 
+  moreover have "i \<in> Space.inclusions (space ova)"
+    using i_in_space by blast 
+  moreover have "\<epsilon>A = (A,  (f $ A) $$ ())"
+    by (simp add: \<epsilon>A_def \<phi>_def f_def neut_def)
+moreover have "\<epsilon>B = (B,  (f $ B) $$ ())"
+  by (simp add: \<epsilon>B_def \<phi>_def f_def neut_def) 
+  moreover have "(ar \<Phi> $ i) \<cdot> (f $ A) = (f $ B) \<cdot> (ar one $ i)"
+    by (metis A_def B_def OVA.valid_welldefined \<Phi>_def \<phi>_def f_def i_in_space one_def valid_map_naturality valid_ova) 
+  moreover have "(ar one $ i ) $$ ()  = ()"
+    by simp
+  moreover have "Poset.valid_map (nat \<phi> $ B)"
+    by (metis B_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def i_in_space valid_inclusion_dom valid_ova) 
+  moreover have "Presheaf.valid one"
+    by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def one_def valid_ova) 
+  moreover have "Space.valid_inclusion i"
+    using i_in_space inclusions_def by blast 
+  moreover have "i \<in> Space.inclusions (Presheaf.space one)"
+    by (metis OVA.valid_welldefined Presheaf.Presheaf.select_convs(1) \<phi>_def i_in_space one_def terminal_def valid_ova) 
+  moreover have v1: "Poset.valid_map  (ar one $ i)" using Presheaf.poset_maps_valid
+    using calculation(10) calculation(8) by blast
+  moreover have v2: "Poset.valid_map (f $ B)"
+    by (simp add: calculation(7) f_def)   
+  moreover have "() \<in> Poset.el (Poset.dom  (ar one $ i))" using Presheaf.terminal_value
+    by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def calculation(10) dom_proj i_in_space one_def singletonI valid_inclusion_cod valid_ova)
+moreover have "((f $ B) \<cdot> (ar one $ i)) $$ () = ((f $ B) $$ ((ar one $ i)) $$ ())" using Poset.compose_app v1 v2
+  by (metis B_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def calculation(10) calculation(13) cod_proj f_def i_in_space one_def valid_inclusion_dom valid_ova)
+  moreover have "((ar \<Phi> $ i) \<cdot> (f $ A)) $$ ()=  e \<epsilon>B"
+    by (simp add: calculation(14) calculation(4) calculation(5) e_def) 
+  moreover have "(ar \<Phi> $ i) $$ (e \<epsilon>A)=  e \<epsilon>B"
+    by (metis A_def OVA.space_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<Phi>_def \<phi>_def calculation(10) calculation(13) calculation(15) calculation(3) compose_app dom_proj e_def f_def i_in_space one_def poset_maps_valid snd_eqD valid_inclusion_cod valid_ova) 
+  ultimately show ?thesis
+    by (metis A_def B_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<Phi>_def \<epsilon>A_B_def \<epsilon>A_def \<phi>_def gprj_def neutral_element valid_inclusion_cod)
+qed
 
 (* [Remark 3, CVA] *)
 lemma laxity : "todo"

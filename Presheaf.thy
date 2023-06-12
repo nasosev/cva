@@ -139,7 +139,7 @@ lemma valid_map_welldefined :
  
 lemma valid_map_naturality :
   "valid_map \<phi> \<Longrightarrow> i \<in> inclusions (map_space \<phi>) \<Longrightarrow>
-    (nat \<phi> $ Space.dom i) \<cdot> (ar (dom \<phi>) $ i) = (ar (cod \<phi>) $ i) \<cdot> (nat \<phi> $ Space.cod i)"
+     (ar (cod \<phi>) $ i) \<cdot> (nat \<phi> $ Space.cod i) = (nat \<phi> $ Space.dom i) \<cdot> (ar (dom \<phi>) $ i)"
   unfolding valid_map_def by (simp add: Let_def)
 
 lemma valid_map_image :
@@ -192,6 +192,11 @@ lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<
     (((ar \<Phi>) $ i) $$ a) \<in> Poset.el ((ob \<Phi>) $ B) "
   by (metis Poset.fun_app2 cod_proj dom_proj poset_maps_valid)
 
+lemma prj_monotone : "Presheaf.valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
+\<Longrightarrow> \<Phi>A = Presheaf.ob \<Phi> $ A \<Longrightarrow>  \<Phi>B = Presheaf.ob \<Phi> $ B \<Longrightarrow> a \<in> Poset.el \<Phi>A \<Longrightarrow> a' \<in> Poset.el \<Phi>'A \<Longrightarrow> Poset.le \<Phi>A a a'
+ \<Longrightarrow> \<Phi>i = Presheaf.ar \<Phi> $ i \<Longrightarrow> Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
+  by (simp add: Poset.valid_welldefined cod_proj dom_proj poset_maps_valid posets_valid space_valid valid_inclusion_cod valid_monotonicity)
+
 lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   unfolding valid_def terminal_def
   apply (simp add: Let_def)
@@ -201,10 +206,12 @@ lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   apply (smt (verit) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app inclusions_def mem_Collect_eq valid_ident)
   by (smt (verit, best) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
 
-lemma prj_monotone : "Presheaf.valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
-\<Longrightarrow> \<Phi>A = Presheaf.ob \<Phi> $ A \<Longrightarrow>  \<Phi>B = Presheaf.ob \<Phi> $ B \<Longrightarrow> a \<in> Poset.el \<Phi>A \<Longrightarrow> a' \<in> Poset.el \<Phi>'A \<Longrightarrow> Poset.le \<Phi>A a a'
- \<Longrightarrow> \<Phi>i = Presheaf.ar \<Phi> $ i \<Longrightarrow> Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
-  by (simp add: Poset.valid_welldefined cod_proj dom_proj poset_maps_valid posets_valid space_valid valid_inclusion_cod valid_monotonicity)
+lemma terminal_value : "Space.valid T \<Longrightarrow> A \<in> Space.opens T \<Longrightarrow> one = terminal T \<Longrightarrow> Poset.el (ob one $ A) = {()}"
+  by (simp add: UNIV_unit discrete_def terminal_def)
+
+lemma terminal_value_proj : "Space.valid T \<Longrightarrow> i \<in> Space.inclusions T \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
+\<Longrightarrow> a \<in> Poset.el (ob one $ A) \<Longrightarrow> prj = (ar one) $ i \<Longrightarrow> prj $$ a = ()"
+  by simp
 
 (* EXAMPLES *)
 
