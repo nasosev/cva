@@ -30,8 +30,18 @@ definition gle :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('
 definition le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "le ova A a b = Poset.le (Presheaf.ob (presheaf ova) $ A) a b"
 
-definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Inclusion =>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Inclusion \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gprj ova i Aa \<equiv> if Space.cod i = d Aa then (Space.dom i, Presheaf.ar (presheaf ova) $ i $$ (e Aa)) else undefined"
+
+definition gext :: "('A,'a) OVA \<Rightarrow> 'A Inclusion \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"gext ova i Bb \<equiv> if Space.dom i = d Bb then (comb ova (neut ova (Space.cod i)) Bb) else undefined"
+
+definition gprj' :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"gprj' ova B Aa \<equiv> if B \<subseteq> d Aa then (B, Presheaf.ar (presheaf ova) $ (Space.make_inclusion (space ova) B (d Aa)) $$ (e Aa)) else undefined"
+
+definition gext' :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"gext' ova A Bb \<equiv> if d Bb \<subseteq> A then (comb ova (neut ova A) Bb) else undefined"
+
 
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid ova \<equiv>
@@ -479,11 +489,19 @@ theorem ext_prj_adjunction :
   shows "le ova (d Bb) (e (gprj ova i Aa)) (e Bb) \<longleftrightarrow> le ova (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
   using \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs inclusion mul_def valid_ova by blast
 
-
-
 (* [Theorem 1, CVA] *)
-theorem ext_functorial : "todo"
+theorem ext_functorial :
+  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and C :: "'A Open" and Cc :: "('A, 'a) Valuation"
+  assumes valid_ova : "valid ova"
+  and "C \<subseteq> B" and "B \<subseteq> A" 
+  and "d Cc = C"
+  defines "i_CB \<equiv> Space.make_inclusion (space ova) C B"
+  defines "i_BA \<equiv> Space.make_inclusion (space ova) B A"
+  defines "i_CA \<equiv> Space.make_inclusion (space ova) C A"
+  shows "gext ova i_BA (gext ova i_CB Cc) = (gext ova i_CA Cc) "
+  
+(* [Corollary 1, CVA] *)
 
-
+(* [Corollary 2, CVA] *)
 
 end
