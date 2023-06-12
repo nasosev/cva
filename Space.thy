@@ -78,6 +78,13 @@ lemma valid_make_inclusion : "valid T \<Longrightarrow> A \<in> opens T \<Longri
 lemma make_inclusion_ident : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> make_inclusion T A A = ident T A"
   by (simp add: ident_def make_inclusion_def)
 
+lemma inc_cod_sup : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<union> B = A"
+  by (meson Un_absorb2 valid_inclusion_def valid_inclusions)
+
+lemma inc_dom_inf : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<inter> B = B"
+  by (meson Int_absorb1 valid_inclusion_def valid_inclusions)
+
+
 (* EXAMPLES *)
 
 definition ex_sierpinski :: "bool Space" where

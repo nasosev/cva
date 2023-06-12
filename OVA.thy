@@ -163,6 +163,17 @@ lemma d_gprj : "valid ova \<Longrightarrow> i \<in> Space.inclusions (space ova)
  d Aa = A \<Longrightarrow>  Aa_B = gprj ova i Aa \<Longrightarrow> d Aa_B = B"
   by (simp add: d_def gprj_def)
 
+lemma gext_gext2 :
+"valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> B \<in> opens (space ova) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>  Bb \<in> elems ova \<Longrightarrow> d Bb = B
+\<Longrightarrow> i = Space.make_inclusion (space ova) B A \<Longrightarrow> gext' ova A Bb = gext ova i Bb"
+  unfolding gext'_def gext_def
+  by (simp add: make_inclusion_def)
+
+lemma gprj_gprj' : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> B \<in> opens (space ova) \<Longrightarrow> B \<subseteq> A \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> d Aa = A
+\<Longrightarrow> i = Space.make_inclusion (space ova) B A \<Longrightarrow> gprj' ova B Aa = gprj ova i Aa"
+  unfolding gprj_def gprj'_def
+  by (simp add: make_inclusion_def)
+  
 lemma neutral_element : "valid ova \<Longrightarrow> A \<in> Space.opens (space ova) \<Longrightarrow> d (neut ova A) = A "
   by (simp add: d_def neut_def)
 
@@ -199,10 +210,8 @@ lemma neutral_local_element :
   and domain : "A \<in> opens (space ova)"
 shows " e \<epsilon>A \<in> Poset.el \<Phi>A"
 proof -
-  have "valid ova"
-    by (simp add: valid_ova)
-  moreover have "A \<in> opens (space ova)"
-    using domain by blast
+  have "valid ova" by fact
+  moreover have "A \<in> opens (space ova)" by fact
   moreover have "Poset.valid_map (\<epsilon> $ A)"
     by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined \<epsilon>_def domain valid_ova)
   moreover have "Poset.cod (\<epsilon> $ A) = \<Phi>A"
@@ -290,10 +299,8 @@ proof -
   define "one" where "one \<equiv> dom \<phi>"
   define "\<Phi>" where "\<Phi> = cod \<phi>"
   define "f" where "f = nat \<phi>"
-  have "valid ova"
-    using valid_ova by blast 
-  moreover have "i \<in> Space.inclusions (space ova)"
-    using i_in_space by blast 
+  have "valid ova" by fact
+  moreover have "i \<in> Space.inclusions (space ova)" by fact
   moreover have "\<epsilon>A = (A,  (f $ A) $$ ())"
     by (simp add: \<epsilon>A_def \<phi>_def f_def neut_def)
 moreover have "\<epsilon>B = (B,  (f $ B) $$ ())"
@@ -493,15 +500,43 @@ theorem ext_prj_adjunction :
 theorem ext_functorial :
   fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and C :: "'A Open" and Cc :: "('A, 'a) Valuation"
   assumes valid_ova : "valid ova"
+  and "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)" and "C \<in> Space.opens (space ova)" 
   and "C \<subseteq> B" and "B \<subseteq> A" 
   and "d Cc = C"
   defines "i_CB \<equiv> Space.make_inclusion (space ova) C B"
   defines "i_BA \<equiv> Space.make_inclusion (space ova) B A"
   defines "i_CA \<equiv> Space.make_inclusion (space ova) C A"
   shows "gext ova i_BA (gext ova i_CB Cc) = (gext ova i_CA Cc) "
-  
+  oops
+
 (* [Corollary 1, CVA] *)
+theorem strongly_neutral_covariance :
+  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion"  
+  assumes valid_ova : "valid ova"
+  and valid_inc : "Space.valid_inclusion i"
+  and strongly_neutral: "\<forall> A B . comb ova (neut ova A) (neut ova B) = neut ova (A \<union> B)"
+defines "B \<equiv> Space.dom i"
+  and "A \<equiv> Space.cod i"
+shows "gext ova i (neut ova B) = neut ova A "
+  by (metis A_def B_def Un_absorb2 d_def fst_conv gext_def neut_def strongly_neutral valid_inc valid_inclusion_def)
 
 (* [Corollary 2, CVA] *)
+theorem ext_prj_id :
+  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion"  and Bb :: "('A, 'a) Valuation"
+  assumes valid_ova : "valid ova"
+  and valid_inc : "Space.valid_inclusion i"
+  and dom : "d Bb = Space.dom i"
+  defines "B \<equiv> Space.dom i" and "A \<equiv> Space.cod i"
+  shows "gprj ova i (gext ova i Bb) = Bb"
+proof -
+  have "valid ova" by fact 
+  moreover have "Space.valid_inclusion i" by fact 
+  moreover have "d Bb = B"
+    by (simp add: B_def dom) 
+  moreover have "gprj ova i (gext ova i Bb) = gprj ova i (comb ova (neut ova A) Bb)"
+    by (simp add: A_def dom gext_def) 
+  moreover have "... =  comb ova (gprj' ova (A \<inter> B) (neut ova A)) Bb"   
+
+  oops
 
 end
