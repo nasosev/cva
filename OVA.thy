@@ -149,6 +149,10 @@ lemma valid_comb_law_right  :
   apply safe
   by presburger
 
+lemma d_gprj : "valid ova \<Longrightarrow> i \<in> Space.inclusions (space ova) \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow>
+ d Aa = A \<Longrightarrow>  Aa_B = gprj ova i Aa \<Longrightarrow> d Aa_B = B"
+  by (simp add: d_def gprj_def)
+
 lemma neutral_element : "valid ova \<Longrightarrow> A \<in> Space.opens (space ova) \<Longrightarrow> d (neut ova A) = A "
   by (simp add: d_def neut_def)
 
@@ -230,7 +234,7 @@ lemma le_imp_gle : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Long
    apply (metis OVA.space_def)
   by (metis (no_types, lifting) OVA.space_def Poset.ident_app Presheaf.valid_welldefined make_inclusion_ident posets_valid valid_gc_1)
 
-lemma gle_imp_le : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> Aa1 \<in> elems ova
+lemma gle_imp_le : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> Aa1 \<in> elems ova \<Longrightarrow> d Aa1 = A \<Longrightarrow> d Aa2 = A
  \<Longrightarrow> Aa2 \<in> elems ova \<Longrightarrow> gle ova Aa1 Aa2 \<Longrightarrow> le ova A (e Aa1) (e Aa2)"
   unfolding local_elems_def le_def gle_def
   apply (frule valid_welldefined)
@@ -240,7 +244,7 @@ lemma gle_imp_le : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Long
   apply (simp add: gc_def)
   apply (simp_all add: Let_def)
   apply safe
-
+  by (simp add: d_def e_def make_inclusion_ident posets_valid space_valid)
 
 
 (* [Remark 3, CVA] *)
@@ -304,7 +308,7 @@ proof -
     using Aa_B_def doms elems id_le_gprj inclusion valid_ova by blast
   moreover have "Aa = mul \<epsilon>A Aa"
     by (metis \<epsilon>A_def elems local_inclusion_domain mul_def valid_neutral_law_left valid_ova)
-  moreover have "le ova B a_B b"
+  moreover have a_B_le_b : "le ova B a_B b"
     by (simp add: Aa_B_def B_def LHS a_B_def b_def)
   moreover have "Poset.valid (\<Phi>0 A)"
     by (metis A_def OVA.space_def OVA.valid_welldefined \<Phi>0_def \<Phi>_def elems local_inclusion_domain posets_valid valid_ova)
@@ -325,15 +329,25 @@ proof -
     by (metis calculation(10) calculation(11) gc_poset_def valid_reflexivity)
   moreover have "gle ova (mul \<epsilon>A Aa) (mul \<epsilon>A Aa_B)"
     by (metis (no_types, lifting) OVA.valid_welldefined Poset.valid_welldefined calculation(10) calculation(12) calculation(2) comb_def gc_poset_def gle_def mul_def valid_monotone valid_ova)
-  moreover have "gle ova Aa_B Bb"
+  moreover have "d Aa_B = B \<and> d Bb = B"
+    by (metis Aa_B_def B_def d_gprj doms elems inclusion valid_ova) 
+  moreover have "Aa_B = (B, a_B) \<and> Bb = (B, b)"
+    by (metis a_B_def b_def calculation(14) d_def e_def prod.collapse) 
+  moreover have "gle ova Aa_B Bb"  using le_imp_gle a_B_le_b
+    by (metis Aa_B_def B_def OVA.space_def OVA.valid_welldefined calculation(15) doms e_def elems gprj_def image inclusion local_elems_def local_inclusion_domain local_inclusion_element snd_conv valid_ova) 
+  moreover have "gle ova (mul \<epsilon>A Aa_B) (mul \<epsilon>A Bb)"
+    by (metis OVA.valid_welldefined calculation(12) calculation(16) combine_monotone elems_def gle_def mul_def valid_gc_welldefined valid_ova) 
+moreover have "gle ova (mul \<epsilon>A Aa) (mul \<epsilon>A Aa_B)"
+  by (simp add: calculation(13)) 
+moreover have "gle ova Aa (mul \<epsilon>A Aa_B)"
+  using calculation(13) calculation(3) by auto
+  moreover have "A \<union> B = A"
+    by (metis A_def B_def OVA.space_def OVA.valid_welldefined Presheaf.valid_welldefined Un_absorb2 doms inclusion valid_inclusion_def valid_inclusions valid_ova) 
+  moreover have "d (mul \<epsilon>A Aa_B) = A" using valid_domain_law
+    by (metis Poset.valid_welldefined calculation(10) calculation(11) calculation(14) calculation(2) calculation(20) calculation(6) elems_def gc_poset_def gle_def mul_def valid_ova) 
+  ultimately show ?thesis
+    by (metis (no_types, lifting) A_def Poset.valid_welldefined elems_def gle_def gle_imp_le local_inclusion_domain mul_def valid_domain_law valid_ova valid_transitivity)
 
-
-  oops
-(*
- moreover have "local_le A (mul \<epsilon>A (gprj ova i Aa)) (mul \<epsilon>A Bb)" using e_def local_le_def OrderedSemigroup.valid_monotone mul_def
-
-
-*)
 (* THEOREMS *)
 (*
 (* [Theorem 1, CVA] *)

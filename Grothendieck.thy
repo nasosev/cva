@@ -13,7 +13,7 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
         opens = Space.opens T;
         el = { (A, a) .  A \<in> opens \<and> a \<in> Poset.el (\<Phi>0 $ A) };
         inc = Space.make_inclusion T;
-        le_rel  = { ((A, a), (B, b)) . A \<in> opens \<and> B \<in> opens \<and> a \<in> Poset.el ((\<Phi>0 $ A)) \<and> b \<in> Poset.el ((\<Phi>0 $ B)) 
+        le_rel  = { ((A, a), (B, b)) . A \<in> opens \<and> B \<in> opens \<and> a \<in> Poset.el ((\<Phi>0 $ A)) \<and> b \<in> Poset.el ((\<Phi>0 $ B))
                      \<and> B \<subseteq> A \<and> Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (inc B A)) $$ a) b }
     in
     \<lparr> Poset.el = el, Poset.le_rel = le_rel \<rparr>"
@@ -25,7 +25,6 @@ definition e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
 "e Aa = snd Aa"
 
 (* LEMMAS *)
-
 
 lemma local_dom : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa
 \<Longrightarrow> T = Presheaf.space \<Phi>  \<Longrightarrow>  A \<in> opens T"
@@ -40,6 +39,10 @@ lemma local_elem_gc : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<L
   unfolding gc_def
   by (simp add: Let_def)
 
+lemma d_antitone : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Bb \<in> Poset.el P \<Longrightarrow>
+Poset.le P Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
+  unfolding gc_def
+  by (smt (verit) Poset.Poset.select_convs(2) case_prod_conv case_prod_unfold d_def mem_Collect_eq) 
 
 lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Aa' \<in> Poset.el P \<Longrightarrow>
 d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a' = snd Aa' \<Longrightarrow>
