@@ -201,6 +201,11 @@ lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   apply (smt (verit) Inclusion.select_convs(1) Space.ident_def UNIV_I const_app inclusions_def mem_Collect_eq valid_ident)
   by (smt (verit, best) Inclusion.select_convs(1) Poset.ident_def PosetMap.select_convs(3) Space.compose_def Space.compose_valid UNIV_I const_app discrete_valid ident_left_neutral ident_valid inclusions_def mem_Collect_eq)
 
+lemma prj_monotone : "Presheaf.valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
+\<Longrightarrow> \<Phi>A = Presheaf.ob \<Phi> $ A \<Longrightarrow>  \<Phi>B = Presheaf.ob \<Phi> $ B \<Longrightarrow> a \<in> Poset.el \<Phi>A \<Longrightarrow> a' \<in> Poset.el \<Phi>'A \<Longrightarrow> Poset.le \<Phi>A a a'
+ \<Longrightarrow> \<Phi>i = Presheaf.ar \<Phi> $ i \<Longrightarrow> Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
+  by (simp add: Poset.valid_welldefined cod_proj dom_proj poset_maps_valid posets_valid space_valid valid_inclusion_cod valid_monotonicity)
+
 (* EXAMPLES *)
 
 definition ex_constant_discrete :: "('A, 'a) Presheaf" where
