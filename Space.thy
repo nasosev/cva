@@ -75,6 +75,9 @@ lemma valid_inclusion_dom : "valid T \<Longrightarrow> i \<in> inclusions T \<Lo
 lemma valid_make_inclusion : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> B \<subseteq> A \<Longrightarrow> i = make_inclusion T B A \<Longrightarrow> valid_inclusion i"
   by (simp add: make_inclusion_def valid_inclusion_def)
 
+lemma make_inclusion_ident : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> make_inclusion T A A = ident T A"
+  by (simp add: ident_def make_inclusion_def)
+
 (* EXAMPLES *)
 
 definition ex_sierpinski :: "bool Space" where

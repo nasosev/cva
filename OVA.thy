@@ -21,8 +21,14 @@ definition space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 definition elems :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems ova = Poset.el (poset (ordered_semigroup ova))"
 
+definition local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a set" where
+"local_elems ova A = Poset.el (Presheaf.ob (presheaf ova) $ A)"
+
 definition gle :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "gle ova Aa Bb = Poset.le (OrderedSemigroup.poset (ordered_semigroup ova)) Aa Bb"
+
+definition le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
+"le ova A Aa Ab = Poset.le (Presheaf.ob (presheaf ova) $ A) Aa Ab"
 
 definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Inclusion =>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gprj ova i Aa \<equiv> if Space.cod i = d Aa then (Space.dom i, Presheaf.ar (presheaf ova) $ i $$ (e Aa)) else undefined"
@@ -167,7 +173,8 @@ proof -
   moreover have "(PresheafMap.nat (neutral ova) $ A $$ ()) \<in> Poset.el ((Presheaf.ob (presheaf ova)) $ A)"
     by (metis Poset.Poset.select_convs(1) Poset.fun_app2 UNIV_I calculation(3) calculation(4) calculation(6) discrete_def)
 ultimately show ?thesis using neut_def elems_def
-  oops
+  by (metis OVA.space_def OVA.valid_welldefined local_elem_gc)
+qed
 
 lemma neutral_local_element :
   fixes ova :: "('A,'a) OVA" and A :: "'A Open"
@@ -200,7 +207,7 @@ proof -
 
 lemma local_inclusion_element : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = e Aa
 \<Longrightarrow> \<Phi> = (presheaf ova) \<Longrightarrow> ob_A = ob \<Phi> $ A \<Longrightarrow> a \<in> el ob_A"
-  by (metis OVA.valid_welldefined elems_def local_elem e_def)
+  by (metis OVA.valid_welldefined e_def elems_def gc_elem_local)
 
 lemma local_inclusion_domain  : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> T = space ova \<Longrightarrow> A \<in> opens T"
   by (metis OVA.space_def OVA.valid_welldefined elems_def local_dom)
@@ -208,16 +215,50 @@ lemma local_inclusion_domain  : "valid ova \<Longrightarrow> Aa \<in> elems ova 
 lemma combine_monotone : "valid ova \<Longrightarrow>  Aa1 \<in> elems ova \<Longrightarrow> Aa2 \<in> elems ova \<Longrightarrow> Bb1 \<in> elems ova \<Longrightarrow> Bb2 \<in> elems ova
 \<Longrightarrow>  gle ova Aa1 Aa2 \<Longrightarrow> gle ova Bb1 Bb2 \<Longrightarrow> gle ova (comb ova Aa1 Bb1) (comb ova Aa2 Bb2)"
   unfolding gle_def comb_def
-  using Poset.valid_monotonicity
+  by (metis OVA.valid_welldefined elems_def valid_monotone)
+
+lemma le_imp_gle : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> a1 \<in> local_elems ova A
+ \<Longrightarrow> a2 \<in> local_elems ova A \<Longrightarrow> le ova A a1 a2 \<Longrightarrow> gle ova (A,a1) (A,a2)"
+  unfolding local_elems_def le_def gle_def
+  apply (frule valid_welldefined)
+  apply (simp_all add: Let_def)
+  apply safe
+  apply auto
+  apply (simp add: gc_def)
+  apply (simp_all add: Let_def)
+  apply safe
+   apply (metis OVA.space_def)
+  by (metis (no_types, lifting) OVA.space_def Poset.ident_app Presheaf.valid_welldefined make_inclusion_ident posets_valid valid_gc_1)
+
+lemma gle_imp_le : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> Aa1 \<in> elems ova
+ \<Longrightarrow> Aa2 \<in> elems ova \<Longrightarrow> gle ova Aa1 Aa2 \<Longrightarrow> le ova A (e Aa1) (e Aa2)"
+  unfolding local_elems_def le_def gle_def
+  apply (frule valid_welldefined)
+  apply (simp_all add: Let_def)
+  apply safe
+  apply auto
+  apply (simp add: gc_def)
+  apply (simp_all add: Let_def)
+  apply safe
+
+
+
+(* [Remark 3, CVA] *)
+lemma laxity : "todo"
   oops
 
 (* [Remark 3, CVA] *)
-lemma laxity : "True"
-  by simp
+lemma local_mono_imp_global : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow>  a1 \<in> local_elems ova A \<Longrightarrow>  a1' \<in> local_elems ova A
+\<Longrightarrow>  a2' \<in> local_elems ova A \<Longrightarrow>  a2' \<in> local_elems ova A \<Longrightarrow> le ova A a1 a2 \<Longrightarrow> le ova A a1' a2'
+ \<Longrightarrow> gle ova (comb ova (A,a1) (A,a1')) (comb ova (A,a2) (A,a2'))"
+  oops
+
 
 (* [Remark 3, CVA] *)
-lemma local_monotonicity : "True"
-  by simp
+lemma global_mono_imp_local : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow>  Aa1 \<in> elems ova \<Longrightarrow>  Aa1' \<in> elems ova
+\<Longrightarrow>  Aa2' \<in> elems ova \<Longrightarrow>  Aa2' \<in> elems ova \<Longrightarrow> d Aa1 = A \<Longrightarrow> d Aa1' = A \<Longrightarrow> d Aa2 = A \<Longrightarrow> d Aa2' = A \<Longrightarrow>
+gle ova Aa1 Aa2 \<Longrightarrow> gle ova Aa1' Aa2' \<Longrightarrow> le ova A (e (comb ova (A,a1) (A,a1'))) (e (comb ova (A,a2) (A,a2')))"
+  oops
 
 (* [Remark 3, CVA] *)
 lemma id_le_gprj :
@@ -249,20 +290,22 @@ lemma extension_left :
   and inclusion : "i \<in> inclusions (space ova)"
   and elems : "Aa \<in> elems ova \<and> Bb \<in> elems ova"
   and doms : "d Aa = Space.cod i \<and> d Bb = Space.dom i"
-  and LHS: "local_le (d Bb) (gprj ova i Aa) Bb"
-  shows " local_le (d Aa) Aa (mul \<epsilon>A Bb)"
+  and LHS: "le ova (d Bb) (e (gprj ova i Aa)) (e Bb)"
+  shows "le ova (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
 proof -
-  have "valid ova \<and> local_le (d Bb) (gprj ova i Aa) Bb"
+  have "valid ova \<and> le ova (d Bb) (e (gprj ova i Aa)) (e Bb)"
     by (simp add: LHS valid_ova)
   define "Aa_B" where "Aa_B \<equiv> (gprj ova i Aa)"
+  define "a_B" where "a_B \<equiv> e Aa_B"
+  define "b" where "b \<equiv> e Bb"
   define "A" where "A \<equiv> d Aa"
   define "B" where "B \<equiv> d Bb"
   moreover have "gle ova Aa Aa_B"
     using Aa_B_def doms elems id_le_gprj inclusion valid_ova by blast
   moreover have "Aa = mul \<epsilon>A Aa"
     by (metis \<epsilon>A_def elems local_inclusion_domain mul_def valid_neutral_law_left valid_ova)
-  moreover have "local_le B (gprj ova i Aa) Bb"
-    by (simp add: B_def \<open>OVA.valid ova \<and> local_le (d Bb) (gprj ova i Aa) Bb\<close>)
+  moreover have "le ova B a_B b"
+    by (simp add: Aa_B_def B_def LHS a_B_def b_def)
   moreover have "Poset.valid (\<Phi>0 A)"
     by (metis A_def OVA.space_def OVA.valid_welldefined \<Phi>0_def \<Phi>_def elems local_inclusion_domain posets_valid valid_ova)
   moreover have "d \<epsilon>A = A"
@@ -271,16 +314,26 @@ proof -
     using calculation(5) by auto
   moreover have " e \<epsilon>A \<in> Poset.el (\<Phi>0 A)"  using neutral_local_element
     using A_def \<Phi>0_def \<Phi>_def \<epsilon>A_def elems local_inclusion_domain valid_ova by blast
-  moreover have "local_le A \<epsilon>A \<epsilon>A"
-    by (simp add: calculation(5) calculation(8) local_le_def valid_reflexivity)
-  define "gc_poset" where "gc_poset = (OrderedSemigroup.poset (ordered_semigroup ova))"
+  moreover have "le ova A (e \<epsilon>A) (e \<epsilon>A)"
+    by (metis \<Phi>0_def \<Phi>_def calculation(5) calculation(8) le_def valid_reflexivity)
+    define "gc_poset" where "gc_poset = (OrderedSemigroup.poset (ordered_semigroup ova))"
   moreover have "Poset.valid gc_poset"
     by (metis OVA.valid_welldefined OrderedSemigroup.valid_welldefined gc_poset_def valid_ova)
-  moreover have "\<epsilon>A \<in> Poset.el gc_poset" using gc_poset_def valid_welldefined neutral_local_element \<epsilon>A_def neut_def
+  moreover have "\<epsilon>A \<in> Poset.el gc_poset" using gc_poset_def   \<epsilon>A_def
+    by (metis elems elems_def local_inclusion_domain neutral_is_element valid_ova)
   moreover have "gle ova \<epsilon>A \<epsilon>A" using gle_def
- moreover have "local_le A (mul \<epsilon>A (gprj ova i Aa)) (mul \<epsilon>A Bb)" using e_def local_le_def OrderedSemigroup.valid_monotone mul_def
-    oops
+    by (metis calculation(10) calculation(11) gc_poset_def valid_reflexivity)
+  moreover have "gle ova (mul \<epsilon>A Aa) (mul \<epsilon>A Aa_B)"
+    by (metis (no_types, lifting) OVA.valid_welldefined Poset.valid_welldefined calculation(10) calculation(12) calculation(2) comb_def gc_poset_def gle_def mul_def valid_monotone valid_ova)
+  moreover have "gle ova Aa_B Bb"
 
+
+  oops
+(*
+ moreover have "local_le A (mul \<epsilon>A (gprj ova i Aa)) (mul \<epsilon>A Bb)" using e_def local_le_def OrderedSemigroup.valid_monotone mul_def
+
+
+*)
 (* THEOREMS *)
 (*
 (* [Theorem 1, CVA] *)
