@@ -1,5 +1,5 @@
 theory OVA
-imports Main Presheaf OrderedSemigroup Grothendieck Poset
+  imports Main Presheaf OrderedSemigroup Grothendieck Poset
 begin
 
 type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
@@ -19,7 +19,7 @@ definition space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space ova = Presheaf.space (presheaf ova)"
 
 definition elems :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation set" where
-"elems ova = Poset.el (poset (ordered_semigroup ova))"
+"elems ova = Poset.el (OrderedSemigroup.poset (ordered_semigroup ova))"
 
 definition local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a set" where
 "local_elems ova A = Poset.el (Presheaf.ob (presheaf ova) $ A)"
@@ -30,19 +30,11 @@ definition gle :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('
 definition le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
 "le ova A a b = Poset.le (Presheaf.ob (presheaf ova) $ A) a b"
 
-(*
-definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Inclusion \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gprj ova i Aa \<equiv> if Space.cod i = d Aa then (Space.dom i, Presheaf.ar (presheaf ova) $ i $$ (e Aa)) else undefined"
+definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"gprj ova B Aa \<equiv> if B \<subseteq> d Aa \<and> B \<in> opens (space ova) then (B, Presheaf.ar (presheaf ova) $ (Space.make_inclusion (space ova) B (d Aa)) $$ (e Aa)) else undefined"
 
-definition gext :: "('A,'a) OVA \<Rightarrow> 'A Inclusion \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gext ova i Bb \<equiv> if Space.dom i = d Bb \<and> i \<in> Space.inclusions (space ova) then (comb ova (neut ova (Space.cod i)) Bb) else undefined"
-
-*)
-definition gprj' :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gprj' ova B Aa \<equiv> if B \<subseteq> d Aa \<and> B \<in> opens (space ova) then (B, Presheaf.ar (presheaf ova) $ (Space.make_inclusion (space ova) B (d Aa)) $$ (e Aa)) else undefined"
-
-definition gext' :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gext' ova A Bb \<equiv> if d Bb \<subseteq> A \<and> A \<in> opens (space ova) then (comb ova (neut ova A) Bb) else undefined"
+definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"gext ova A Bb \<equiv> if d Bb \<subseteq> A \<and> A \<in> opens (space ova) then (comb ova (neut ova A) Bb) else undefined"
 
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid ova \<equiv>
@@ -52,9 +44,9 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
         \<epsilon> = neut ova;
         T = space ova;
         S = ordered_semigroup ova;
-        comb = comb ova;
+        mul = comb ova; 
         elems = elems ova;
-        pr = gprj' ova;
+        pr = gprj ova;
 
         welldefined = Presheaf.valid \<Phi>
                       \<and> OrderedSemigroup.valid S
@@ -64,13 +56,13 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
                       \<and> Presheaf.dom E = Presheaf.terminal T
                       \<and> OrderedSemigroup.poset S = gc \<Phi>;
 
-        domain_law = \<forall> Aa Bb. Aa \<in> elems \<longrightarrow> Bb \<in> elems \<longrightarrow> d (comb Aa Bb) = d Aa \<union> d Bb;
-        neutral_law_left = (\<forall>A Aa. A \<in> opens T \<longrightarrow> Aa \<in> elems \<longrightarrow> d Aa = A \<longrightarrow> comb (\<epsilon> A) Aa = Aa);
-        neutral_law_right = (\<forall>A Aa. A \<in> opens T \<and> Aa \<in> elems \<longrightarrow> d Aa = A \<longrightarrow> comb Aa (\<epsilon> A) = Aa);
+        domain_law = \<forall> Aa Bb. Aa \<in> elems \<longrightarrow> Bb \<in> elems \<longrightarrow> d (mul Aa Bb) = d Aa \<union> d Bb;
+        neutral_law_left = (\<forall>A Aa. A \<in> opens T \<longrightarrow> Aa \<in> elems \<longrightarrow> d Aa = A \<longrightarrow> mul (\<epsilon> A) Aa = Aa);
+        neutral_law_right = (\<forall>A Aa. A \<in> opens T \<and> Aa \<in> elems \<longrightarrow> d Aa = A \<longrightarrow> mul Aa (\<epsilon> A) = Aa);
         comb_law_left = (\<forall> Aa Bb. Aa \<in> elems \<longrightarrow> Bb \<in> elems \<longrightarrow>
-             pr (d Aa) (comb Aa Bb) = comb Aa (pr (d Aa \<inter> d Bb) Bb));
+             pr (d Aa) (mul Aa Bb) = mul Aa (pr (d Aa \<inter> d Bb) Bb));
         comb_law_right = (\<forall> Aa Bb. Aa \<in> elems \<longrightarrow> Bb \<in> elems \<longrightarrow>
-             pr (d Bb) (comb Aa Bb) = comb (pr (d Aa \<inter> d Bb) Aa) Bb)
+             pr (d Bb) (mul Aa Bb) = mul (pr (d Aa \<inter> d Bb) Aa) Bb)
     in
       welldefined \<and> domain_law \<and> neutral_law_left \<and> neutral_law_right \<and> comb_law_left \<and> comb_law_right"
 
@@ -86,7 +78,7 @@ lemma validI :
   defines "S \<equiv> ordered_semigroup ova"
   defines "mul \<equiv> comb ova"
   defines "elem \<equiv> elems ova"
-  defines "pr \<equiv> gprj' ova"
+  defines "pr \<equiv> gprj ova"
   assumes welldefined : "Presheaf.valid \<Phi> \<and> OrderedSemigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
     Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> OrderedSemigroup.poset S = gc \<Phi>"
   assumes domain_law : " \<forall> Aa Bb . Aa \<in> elem \<longrightarrow> Bb \<in> elem \<longrightarrow> d (mul Aa Bb) = d Aa \<union> d Bb"
@@ -142,14 +134,14 @@ lemma valid_neutral_law_right  :
 
 lemma valid_comb_law_left  :
   fixes ova :: "('A,'a) OVA"
-  shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; T = space ova; S = ordered_semigroup ova; mul = comb ova; elems = elems ova; pr = gprj' ova in
+  shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; T = space ova; S = ordered_semigroup ova; mul = comb ova; elems = elems ova; pr = gprj ova in
     \<forall> Aa Bb. Aa \<in> elems \<longrightarrow> Bb \<in> elems \<longrightarrow>
       pr (d Aa) (mul Aa Bb) = mul Aa (pr (d Aa \<inter> d Bb) Bb)"
   by (simp add: valid_def Let_def)
 
 lemma valid_comb_law_right  :
   fixes ova :: "('A,'a) OVA"
-  shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; T = space ova; S = ordered_semigroup ova; mul = comb ova; elems = elems ova; pr = gprj' ova in
+  shows "valid ova \<Longrightarrow> let \<Phi> = presheaf ova; T = space ova; S = ordered_semigroup ova; mul = comb ova; elems = elems ova; pr = gprj ova in
     \<forall> Aa Bb. Aa \<in> elems \<longrightarrow> Bb \<in> elems \<longrightarrow>
       pr (d Bb) (mul Aa Bb) = mul (pr (d Aa \<inter> d Bb) Aa) Bb"
   by (simp add: valid_def Let_def)
@@ -211,38 +203,13 @@ proof -
 lemma d_neut : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> \<epsilon>A = neut ova A \<Longrightarrow> d \<epsilon>A = A"
   by (simp add: d_def neut_def)
 
-(*
-lemma d_gprj : "valid ova \<Longrightarrow> i \<in> Space.inclusions (space ova) \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow>
- d Aa = A \<Longrightarrow>  Aa_B = gprj ova i Aa \<Longrightarrow> d Aa_B = B"
+lemma d_gprj : "valid ova \<Longrightarrow>  Aa \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
+\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Aa = A \<Longrightarrow>  Aa_B = gprj ova B Aa \<Longrightarrow> d Aa_B = B"
   by (simp add: d_def gprj_def)
-*)
-
-lemma d_gprj' : "valid ova \<Longrightarrow>  Aa \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
-\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Aa = A \<Longrightarrow>  Aa_B = gprj' ova B Aa \<Longrightarrow> d Aa_B = B"
-  by (simp add: d_def gprj'_def)
-
-(*
-lemma d_ext : "valid ova \<Longrightarrow> i \<in> Space.inclusions (space ova) \<Longrightarrow> Bb \<in> elems ova \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow>
- d Bb = B \<Longrightarrow>  Bb__A = gext ova i Bb \<Longrightarrow> d Bb__A = A"
-  by (metis OVA.space_def OVA.valid_welldefined d_neut gext_def inc_cod_sup neutral_is_element space_valid valid_domain_law valid_inclusion_cod)
-*)
 
 lemma d_ext' : "valid ova \<Longrightarrow>  Bb \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
-\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Bb = B \<Longrightarrow>  Bb__A = gext' ova A Bb \<Longrightarrow> d Bb__A = A"
-  by (simp add: d_neut gext'_def neutral_is_element sup.order_iff valid_domain_law)
-
-(*
-lemma gext_gext2 :
-"valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> B \<in> opens (space ova) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>  Bb \<in> elems ova \<Longrightarrow> d Bb = B
-\<Longrightarrow> i = Space.make_inclusion (space ova) B A \<Longrightarrow> gext' ova A Bb = gext ova i Bb"
-  unfolding gext'_def gext_def
-  by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) OVA.space_def OVA.valid_welldefined inclusions_def make_inclusion_def mem_Collect_eq space_valid valid_make_inclusion)
-
-lemma gprj_gprj' : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow> B \<in> opens (space ova) \<Longrightarrow> B \<subseteq> A \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> d Aa = A
-\<Longrightarrow> i = Space.make_inclusion (space ova) B A \<Longrightarrow> gprj' ova B Aa = gprj ova i Aa"
-  unfolding gprj_def gprj'_def
-  by (simp add: make_inclusion_def)
-*)
+\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Bb = B \<Longrightarrow>  Bb__A = gext ova A Bb \<Longrightarrow> d Bb__A = A"
+  by (simp add: d_neut gext_def neutral_is_element sup.order_iff valid_domain_law)
 
 lemma local_inclusion_element : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = e Aa
 \<Longrightarrow> \<Phi> = (presheaf ova) \<Longrightarrow> ob_A = ob \<Phi> $ A \<Longrightarrow> a \<in> el ob_A"
@@ -285,27 +252,9 @@ lemma gle_imp_le : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Long
   apply safe
   by (simp add: d_def e_def make_inclusion_ident posets_valid space_valid)
 
-(*
-lemma gprj_monotone : "valid ova \<Longrightarrow> i \<in> inclusions (space ova) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
-\<Longrightarrow> Aa1 \<in> elems ova \<Longrightarrow> Aa2 \<in> elems ova \<Longrightarrow> d Aa1 = A \<Longrightarrow> d Aa2 = A \<Longrightarrow> gle ova Aa1 Aa2
-\<Longrightarrow> Aa1_B = gprj ova i Aa1 \<Longrightarrow> Aa2_B = gprj ova i Aa2 \<Longrightarrow> gle ova Aa1_B Aa2_B"
-  unfolding gprj_def gle_def d_def e_def
-  apply clarsimp
-  apply (frule valid_welldefined)
-  apply (simp add: Let_def gc_def)
-  apply safe
-     apply clarsimp
-  apply auto
-     apply (metis OVA.space_def space_valid valid_inclusion_dom)
-    apply (simp add: OVA.space_def image)
-   apply (simp add: OVA.space_def image)
-  by (metis (no_types, lifting) OVA.space_def Poset.ident_app Presheaf.valid_map_welldefined image make_inclusion_ident posets_valid prj_monotone valid_identity valid_inclusion_dom)
-*)
-
-
-lemma gprj'_monotone :
-  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and Aa1 :: "('A, 'a) Valuation" and Aa2 :: "('A, 'a) Valuation"
-  defines "pr \<equiv> gprj' ova"
+lemma gprj_monotone :
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"  and Aa1 Aa2 :: "('A, 'a) Valuation" 
+  defines "pr \<equiv> gprj ova"
   and "l \<equiv> gle ova"
   assumes valid_ova: "valid ova"
   and "B \<subseteq> A" and "B \<in> opens (space ova)" and "A \<in> opens (space ova)"
@@ -328,78 +277,46 @@ proof -
   moreover have "Poset.le \<Phi>B (\<Phi>i $$ (e Aa1)) (\<Phi>i $$ (e Aa2))" using Presheaf.prj_monotone
     by (metis OVA.space_def OVA.valid_welldefined \<Phi>A_def \<Phi>B_def \<Phi>i_def assms(10) assms(7) assms(9) calculation(3) calculation(4) local_inclusion_element valid_ova) 
   ultimately show ?thesis
-    by (metis OVA.space_def OVA.valid_welldefined \<Phi>i_def assms(10) assms(4) assms(5) assms(7) assms(8) assms(9) d_def gprj'_def i_def image l_def le_def le_imp_gle local_elems_def local_inclusion_element pr_def valid_ova)
-  
-(*
-lemma stability:
-  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion"
-  defines A_def: "A \<equiv> Space.cod i"
-  defines B_def: "B \<equiv> Space.dom i"
-  defines \<epsilon>A_def: "\<epsilon>A \<equiv> neut ova A"
-  defines \<epsilon>B_def: "\<epsilon>B \<equiv> neut ova B"
-  defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> gprj ova i \<epsilon>A"
-  assumes valid_ova: "valid ova"
-  assumes i_in_space: "i \<in> Space.inclusions (space ova)"
-  shows "\<epsilon>A_B = \<epsilon>B"
-proof -
-  define "\<phi>" where "\<phi> \<equiv> neutral ova"
-  define "one" where "one \<equiv> dom \<phi>"
-  define "\<Phi>" where "\<Phi> = cod \<phi>"
-  define "f" where "f = nat \<phi>"
-  have "valid ova" by fact
-  moreover have "i \<in> Space.inclusions (space ova)" by fact
-  moreover have "\<epsilon>A = (A,  (f $ A) $$ ())"
-    by (simp add: \<epsilon>A_def \<phi>_def f_def neut_def)
-moreover have "\<epsilon>B = (B,  (f $ B) $$ ())"
-  by (simp add: \<epsilon>B_def \<phi>_def f_def neut_def)
-  moreover have "(ar \<Phi> $ i) \<cdot> (f $ A) = (f $ B) \<cdot> (ar one $ i)"
-    by (metis A_def B_def OVA.valid_welldefined \<Phi>_def \<phi>_def f_def i_in_space one_def valid_map_naturality valid_ova)
-  moreover have "(ar one $ i ) $$ ()  = ()"
-    by simp
-  moreover have "Poset.valid_map (nat \<phi> $ B)"
-    by (metis B_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def i_in_space valid_inclusion_dom valid_ova)
-  moreover have "Presheaf.valid one"
-    by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def one_def valid_ova)
-  moreover have "Space.valid_inclusion i"
-    using i_in_space inclusions_def by blast
-  moreover have "i \<in> Space.inclusions (Presheaf.space one)"
-    by (metis OVA.valid_welldefined Presheaf.Presheaf.select_convs(1) \<phi>_def i_in_space one_def terminal_def valid_ova)
-  moreover have v1: "Poset.valid_map  (ar one $ i)" using Presheaf.poset_maps_valid
-    using calculation(10) calculation(8) by blast
-  moreover have v2: "Poset.valid_map (f $ B)"
-    by (simp add: calculation(7) f_def)
-  moreover have "() \<in> Poset.el (Poset.dom  (ar one $ i))" using Presheaf.terminal_value
-    by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def calculation(10) dom_proj i_in_space one_def singletonI valid_inclusion_cod valid_ova)
-moreover have "((f $ B) \<cdot> (ar one $ i)) $$ () = ((f $ B) $$ ((ar one $ i)) $$ ())" using Poset.compose_app v1 v2
-  by (metis B_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<phi>_def calculation(10) calculation(13) cod_proj f_def i_in_space one_def valid_inclusion_dom valid_ova)
-  moreover have "((ar \<Phi> $ i) \<cdot> (f $ A)) $$ ()=  e \<epsilon>B"
-    by (simp add: calculation(14) calculation(4) calculation(5) e_def)
-  moreover have "(ar \<Phi> $ i) $$ (e \<epsilon>A)=  e \<epsilon>B"
-    by (metis A_def OVA.space_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<Phi>_def \<phi>_def calculation(10) calculation(13) calculation(15) calculation(3) compose_app dom_proj e_def f_def i_in_space one_def poset_maps_valid snd_eqD valid_inclusion_cod valid_ova)
-  ultimately show ?thesis
-    by (metis A_def B_def OVA.valid_welldefined Presheaf.valid_map_welldefined \<Phi>_def \<epsilon>A_B_def \<epsilon>A_def \<phi>_def gprj_def neutral_element valid_inclusion_cod)
+    by (metis OVA.space_def OVA.valid_welldefined \<Phi>i_def assms(10) assms(4) assms(5) assms(7) assms(8) assms(9) d_def gprj_def i_def image l_def le_def le_imp_gle local_elems_def local_inclusion_element pr_def valid_ova)
 qed
-*)
 
-lemma stability':
-  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open"
+lemma stability:
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"
   assumes valid_ova: "valid ova"
   assumes "B \<subseteq> A" and "B \<in> opens (space ova)" and "A \<in> opens (space ova)"
   defines \<epsilon>A_def: "\<epsilon>A \<equiv> neut ova A"
   defines \<epsilon>B_def: "\<epsilon>B \<equiv> neut ova B"
-  defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> gprj' ova B \<epsilon>A"
+  defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> gprj ova B \<epsilon>A"
   shows "\<epsilon>A_B = \<epsilon>B"
 proof -
   define i where "i \<equiv> Space.make_inclusion (space ova) B A"
-  have "valid ova"
-    by (simp add: valid_ova)
-  moreover have "\<epsilon>A_B = gprj ova i \<epsilon>A"
-    by (metis \<epsilon>A_B_def \<epsilon>A_def assms(2) assms(3) assms(4) gprj_gprj' i_def neutral_element neutral_is_element valid_ova)
+  define "f" where "f = nat (neutral ova)"
+  define "one" where "one \<equiv> dom (neutral ova)"
+  moreover have "\<epsilon>A_B = gprj ova B \<epsilon>A"
+    by (simp add: \<epsilon>A_B_def) 
   moreover have "Space.cod i = A \<and> Space.dom i = B"
     by (simp add: i_def make_inclusion_def)
-  ultimately show ?thesis using stability
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) OVA.space_def OVA.valid_welldefined \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) i_def inclusions_def make_inclusion_def mem_Collect_eq space_valid valid_inclusion_def)
-qed
+  moreover have "i \<in> Space.inclusions (space ova)"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) OVA.space_def OVA.valid_welldefined assms(2) assms(3) assms(4) i_def inclusions_def make_inclusion_def mem_Collect_eq space_valid valid_make_inclusion valid_ova) 
+    moreover have v1: "Poset.valid_map  (Presheaf.ar one $ i)" using Presheaf.poset_maps_valid
+      by (metis OVA.valid_welldefined Presheaf.Presheaf.select_convs(1) Presheaf.valid_map_welldefined calculation(4) one_def terminal_def valid_ova) 
+      moreover have v2: "Poset.valid_map (f $ B)"
+        by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined assms(3) f_def valid_ova) 
+    moreover have "Presheaf.valid one" 
+      by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined one_def valid_ova) 
+  moreover have "(Presheaf.ar one $ i ) $$ ()  = ()"
+    by simp
+moreover have "() \<in> Poset.el (Poset.dom  (ar one $ i))" using Presheaf.terminal_value
+  by (metis (full_types) OVA.valid_welldefined Presheaf.Presheaf.select_convs(1) Presheaf.valid_map_welldefined UNIV_unit UNIV_witness calculation(1) calculation(4) dom_proj old.unit.exhaust terminal_def valid_inclusion_cod valid_ova) 
+moreover have "((f $ B) \<cdot> (ar one $ i)) $$ () = ((f $ B) $$ ((ar one $ i)) $$ ())"
+  by (metis OVA.valid_welldefined Presheaf.Presheaf.select_convs(1) Presheaf.valid_map_welldefined assms(3) calculation(3) calculation(4) calculation(9) cod_proj compose_app f_def one_def terminal_def v1 valid_ova) 
+  moreover have "((Presheaf.ar (presheaf ova) $ i) \<cdot> (f $ A)) $$ ()=  e \<epsilon>B"
+    by (metis OVA.valid_welldefined \<epsilon>B_def calculation(10) calculation(3) calculation(4) calculation(8) e_def f_def neut_def one_def snd_conv valid_map_naturality valid_ova) 
+  moreover have "e \<epsilon>A=   (f $ A) $$ ()"
+    by (simp add: \<epsilon>A_def e_def f_def neut_def)  
+  ultimately show ?thesis
+    by (smt (verit) OVA.space_def OVA.valid_welldefined Presheaf.valid_map_welldefined UNIV_unit UNIV_witness \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app dom_proj f_def gprj_def i_def neut_def neutral_element old.unit.exhaust poset_maps_valid terminal_value valid_map_naturality valid_ova) 
+  qed
 
 (* [Remark 3, CVA] *)
 lemma laxity : "todo"
@@ -409,56 +326,82 @@ lemma laxity : "todo"
 lemma local_mono_imp_global : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow>  a1 \<in> local_elems ova A \<Longrightarrow>  a1' \<in> local_elems ova A
 \<Longrightarrow>  a2' \<in> local_elems ova A \<Longrightarrow>  a2' \<in> local_elems ova A \<Longrightarrow> le ova A a1 a2 \<Longrightarrow> le ova A a1' a2'
  \<Longrightarrow> gle ova (comb ova (A,a1) (A,a1')) (comb ova (A,a2) (A,a2'))"
-  oops
-
+  by (metis OVA.space_def OVA.valid_welldefined Poset.valid_welldefined combine_monotone elems_def le_def le_imp_gle local_elem_gc local_elems_def posets_valid)
 
 (* [Remark 3 cont., CVA] *)
-lemma global_mono_imp_local : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrightarrow>  Aa1 \<in> elems ova \<Longrightarrow>  Aa1' \<in> elems ova
-\<Longrightarrow>  Aa2' \<in> elems ova \<Longrightarrow>  Aa2' \<in> elems ova \<Longrightarrow> d Aa1 = A \<Longrightarrow> d Aa1' = A \<Longrightarrow> d Aa2 = A \<Longrightarrow> d Aa2' = A \<Longrightarrow>
-gle ova Aa1 Aa2 \<Longrightarrow> gle ova Aa1' Aa2' \<Longrightarrow> le ova A (e (comb ova (A,a1) (A,a1'))) (e (comb ova (A,a2) (A,a2')))"
-  oops
+lemma global_mono_imp_local : "valid ova \<Longrightarrow> A \<in> opens (space ova) 
+\<Longrightarrow> Aa1 \<in> elems ova \<Longrightarrow>  Aa1' \<in> elems ova\<Longrightarrow>  Aa2' \<in> elems ova \<Longrightarrow>  Aa2' \<in> elems ova 
+\<Longrightarrow> d Aa1 = A \<Longrightarrow> d Aa1' = A \<Longrightarrow> d Aa2 = A \<Longrightarrow> d Aa2' = A 
+\<Longrightarrow> gle ova Aa1 Aa2 \<Longrightarrow> gle ova Aa1' Aa2' 
+\<Longrightarrow> le ova A (e (comb ova Aa1 Aa1')) (e (comb ova Aa2 Aa2'))"
+  by (smt (verit, ccfv_SIG) OVA.valid_welldefined comb_def d_neut e_def elems_def gle_def le_def local_le neutral_is_element valid_domain_law valid_gc_welldefined valid_monotone valid_neutral_law_right)
 
 (* [Remark 3 cont., CVA] *)
 lemma id_le_gprj :
-  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa :: "('A, 'a) Valuation"
-  shows " valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> i \<in> inclusions (space ova) \<Longrightarrow> d Aa = Space.cod i \<Longrightarrow> Aa_B = (gprj ova i Aa)
-\<Longrightarrow> gle ova Aa Aa_B"
-  unfolding gprj_def gle_def gc_def
-  apply clarsimp
-  apply (frule valid_welldefined)
-  apply (simp_all add: Let_def d_def gc_def gle_def gprj_def)
-  apply clarsimp
-  apply safe
-  apply (metis OVA.space_def space_valid valid_inclusion_cod)
-      apply (metis OVA.space_def space_valid valid_inclusion_dom)
-     apply (simp add: elems_def)
-    apply (simp add: OVA.space_def elems_def image)
-  apply (simp add: e_def image)
-  apply (meson Presheaf.valid_map_welldefined in_mono valid_inclusion_def valid_inclusions)
-  by (smt (verit, ccfv_SIG) Inclusion.surjective OVA.space_def Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD e_def elems_def fst_conv image inclusions_def make_inclusion_def mem_Collect_eq old.unit.exhaust posets_valid snd_conv space_valid valid_inclusion_dom valid_reflexivity)
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"  and Aa :: "('A, 'a) Valuation"
+  assumes "valid ova"
+  and  "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)"  and "B \<subseteq> A"
+  and  "Aa \<in> elems ova" and "d Aa = A"
+shows " gle ova Aa (gprj ova B Aa)"
+proof -
+  define "i" where "i = Space.make_inclusion (space ova) B (d Aa)"
+  define "\<Phi>i" where "\<Phi>i = Presheaf.ar (presheaf ova) $ i"
+  define "\<Phi>A" where "\<Phi>A = Presheaf.ob (presheaf ova) $ A"
+  define "\<Phi>B" where "\<Phi>B = Presheaf.ob (presheaf ova) $ B"
+  define "a_B" where "a_B =  \<Phi>i $$ (e Aa)"
+  have "Space.valid_inclusion i"
+    by (metis OVA.space_def OVA.valid_welldefined assms(1) assms(2) assms(3) assms(4) assms(6) i_def space_valid valid_make_inclusion) 
+  moreover have "gprj ova B Aa = (B, a_B)"
+    by (simp add: \<Phi>i_def a_B_def assms(3) assms(4) assms(6) gprj_def i_def) 
+  moreover have "Poset.valid \<Phi>B"
+    by (metis OVA.space_def OVA.valid_welldefined \<Phi>B_def assms(1) assms(3) posets_valid) 
+  moreover have "Poset.valid_map \<Phi>i" 
+    by (metis (mono_tags, lifting) Inclusion.simps(1) OVA.space_def OVA.valid_welldefined  \<Phi>i_def assms(1) calculation(1) i_def inclusions_def make_inclusion_def mem_Collect_eq poset_maps_valid ) 
+  moreover have "e Aa \<in> Poset.el \<Phi>A"
+    by (metis \<Phi>A_def assms(1) assms(5) assms(6) local_inclusion_element) 
+  moreover have "Space.cod i = A \<and> Space.dom i = B \<and> i \<in> Space.inclusions (space ova)"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) assms(6) calculation(1) i_def inclusions_def make_inclusion_def mem_Collect_eq) 
+  moreover have "a_B \<in> Poset.el \<Phi>B"
+    by (metis OVA.space_def OVA.valid_welldefined \<Phi>A_def \<Phi>B_def \<Phi>i_def a_B_def assms(1) calculation(5) calculation(6) image)  
+  moreover have "Poset.le \<Phi>B a_B a_B "
+    by (simp add: calculation(3) calculation(7) valid_reflexivity)
+  moreover have "valid ova" by fact
+  ultimately show ?thesis apply (simp add: gle_def   ) 
+    apply (frule valid_welldefined)
+    apply (simp_all add: Let_def)
+    apply (simp add: gc_def Let_def)
+    apply auto
+    apply (metis OVA.space_def assms(2) assms(6) d_def fst_conv)
+    apply (metis OVA.space_def assms(3))
+    apply (metis \<Phi>A_def assms(6) d_def e_def fst_eqD snd_eqD)
+    using \<Phi>B_def apply force
+    apply (metis assms(4) assms(6) d_def fst_conv subsetD)
+    by (metis (no_types, lifting) OVA.space_def \<Phi>B_def \<Phi>i_def a_B_def d_def e_def fst_conv i_def snd_conv)
+qed
+    
+
 
 lemma ext_prj_adjunction_lhs_imp_rhs :
-  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa Bb :: "('A, 'a) Valuation"
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open" and Aa Bb :: "('A, 'a) Valuation"
   defines "\<Phi> \<equiv> presheaf ova"
   defines "\<Phi>0 \<equiv> (\<lambda> A . (ob \<Phi>) $ A)"
   defines "mul \<equiv> comb ova"
   defines "\<epsilon>A \<equiv> neut ova (d Aa)"
   assumes valid_ova : "valid ova"
-  and inclusion : "i \<in> inclusions (space ova)"
   and elems : "Aa \<in> elems ova \<and> Bb \<in> elems ova"
-  and doms : "d Aa = Space.cod i \<and> d Bb = Space.dom i"
-  and LHS: "le ova (d Bb) (e (gprj ova i Aa)) (e Bb)"
+  and doms : "d Aa = A \<and> d Bb = B" and "B \<subseteq> A"
+  and LHS: "le ova (d Bb) (e (gprj ova B Aa)) (e Bb)"
   shows "le ova (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
 proof -
-  have "valid ova \<and> le ova (d Bb) (e (gprj ova i Aa)) (e Bb)"
+  have "valid ova \<and> le ova (d Bb) (e (gprj ova B Aa)) (e Bb)"
     by (simp add: LHS valid_ova)
-  define "Aa_B" where "Aa_B \<equiv> (gprj ova i Aa)"
+  define "Aa_B" where "Aa_B \<equiv> (gprj ova B Aa)"
   define "a_B" where "a_B \<equiv> e Aa_B"
   define "b" where "b \<equiv> e Bb"
   define "A" where "A \<equiv> d Aa"
   define "B" where "B \<equiv> d Bb"
   moreover have "gle ova Aa Aa_B"
-    using Aa_B_def doms elems id_le_gprj inclusion valid_ova by blast
+    by (metis Aa_B_def assms(8) doms elems id_le_gprj local_inclusion_domain valid_ova) 
   moreover have "Aa = mul \<epsilon>A Aa"
     by (metis \<epsilon>A_def elems local_inclusion_domain mul_def valid_neutral_law_left valid_ova)
   moreover have a_B_le_b : "le ova B a_B b"
@@ -483,11 +426,11 @@ proof -
   moreover have "gle ova (mul \<epsilon>A Aa) (mul \<epsilon>A Aa_B)"
     by (metis (no_types, lifting) OVA.valid_welldefined Poset.valid_welldefined calculation(10) calculation(12) calculation(2) comb_def gc_poset_def gle_def mul_def valid_monotone valid_ova)
   moreover have "d Aa_B = B \<and> d Bb = B"
-    by (metis Aa_B_def B_def d_gprj doms elems inclusion valid_ova)
+    by (metis Aa_B_def B_def assms(8) d_gprj doms elems local_inclusion_domain valid_ova) 
   moreover have "Aa_B = (B, a_B) \<and> Bb = (B, b)"
     by (metis a_B_def b_def calculation(14) d_def e_def prod.collapse)
-  moreover have "gle ova Aa_B Bb"  using le_imp_gle a_B_le_b
-    by (metis Aa_B_def B_def OVA.space_def OVA.valid_welldefined calculation(15) doms e_def elems gprj_def image inclusion local_elems_def local_inclusion_domain local_inclusion_element snd_conv valid_ova)
+  moreover have "gle ova Aa_B Bb"  using  a_B_le_b
+    by (metis Poset.valid_welldefined a_B_def b_def calculation(10) calculation(14) calculation(2) elems elems_def gc_poset_def gle_def le_imp_gle2 local_inclusion_domain valid_ova) 
   moreover have "gle ova (mul \<epsilon>A Aa_B) (mul \<epsilon>A Bb)"
     by (metis OVA.valid_welldefined calculation(12) calculation(16) combine_monotone elems_def gle_def mul_def valid_gc_welldefined valid_ova)
 moreover have "gle ova (mul \<epsilon>A Aa) (mul \<epsilon>A Aa_B)"
@@ -495,129 +438,118 @@ moreover have "gle ova (mul \<epsilon>A Aa) (mul \<epsilon>A Aa_B)"
 moreover have "gle ova Aa (mul \<epsilon>A Aa_B)"
   using calculation(13) calculation(3) by auto
   moreover have "A \<union> B = A"
-    by (metis A_def B_def OVA.space_def OVA.valid_welldefined Presheaf.valid_welldefined Un_absorb2 doms inclusion valid_inclusion_def valid_inclusions valid_ova)
+    by (simp add: A_def B_def Un_absorb2 assms(8) doms) 
   moreover have "d (mul \<epsilon>A Aa_B) = A" using valid_domain_law
     by (metis Poset.valid_welldefined calculation(10) calculation(11) calculation(14) calculation(2) calculation(20) calculation(6) elems_def gc_poset_def gle_def mul_def valid_ova)
   ultimately show ?thesis
-    by (metis (no_types, lifting) A_def Poset.valid_welldefined elems_def gle_def gle_imp_le local_inclusion_domain mul_def valid_domain_law valid_ova valid_transitivity)
+    by (smt (verit) A_def Poset.valid_welldefined elems_def gle_def gle_imp_le local_inclusion_domain mul_def valid_domain_law valid_ova valid_transitivity) 
 qed
 
 lemma ext_prj_adjunction_rhs_imp_lhs :
-  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa Bb :: "('A, 'a) Valuation"
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open" and Aa Bb :: "('A, 'a) Valuation"
   defines "\<Phi> \<equiv> presheaf ova"
   defines "\<Phi>0 \<equiv> (\<lambda> A . (ob \<Phi>) $ A)"
   defines "mul \<equiv> comb ova"
   defines "\<epsilon>A \<equiv> neut ova (d Aa)"
   assumes valid_ova : "valid ova"
-  and inclusion : "i \<in> inclusions (space ova)"
   and elems : "Aa \<in> elems ova \<and> Bb \<in> elems ova"
-  and doms : "d Aa = Space.cod i \<and> d Bb = Space.dom i"
+  and doms : "d Aa = A \<and> d Bb = B" 
+  and "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)" and "B \<subseteq> A"
   and RHS: "le ova (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
-shows "le ova (d Bb) (e (gprj ova i Aa)) (e Bb)"
+shows "le ova (d Bb) (e (gprj ova B Aa)) (e Bb)"
 proof -
-  define "A" where "A \<equiv> d Aa"
-  define "B" where "B \<equiv> d Bb"
   have "valid ova" and "le ova A (e Aa) (e (mul \<epsilon>A Bb))"
      apply (simp add: RHS valid_ova)
-    by (simp add: A_def RHS)
+    using RHS doms by blast 
   moreover have "A \<union> B = A"
-    by (metis A_def B_def OVA.space_def OVA.valid_welldefined Presheaf.valid_welldefined Un_absorb2 doms inclusion valid_inclusion_def valid_inclusions valid_ova)
-  moreover have" d Aa = A"
-    by (simp add: A_def)
+    using assms(10) by blast  
+    moreover have" d Aa = A"
+      using doms by fastforce 
     moreover have  "d  (mul \<epsilon>A Bb) = A"
-      by (metis A_def B_def \<epsilon>A_def calculation(3) elems local_inclusion_domain mul_def neutral_element neutral_is_element valid_domain_law valid_ova)
-    moreover have "Aa \<in> elems ova \<and> Bb \<in> elems ova"
+      by (simp add: \<epsilon>A_def assms(8) calculation(3) doms elems mul_def neutral_element neutral_is_element valid_domain_law valid_ova) 
+      moreover have "Aa \<in> elems ova \<and> Bb \<in> elems ova"
       by (simp add: elems)
     moreover have "(mul \<epsilon>A Bb) \<in> elems ova"
-      by (metis A_def OVA.space_def OVA.valid_welldefined Poset.valid_welldefined RHS calculation(5) d_def e_def elems elems_def le_def local_elem_gc local_inclusion_domain posets_valid prod.collapse valid_ova)
+      by (smt (verit) OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined \<epsilon>A_def assms(8) comb_def doms elems elems_def mul_def neutral_is_element valid_monotone valid_ova valid_reflexivity) 
     moreover have "gle ova Aa (mul \<epsilon>A Bb)" using le_imp_gle2
-      by (metis A_def RHS calculation(5) calculation(7) elems local_inclusion_domain valid_ova)
-    moreover have "gle ova (gprj ova i Aa) (gprj ova i (mul \<epsilon>A Bb))"
-      using A_def calculation(5) calculation(7) calculation(8) doms elems gprj_monotone inclusion valid_ova by blast
-    define "j" where "j \<equiv> Space.make_inclusion (space ova) (A \<inter> B) A"
-    moreover have "Space.cod i = A \<union> B \<and> Space.dom i = B"
-      using A_def B_def calculation(3) doms by auto
-    moreover have "Space.cod j = A \<and> Space.dom i = A \<inter> B"
-      by (metis Inclusion.select_convs(3) Un_Int_eq(2) calculation(10) calculation(3) j_def make_inclusion_def)
-    moreover have "gprj ova i (mul \<epsilon>A Bb) = mul (gprj ova j \<epsilon>A) Bb"  using valid_comb_law_right
-      by (smt (verit, ccfv_SIG) A_def B_def Inclusion.surjective \<epsilon>A_def calculation(11) calculation(3) calculation(5) calculation(7) doms elems gprj_gprj' inclusion inclusions_def j_def local_inclusion_domain make_inclusion_def mem_Collect_eq mul_def neutral_element neutral_is_element old.unit.exhaust sup.cobounded2 valid_ova)
+      using assms(8) calculation(2) calculation(4) calculation(5) calculation(7) elems valid_ova by blast 
+    moreover have "gle ova (gprj ova B Aa) (gprj ova B (mul \<epsilon>A Bb))"
+      using assms(10) assms(8) assms(9) calculation(5) calculation(7) calculation(8) doms elems gprj_monotone valid_ova by blast 
+    moreover have "gprj ova B (mul \<epsilon>A Bb) = mul (gprj ova (A \<inter> B) \<epsilon>A) Bb"  using valid_comb_law_right
+      by (metis \<epsilon>A_def assms(8) doms elems mul_def neutral_element neutral_is_element valid_ova) 
     define "\<epsilon>B" where "\<epsilon>B \<equiv> neut ova B"
-    moreover have "gprj ova j \<epsilon>A = \<epsilon>B"
-      by (metis (mono_tags, lifting) A_def B_def Inclusion.surjective \<epsilon>A_def \<epsilon>B_def calculation(11) doms inclusion inclusions_def j_def make_inclusion_def mem_Collect_eq old.unit.exhaust stability valid_ova)
-    moreover have "mul (gprj ova j \<epsilon>A) Bb = Bb"
-      by (metis B_def \<epsilon>B_def calculation(13) elems local_inclusion_domain mul_def valid_neutral_law_left valid_ova)
+    moreover have "gprj ova (A \<inter> B) \<epsilon>A = \<epsilon>B"
+      by (metis Un_Int_eq(2) \<epsilon>A_def \<epsilon>B_def assms(10) assms(8) assms(9) calculation(3) doms stability valid_ova) 
+    moreover have "mul (gprj ova (A \<inter> B) \<epsilon>A) Bb = Bb"
+      by (metis \<epsilon>B_def assms(9) calculation(11) doms elems mul_def valid_neutral_law_left valid_ova) 
     ultimately show ?thesis
-      by (metis OVA.valid_welldefined \<open>gle ova (gprj ova i Aa) (gprj ova i (mul \<epsilon>A Bb))\<close> \<open>gprj ova i (mul \<epsilon>A Bb) = mul (gprj ova j \<epsilon>A) Bb\<close> d_gprj elems_def gle_def gle_imp_le inclusion local_inclusion_domain valid_gc_welldefined)
+      by (metis (mono_tags, lifting) OVA.valid_welldefined \<open>gprj ova B (mul \<epsilon>A Bb) = mul (gprj ova (A \<inter> B) \<epsilon>A) Bb\<close> assms(10) assms(8) assms(9) d_gprj elems_def gle_def gle_imp_le valid_gc_welldefined)
   qed
 
 (* THEOREMS *)
 
 (* [Theorem 1, CVA] *)
 theorem ext_prj_adjunction :
-  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion" and Aa Bb :: "('A, 'a) Valuation"
+  fixes ova :: "('A,'a) OVA" and  Aa Bb :: "('A, 'a) Valuation"
   defines "mul \<equiv> comb ova"
   defines "\<epsilon>A \<equiv> neut ova (d Aa)"
+  defines "l \<equiv> le ova" 
+  defines "pr \<equiv> gprj ova"
   assumes valid_ova : "valid ova"
-  and inclusion : "i \<in> inclusions (space ova)"
   and elems : "Aa \<in> elems ova \<and> Bb \<in> elems ova"
-  and doms : "d Aa = Space.cod i \<and> d Bb = Space.dom i"
-  shows "le ova (d Bb) (e (gprj ova i Aa)) (e Bb) \<longleftrightarrow> le ova (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
-  using \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs inclusion mul_def valid_ova by blast
+  and doms : "d Bb \<subseteq> d Aa"
+shows "l (d Bb) (e (pr (d Bb) Aa)) (e Bb) \<longleftrightarrow> l (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
+  by (metis \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs l_def local_inclusion_domain mul_def pr_def valid_ova)
 
 (* [Theorem 1 cont., CVA] *)
 theorem ext_functorial :
-  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and C :: "'A Open" and Cc :: "('A, 'a) Valuation"
+  fixes ova :: "('A,'a) OVA" and A B C :: "'A Open"  and Cc :: "('A, 'a) Valuation"
   assumes valid_ova : "valid ova"
   and "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)" and "C \<in> Space.opens (space ova)"
   and "C \<subseteq> B" and "B \<subseteq> A"
   and "d Cc = C"
-  defines "i_CB \<equiv> Space.make_inclusion (space ova) C B"
-  defines "i_BA \<equiv> Space.make_inclusion (space ova) B A"
-  defines "i_CA \<equiv> Space.make_inclusion (space ova) C A"
-  shows "gext ova i_BA (gext ova i_CB Cc) = (gext ova i_CA Cc) "
+  defines "ex \<equiv> gext ova"
+  shows "ex A (ex B Cc) = ex A Cc"
   oops
 
 (* [Corollary 1, CVA] *)
 
-(*
 theorem strongly_neutral_covariance :
-  fixes ova :: "('A,'a) OVA" and i :: "'A Inclusion"
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"
   assumes valid_ova : "valid ova"
   and valid_inc : "i \<in> Space.inclusions (space ova)"
   and strongly_neutral: "\<forall> A B . comb ova (neut ova A) (neut ova B) = neut ova (A \<union> B)"
-defines "B \<equiv> Space.dom i"
-  and "A \<equiv> Space.cod i"
-shows "gext' ova i (neut ova B) = neut ova A "
-  by (metis A_def B_def OVA.space_def OVA.valid_welldefined d_neut gext_def inc_cod_sup space_valid strongly_neutral valid_inc valid_inclusion_dom valid_ova)
-*)
-
+  and  "B \<subseteq> A" and "B \<in> Space.opens (space ova)" and "A \<in> Space.opens (space ova)"
+defines "ex \<equiv> gext ova"
+shows "ex A (neut ova B) = neut ova A "
+  by (metis assms(4) assms(5) assms(6) d_neut ex_def gext_def strongly_neutral sup.absorb_iff1 valid_ova)
 
 (* [Corollary 2, CVA] *)
 theorem ext_prj_eq_id :
-  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and Bb :: "('A, 'a) Valuation"
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open" and Bb :: "('A, 'a) Valuation"
   assumes valid_ova : "valid ova" and "Bb \<in> elems ova" and "d Bb = B"
   and " B \<subseteq> A" and "B \<in> opens (space ova)" and "A \<in> opens (space ova)"
-  defines "pr \<equiv> gprj' ova" and "ex \<equiv> gext' ova" and "mul \<equiv> comb ova"
+  defines "pr \<equiv> gprj ova" and "ex \<equiv> gext ova" and "mul \<equiv> comb ova"
   shows "pr B (ex A Bb) = Bb"
 proof -
   define \<epsilon>A where "\<epsilon>A \<equiv> neut ova A"
   define \<epsilon>B where "\<epsilon>B \<equiv> neut ova B"
   have "pr B (ex A Bb) = pr B (mul \<epsilon>A Bb)"
-    by (simp add: \<epsilon>A_def assms(3) assms(4) assms(6) ex_def gext'_def mul_def)
+    by (simp add: \<epsilon>A_def assms(3) assms(4) assms(6) ex_def gext_def mul_def)
   moreover have "... =  mul (pr (A \<inter> B) \<epsilon>A) Bb"  using valid_comb_law_right pr_def mul_def ex_def
     by (metis \<epsilon>A_def assms(2) assms(3) assms(6) neutral_element neutral_is_element valid_ova)
   moreover have "... =  mul \<epsilon>B Bb"
-  by (simp add: \<epsilon>A_def \<epsilon>B_def assms(4) assms(5) assms(6) inf.absorb2 pr_def stability' valid_ova)
+  by (simp add: \<epsilon>A_def \<epsilon>B_def assms(4) assms(5) assms(6) inf.absorb2 pr_def stability valid_ova)
   ultimately show ?thesis
     by (metis \<epsilon>B_def \<open>pr B (ex A Bb) = pr B (mul \<epsilon>A Bb)\<close> assms(2) assms(3) assms(5) mul_def valid_neutral_law_left valid_ova)
 qed
 
 (* [Corollary 2 cont., CVA] *)
 theorem id_le_prj_ext :
-  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and Aa :: "('A, 'a) Valuation"
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"  and Aa :: "('A, 'a) Valuation"
   assumes valid_ova : "valid ova" and "Aa \<in> elems ova" and "d Aa = A"
   and " B \<subseteq> A" and "B \<in> opens (space ova)" and "A \<in> opens (space ova)"
-  defines "pr \<equiv> gprj' ova" and "ex \<equiv> gext' ova" and "mul \<equiv> comb ova" and "l \<equiv> le ova"
+  defines "pr \<equiv> gprj ova" and "ex \<equiv> gext ova" and "mul \<equiv> comb ova" and "l \<equiv> le ova"
   shows "l A (e Aa) (e (ex A (pr B Aa)))"
   oops
 
