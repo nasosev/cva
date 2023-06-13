@@ -204,22 +204,31 @@ lemma d_neut : "valid ova \<Longrightarrow> A \<in> opens (space ova) \<Longrigh
   by (simp add: d_def neut_def)
 
 lemma d_gprj : "valid ova \<Longrightarrow>  Aa \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
-\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Aa = A \<Longrightarrow>  Aa_B = gprj ova B Aa \<Longrightarrow> d Aa_B = B"
+\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Aa = A \<Longrightarrow>  Aa_B = gprj ova B Aa 
+\<Longrightarrow> d Aa_B = B"
   by (simp add: d_def gprj_def)
 
 lemma d_gext : "valid ova \<Longrightarrow>  Bb \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
-\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Bb = B \<Longrightarrow>  Bb__A = gext ova A Bb \<Longrightarrow> d Bb__A = A"
+\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Bb = B \<Longrightarrow>  Bb__A = gext ova A Bb 
+\<Longrightarrow> d Bb__A = A"
   by (simp add: d_neut gext_def neutral_is_element sup.order_iff valid_domain_law)
 
 lemma local_inclusion_element : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> a = e Aa
-\<Longrightarrow> \<Phi> = (presheaf ova) \<Longrightarrow> ob_A = ob \<Phi> $ A \<Longrightarrow> a \<in> el ob_A"
+\<Longrightarrow> \<Phi> = (presheaf ova) \<Longrightarrow> ob_A = ob \<Phi> $ A 
+\<Longrightarrow> a \<in> el ob_A"
   by (metis OVA.valid_welldefined e_def elems_def gc_elem_local)
+
+lemma global_inclusion_element : "valid ova \<Longrightarrow> A \<in> Space.opens (space ova) 
+\<Longrightarrow> \<Phi> = presheaf ova \<Longrightarrow> \<Phi>A =(Presheaf.ob \<Phi>) $ A \<Longrightarrow> a \<in> Poset.el \<Phi>A
+\<Longrightarrow>  (A, a) \<in> elems ova"
+  by (metis OVA.space_def OVA.valid_welldefined elems_def local_elem_gc)
 
 lemma local_inclusion_domain  : "valid ova \<Longrightarrow> Aa \<in> elems ova \<Longrightarrow> A = d Aa \<Longrightarrow> T = space ova \<Longrightarrow> A \<in> opens T"
   by (metis OVA.space_def OVA.valid_welldefined elems_def local_dom)
 
 lemma combine_monotone : "valid ova \<Longrightarrow>  Aa1 \<in> elems ova \<Longrightarrow> Aa2 \<in> elems ova \<Longrightarrow> Bb1 \<in> elems ova \<Longrightarrow> Bb2 \<in> elems ova
-\<Longrightarrow>  gle ova Aa1 Aa2 \<Longrightarrow> gle ova Bb1 Bb2 \<Longrightarrow> gle ova (comb ova Aa1 Bb1) (comb ova Aa2 Bb2)"
+\<Longrightarrow> gle ova Aa1 Aa2 \<Longrightarrow> gle ova Bb1 Bb2 
+\<Longrightarrow> gle ova (comb ova Aa1 Bb1) (comb ova Aa2 Bb2)"
   unfolding gle_def comb_def
   by (metis OVA.valid_welldefined elems_def valid_monotone)
 
@@ -279,6 +288,7 @@ proof -
   ultimately show ?thesis
     by (metis OVA.space_def OVA.valid_welldefined \<Phi>i_def assms(10) assms(4) assms(5) assms(7) assms(8) assms(9) d_def gprj_def i_def image l_def le_def le_imp_gle local_elems_def local_inclusion_element pr_def valid_ova)
 qed
+
 
 lemma e_gprj : 
   fixes ova :: "('A,'a) OVA" and A B :: "'A Open"  and Aa :: "('A, 'a) Valuation" 
@@ -445,7 +455,29 @@ proof -
     by (metis (no_types, lifting) OVA.space_def \<Phi>B_def \<Phi>i_def a_B_def d_def e_def fst_conv i_def snd_conv)
 qed
     
+lemma gprj_elem : "valid ova \<Longrightarrow>  Aa \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
+\<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Aa = A \<Longrightarrow>  Aa_B = gprj ova B Aa \<Longrightarrow> Aa_B \<in> elems ova"
+  by (metis OVA.valid_welldefined elems_def gle_def id_le_gprj valid_gc_welldefined)
 
+lemma gext_elem :
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open" and Bb :: "('A, 'a) Valuation"
+  assumes "valid ova"
+  and  "Bb \<in> elems ova" and "B \<in> Space.opens (space ova)" and "A \<in> Space.opens (space ova)"
+  and  "B \<subseteq> A" and "B \<in> Space.opens (space ova)" and "A \<in> Space.opens (space ova)" and "d Bb = B"
+defines "ex \<equiv> gext ova"
+and "Bb__A \<equiv> gext ova A Bb"
+and "mul \<equiv> comb ova"
+shows "Bb__A \<in> elems ova "
+proof -
+  have "valid ova"
+    by (simp add: assms(1)) 
+  moreover have "B \<subseteq> A \<and> B \<in> Space.opens (space ova) \<and> A \<in> Space.opens (space ova) \<and> d Bb = B"
+    by (simp add: assms(3) assms(4) assms(5) assms(8)) 
+  moreover have "Bb__A = mul (neut ova A) Bb"
+    by (simp add: Bb__A_def assms(4) assms(5) assms(8) gext_def mul_def)
+  ultimately show ?thesis
+    by (smt (verit) OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_def assms(2) comb_def elems_def mul_def neutral_is_element valid_monotone) 
+qed
 
 lemma ext_prj_adjunction_lhs_imp_rhs :
   fixes ova :: "('A,'a) OVA" and A B :: "'A Open" and Aa Bb :: "('A, 'a) Valuation"
@@ -567,17 +599,6 @@ theorem ext_prj_adjunction :
 shows "l (d Bb) (e (pr (d Bb) Aa)) (e Bb) \<longleftrightarrow> l (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
   by (metis \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs l_def local_inclusion_domain mul_def pr_def valid_ova)
 
-(* [Theorem 1 cont., CVA] *)
-theorem ext_functorial :
-  fixes ova :: "('A,'a) OVA" and A B C :: "'A Open"  and Cc :: "('A, 'a) Valuation"
-  assumes valid_ova : "valid ova"
-  and "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)" and "C \<in> Space.opens (space ova)"
-  and "C \<subseteq> B" and "B \<subseteq> A"
-  and "d Cc = C"
-  defines "ex \<equiv> gext ova"
-  shows "ex A (ex B Cc) = ex A Cc"
-  oops
-
 (* [Corollary 1, CVA] *)
 theorem strongly_neutral_covariance :
   fixes ova :: "('A,'a) OVA" and A B :: "'A Open"
@@ -617,7 +638,23 @@ theorem id_le_prj_ext :
   shows "l A (e Aa) (e (ex A (pr B Aa)))"
 proof -
   have "valid ova" by fact
-  moreover have "l A (e Aa) (e Aa)" 
-  moreover have "l B (e (pr B Aa)) (e (pr B Aa))"  
+  moreover have "l A (e Aa) (e Aa)"
+    by (metis OVA.valid_welldefined OrderedSemigroup.valid_def assms(2) assms(3) e_def elems_def l_def le_def local_le valid_ova valid_reflexivity) 
+  moreover have "l B (e (pr B Aa)) (e (pr B Aa))"
+    by (metis assms(2) assms(3) assms(4) assms(5) assms(6) calculation(2) d_gprj gle_imp_le gprj_elem gprj_monotone l_def le_imp_gle2 pr_def valid_ova) 
+  ultimately show ?thesis
+    by (metis (full_types) assms(2) assms(3) assms(4) assms(5) assms(6) d_gprj ex_def ext_prj_adjunction_lhs_imp_rhs gext_def gprj_elem l_def pr_def) 
+qed
+
+(* [Theorem 1 cont., CVA] *)
+theorem ext_functorial :
+  fixes ova :: "('A,'a) OVA" and A B C :: "'A Open"  and Cc :: "('A, 'a) Valuation"
+  assumes valid_ova : "valid ova"
+  and "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)" and "C \<in> Space.opens (space ova)"
+  and "C \<subseteq> B" and "B \<subseteq> A"
+  and "d Cc = C"
+  defines "ex \<equiv> gext ova"
+  shows "ex A (ex B Cc) = ex A Cc"
+  oops
 
 end
