@@ -2,3 +2,4 @@
 *.thy~
 *.thy#
 *.marks
+.DS_Store
