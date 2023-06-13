@@ -513,16 +513,14 @@ theorem ext_functorial :
   oops
 
 (* [Corollary 1, CVA] *)
-
 theorem strongly_neutral_covariance :
   fixes ova :: "('A,'a) OVA" and A B :: "'A Open"
   assumes valid_ova : "valid ova"
-  and valid_inc : "i \<in> Space.inclusions (space ova)"
   and strongly_neutral: "\<forall> A B . comb ova (neut ova A) (neut ova B) = neut ova (A \<union> B)"
   and  "B \<subseteq> A" and "B \<in> Space.opens (space ova)" and "A \<in> Space.opens (space ova)"
 defines "ex \<equiv> gext ova"
 shows "ex A (neut ova B) = neut ova A "
-  by (metis assms(4) assms(5) assms(6) d_neut ex_def gext_def strongly_neutral sup.absorb_iff1 valid_ova)
+by (metis assms(3) assms(4) assms(5) d_neut ex_def gext_def strongly_neutral sup.absorb_iff1 valid_ova)
 
 (* [Corollary 2, CVA] *)
 theorem ext_prj_eq_id :
