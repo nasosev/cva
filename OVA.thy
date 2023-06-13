@@ -526,7 +526,7 @@ theorem ext_prj_adjunction :
   shows "le ova (d Bb) (e (gprj ova i Aa)) (e Bb) \<longleftrightarrow> le ova (d Aa) (e Aa) (e (mul \<epsilon>A Bb))"
   using \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs inclusion mul_def valid_ova by blast
 
-(* [Theorem 1, CVA] *)
+(* [Theorem 1 cont., CVA] *)
 theorem ext_functorial :
   fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and C :: "'A Open" and Cc :: "('A, 'a) Valuation"
   assumes valid_ova : "valid ova"
@@ -551,7 +551,7 @@ shows "gext ova i (neut ova B) = neut ova A "
   by (metis A_def B_def OVA.space_def OVA.valid_welldefined d_neut gext_def inc_cod_sup space_valid strongly_neutral valid_inc valid_inclusion_dom valid_ova)
 
 (* [Corollary 2, CVA] *)
-theorem ext_prj_id :
+theorem ext_prj_eq_id :
   fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and Bb :: "('A, 'a) Valuation"
   assumes valid_ova : "valid ova" and "Bb \<in> elems ova" and "d Bb = B" 
   and " B \<subseteq> A" and "B \<in> opens (space ova)" and "A \<in> opens (space ova)"
@@ -571,5 +571,14 @@ moreover have "... =  mul \<epsilon>B Bb"
   ultimately show ?thesis
     by (metis assms(2) assms(3) assms(5) mul_def valid_neutral_law_left)
 qed
+
+(* [Corollary 2 cont., CVA] *)
+theorem id_le_prj_ext :
+  fixes ova :: "('A,'a) OVA" and A :: "'A Open" and B :: "'A Open" and Aa :: "('A, 'a) Valuation"
+  assumes valid_ova : "valid ova" and "Aa \<in> elems ova" and "d Aa = A" 
+  and " B \<subseteq> A" and "B \<in> opens (space ova)" and "A \<in> opens (space ova)"
+  defines "pr \<equiv> gprj' ova" and "ex \<equiv> gext' ova" and "mul \<equiv> comb ova" and "l \<equiv> le ova"
+  shows "l A (e Aa) (e (ex A (pr B Aa)))"
+  oops
 
 end
