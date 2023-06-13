@@ -20,7 +20,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 - Remark 1: N/A
 - Remark 2: 100%
-- Remark 3: 100%
-- Theorem 1: 50%
-- Corollary 1: 100%
-- Corollary 2: 50%
+- Remark 3 (local_mono_imp_global, global_mono_imp_local, id_le_gprj, laxity): 100%
+- Theorem 1 (ext_prj_adjunction, ext_functorial): 50%
+- Corollary 1 (strongly_neutral_covariance): 100%
+- Corollary 2 (ext_prj_eq_id, d_le_prj_ext): 50%

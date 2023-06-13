@@ -389,7 +389,7 @@ proof -
     apply (metis assms(4) assms(6) d_def fst_conv subsetD)
     by (metis (no_types, lifting) OVA.space_def \<Phi>B_def \<Phi>i_def a_B_def d_def e_def fst_conv i_def snd_conv)
 qed
-    
+
 lemma gprj_elem : "valid ova \<Longrightarrow>  Aa \<in> elems ova \<Longrightarrow>  B \<in> opens (space ova)
 \<Longrightarrow> A \<in> opens (space ova)\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d Aa = A \<Longrightarrow>  Aa_B = gprj ova B Aa \<Longrightarrow> Aa_B \<in> elems ova"
   by (metis OVA.valid_welldefined elems_def gle_def id_le_gprj valid_gc_welldefined)
@@ -585,6 +585,36 @@ proof -
       by (metis (mono_tags, lifting) OVA.valid_welldefined \<open>gprj ova B (mul \<epsilon>A Bb) = mul (gprj ova (A \<inter> B) \<epsilon>A) Bb\<close> assms(10) assms(8) assms(9) d_gprj elems_def gle_def gle_imp_le valid_gc_welldefined)
   qed
 
+(* [Remark 3, CVA] *)
+lemma laxity :
+  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"  and Aa Aa' :: "('A, 'a) Valuation"
+  assumes "valid ova"
+  and  "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)"  and "B \<subseteq> A"
+  and  "Aa \<in> elems ova" and "d Aa = A" and  "Aa' \<in> elems ova" and "d Aa' = A"
+defines "pr \<equiv> gprj ova" and "mul \<equiv> comb ova" and "l \<equiv> gle ova"
+shows "le ova B (e (pr B (mul Aa Aa'))) (e (mul (pr B Aa) (pr B Aa')))"
+proof -
+   have "l Aa (pr B Aa)"
+     using assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) id_le_gprj l_def pr_def by blast
+   moreover have "l Aa' (pr B Aa')"
+     using assms(1) assms(2) assms(3) assms(4) assms(7) assms(8) id_le_gprj l_def pr_def by blast
+   define "m1" where "m1 = mul Aa Aa'"
+   define "m2" where "m2 = mul (pr B Aa) (pr B Aa')"
+   moreover have "d m1 = A"
+     by (simp add: assms(1) assms(5) assms(6) assms(7) assms(8) m1_def mul_def valid_domain_law)
+   moreover have "d m2 = B"
+     by (metis (no_types, lifting) assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gprj gprj_elem m2_def mul_def neutral_element neutral_is_element pr_def valid_domain_law valid_neutral_law_right)
+   moreover have "l m1 m2"
+     by (metis \<open>l Aa' (pr B Aa')\<close> assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(1) combine_monotone gprj_elem l_def m1_def m2_def mul_def pr_def) 
+   define "\<Phi>B" where "\<Phi>B = (Presheaf.ob (presheaf ova)) $ B"
+    moreover have "e  m2 \<in> Poset.el \<Phi>B"
+      by (metis OVA.valid_welldefined \<Phi>B_def \<open>l m1 m2\<close> assms(1) calculation(4) elems_def gle_def l_def local_inclusion_element valid_gc_welldefined)
+   moreover have "e (pr B m1) \<in> Poset.el \<Phi>B"
+     by (metis OVA.valid_welldefined \<Phi>B_def \<open>l m1 m2\<close> assms(1) assms(2) assms(3) assms(4) calculation(3) e_gprj elems_def gle_def l_def pr_def valid_gc_welldefined) 
+   ultimately show ?thesis
+     by (smt (z3) OVA.valid_welldefined \<open>l m1 m2\<close> assms(1) assms(2) assms(3) assms(4) combine_monotone elems_def ext_prj_adjunction_rhs_imp_lhs gle_def gle_imp_le id_le_gprj l_def m1_def neutral_element neutral_is_element pr_def stability sup.order_iff valid_domain_law valid_gc_welldefined valid_neutral_law_left)
+ qed
+
 (* THEOREMS *)
 
 (* [Theorem 1, CVA] *)
@@ -660,27 +690,3 @@ theorem ext_functorial :
 
 
 
-(* [Remark 3, CVA] *)
-lemma laxity :
-  fixes ova :: "('A,'a) OVA" and A B :: "'A Open"  and Aa Aa' :: "('A, 'a) Valuation"
-  assumes "valid ova"
-  and  "A \<in> Space.opens (space ova)" and "B \<in> Space.opens (space ova)"  and "B \<subseteq> A"
-  and  "Aa \<in> elems ova" and "d Aa = A" and  "Aa' \<in> elems ova" and "d Aa' = A"
-defines "pr \<equiv> gprj ova" and "mul \<equiv> comb ova" and "l \<equiv> gle ova"
-shows "le ova B (e (pr B (mul Aa Aa'))) (e (mul (pr B Aa) (pr B Aa')))"
-proof -
-   have "l Aa (pr B Aa)"
-     using assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) id_le_gprj l_def pr_def by blast
-   moreover have "l Aa' (pr B Aa')"
-     using assms(1) assms(2) assms(3) assms(4) assms(7) assms(8) id_le_gprj l_def pr_def by blast
-   moreover have "l (mul Aa Aa') (mul (pr B Aa) (pr B Aa'))"
-     by (metis assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(1) calculation(2) combine_monotone gprj_elem l_def mul_def pr_def) 
-   moreover have "d (mul Aa Aa') = A"
-     by (simp add: assms(1) assms(5) assms(6) assms(7) assms(8) mul_def valid_domain_law)
-   moreover have "d (mul (pr B Aa) (pr B Aa')) = B"
-     by (metis (no_types, lifting) assms(1) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gprj dual_order.refl gprj_elem mul_def pr_def sup.order_iff valid_domain_law) 
-   ultimately show ?thesis
-     by (smt (verit) OVA.valid_welldefined assms(1) assms(2) assms(3) assms(4) combine_monotone elems_def ext_prj_adjunction_rhs_imp_lhs gle_def gle_imp_le id_le_gprj l_def neutral_element neutral_is_element pr_def stability sup.order_iff valid_domain_law valid_gc_welldefined valid_neutral_law_left) 
- qed
-     
- 
