@@ -84,7 +84,6 @@ lemma inc_cod_sup : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrighta
 lemma inc_dom_inf : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<inter> B = B"
   by (meson Int_absorb1 valid_inclusion_def valid_inclusions)
 
-
 (* EXAMPLES *)
 
 definition ex_sierpinski :: "bool Space" where

@@ -74,8 +74,6 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
     in
       welldefined \<and> domain_law \<and> neutral_law_left \<and> neutral_law_right \<and> comb_law_left \<and> comb_law_right"
 
-
-
 (* LEMMAS *)
 
 (* Todo: can we prove this and the below valid_... lemmas with meta implications? *)
@@ -326,7 +324,6 @@ lemma gle_imp_le : "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrigh
   apply (simp_all add: Let_def)
   apply safe
   by (simp add: d_def e_def make_inclusion_ident posets_valid space_valid)
-
 
 lemma gprj_monotone :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a2 :: "('A, 'a) Valuation" 
