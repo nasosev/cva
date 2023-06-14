@@ -236,6 +236,62 @@ lemma global_inclusion_element : "valid V \<Longrightarrow> A \<in> Space.opens 
 lemma local_inclusion_domain  : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> T = space V \<Longrightarrow> A \<in> opens T"
   by (metis OVA.space_def OVA.valid_welldefined elems_def local_dom)
 
+lemma gprj_functorial :
+  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  assumes valid_V : "valid V"
+  and "A \<in> Space.opens (space V)" and "B \<in> Space.opens (space V)" and "C \<in> Space.opens (space V)"
+  and "C \<subseteq> B" and "B \<subseteq> A"
+  and "d a = A"
+  and "a \<in> elems V"
+defines "pr \<equiv> gprj V"
+and "l  \<equiv> (\<lambda> U a b . le V U (e a) (e b)) :: 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool"
+shows "pr C a = (pr C (pr B a))" 
+proof -
+  define "\<Phi>1" where "\<Phi>1 = Presheaf.ar (presheaf V)"
+  define "i_BA" where "i_BA = Space.make_inclusion (space V) B A" 
+  define "i_CB" where "i_CB = Space.make_inclusion (space V) C B" 
+  define "i_CA" where "i_CA = Space.make_inclusion (space V) C A" 
+  define "f" where "f = \<Phi>1 $ i_BA" 
+  define "g" where "g = \<Phi>1 $ i_CB" 
+  define "h" where "h = \<Phi>1 $ i_CA" 
+  have "pr C a = (C, (\<Phi>1 $ i_CA) $$ (e a))"
+    by (metis (no_types, lifting) \<Phi>1_def assms(4) assms(5) assms(6) assms(7) gprj_def i_CA_def order.trans pr_def) 
+  moreover have "pr B a = (B, f $$ (e a))"
+    by (simp add: \<Phi>1_def assms(3) assms(6) assms(7) f_def gprj_def i_BA_def pr_def) 
+  moreover have "pr C (pr B a) = (C, g  $$ (f $$ (e a)))"
+    by (metis (no_types, lifting) \<Phi>1_def assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(2) d_gprj e_def g_def gprj_def i_CB_def pr_def snd_conv valid_V) 
+  moreover have "Presheaf.valid (presheaf V)"
+    by (meson OVA.valid_welldefined valid_V) 
+  moreover have "Space.valid_inclusion i_CB \<and> Space.space i_CB = (space V)"
+    by (metis Inclusion.select_convs(1) OVA.space_def assms(3) assms(4) assms(5) calculation(4) i_CB_def make_inclusion_def space_valid valid_make_inclusion)
+  moreover have "i_CB \<in> Space.inclusions (space V)"
+    using calculation(5) inclusions_def by blast 
+  moreover have "Space.valid_inclusion i_BA \<and> Space.space i_BA = (space V)"
+    by (metis Inclusion.select_convs(1) OVA.space_def assms(2) assms(3) assms(6) calculation(4) i_BA_def make_inclusion_def space_valid valid_make_inclusion)
+    moreover have "i_BA \<in> Space.inclusions (space V)"
+      using calculation(7) inclusions_def by blast 
+moreover have "Space.valid_inclusion i_CA \<and> Space.space i_CA = (space V)"
+  by (metis Inclusion.select_convs(1) OVA.space_def assms(2) assms(4) assms(5) assms(6) calculation(4) i_CA_def make_inclusion_def order.trans space_valid valid_make_inclusion) 
+  moreover have "i_CA = Space.compose i_BA i_CB" using Space.compose_def
+    by (metis Inclusion.select_convs(2) Inclusion.select_convs(3) calculation(5) calculation(7) i_BA_def i_CA_def i_CB_def make_inclusion_def)
+  moreover have "Poset.valid_map f \<and> Poset.valid_map g \<and> Poset.valid_map h"
+    by (metis (mono_tags, lifting) OVA.space_def \<Phi>1_def calculation(4) calculation(6) calculation(8) calculation(9) f_def g_def h_def inclusions_def mem_Collect_eq poset_maps_valid)
+  moreover have "Space.cod i_BA = A \<and> Space.dom i_BA = B "
+    by (simp add: i_BA_def make_inclusion_def)
+  moreover have "Space.cod i_CB = B \<and> Space.dom i_CB = C "
+    by (simp add: i_CB_def make_inclusion_def) 
+  moreover have "Space.cod i_CA = A \<and> Space.dom i_CA = C "
+    by (simp add: i_CA_def make_inclusion_def) 
+  moreover have "Poset.dom f = Presheaf.ob (presheaf V) $ A"
+    by (metis OVA.space_def \<Phi>1_def calculation(12) calculation(4) calculation(8) dom_proj f_def) 
+    moreover have "Poset.cod f  = Presheaf.ob (presheaf V) $ B \<and> Poset.dom g  = Presheaf.ob (presheaf V) $ B"
+      by (metis OVA.space_def \<Phi>1_def calculation(12) calculation(13) calculation(4) calculation(6) calculation(8) cod_proj dom_proj f_def g_def)
+    moreover have " (\<Phi>1 $ i_CB) $$ ((\<Phi>1 $ i_BA) $$ (e a)) =  (\<Phi>1 $ i_CA) $$ (e a)"  using Poset.compose_app
+      by (metis OVA.space_def \<Phi>1_def assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(15) calculation(16) calculation(4) calculation(6) calculation(8) compose_app f_def g_def local_inclusion_element valid_V valid_composition)
+  ultimately show ?thesis
+    by (metis f_def g_def) 
+qed
+
 lemma combine_monotone : "valid V \<Longrightarrow>  a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> b1 \<in> elems V \<Longrightarrow> b2 \<in> elems V
 \<Longrightarrow> gle V a1 a2 \<Longrightarrow> gle V b1 b2 
 \<Longrightarrow> gle V (comb V a1 b1) (comb V a2 b2)"
@@ -270,6 +326,7 @@ lemma gle_imp_le : "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrigh
   apply (simp_all add: Let_def)
   apply safe
   by (simp add: d_def e_def make_inclusion_ident posets_valid space_valid)
+
 
 lemma gprj_monotone :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a2 :: "('A, 'a) Valuation" 
@@ -671,7 +728,7 @@ proof -
 qed
 
 (* [Corollary 2 cont., CVA] *)
-theorem id_le_prj_ext :
+theorem closure_extensive :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes valid_V : "valid V" and "a \<in> elems V" and "d a = A"
   and " B \<subseteq> A" and "B \<in> opens (space V)" and "A \<in> opens (space V)"
@@ -687,6 +744,25 @@ proof -
     by (metis (full_types) assms(2) assms(3) assms(4) assms(5) assms(6) d_gprj ex_def ext_prj_adjunction_lhs_imp_rhs gext_def gprj_elem l_def pr_def) 
 qed
 
+lemma ext_functorial_lhs_imp_rhs :
+  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  assumes valid_V : "valid V"
+  and "A \<in> Space.opens (space V)" and "B \<in> Space.opens (space V)" and "C \<in> Space.opens (space V)"
+  and "C \<subseteq> B" and "B \<subseteq> A"
+  and "d c = C"
+  and "c \<in> elems V"
+defines "ex \<equiv> gext V"
+and "pr \<equiv> gprj V"
+and "l  \<equiv> (\<lambda> U a b . le V U (e a) (e b)) :: 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool"
+  shows "gle V (ex A c) (ex A (ex B c))"
+proof -
+  have "l C c c"
+    by (metis OVA.valid_welldefined OrderedSemigroup.valid_def assms(7) assms(8) e_def elems_def l_def le_def local_le valid_V valid_reflexivity)
+  moreover have "l C (pr C (ex A c)) c"
+    by (metis (no_types, opaque_lifting) assms(2) assms(5) assms(6) assms(7) assms(8) calculation dual_order.trans ex_def ext_prj_eq_id local_inclusion_domain pr_def valid_V)
+  moreover have "pr C (pr B (ex A c)) = pr C (ex A c)" 
+oops
+
 (* [Theorem 1 cont., CVA] *)
 theorem ext_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
@@ -700,3 +776,7 @@ theorem ext_functorial :
 
 
 
+
+(* [Corollary 2 cont., CVA] *)
+lemma closure_idempotent : "todo"
+  oops
