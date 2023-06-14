@@ -706,7 +706,7 @@ shows "ex A (neut V B) = neut V A "
 by (metis assms(3) assms(4) assms(5) d_neut ex_def gext_def strongly_neutral sup.absorb_iff1 valid_V)
 
 (* [Corollary 2, CVA] *)
-theorem ext_prj_eq_id :
+theorem galois_insertion :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes valid_V : "valid V" and "b \<in> elems V" and "d b = B"
   and " B \<subseteq> A" and "B \<in> opens (space V)" and "A \<in> opens (space V)"
@@ -726,7 +726,7 @@ proof -
 qed
 
 (* [Corollary 2 cont., CVA] *)
-theorem closure_extensive :
+theorem galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes valid_V : "valid V" and "a \<in> elems V" and "d a = A"
   and " B \<subseteq> A" and "B \<in> opens (space V)" and "A \<in> opens (space V)"
@@ -755,7 +755,7 @@ proof -
   have "l C c c"
     by (metis OVA.valid_welldefined OrderedSemigroup.valid_def assms(7) assms(8) e_def elems_def l_def le_def local_le valid_V valid_reflexivity)
   moreover have "l C (pr C (ex A c)) c"
-    by (metis (no_types, opaque_lifting) assms(2) assms(5) assms(6) assms(7) assms(8) calculation dual_order.trans ex_def ext_prj_eq_id local_inclusion_domain pr_def valid_V)
+    by (metis (no_types, opaque_lifting) assms(2) assms(5) assms(6) assms(7) assms(8) calculation dual_order.trans ex_def galois_insertion local_inclusion_domain pr_def valid_V)
   moreover have "pr C (pr B (ex A c)) = pr C (ex A c)"
     by (smt (verit, del_insts) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem gprj_functorial local_inclusion_domain pr_def valid_V) 
   moreover have "l C  (pr C (pr B (ex A c))) c"
@@ -768,20 +768,49 @@ proof -
     by (smt (verit, best) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem l_def le_imp_gle2 valid_V)
 qed
 
+lemma ext_functorial_rhs_imp_lhs :
+  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  assumes valid_V : "valid V"
+  and "A \<in> Space.opens (space V)" and "B \<in> Space.opens (space V)" and "C \<in> Space.opens (space V)"
+  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
+  defines "ex \<equiv> gext V"
+  and "pr \<equiv> gprj V"
+  and "l  \<equiv> (\<lambda> U a b . le V U (e a) (e b)) :: 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool"
+  shows "gle V (ex A (ex B c)) (ex A c)"
+proof -
+  have "l A (ex A (ex B c)) (ex A (ex B c))" 
+    by (metis (no_types, lifting) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext ex_def galois_closure_extensive galois_insertion gext_elem l_def valid_V) 
+  moreover have "l B (pr B (ex A (ex B c))) (ex B c)"
+    by (metis assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext ex_def galois_closure_extensive galois_insertion gext_elem l_def pr_def valid_V)  
+    moreover have "l C (pr C (pr B (ex A (ex B c)))) c"
+      by (smt (z3) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.refl ex_def galois_closure_extensive galois_insertion gext_elem gprj_functorial l_def local_inclusion_domain pr_def valid_V) 
+moreover have "l C (pr C (ex A (ex B c))) c"
+  by (metis (full_types) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) calculation(3) d_gext ex_def gext_elem gprj_functorial local_inclusion_domain pr_def valid_V) 
+  moreover have "l A (ex A (ex B c)) (ex A c)"
+    by (smt (verit, best) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(4) d_gext dual_order.trans ex_def ext_prj_adjunction_lhs_imp_rhs gext_def gext_elem l_def pr_def valid_V) 
+  ultimately show ?thesis
+    by (smt (verit, ccfv_SIG) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext ex_def gext_elem l_def le_imp_gle2 local_inclusion_domain subset_trans valid_V)
+qed
+
 (* [Theorem 1 cont., CVA] *)
 theorem ext_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes valid_V : "valid V"
   and "A \<in> Space.opens (space V)" and "B \<in> Space.opens (space V)" and "C \<in> Space.opens (space V)"
-  and "C \<subseteq> B" and "B \<subseteq> A"
-  and "d c = C"
+  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
   defines "ex \<equiv> gext V"
   shows "ex A (ex B c) = ex A c"
-  oops
+proof - 
+  have "gle V (ex A (ex B c)) (ex A c)"
+    using assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def ext_functorial_rhs_imp_lhs valid_V by blast
+  moreover have "gle V (ex A c)  (ex A (ex B c))"
+    using assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def ext_functorial_lhs_imp_rhs valid_V by blast
+  ultimately show ?thesis
+    by (meson OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined gle_def valid_V valid_antisymmetry)
 
 
 
 
 (* [Corollary 2 cont., CVA] *)
-lemma closure_idempotent : "todo"
+lemma galois_closure_idempotent : "todo"
   oops
