@@ -18,13 +18,13 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
                     \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
                     \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid (\<Phi>0 $ A))
                     \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 $ i)
-                           \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
-                           \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) );
+                           \<and>  Poset.dom (\<Phi>1 $ i) = \<Phi>0 $ (Space.cod i)
+                           \<and>  Poset.cod (\<Phi>1 $ i) = \<Phi>0 $ (Space.dom i) );
       identity = (\<forall>A. A \<in> opens T \<longrightarrow> (\<Phi>1 $ (Space.ident T A)) = Poset.ident (\<Phi>0 $ A));
-      composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
-        Space.dom j = Space.cod i \<longrightarrow>  (\<Phi>1 $ (Space.compose j i )) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))
+      composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i 
+        \<longrightarrow>  \<Phi>1 $ (Space.compose j i ) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))
     in
-    (welldefined \<and> identity \<and> composition)"
+    welldefined \<and> identity \<and> composition"
 
 record ('A, 'a, 'b) PresheafMap =
   map_space :: "'A Space"
