@@ -18,8 +18,8 @@ notation comb_V ("_ \<otimes>\<^sub>_ _")
 
 term "A \<otimes>\<^sub>V B"
 
-definition neut :: "('A, 'a) OVA \<Rightarrow> ('A set \<Rightarrow> ('A, 'a) Valuation)" where
-"neut V  = (\<lambda> A. (A, (Presheaf.nat (neutral V) $ A) $$ ()))"
+definition neut :: "('A, 'a) OVA \<Rightarrow> 'A set \<Rightarrow> ('A, 'a) Valuation" where
+"neut V A = (A, (Presheaf.nat (neutral V) $ A) $$ ())"
 
 definition space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space V = Presheaf.space (presheaf V)"
