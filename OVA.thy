@@ -807,10 +807,21 @@ proof -
     using assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def ext_functorial_lhs_imp_rhs valid_V by blast
   ultimately show ?thesis
     by (meson OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined gle_def valid_V valid_antisymmetry)
-
-
-
+qed
 
 (* [Corollary 2 cont., CVA] *)
-lemma galois_closure_idempotent : "todo"
+lemma galois_closure_idempotent : 
+  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  assumes valid_V : "valid V"
+  and "A \<in> Space.opens (space V)" and "B \<in> Space.opens (space V)" and "C \<in> Space.opens (space V)"
+  and "C \<subseteq> B" and "B \<subseteq> A" and "d a = A" and "a \<in> elems V"
+  defines "ex \<equiv> gext V"
+  and "pr \<equiv> gprj V"
+  shows "ex A (pr B (ex A (pr B a))) = ex A (pr B a)"
+  by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_gprj ex_def galois_insertion gprj_elem pr_def valid_V)
+
+(* [Corollary 2 cont., CVA] *)
+lemma complete_lattice : "todo"
   oops
+
+end
