@@ -18,9 +18,8 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ### Section 2: Ordered valution algebras (OVAs): OVA.thy
 
-- Remark 1: N/A
-- Remark 2: 100%
-- Remark 3 (local_mono_imp_global, global_mono_imp_local, id_le_gprj, laxity): 100%
-- Theorem 1 (ext_prj_adjunction, ext_functorial): 50%
-- Corollary 1 (strongly_neutral_covariance): 100%
-- Corollary 2 (ext_prj_eq_id, d_le_prj_ext): 50%
+- [x] Remark 2
+- [x] Remark 3 (local_mono_imp_global, global_mono_imp_local, id_le_gprj, laxity)
+- [ ] Theorem 1 (ext_prj_adjunction, ext_functorial)
+- [x] Corollary 1 (strongly_neutral_covariance)
+- [ ] Corollary 2 (ext_prj_eq_id, d_le_prj_ext)
