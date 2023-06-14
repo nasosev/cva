@@ -36,6 +36,8 @@ definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Val
 definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gext ova A Bb \<equiv> if d Bb \<subseteq> A \<and> A \<in> opens (space ova) then (comb ova (neut ova A) Bb) else undefined"
 
+
+
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid ova \<equiv>
     let
@@ -65,6 +67,12 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
              pr (d Bb) (mul Aa Bb) = mul (pr (d Aa \<inter> d Bb) Aa) Bb)
     in
       welldefined \<and> domain_law \<and> neutral_law_left \<and> neutral_law_right \<and> comb_law_left \<and> comb_law_right"
+
+abbreviation "comb_ova a ova b \<equiv> comb ova a b"
+
+notation comb_ova ("_ \<otimes>\<^sub>_ _")
+
+term "A \<otimes>\<^sub>\<phi> B"
 
 (* LEMMAS *)
 
