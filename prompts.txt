@@ -42,6 +42,5 @@ Enclose your output with three backticks as below to ensure it renders properly
 
 ---
 
-FILENAME: Poset.thy
-CONTENTS:
+FILE SOURCE:
 
