@@ -837,8 +837,8 @@ lemma complete_lattice :
   defines "\<Phi> A \<equiv> (Presheaf.ob (presheaf V)) $ A" 
   assumes valid_V: "valid V"
   assumes local_completeness: "\<And>A . A \<in> opens V \<Longrightarrow> Poset.is_complete (\<Phi> A)"
-  shows "Poset.is_complete (poset V)"
-  unfolding is_cocomplete_def
+  shows "Poset.is_cocomplete (poset V)"
+  unfolding is_complete_def
 proof -
   fix U :: "(('A,'a) Valuation) set"
 
@@ -870,9 +870,45 @@ proof -
   moreover have "Poset.le (\<Phi> (d_U)) e_U (e (gext V d_U u))" using e_U_def Poset.inf_smaller
     by (metis calculation(3) calculation(8) comp_apply ex_U_def image_eqI) 
 
-  moreover have "u \<in> U \<longrightarrow> Poset.le (poset V) i u"  
+  moreover have "Poset.le (poset V) i u" 
+    unfolding poset_def i_def d_U_def e_U_def 
+    apply auto
+    apply (subst valid_gc_poset)
+    apply (simp add: valid_V)
+    apply (simp_all add: gc_def Let_def)
+    apply auto
+         apply (metis OVA.opens_def OVA.space_def d_U_def d_U_open)
+        apply (metis OVA.opens_def OVA.space_def \<open>U \<subseteq> elems V\<close> calculation(3) d_def fst_conv local_inclusion_domain subsetD valid_V)
+       apply (metis Poset.valid_welldefined \<Phi>_def calculation(5) calculation(9) d_U_def e_U_def)
+      apply (metis OVA.valid_welldefined \<open>U \<subseteq> elems V\<close> calculation(3) d_def elems_def fst_conv gc_elem_local snd_conv subsetD valid_V)
+     apply (metis calculation(3) d_def fst_conv)
+    by (smt (z3) OVA.space_def Poset.valid_welldefined \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(3) calculation(4) calculation(5) calculation(9) d_U_def d_U_open d_def e_U_def e_def ext_prj_adjunction_rhs_imp_lhs fst_conv gext_def global_inclusion_element gprj_def le_def local_inclusion_domain snd_conv subsetD valid_V)
 
+  fix z
+  assume "z \<in> elems V \<and> (\<forall> v \<in> U . Poset.le (poset V) z v)"
 
+  moreover have "\<forall> v \<in> U . d v \<subseteq> d z"
+    by (metis OVA.poset_def OVA.valid_welldefined calculation(10) d_antitone valid_V valid_gc_welldefined) 
+  moreover have "\<Union> (d ` U) \<subseteq> d z"
+    using calculation(11) by auto 
+  moreover have "d i \<subseteq> d z"
+    by (metis calculation(12) d_U_def d_def fst_conv i_def) 
+
+  moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))"
+    by (smt (verit) OVA.poset_def OVA.valid_welldefined OrderedSemigroup.valid_def \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(10) calculation(11) comb_def d_gext e_def elems_def gext_def gext_elem local_inclusion_domain local_le neutral_is_element subset_eq valid_V valid_monotone valid_neutral_law_left valid_reflexivity) 
+
+  define "i__z" where "i__z = gext V (d z) i"
+
+  moreover have "Poset.le (\<Phi> (d z)) (e z) (e i__z)" 
+
+(*
+  moreover have "Poset.le (poset V) z i"
+    by (simp add: calculation(10)) 
+
+  moreover have "Poset.valid (poset V)"
+    by (metis OVA.poset_def OVA.valid_welldefined valid_V valid_gc) 
+  moreover have "Poset.is_inf (poset V) U i" 
+*)
 
     
 
