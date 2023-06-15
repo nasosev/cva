@@ -920,7 +920,6 @@ proof -
   moreover have "\<forall> v \<in> U . gprj V d_U (gext V (d z) v) = gext V d_U v" using up_and_down
     by (metis (no_types, lifting) Sup_upper \<open>U \<subseteq> elems V\<close> calculation(10) calculation(12) d_U_def d_U_open image_eqI local_inclusion_domain subset_eq valid_V) 
 
-
   moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d_U)) (e z_U) (e (gext V d_U v))"
     by (smt (verit, ccfv_threshold) UN_subset_iff \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(10) calculation(12) calculation(14) d_U_def d_U_open d_gext equalityD2 ext_functorial ext_prj_adjunction fst_conv gext_def gext_elem i_def in_mono le_def local_inclusion_domain subset_eq valid_V z_U_def)
 
@@ -928,18 +927,19 @@ proof -
     using calculation(14) by blast 
 
   define "i__Z" where "i__Z = gext V (d z) i"
-  moreover have "Poset.le (\<Phi> d_U) (e z_U) (e i)"  
+  moreover have "Poset.le (\<Phi> d_U) (e z_U) (e i)"
+    by (smt (verit, del_insts) Pair_inject Poset.valid_welldefined calculation(17) calculation(3) calculation(5) calculation(8) comp_apply e_def ex_U_def i_def image_iff is_inf_def prod.collapse)  
 
-(*
+
   moreover have "Poset.le (poset V) z i"
-    by (simp add: calculation(10)) 
+    by (smt (verit, ccfv_threshold) OVA.poset_def OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined \<Phi>_def \<open>Poset.le (OVA.poset V) i u\<close> calculation(10) calculation(13) calculation(19) calculation(3) calculation(4) d_U_def d_U_open d_def d_gext e_def elems_def ext_prj_adjunction fst_conv galois_insertion gext_def gext_elem gle_def i_def id_le_gprj le_def le_imp_gle2 local_inclusion_domain subsetD valid_V valid_neutral_law_left valid_transitivity z_U_def) 
 
   moreover have "Poset.valid (poset V)"
     by (metis OVA.poset_def OVA.valid_welldefined valid_V valid_gc) 
   moreover have "Poset.is_inf (poset V) U i" 
 
  ultimately show ?thesis
-*)
+
 
    
     
