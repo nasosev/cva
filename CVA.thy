@@ -6,6 +6,9 @@ record ('A, 'a) CVA =
   par_algebra :: "('A, 'a) OVA"
   seq_algebra :: "('A, 'a) OVA"
 
+definition presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Presheaf" where
+"presheaf V = OVA.presheaf (par_algebra V)"
+
 definition elems :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems V = OVA.elems (par_algebra V)"
 
@@ -53,6 +56,13 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
     in
       welldefined \<and> commutativity \<and> weak_exchange \<and> neutral_law_par \<and> neutral_law_seq"
 
+lemma valid_elems :
+  fixes V :: "('A, 'a) CVA"
+  assumes "valid V"
+  shows " elems V = OVA.elems (seq_algebra V)"
+proof -
+  have "elems V = Poset.el (gc (presheaf V))" 
+  oops
 
 lemma valid_welldefined: "valid V \<Longrightarrow> OVA.valid (par_algebra V) \<and> OVA.valid (seq_algebra V) \<and> (OVA.presheaf (par_algebra V) = OVA.presheaf (seq_algebra V))"
   unfolding valid_def

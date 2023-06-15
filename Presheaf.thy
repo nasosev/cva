@@ -90,8 +90,15 @@ lemma validI :
   using T_def \<Phi>0_def \<Phi>1_def identity apply blast
   using T_def \<Phi>1_def composition by blast
 
-lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>) \<and> Function.valid_map (ob \<Phi>) \<and> Function.valid_map (ar \<Phi>)"
+lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> let T = space \<Phi>; \<Phi>0 = ob \<Phi>; \<Phi>1 = ar \<Phi> in (Space.valid T)
+                    \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (\<Phi>0 $ A))
+                    \<and> (\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 $ i)
+                           \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
+                           \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) )"
   unfolding valid_def by (simp add: Let_def)
+  
+      
 
 lemma valid_identity  : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> ar \<Phi> $ (Space.ident (space \<Phi>) A) = Poset.ident obA"
   unfolding valid_def by (simp add: Let_def)
@@ -174,7 +181,7 @@ lemma ident_app [simp] :
   by (simp add: valid_identity)
 
 lemma space_valid : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>)"
-  by (simp add: Presheaf.valid_welldefined)
+  by (meson Presheaf.valid_welldefined) 
 
 lemma posets_valid : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
   by (metis Presheaf.valid_def)
