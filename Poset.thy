@@ -65,7 +65,31 @@ definition discrete_fake :: "bool Poset" where
 value discrete_fake
  *)
 
+definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
+"is_inf P U i \<equiv>  i \<in> el P \<and> (\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i)"
+
+definition is_sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
+"is_sup P U s \<equiv>  s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z)"
+
+definition inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"inf P U \<equiv> if (\<exists>i. is_inf P U i) then (THE i. is_inf P U i) else undefined"
+
+definition sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a" where
+"sup P U \<equiv> if (\<exists>s. is_sup P U s) then (THE s. is_sup P U s) else undefined"
+
+definition is_complete :: "'a Poset \<Rightarrow> bool" where
+"is_complete P \<equiv> \<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i)"
+
+definition is_cocomplete :: "'a Poset \<Rightarrow> bool" where
+"is_cocomplete P \<equiv> \<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>s. is_sup P U s)"
+
+lemma "is_complete P \<longleftrightarrow> is_cocomplete P"
+  sorry
+
+
 (* LEMMAS *)
+
+
 
 lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
                    (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
