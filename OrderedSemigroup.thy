@@ -67,7 +67,14 @@ proof -
   moreover have "Poset.le (poset S) b1 b2"
     using b1_le_b2 by blast
   moreover have "Poset.le (Poset.dom (mult S)) (a1,b1) (a2,b2)" using Poset.product_def
-    by (smt (verit) OrderedSemigroup.valid_welldefined Poset.Poset.select_convs(2) Poset.valid_welldefined a1_le_a2 assms(1) b1_le_b2 case_prodI fst_conv mem_Collect_eq snd_conv)
+  proof -
+    have f1: "b1 \<in> el (poset S) \<and> b2 \<in> el (poset S)"
+      by (metis (no_types) OrderedSemigroup.valid_welldefined Poset.valid_welldefined assms(1) b1_le_b2)
+    have "a1 \<in> el (poset S) \<and> a2 \<in> el (poset S)"
+      by (meson OrderedSemigroup.valid_welldefined Poset.valid_welldefined a1_le_a2 assms(1))
+    then show ?thesis
+      using f1 by (simp add: OrderedSemigroup.valid_welldefined Poset.product_def a1_le_a2 assms(1) b1_le_b2)
+  qed
   ultimately show "Poset.le (poset S) ((mult S) $$ (a1,b1)) ((mult S) $$ (a2,b2))"
     by (simp add: OrderedSemigroup.valid_welldefined assms(1) valid_monotonicity) 
 qed
