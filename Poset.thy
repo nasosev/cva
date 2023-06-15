@@ -83,13 +83,17 @@ definition is_complete :: "'a Poset \<Rightarrow> bool" where
 definition is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 "is_cocomplete P \<equiv> \<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>s. is_sup P U s)"
 
-lemma "is_complete P \<longleftrightarrow> is_cocomplete P"
-  sorry
-
 
 (* LEMMAS *)
 
-
+lemma "is_complete P \<longleftrightarrow> is_cocomplete P"
+  unfolding is_complete_def is_cocomplete_def
+proof
+  assume "is_complete P" 
+  fix U
+  define "s" where "s = inf P {a \<in> Poset.el P . (\<forall> u \<in> U . le P u a)}"
+  have "is_sup P U s" 
+    oops
 
 lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
                    (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>

@@ -24,6 +24,9 @@ definition neut :: "('A, 'a) OVA \<Rightarrow> 'A set \<Rightarrow> ('A, 'a) Val
 definition space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space V = Presheaf.space (presheaf V)"
 
+definition poset :: "('A,'a) OVA \<Rightarrow> (('A, 'a) Valuation) Poset" where
+"poset V = OrderedSemigroup.poset (ordered_semigroup V)"
+
 definition elems :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems V = Poset.el (OrderedSemigroup.poset (ordered_semigroup V))"
 
@@ -127,6 +130,11 @@ lemma valid_welldefined  :
     Presheaf.valid \<Phi> \<and> OrderedSemigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
     Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> OrderedSemigroup.poset S = gc \<Phi>"
   by (simp add: valid_def Let_def)
+
+lemma valid_gc_poset : 
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> OrderedSemigroup.poset (ordered_semigroup V) = gc (presheaf V)"
+  by (meson OVA.valid_welldefined)
 
 lemma valid_domain_law  :
   fixes V :: "('A,'a) OVA"
@@ -823,8 +831,42 @@ lemma galois_closure_idempotent :
   shows "ex A (pr B (ex A (pr B a))) = ex A (pr B a)"
   by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_gprj ex_def galois_insertion gprj_elem pr_def valid_V)
 
-(* [Corollary 2 cont., CVA] *)
-lemma complete_lattice : "todo"
-  oops
+(* [Corollary 3, CVA] *)
+lemma complete_lattice :
+  fixes V :: "('A,'a) OVA"
+  defines "\<Phi> A \<equiv> (Presheaf.ob (presheaf V)) $ A" 
+  assumes valid_V: "valid V"
+  assumes local_completeness: "A \<in> opens V \<Longrightarrow> Poset.is_complete (\<Phi> A)"
+  shows "Poset.is_complete (poset V)"
+  unfolding is_cocomplete_def
+proof -
+  fix U :: "(('A,'a) Valuation) set"
+
+  define "d_U" where "d_U = \<Union> (d ` U)"  
+  define "ex_U" where "ex_U = ((e o gext V d_U) ` U)"
+  define "e_U" where "e_U = Poset.inf (\<Phi> (d_U)) ex_U"
+  define "i" where "i = (d_U, e_U)"
+
+  assume "U \<subseteq> elems V"
+  have "Space.valid (space V)"
+    by (metis OVA.space_def OVA.valid_welldefined space_valid valid_V) 
+  moreover have "u \<in> U \<Longrightarrow> d u \<in> opens V"
+    using \<open>U \<subseteq> elems V\<close> local_inclusion_domain valid_V by blast 
+  moreover have "d_U \<in> opens V"
+    by (metis OVA.opens_def \<open>U \<subseteq> elems V\<close> calculation(1) d_U_def image_subsetI local_inclusion_domain subset_eq valid_V valid_union) 
+
+  assume "u \<in> U" 
+  moreover have "u \<in> U \<longrightarrow> Poset.le (poset V) i u" 
+    unfolding poset_def i_def d_U_def e_U_def 
+    apply auto
+    apply (subst valid_gc_poset)
+    apply (simp add: valid_V)
+    apply (simp_all add: gc_def Let_def)
+
+
+
+    
+
+
 
 end

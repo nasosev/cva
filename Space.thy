@@ -42,6 +42,18 @@ definition make_inclusion :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Op
 
 (* LEMMAS *)
 
+lemma valid_empty : "valid T \<Longrightarrow> {} \<in> opens T"
+  by (simp add: valid_def)
+
+lemma valid_universe : "valid T \<Longrightarrow> universe T \<in> opens T"
+  by (simp add: valid_def)
+
+lemma valid_union : "valid T \<Longrightarrow> U \<subseteq> opens T \<Longrightarrow> (\<Union>U) \<in> opens T"
+  by (simp add: valid_def)
+
+lemma valid_inter : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> A \<inter> B \<in> opens T"
+  by (simp add: valid_def)
+
 lemma valid_inclusionI : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
   using valid_inclusion_def by blast
 
