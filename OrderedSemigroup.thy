@@ -1,11 +1,28 @@
+(*
+ Module      :  OrderedSemigroup.thy
+ Copyright   :  \<copyright> 2023 All rights reserved
+ License     :  None
+ Maintainer  :  Nasos Evangelou-Oost <naso@oneironaut.dev>, Callum Bannister
+ Stability   :  experimental
+ Portability :  portable
+
+ This file presents a formalization of ordered semigroups. Ordered semigroups are algebraic structures
+ that are both semigroups and partially ordered sets. We introduce a notion of a valid ordered semigroup 
+ and present several lemmas regarding its well-definedness, associativity, and monotonicity.
+--------------------------------------------------------------------------------
+*)
+
 theory OrderedSemigroup
   imports Main  Poset
 begin
 
+(* Ordered semigroups are algebraic structures that are both semigroups and partially ordered sets. 
+   'poset' captures the partial order and 'mult' captures the semigroup operation. *)
 record 'a OrderedSemigroup =
   poset :: "'a Poset"
   mult :: "('a \<times> 'a,'a) PosetMap"
 
+(* A valid ordered semigroup is well-defined and associative. *)
 definition valid :: "'a OrderedSemigroup \<Rightarrow> bool" where
 "valid S \<equiv>
   let
@@ -22,6 +39,7 @@ definition valid :: "'a OrderedSemigroup \<Rightarrow> bool" where
 
 (* LEMMAS *)
 
+(* If an ordered semigroup is well-defined and associative, then it's valid. *)
 lemma validI :
   fixes S :: "'a OrderedSemigroup"
   assumes welldefined : "(Poset.valid (poset S)) \<and> (Poset.valid_map (mult S)) \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
@@ -31,10 +49,12 @@ lemma validI :
   shows "valid S"
   using OrderedSemigroup.valid_def associative elems_def mul_def welldefined by fastforce
 
+(* If an ordered semigroup is valid, then it's well-defined. *)
 lemma valid_welldefined : "valid S \<Longrightarrow> (Poset.valid (poset S)) \<and> (Poset.valid_map (mult S))
 \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
   by (metis OrderedSemigroup.valid_def)
 
+(* If an ordered semigroup is valid, then it's associative. *)
 lemma valid_associative :
   fixes S :: "'a OrderedSemigroup"
   fixes a :: "'a" and b :: "'a" and c :: "'a"
@@ -45,6 +65,7 @@ lemma valid_associative :
   shows " mul (mul a b) c = mul a (mul b c)"
   by (metis OrderedSemigroup.valid_def assms(1) assms(3) assms(4) assms(5) elems_def mul_def)
 
+(* If an ordered semigroup is valid, then its multiplication operation is monotone. *)
 lemma valid_monotone :
   fixes S :: "'a OrderedSemigroup"
   fixes a1 :: "'a" and a2 :: "'a" and b1 :: "'a" and b2:: "'a"

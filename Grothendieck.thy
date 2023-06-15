@@ -128,4 +128,80 @@ apply (intro Poset.validI)
   apply (metis Poset.ident_app Presheaf.ident_app Space.ident_def make_inclusion_def posets_valid subset_antisym valid_antisymmetry)
   by (smt (verit, best) make_inclusion_def order_trans valid_gc_transitive)
 
+lemma valid_gc_le_wrap :
+  fixes \<Phi> :: "('A, 'a) Presheaf" and Aa Bb :: "('A set \<times> 'a)"
+
+  defines "i \<equiv> Space.make_inclusion (Presheaf.space \<Phi>) (d Bb) (d Aa)"
+  defines "pr \<equiv>  (Presheaf.ar \<Phi>) $ i"
+  defines "\<Phi>A \<equiv>  (Presheaf.ob \<Phi>) $ (d Aa)"
+  defines "\<Phi>B \<equiv>  (Presheaf.ob \<Phi>) $ (d Bb)"
+
+  assumes  "Presheaf.valid \<Phi>" 
+  assumes "d Aa \<in> Space.opens (Presheaf.space \<Phi>)"
+  assumes "d Bb \<in> Space.opens (Presheaf.space \<Phi>)"
+  assumes "e Aa \<in> Poset.el \<Phi>A"
+  assumes "e Bb \<in> Poset.el \<Phi>B"
+  assumes "d Bb \<subseteq> d Aa"
+
+  assumes "Poset.le \<Phi>B (pr $$ (e Aa)) (e Bb) "
+  shows "le (gc \<Phi>) Aa (Bb)"
+  unfolding gc_def
+  apply (simp add:Let_def)
+  apply safe
+  apply (metis assms(6) d_def fst_conv)
+      apply (metis assms(7) d_def fst_conv)
+     apply (metis \<Phi>A_def assms(8) d_def e_def fst_conv snd_conv)
+    apply (metis \<Phi>B_def assms(9) d_def e_def fst_conv snd_conv)
+   apply (metis assms(10) d_def fst_conv subsetD)
+  by (metis \<Phi>B_def assms(11) d_def e_def fst_conv i_def pr_def snd_conv)
+
+lemma valid_gc_le_unwrap :
+  fixes \<Phi> :: "('A, 'a) Presheaf" and Aa Bb :: "('A set \<times> 'a)"
+
+  defines "i \<equiv> Space.make_inclusion (Presheaf.space \<Phi>) (d Bb) (d Aa)"
+  defines "pr \<equiv>  (Presheaf.ar \<Phi>) $ i"
+  defines "\<Phi>A \<equiv>  (Presheaf.ob \<Phi>) $ (d Aa)"
+  defines "\<Phi>B \<equiv>  (Presheaf.ob \<Phi>) $ (d Bb)"
+  defines "gc\<Phi> \<equiv> gc \<Phi>"
+
+assumes  valid: "Presheaf.valid \<Phi>" 
+and "Aa \<in> Poset.el gc\<Phi> " and "Bb \<in> Poset.el (gc \<Phi>)"
+and le_gc: "le gc\<Phi> Aa Bb"
+
+shows "Poset.le \<Phi>B (pr $$ (e Aa)) (e Bb) \<and> d Bb \<subseteq> d Aa \<and> e Bb \<in> Poset.el \<Phi>B \<and> e Aa \<in> Poset.el \<Phi>A"
+proof -
+  have a1: "le gc\<Phi> Aa Bb"
+    by (simp add: le_gc)  
+  moreover have "d Bb \<subseteq> d Aa"
+    using assms(7) assms(8) d_antitone gc\<Phi>_def le_gc valid by blast 
+  moreover have "e Bb \<in> Poset.el \<Phi>B \<and> e Aa \<in> Poset.el \<Phi>A"
+    by (metis \<Phi>A_def \<Phi>B_def assms(7) assms(8) e_def gc\<Phi>_def gc_elem_local valid) 
+  moreover have "Space.valid_inclusion i"
+    by (metis assms(7) assms(8) calculation(2) gc\<Phi>_def i_def local_dom space_valid valid valid_make_inclusion) 
+  moreover have "Presheaf.valid \<Phi>"
+    by (simp add: valid) 
+  moreover have "i \<in> Space.inclusions (space \<Phi>)"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) calculation(4) i_def inclusions_def make_inclusion_def mem_Collect_eq) 
+  moreover have "Poset.valid_map pr" using Presheaf.poset_maps_valid
+    using calculation(6) pr_def valid by blast
+  define "a_B" where "a_B = (pr $$ (e Aa))"
+  moreover have "Poset.dom pr = \<Phi>A \<and> Poset.cod pr = \<Phi>B"
+    by (metis Inclusion.simps(2) Inclusion.simps(3) \<Phi>A_def \<Phi>B_def calculation(6) cod_proj dom_proj i_def make_inclusion_def pr_def valid)  
+  moreover have "a_B \<in> Poset.el \<Phi>B" 
+    using Poset.fun_app2 \<open>Poset.valid_map pr\<close> a_B_def calculation(3) calculation(8) by fastforce 
+  moreover have " Poset.valid gc\<Phi>"
+    by (simp add: gc\<Phi>_def valid valid_gc)  
+  moreover have "Poset.valid \<Phi>B"
+    using \<open>Poset.valid_map pr\<close> calculation(8) valid_cod by blast 
+  moreover have "Poset.le \<Phi>B a_B (e Bb)" using gc_def a1
+    apply (simp_all add: Let_def)
+    unfolding gc\<Phi>_def gc_def
+    apply auto
+    apply (simp_all add: Let_def)
+    apply clarsimp
+    by (simp add: \<Phi>B_def a_B_def d_def e_def i_def pr_def)
+  ultimately show ?thesis
+    by blast
+qed
+
 end
