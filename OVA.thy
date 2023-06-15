@@ -836,7 +836,7 @@ lemma complete_lattice :
   fixes V :: "('A,'a) OVA"
   defines "\<Phi> A \<equiv> (Presheaf.ob (presheaf V)) $ A" 
   assumes valid_V: "valid V"
-  assumes local_completeness: "A \<in> opens V \<Longrightarrow> Poset.is_complete (\<Phi> A)"
+  assumes local_completeness: "\<And>A . A \<in> opens V \<Longrightarrow> Poset.is_complete (\<Phi> A)"
   shows "Poset.is_complete (poset V)"
   unfolding is_cocomplete_def
 proof -
@@ -852,16 +852,25 @@ proof -
     by (metis OVA.space_def OVA.valid_welldefined space_valid valid_V) 
   moreover have "u \<in> U \<Longrightarrow> d u \<in> opens V"
     using \<open>U \<subseteq> elems V\<close> local_inclusion_domain valid_V by blast 
-  moreover have "d_U \<in> opens V"
+  moreover have d_U_open : "d_U \<in> opens V"
     by (metis OVA.opens_def \<open>U \<subseteq> elems V\<close> calculation(1) d_U_def image_subsetI local_inclusion_domain subset_eq valid_V valid_union) 
 
+  fix u
   assume "u \<in> U" 
-  moreover have "u \<in> U \<longrightarrow> Poset.le (poset V) i u" 
-    unfolding poset_def i_def d_U_def e_U_def 
-    apply auto
-    apply (subst valid_gc_poset)
-    apply (simp add: valid_V)
-    apply (simp_all add: gc_def Let_def)
+  moreover have "d u \<subseteq> d_U"
+    using calculation(3) d_U_def by blast 
+  moreover have "Poset.valid (\<Phi> (d_U))"
+    by (metis OVA.opens_def OVA.space_def OVA.valid_welldefined \<Phi>_def \<open>d_U \<in> OVA.opens V\<close> posets_valid valid_V) 
+  moreover have "Poset.is_complete (\<Phi> (d_U))" using local_completeness d_U_open
+    by simp  
+  moreover have "e_U \<noteq> undefined" using ex_U_def e_U_def Poset.inf_is_inf local_completeness
+    by (smt (verit) Union_upper \<Phi>_def \<open>U \<subseteq> elems V\<close> comp_apply complete_inf_defined d_U_def d_U_open d_gext gext_elem image_eqI image_subset_iff local_inclusion_domain local_inclusion_element subsetD valid_V)  
+  moreover have "Poset.is_inf (\<Phi> (d_U)) ex_U e_U" using ex_U_def e_U_def Poset.inf_is_inf local_completeness
+    using calculation(5) calculation(7) by blast   
+  moreover have "Poset.le (\<Phi> (d_U)) e_U (e (gext V d_U u))" using e_U_def Poset.inf_smaller
+    by (metis calculation(3) calculation(8) comp_apply ex_U_def image_eqI) 
+
+  moreover have "u \<in> U \<longrightarrow> Poset.le (poset V) i u"  
 
 
 
