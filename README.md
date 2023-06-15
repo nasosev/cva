@@ -20,6 +20,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 #### Ordered valution algebras (OVAs): OVA.thy
 
+- [x] Definition 1 (valid_gc)
 - [x] Remark 2 (gprj_functorial)
 - [x] Remark 3 (local_mono_imp_global, global_mono_imp_local, id_le_gprj, laxity)
 - [x] Theorem 1 (ext_prj_adjunction, ext_functorial)

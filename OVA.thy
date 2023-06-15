@@ -698,13 +698,12 @@ theorem ext_prj_adjunction :
   fixes V :: "('A,'a) OVA" and  a b :: "('A, 'a) Valuation"
   defines "mul \<equiv> comb V"
   defines "\<epsilon>A \<equiv> neut V (d a)"
-  defines "l \<equiv> le V" 
   defines "pr \<equiv> gprj V"
   assumes valid_V : "valid V"
   and elems : "a \<in> elems V \<and> b \<in> elems V"
   and doms : "d b \<subseteq> d a"
-shows "l (d b) (e (pr (d b) a)) (e b) \<longleftrightarrow> l (d a) (e a) (e (mul \<epsilon>A b))"
-  by (metis \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs l_def local_inclusion_domain mul_def pr_def valid_V)
+shows "le V (d b) (e (pr (d b) a)) (e b) \<longleftrightarrow> le V (d a) (e a) (e (mul \<epsilon>A b))"
+  by (metis \<epsilon>A_def doms elems ext_prj_adjunction_lhs_imp_rhs ext_prj_adjunction_rhs_imp_lhs  local_inclusion_domain mul_def pr_def valid_V)
 
 (* [Corollary 1, CVA] *)
 theorem strongly_neutral_cVriance :
@@ -822,7 +821,7 @@ qed
 
 (* [Corollary 2 cont., CVA] *)
 lemma galois_closure_idempotent : 
-  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes valid_V : "valid V"
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
   and "C \<subseteq> B" and "B \<subseteq> A" and "d a = A" and "a \<in> elems V"
@@ -831,14 +830,30 @@ lemma galois_closure_idempotent :
   shows "ex A (pr B (ex A (pr B a))) = ex A (pr B a)"
   by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_gprj ex_def galois_insertion gprj_elem pr_def valid_V)
 
+lemma up_and_down :
+  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  assumes valid_V : "valid V"
+  and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
+  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
+  defines "ex \<equiv> gext V"
+  and "pr \<equiv> gprj V"
+shows "pr B (ex A c) = ex B c"
+proof -
+  have "ex A c = ex A (ex B c)" using ext_functorial
+    by (metis assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def valid_V) 
+  moreover have "pr B (ex A (ex B c)) = ex B c"
+    by (metis assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext ex_def galois_insertion gext_elem pr_def valid_V) 
+  ultimately show ?thesis
+    by auto 
+qed
+
 (* [Corollary 3, CVA] *)
 lemma complete_lattice :
   fixes V :: "('A,'a) OVA"
   defines "\<Phi> A \<equiv> (Presheaf.ob (presheaf V)) $ A" 
   assumes valid_V: "valid V"
   assumes local_completeness: "\<And>A . A \<in> opens V \<Longrightarrow> Poset.is_complete (\<Phi> A)"
-  shows "Poset.is_cocomplete (poset V)"
-  unfolding is_complete_def
+  shows "Poset.is_complete (poset V)"
 proof -
   fix U :: "(('A,'a) Valuation) set"
 
@@ -897,9 +912,23 @@ proof -
   moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))"
     by (smt (verit) OVA.poset_def OVA.valid_welldefined OrderedSemigroup.valid_def \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(10) calculation(11) comb_def d_gext e_def elems_def gext_def gext_elem local_inclusion_domain local_le neutral_is_element subset_eq valid_V valid_monotone valid_neutral_law_left valid_reflexivity) 
 
-  define "i__z" where "i__z = gext V (d z) i"
+  moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (gprj V (d v) z)) (e v)"  using ext_prj_adjunction
+    by (smt (verit, del_insts) \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(10) calculation(11) calculation(14) gext_def le_def local_inclusion_domain subset_eq valid_V) 
 
-  moreover have "Poset.le (\<Phi> (d z)) (e z) (e i__z)" 
+  define "z_U" where "z_U = gprj V d_U z"
+
+  moreover have "\<forall> v \<in> U . gprj V d_U (gext V (d z) v) = gext V d_U v" using up_and_down
+    by (metis (no_types, lifting) Sup_upper \<open>U \<subseteq> elems V\<close> calculation(10) calculation(12) d_U_def d_U_open image_eqI local_inclusion_domain subset_eq valid_V) 
+
+
+  moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d_U)) (e z_U) (e (gext V d_U v))"
+    by (smt (verit, ccfv_threshold) UN_subset_iff \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(10) calculation(12) calculation(14) d_U_def d_U_open d_gext equalityD2 ext_functorial ext_prj_adjunction fst_conv gext_def gext_elem i_def in_mono le_def local_inclusion_domain subset_eq valid_V z_U_def)
+
+  moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))"
+    using calculation(14) by blast 
+
+  define "i__Z" where "i__Z = gext V (d z) i"
+  moreover have "Poset.le (\<Phi> d_U) (e z_U) (e i)"  
 
 (*
   moreover have "Poset.le (poset V) z i"
@@ -908,8 +937,11 @@ proof -
   moreover have "Poset.valid (poset V)"
     by (metis OVA.poset_def OVA.valid_welldefined valid_V valid_gc) 
   moreover have "Poset.is_inf (poset V) U i" 
+
+ ultimately show ?thesis
 *)
 
+   
     
 
 
