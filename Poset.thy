@@ -77,9 +77,9 @@ definition inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 definition sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 "sup P U \<equiv> if (\<exists>s. s \<in> el P \<and> is_sup P U s) then Some (SOME s. s \<in> el P \<and> is_sup P U s) else None"
 
-definition is_complete :: "'a Poset \<Rightarrow> bool" where
-"is_complete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i))
-"
+abbreviation is_complete :: "'a Poset \<Rightarrow> bool" where
+"is_complete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i))"
+
 definition is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 "is_cocomplete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>s. is_sup P U s))"
 
@@ -112,7 +112,6 @@ lemma "some_sup_is_sup" : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrig
   by (metis (no_types, lifting) Poset.sup_unique option.distinct(1) option.inject some_equality)
 
 lemma "complete_inf_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
-  unfolding is_complete_def
   by (simp add: inf_def is_inf_def) 
 
 lemma "cocomplete_sup_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
@@ -120,7 +119,7 @@ lemma "cocomplete_sup_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P 
   by (simp add: is_sup_def sup_def) 
 
 lemma  complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
-  unfolding is_complete_def is_cocomplete_def
+  unfolding is_cocomplete_def
 proof
   assume "is_complete P"
   fix U
