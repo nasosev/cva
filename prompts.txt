@@ -35,4 +35,6 @@ Enclose your output with three backticks as below to ensure it renders properly
 
 ---
 
+It is extremely important that you always remember to NOT CHANGE THE SEMANTIC CONTENT OF THE SOURCE CODE IN ANY WAY WHATSOEVER!
+
 FILE SOURCE:
