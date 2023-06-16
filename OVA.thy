@@ -319,7 +319,6 @@ lemma le_imp_gle : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> 
   apply (simp add: OVA.opens_def OVA.space_def)
   by (metis (no_types, lifting) OVA.opens_def OVA.space_def Poset.ident_app Presheaf.valid_welldefined make_inclusion_ident posets_valid valid_gc_1)
 
-
 lemma le_imp_gle2 : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> elems V
  \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> d a1 = A \<Longrightarrow> d a2 = A \<Longrightarrow> le V A (e a1) (e a2) \<Longrightarrow> gle V a1 a2"
   by (metis d_def e_def le_imp_gle local_elems_def local_inclusion_element prod.collapse)
@@ -900,7 +899,6 @@ lemma elem_le_unwrap :
   apply (smt (z3) OVA.valid_welldefined a_elem b_elem combine_monotone d_antitone d_gext d_gprj dom_A dom_B elems_def ext_prj_adjunction galois_closure_extensive galois_insertion gext_def gext_elem gle_def gle_imp_le gprj_elem id_le_gprj laxity le_gc le_imp_gle2 local_inclusion_domain neutral_element neutral_is_element stability up_and_down valid_V valid_comb_law_left valid_domain_law valid_gc_poset valid_neutral_law_left valid_neutral_law_right)
   by (smt (verit, best) OVA.valid_welldefined a_elem b_elem d_antitone dom_A dom_B elems_def gle_def subsetD valid_V)
   
-
 (* [Corollary 3, CVA] *)
 lemma locally_complete_imp_complete :
   fixes V :: "('A,'a) OVA"
@@ -931,9 +929,14 @@ proof -
 
   obtain e_U where "some_e_U = Some e_U" using \<open>some_e_U \<noteq> None\<close> by auto
 
-  define "i" where "i = (d_U, e_U)"
+  moreover have "e_U \<in> Poset.el (\<Phi> d_U)" 
+    by (metis (mono_tags, lifting) \<open>some_e_U \<noteq> None\<close> calculation(3) inf_def option.inject someI_ex some_e_U_def)
 
-  have "Space.valid (space V)"
+  define "i" where "i = (d_U, e_U)"
+  moreover have "i \<in> elems V"
+    by (metis \<Phi>_def \<open>e_U \<in> el (\<Phi> d_U)\<close> calculation(1) global_inclusion_element i_def valid_V) 
+
+  moreover have "Space.valid (space V)"
     by (metis OVA.space_def OVA.valid_welldefined space_valid valid_V)
   moreover have "u \<in> U \<Longrightarrow> d u \<in> opens V"
     using \<open>U \<subseteq> elems V\<close> local_inclusion_domain valid_V by blast
@@ -941,20 +944,20 @@ proof -
   fix u
   assume "u \<in> U"
   moreover have "d u \<subseteq> d_U"
-    using calculation(4) d_U_def by blast
+    using calculation(7) d_U_def by blast 
   moreover have "Poset.valid (\<Phi> (d_U))"
     by (metis OVA.opens_def OVA.space_def OVA.valid_welldefined \<Phi>_def \<open>d_U \<in> OVA.opens V\<close> posets_valid valid_V)
   moreover have "Poset.is_complete (\<Phi> (d_U))" using local_completeness
     using calculation(1) by auto
   moreover have "Poset.is_inf (\<Phi> (d_U)) ex_U e_U" using ex_U_def local_completeness
-    by (metis \<open>some_e_U = Some e_U\<close> calculation(6) some_e_U_def some_inf_is_inf)
+    by (metis \<open>e_U \<in> el (\<Phi> d_U)\<close> calculation(2) calculation(3) calculation(9) some_e_U_def some_inf_is_inf) 
   moreover have "ll (d_U) i (ex d_U u)"
-    by (metis \<Phi>_def calculation(4) calculation(8) comp_apply e_def ex_U_def i_def image_eqI inf_smaller le_def ll_def snd_conv)
+    by (smt (verit) \<Phi>_def \<open>e_U \<in> el (\<Phi> d_U)\<close> calculation(11) calculation(2) calculation(7) calculation(9) e_def ex_U_def i_def image_comp image_eqI inf_smaller le_def ll_def snd_conv) 
   moreover have "ll (d u) (pr (d u) i) u" using Poset.inf_smaller
-    by (smt (verit) \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(1) calculation(4) calculation(5) calculation(8) calculation(9) d_def ex_def ext_prj_adjunction_rhs_imp_lhs fst_conv gext_def global_inclusion_element i_def is_inf_def ll_def local_inclusion_domain pr_def subsetD valid_V)
+    by (smt (verit, ccfv_threshold) \<open>U \<subseteq> elems V\<close> calculation(12) calculation(5) calculation(7) calculation(8) d_def ex_def ext_prj_adjunction_rhs_imp_lhs fst_conv gext_def i_def ll_def local_inclusion_domain pr_def subsetD valid_V) 
   moreover have i_is_lb: "gl i u"
-    by (smt (verit) OVA.valid_welldefined OrderedSemigroup.valid_def \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(1) calculation(4) calculation(5) calculation(8) calculation(9) d_def d_gext elems_def ex_def fst_conv galois_insertion gext_elem gl_def gle_def global_inclusion_element i_def id_le_gprj is_inf_def le_imp_gle2 ll_def local_inclusion_domain subsetD valid_V valid_transitivity)
-
+    by (smt (verit) OVA.valid_welldefined OrderedSemigroup.valid_def \<open>U \<subseteq> elems V\<close> calculation(12) calculation(5) calculation(7) calculation(8) d_def d_gext elems_def ex_def fst_conv galois_insertion gext_elem gl_def gle_def i_def id_le_gprj le_imp_gle2 ll_def local_inclusion_domain subsetD valid_V valid_transitivity) 
+  
   fix z
   assume lb1: "z \<in> elems V \<and> (\<forall> v \<in> U . gl z v)"
   moreover have lb2: "\<forall> v \<in> U . d v \<subseteq> d z"
@@ -962,45 +965,39 @@ proof -
   moreover have "\<forall> v \<in> U . ll (d v) (pr (d v) z) v"
     using \<open>U \<subseteq> elems V\<close> elem_le_unwrap gl_def lb1 ll_def pr_def valid_V by blast
   moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)" using lb1 lb2
-    by (metis \<Phi>_def calculation(13) le_def ll_def) 
-
+    by (metis \<Phi>_def calculation(16) le_def ll_def) 
   moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)"  using ext_prj_adjunction
-    using calculation(14) by blast
-
+    using calculation(17) by blast 
   define "z_U" where "z_U = gprj V d_U z"
-
   moreover have "\<forall> v \<in> U . pr d_U (ex (d z) v) = ex d_U v" using up_and_down
     by (smt (verit) UN_subset_iff \<open>U \<subseteq> elems V\<close> calculation(1) d_U_def ex_def lb1 lb2 local_inclusion_domain pr_def subset_eq valid_V)
-
   moreover have "\<forall> v \<in> U . ll d_U z_U (ex d_U v)"
     by (smt (z3) UN_subset_iff \<open>U \<subseteq> elems V\<close> calculation(1) calculation(13) calculation(16) d_U_def d_gext ex_def ext_functorial ext_prj_adjunction gext_def gext_elem lb1 lb2 ll_def local_inclusion_domain pr_def subset_eq valid_V z_U_def) 
   moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))"
-    by (smt (verit, del_insts) \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(13) ext_prj_adjunction gext_def lb1 lb2 le_def ll_def local_inclusion_domain pr_def subset_eq valid_V) 
-
+    by (smt (verit) \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(16) ext_prj_adjunction gext_def lb1 lb2 le_def ll_def local_inclusion_domain pr_def subset_eq valid_V)
   moreover have "\<Union> (d ` U) \<subseteq> d z"
-    by (simp add: SUP_least calculation(12))
+    using lb2 by auto 
   moreover have "d i \<subseteq> d z"
-    by (metis calculation(19) d_U_def d_def fst_eqD i_def)
-
+    by (metis calculation(22) d_U_def d_def fst_conv i_def) 
   define "i__Z" where "i__Z = gext V (d z) i"
   moreover have "Poset.le (\<Phi> d_U) (e z_U) (e i)" using elem_le_unwrap
-    by (smt (verit) Poset.valid_def \<Phi>_def calculation(17) calculation(4) calculation(6) calculation(8) comp_def e_def ex_U_def i_def imageE is_inf_def le_def ll_def snd_conv) 
-
-
+    by (smt (verit) Poset.valid_welldefined \<Phi>_def calculation(11) calculation(20) calculation(4) calculation(7) calculation(9) comp_def e_def ex_U_def imageE is_inf_def le_def ll_def snd_conv) 
   moreover have i_is_glb : "gl z i"
-    by (metis  gl_def \<Phi>_def \<open>d i \<subseteq> d z\<close> calculation(1) calculation(21) calculation(8) d_def elem_le_wrap fst_eqD global_inclusion_element i_def is_inf_def lb1 le_def valid_V z_U_def) 
+    by (metis \<Phi>_def \<open>d i \<subseteq> d z\<close> calculation(24) calculation(5) d_def elem_le_wrap fst_conv gl_def i_def lb1 le_def valid_V z_U_def)
   moreover have "Poset.valid (poset V)"
     by (metis OVA.poset_def OVA.valid_welldefined valid_V valid_gc) 
+
+  moreover have poset_def : " (OrderedSemigroup.poset (ordered_semigroup V)) = OVA.poset V"
+    by (simp add: OVA.poset_def) 
 
   moreover have "Poset.is_inf (poset V) U i" 
     unfolding is_inf_def
     apply safe
-      apply (metis OVA.poset_def Poset.valid_welldefined calculation(23) gl_def gle_def i_is_glb)
-
-
-
-
-
+    apply (metis OVA.poset_def \<open>U \<subseteq> elems V\<close> elems_def subsetD)
+      apply (metis OVA.poset_def calculation(5) elems_def) 
+     apply (simp add: poset_def[symmetric])
+    using i_is_lb 
+unfolding gl_def gle_def
 
     moreover have "Poset.is_complete (poset V)" 
 
