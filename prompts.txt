@@ -16,7 +16,7 @@ This header should be in the following format:
  Stability   :  experimental
  Portability :  portable
 
- [BRIEF DESCRIPTION OF MODULE]
+ [BRIEF DESCRIPTION OF THEORY]
 --------------------------------------------------------------------------------
 *)
 
