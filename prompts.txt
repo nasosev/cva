@@ -17,8 +17,10 @@ Line length should not exceed 100 characters.
 Note that Isabelle uses the following format for comments:
 
 ```
-(* This record defines a type for functions between sets. The field 'cod' is the function's
-codomain and func is a relation representing whose first component is an element `a` in the domain of `f` and whose second component is the element `f a` in `cod`.
+(*
+   This record defines a type for functions between sets. The field 'cod' is the function'scodomain
+   and func is a relation representing whose first component is an element `a` in the domain of `f`
+   and whose second component is the element `f a` in `cod`.
 *)
 record ('a, 'b) Function =
   cod :: "'b set"
@@ -34,4 +36,3 @@ Enclose your output with three backticks as below to ensure it renders properly
 ---
 
 FILE SOURCE:
-

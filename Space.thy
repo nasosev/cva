@@ -1,7 +1,10 @@
 (*
- This module provides a formalization of Spaces, Inclusions and related operations based on the
- paper "Trace models of concurrent valuation algebras" by Nasos Evangelou-Oost and co-authors.
- It includes definitions, properties, and examples of these structures and operations.
+  Theory      :  Space.thy
+
+  This theory formalizes the notions of topological spaces and inclusions between open sets.
+  It introduces the definition of a Space, the notion of validity of a Space and an Inclusion.
+  It also defines operations on Inclusions such as composition and identity, and properties 
+  of these structures and operations are proven as lemmas.
 --------------------------------------------------------------------------------
 *)
 
@@ -10,18 +13,22 @@ imports Main
 
 begin
 
-(* A synonym for a type 'A Open representing a set of 'A elements. *)
+(* Type synonym 'A Open is used to represent a set of 'A elements. *)
 type_synonym 'A Open = "'A set"
 
-(* Record that encapsulates the structure of a space. It includes a set of opens (sets of elements
-   of type 'A) and a universe (set of all elements of type 'A). *)
+(* 
+  Record 'A Space encapsulates the structure of a topological space. 
+  It includes a set of opens (sets of elements of type 'A) and a universe (set of all elements of type 'A). 
+*)
 record 'A Space =
   opens :: "'A Open set"
   universe :: "'A set"
 
-(* Definition of validity of a space. A space is valid if it fulfills the conditions listed in 
-   this definition, which include the presence of the empty set and the universe in the opens, 
-   intersection and union properties. *)
+(* 
+  Definition of validity of a topological space. A space is considered valid if it fulfills the axioms 
+  of topology which include the presence of the empty set and the universe in the opens, closure under 
+  intersection and union. 
+*)
 definition valid :: "'A Space \<Rightarrow> bool" where
   "valid T =
     ({} \<in> opens T \<and> universe T \<in> opens T \<and>
@@ -29,40 +36,55 @@ definition valid :: "'A Space \<Rightarrow> bool" where
     (\<forall>A B. A \<in> opens T \<longrightarrow> B \<in> opens T \<longrightarrow> A \<inter> B \<in> opens T) \<and>
     (\<forall>U. U \<subseteq> opens T  \<longrightarrow> (\<Union>U) \<in> opens T))"
 
-(* Record that encapsulates an inclusion, a structure that maps one open to another within a space. *)
+(* 
+  Record 'A Inclusion represents an inclusion, a structure that maps one open set to another within a space.
+*)
 record 'A Inclusion =
   space :: "'A Space"
   dom :: "'A Open"
   cod :: "'A Open"
 
-(* Definition of validity of an inclusion. An inclusion is valid if it fulfills the conditions listed
-   in this definition, which include the space being valid and the domain being a subset of the codomain. *)
+(* 
+  Definition of validity of an inclusion. An inclusion is valid if it fulfills certain conditions 
+  including the validity of the space and the property that the domain is a subset of the codomain. 
+*)
 definition valid_inclusion :: "'A Inclusion \<Rightarrow> bool" where
   "valid_inclusion i \<equiv> valid (space i) \<and>
     (dom i \<subseteq> cod i \<and> dom i \<in> opens (space i) \<and> cod i \<in> opens (space i))"
 
-(* Definition of inclusions of a space. The set of all valid inclusions of a given space. *)
+(* 
+  Definition of inclusions of a space. It represents the set of all valid inclusions of a given space. 
+*)
 definition inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
   "inclusions T \<equiv> {i. valid_inclusion i \<and> space i = T}"
 
-(* Definition of an identity inclusion for a given open in a space. *)
+(* 
+  Definition of an identity inclusion for a given open in a space. An identity inclusion is a mapping 
+  from an open to itself within the space. 
+*)
 definition ident :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
   "ident T A \<equiv> \<lparr> space = T, dom = A, cod = A \<rparr>"
 
-(* Definition of composition of inclusions. The result of the composition of two inclusions is 
-   another inclusion if they share the same space and the domain of the second inclusion is equal 
-   to the codomain of the first inclusion, otherwise the result is undefined. *)
+(* 
+  Definition of composition of inclusions. The composition of two inclusions results in a new 
+  inclusion if they share the same space and the domain of the second inclusion equals the 
+  codomain of the first inclusion. If these conditions are not met, the result is undefined.
+*)
 definition compose :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A Inclusion" where
   "compose j i \<equiv>
     if (space j = space i \<and> dom j = cod i)
     then \<lparr> space = space j, dom = dom i, cod = cod j \<rparr>
     else undefined"
 
-(* Definition of inclusion making. It creates an inclusion from two opens within a space. *)
+(* 
+  Definition of inclusion making. This creates an inclusion from two open sets within a space.
+*)
 definition make_inclusion :: "'A Space \<Rightarrow> 'A Open \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
-"make_inclusion T B A \<equiv> \<lparr> space = T, dom = B, cod = A \<rparr>"
+  "make_inclusion T B A \<equiv> \<lparr> space = T, dom = B, cod = A \<rparr>"
 
-(* The following lemmas correspond to various properties of the structures and operations defined above. *)
+(* 
+  The following lemmas correspond to various properties of the structures and operations defined above.
+*)
 
 (* The empty set is always an element of opens of a valid space. *)
 lemma valid_empty : "valid T \<Longrightarrow> {} \<in> opens T"
@@ -141,7 +163,9 @@ lemma inc_cod_sup : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrighta
 lemma inc_dom_inf : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<inter> B = B"
   by (meson Int_absorb1 valid_inclusion_def valid_inclusions)
 
-(* The following are examples of specific spaces and the validation of their properties. *)
+(* 
+  The following are examples of specific spaces and the validation of their properties.
+*)
 
 (* The Sierpinski space is a valid space. *)
 definition ex_sierpinski :: "bool Space" where
