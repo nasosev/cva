@@ -952,7 +952,7 @@ proof -
     by (metis \<Phi>_def calculation(4) calculation(8) comp_apply e_def ex_U_def i_def image_eqI inf_smaller le_def ll_def snd_conv)
   moreover have "ll (d u) (pr (d u) i) u" using Poset.inf_smaller
     by (smt (verit) \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(1) calculation(4) calculation(5) calculation(8) calculation(9) d_def ex_def ext_prj_adjunction_rhs_imp_lhs fst_conv gext_def global_inclusion_element i_def is_inf_def ll_def local_inclusion_domain pr_def subsetD valid_V)
-  moreover have "gl i u"
+  moreover have i_is_lb: "gl i u"
     by (smt (verit) OVA.valid_welldefined OrderedSemigroup.valid_def \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation(1) calculation(4) calculation(5) calculation(8) calculation(9) d_def d_gext elems_def ex_def fst_conv galois_insertion gext_elem gl_def gle_def global_inclusion_element i_def id_le_gprj is_inf_def le_imp_gle2 ll_def local_inclusion_domain subsetD valid_V valid_transitivity)
 
   fix z
@@ -966,8 +966,6 @@ proof -
 
   moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)"  using ext_prj_adjunction
     using calculation(14) by blast
-
-
 
   define "z_U" where "z_U = gprj V d_U z"
 
@@ -985,28 +983,28 @@ proof -
     by (metis calculation(19) d_U_def d_def fst_eqD i_def)
 
   define "i__Z" where "i__Z = gext V (d z) i"
-  moreover have "Poset.le (\<Phi> d_U) (e z_U) (e i)"
-    by (smt (z3) Poset.valid_def \<Phi>_def calculation(17) calculation(4) calculation(6) calculation(8) comp_def e_def ex_U_def i_def imageE is_inf_def le_def ll_def snd_conv)
+  moreover have "Poset.le (\<Phi> d_U) (e z_U) (e i)" using elem_le_unwrap
+    by (smt (verit) Poset.valid_def \<Phi>_def calculation(17) calculation(4) calculation(6) calculation(8) comp_def e_def ex_U_def i_def imageE is_inf_def le_def ll_def snd_conv) 
 
-  moreover have "Poset.le (poset V) z i"
-    by (smt (verit, ccfv_threshold) OVA.poset_def OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined \<Phi>_def \<open>Poset.le (OVA.poset V) i u\<close> calculation(10) calculation(13) calculation(19) calculation(3) calculation(4) d_U_def d_U_open d_def d_gext e_def elems_def ext_prj_adjunction fst_conv galois_insertion gext_def gext_elem gle_def i_def id_le_gprj le_def le_imp_gle2 local_inclusion_domain subsetD valid_V valid_neutral_law_left valid_transitivity z_U_def)
 
+  moreover have i_is_glb : "gl z i"
+    by (metis  gl_def \<Phi>_def \<open>d i \<subseteq> d z\<close> calculation(1) calculation(21) calculation(8) d_def elem_le_wrap fst_eqD global_inclusion_element i_def is_inf_def lb1 le_def valid_V z_U_def) 
   moreover have "Poset.valid (poset V)"
-    by (metis OVA.poset_def OVA.valid_welldefined valid_V valid_gc)
+    by (metis OVA.poset_def OVA.valid_welldefined valid_V valid_gc) 
 
-  moreover have "e_U \<noteq> undefined"
-    using calculation(7) by blast
-  moreover have "d_U \<noteq> undefined"
-
-  moreover have "Poset.is_inf (poset V) U i"
+  moreover have "Poset.is_inf (poset V) U i" 
     unfolding is_inf_def
-    apply auto
+    apply safe
+      apply (metis OVA.poset_def Poset.valid_welldefined calculation(23) gl_def gle_def i_is_glb)
 
 
 
-    ultimately show ?thesis
 
-      oops
+
+
+    moreover have "Poset.is_complete (poset V)" 
+
+    ultimately show ?thesis 
 
 
 end

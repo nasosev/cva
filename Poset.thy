@@ -66,10 +66,10 @@ value discrete_fake
  *)
 
 definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"is_inf P U i \<equiv> i \<in> el P \<and> (\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i)"
+"is_inf P U i \<equiv> if U \<subseteq> el P \<and> i \<in> el P then  ((\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i))  else undefined"
 
 definition is_sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"is_sup P U s \<equiv> s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z)"
+"is_sup P U s \<equiv> if U \<subseteq> el P \<and> s \<in> el P then (s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z)) else undefined"
 
 definition inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 "inf P U \<equiv> if (\<exists>i. is_inf P U i) then Some (THE i. is_inf P U i) else None"
@@ -87,27 +87,27 @@ definition is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 
 (* Infima & suprema *)
 
-lemma inf_unique : "valid P \<Longrightarrow> is_inf P U i \<Longrightarrow> is_inf P U i' \<Longrightarrow> i = i'"
+lemma inf_unique : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P\<Longrightarrow> i' \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> is_inf P U i' \<Longrightarrow> i = i'"
   unfolding is_inf_def
   by (smt (verit, best) valid_def)
 
-lemma sup_unique : "valid P \<Longrightarrow> is_sup P U s \<Longrightarrow> is_sup P U s' \<Longrightarrow> s = s'"
+lemma sup_unique : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P\<Longrightarrow> s' \<in> el P \<Longrightarrow> is_sup P U s \<Longrightarrow> is_sup P U s' \<Longrightarrow> s = s'"
   unfolding is_sup_def
   by (smt (verit, best) valid_def)
 
-lemma "inf_smaller" : "is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
+lemma "inf_smaller" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
   unfolding is_inf_def
   by simp
 
-lemma "sup_greater" : "is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
+lemma "sup_greater" : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
   unfolding is_sup_def
   by simp
 
-lemma "some_inf_is_inf" : "valid P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
+lemma "some_inf_is_inf" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
   unfolding inf_def
   by (metis Poset.inf_unique option.distinct(1) option.inject theI_unique)
 
-lemma "some_sup_is_sup" : "valid P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
+lemma "some_sup_is_sup" : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
   unfolding sup_def
   by (metis Poset.sup_unique option.distinct(1) option.inject theI_unique)
 

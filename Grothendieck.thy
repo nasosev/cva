@@ -4,7 +4,6 @@ begin
 
 (* covariant Grothendieck construction *)
 
-
 definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" where
   "gc \<Phi> \<equiv>
     let
