@@ -917,7 +917,12 @@ next
   show "(\<forall> U \<subseteq> el (OVA.poset V). \<exists> i . is_inf (OVA.poset V) U i)"
   proof auto
     fix U :: "(('A,'a) Valuation) set"
-    assume "U \<subseteq> elems V"
+    assume U: "U \<subseteq> el (OVA.poset V)"
+
+    have "elems V = el (OVA.poset V)"
+      by (simp add: OVA.poset_def elems_def)
+    hence "U \<subseteq> elems V" using U by simp
+      
 
     define "d_U" where "d_U = \<Union> (d ` U)"
     define "ex_U" where "ex_U = ((e o ex d_U) ` U)"
@@ -925,6 +930,7 @@ next
 
     have "d_U \<in> opens V"
       by (metis OVA.opens_def OVA.space_def OVA.valid_welldefined \<open>U \<subseteq> elems V\<close> d_U_def image_subsetI local_inclusion_domain space_valid subset_eq valid_V valid_union)
+
 
     moreover have "ex_U \<subseteq> Poset.el (\<Phi> (d_U))"
       by (smt (verit) Sup_upper UN_subset_iff Union_least \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_gext ex_U_def ex_def image_subsetI in_mono local_inclusion_domain valid_V)
@@ -1032,5 +1038,9 @@ next
         by blast 
     qed
 
+    thus "\<exists>a b. is_inf (OVA.poset V) U (a, b)"
+      using i_def by auto
   qed
+qed
+
 end
