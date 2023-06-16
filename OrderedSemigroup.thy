@@ -1,11 +1,4 @@
 (*
- Module      :  OrderedSemigroup.thy
- Copyright   :  \<copyright> 2023 All rights reserved
- License     :  None
- Maintainer  :  Nasos Evangelou-Oost <naso@oneironaut.dev>, Callum Bannister
- Stability   :  experimental
- Portability :  portable
-
  This file presents a formalization of ordered semigroups. Ordered semigroups are algebraic structures
  that are both semigroups and partially ordered sets. We introduce a notion of a valid ordered semigroup 
  and present several lemmas regarding its well-definedness, associativity, and monotonicity.

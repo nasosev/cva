@@ -1,11 +1,4 @@
 (*
- Module      :  Space.thy
- Copyright   :  \<copyright> 2023 All rights reserved
- License     :  None
- Maintainer  :  Nasos Evangelou-Oost <naso@oneironaut.dev>, Callum Bannister
- Stability   :  experimental
- Portability :  portable
-
  This module provides a formalization of Spaces, Inclusions and related operations based on the
  paper "Trace models of concurrent valuation algebras" by Nasos Evangelou-Oost and co-authors.
  It includes definitions, properties, and examples of these structures and operations.

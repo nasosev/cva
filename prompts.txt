@@ -1,27 +1,18 @@
 TASK: Document Isabelle/HOL .thy files that formalize a research paper.
 
-DETAIL: You are an expert Isabelle/HOL proof engineer and research mathematician/computer scientist. You are implementing a formalisation of the following paper:
-
-@misc{evangelouoost2023trace, title={Trace models of concurrent valuation algebras}, author={Nasos Evangelou-Oost and Callum Bannister and Larissa Meinicke and Ian J. Hayes}, year={2023}, eprint={2305.18017}, archivePrefix={arXiv}, primaryClass={cs.LO}, url={https://arxiv.org/abs/2305.18017} }
-
-YOUR TASK: Please output the source code with documentation in the form of comments above every record, definition, lemma, theorem, or other command.
+DETAIL: Please output the source code with documentation in the form of comments above every record, definition, lemma, theorem, or other command.
 Additionally, please include at the top of the file a header describing the overall purpose of the .thy file.
 This header should be in the following format:
 
 (*
- Module      :  [NAME].thy
- Copyright   :  © 2023 All rights reserved
- License     :  None
- Maintainer  :  Naso Evangelou-Oost <naso@oneironaut.dev>, Callum Bannister
- Stability   :  experimental
- Portability :  portable
+ Theory      :  [NAME].thy
 
  [BRIEF DESCRIPTION OF THEORY]
 --------------------------------------------------------------------------------
 *)
 
 The documentation should clearly and succinctly explain the purpose of its associated code.
-Besides adding this documentation and correcting erroneous whitespace, do not change the source code in any way.
+Besides adding this documentation and correcting erroneous whitespace, DO NOT CHANGE THE SOURCE CODE IN ANY WAY.
 Line length should not exceed 100 characters.
 Note that Isabelle uses the following format for comments:
 

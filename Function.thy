@@ -1,11 +1,4 @@
 (*
- Module      :  Function.thy
- Copyright   :  \<copyright> 2023 All rights reserved
- License     :  None
- Maintainer  :  Naso Evangelou-Oost <naso@oneironaut.dev>, Callum Bannister
- Stability   :  experimental
- Portability :  portable
-
  The Function module formalizes the definition of a function, operations on a function, and properties of a function. The functions are 
  defined as mappings between sets. The definition includes domains and codomains, and introduces well-definedness conditions for a function.
  The module also contains a number of lemmas that specify properties of valid functions.
