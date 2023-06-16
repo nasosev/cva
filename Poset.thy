@@ -80,7 +80,7 @@ definition sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 abbreviation is_complete :: "'a Poset \<Rightarrow> bool" where
 "is_complete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i))"
 
-definition is_cocomplete :: "'a Poset \<Rightarrow> bool" where
+abbreviation is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 "is_cocomplete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>s. is_sup P U s))"
 
 (* LEMMAS *)
@@ -99,6 +99,15 @@ lemma "inf_smaller" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrigh
   unfolding is_inf_def
   by simp
 
+lemma "inf_is_glb" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i
+\<Longrightarrow> \<forall>u\<in>U. le P z u \<Longrightarrow> le P z i"
+  by (simp add: is_inf_def)
+
+lemma "sup_is_lub" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
+\<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P s z"
+  by (simp add: is_sup_def)
+
+
 lemma "sup_greater" : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
   unfolding is_sup_def
   by simp
@@ -112,14 +121,12 @@ lemma "some_sup_is_sup" : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrig
   by (metis (no_types, lifting) Poset.sup_unique option.distinct(1) option.inject some_equality)
 
 lemma "complete_inf_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
-  by (simp add: inf_def is_inf_def) 
+  by (simp add: inf_def is_inf_def)
 
 lemma "cocomplete_sup_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
-  unfolding is_cocomplete_def
-  by (simp add: is_sup_def sup_def) 
+  by (simp add: is_sup_def sup_def)
 
 lemma  complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
-  unfolding is_cocomplete_def
 proof
   assume "is_complete P"
   fix U
