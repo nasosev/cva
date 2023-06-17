@@ -96,10 +96,10 @@ Poset.le P Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
    a' = snd Aa', then Poset.le P_A a a'.
 *)
 lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Aa' \<in> Poset.el P \<Longrightarrow>
-d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a' = snd Aa' \<Longrightarrow>
+d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = e Aa \<Longrightarrow> a' = e Aa' \<Longrightarrow>
  Poset.le P_A a a' "
   unfolding gc_def
-  by (smt (verit, del_insts) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv make_inclusion_def posets_valid prod.collapse valid_identity)
+  by (smt (verit) Poset.Poset.select_convs(2) Poset.ident_app Presheaf.valid_welldefined Product_Type.Collect_case_prodD case_prod_conv make_inclusion_ident prod.collapse valid_identity)
 
 (*
    The lemma valid_gc_1 states that if \<Phi> is a valid presheaf and A is an open set in the space of \<Phi>,
@@ -147,11 +147,11 @@ proof -
   moreover have "b \<in> el \<Phi>_B"
     using assms(20) by blast
   moreover have "Space.valid T"
-    by (simp add: T_def calculation(1) space_valid)
+    using T_def calculation(1) valid_space by blast 
   moreover have "Space.valid_inclusion i_BA"
     by (simp add: assms(15) assms(16) assms(17) calculation(5) i_BA_def valid_inclusion_def)
   moreover have "Poset.valid_map prj_AB"
-    using T_def \<Phi>1_def calculation(1) calculation(6) i_BA_def inclusions_def poset_maps_valid prj_AB_def by fastforce
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Presheaf.valid_welldefined T_def \<Phi>1_def calculation(1) calculation(6) i_BA_def inclusions_def mem_Collect_eq prj_AB_def) 
   moreover have "Poset.cod prj_AB = \<Phi>_B"
     by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def calculation(1) calculation(6) cod_proj i_BA_def inclusions_def mem_Collect_eq prj_AB_def)
     moreover have "(prj_AB $$ a) \<in> el \<Phi>_B"
@@ -159,15 +159,15 @@ proof -
   moreover have "Space.valid_inclusion i_CB"
     by (simp add: assms(14) assms(17) assms(18) calculation(5) i_CB_def valid_inclusion_def)
 moreover have "Poset.valid_map prj_BC"
-  using T_def \<Phi>1_def assms(11) assms(8) calculation(1) calculation(10) inclusions_def poset_maps_valid by fastforce
+  by (metis (mono_tags, lifting) Inclusion.select_convs(1) Presheaf.valid_welldefined T_def \<Phi>1_def calculation(1) calculation(10) i_CB_def inclusions_def mem_Collect_eq prj_BC_def) 
   moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$  a)) (prj_BC $$  b)"
     by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def calculation(1) calculation(10) calculation(11) calculation(2) calculation(4) calculation(9) cod_proj dom_proj i_CB_def inclusions_def mem_Collect_eq prj_BC_def valid_monotonicity)
    moreover have "le \<Phi>_C (prj_BC $$ b) c"
      by (simp add: assms(23))
     moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$ a)) c"
-      by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(21) calculation(1) calculation(10) calculation(11) calculation(12) calculation(13) calculation(4) calculation(9) cod_proj i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_cod valid_transitivity)
+      by (metis Poset.valid_welldefined T_def \<Phi>0_def \<Phi>_C_def assms(18) calculation(1) calculation(12) calculation(13) valid_ob valid_transitivity) 
     ultimately show ?thesis
-      by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def compose_app dom_proj i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition)
+      by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Presheaf.valid_welldefined Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def compose_app i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
   qed
 
 (*
@@ -190,10 +190,11 @@ apply (intro Poset.validI)
      apply clarsimp
      apply auto
         apply (simp_all add: Let_def)
-  apply (metis Poset.ident_app Space.ident_def make_inclusion_def posets_valid valid_identity valid_reflexivity)
+  apply (metis Poset.ident_app make_inclusion_ident valid_identity valid_ob valid_reflexivity valid_space)
+
   apply blast
     apply auto[1]
-  apply (metis Poset.ident_app Presheaf.ident_app Space.ident_def make_inclusion_def posets_valid subset_antisym valid_antisymmetry)
+  apply (metis Poset.ident_app make_inclusion_ident subset_antisym valid_antisymmetry valid_identity valid_ob valid_space)
   by (smt (verit, best) make_inclusion_def order_trans valid_gc_transitive)
 
 (*
@@ -260,13 +261,13 @@ proof -
   moreover have "e Bb \<in> Poset.el \<Phi>B \<and> e Aa \<in> Poset.el \<Phi>A"
     by (metis \<Phi>A_def \<Phi>B_def assms(7) assms(8) gc\<Phi>_def gc_elem_local valid)
   moreover have "Space.valid_inclusion i"
-    by (metis assms(7) assms(8) calculation(2) gc\<Phi>_def i_def local_dom space_valid valid valid_make_inclusion)
+    by (metis assms(7) assms(8) calculation(2) gc\<Phi>_def i_def local_dom valid valid_make_inclusion valid_space) 
   moreover have "Presheaf.valid \<Phi>"
     by (simp add: valid)
   moreover have "i \<in> Space.inclusions (space \<Phi>)"
     by (metis (mono_tags, lifting) Inclusion.select_convs(1) calculation(4) i_def inclusions_def make_inclusion_def mem_Collect_eq)
-  moreover have "Poset.valid_map pr" using Presheaf.poset_maps_valid
-    using calculation(6) pr_def valid by blast
+  moreover have "Poset.valid_map pr" 
+    by (simp add: calculation(6) pr_def valid valid_ar)  
   define "a_B" where "a_B = (pr $$ (e Aa))"
   moreover have "Poset.dom pr = \<Phi>A \<and> Poset.cod pr = \<Phi>B"
     by (metis Inclusion.simps(2) Inclusion.simps(3) \<Phi>A_def \<Phi>B_def calculation(6) cod_proj dom_proj i_def make_inclusion_def pr_def valid)
@@ -275,7 +276,7 @@ proof -
   moreover have " Poset.valid gc\<Phi>"
     by (simp add: gc\<Phi>_def valid valid_gc)
   moreover have "Poset.valid \<Phi>B"
-    using \<open>Poset.valid_map pr\<close> calculation(8) valid_cod by blast
+    using Poset.valid_cod \<open>Poset.valid_map pr\<close> calculation(8) by blast 
   moreover have "Poset.le \<Phi>B a_B (e Bb)" using gc_def a1
     apply (simp_all add: Let_def)
     unfolding gc\<Phi>_def gc_def

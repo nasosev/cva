@@ -31,11 +31,8 @@ abbreviation gle_V :: "('A, 'a) Valuation \<Rightarrow> ('A,'a) OVA \<Rightarrow
 "gle_V a V b \<equiv> Poset.le (Semigroup.poset (ordered_semigroup V)) a b"
 *)
 
-abbreviation (input) le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
-"le V A a b \<equiv> Poset.le (Presheaf.ob (presheaf V) $ A) a b"
-
 abbreviation (input) local_le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
-"local_le V A a b \<equiv> le V A (e a) (e b)"
+"local_le V A a b \<equiv> if d a = A \<and> d b = A then Poset.le (Presheaf.ob (presheaf V) $ A) (e a) (e b) else undefined"
 
 abbreviation (input) space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space V \<equiv> Presheaf.space (presheaf V)"
@@ -120,19 +117,49 @@ lemma validI :
   using E_def \<Phi>_def welldefined apply blast
   using E_def T_def welldefined apply fastforce
   using S_def \<Phi>_def welldefined apply fastforce
-  using mul_def domain_law elem_def apply simp 
-  using mul_def domain_law elem_def apply simp 
-  using mul_def domain_law elem_def apply simp 
-  using T_def \<epsilon>_def mul_def elem_def neutral_law_left apply simp 
-  using T_def \<epsilon>_def mul_def elem_def neutral_law_right apply simp 
-  using comb_law_left elem_def mul_def pr_def apply simp 
-  using comb_law_right elem_def mul_def pr_def by simp 
+  using mul_def domain_law elem_def apply simp
+  using mul_def domain_law elem_def apply simp
+  using mul_def domain_law elem_def apply simp
+  using T_def \<epsilon>_def mul_def elem_def neutral_law_left apply simp
+  using T_def \<epsilon>_def mul_def elem_def neutral_law_right apply simp
+  using comb_law_left elem_def mul_def pr_def apply simp
+  using comb_law_right elem_def mul_def pr_def by simp
 
 lemma valid_welldefined  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> let \<Phi> = presheaf V; E = neutral V; \<epsilon> = neut V; T = space V; S = ordered_semigroup V in
     Presheaf.valid \<Phi> \<and> Semigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
     Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> Semigroup.poset S = gc \<Phi>"
+  by (simp add: valid_def Let_def)
+
+lemma valid_presheaf :
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> Presheaf.valid (presheaf V)"
+  by (simp add: valid_def Let_def)
+
+lemma valid_semigroup :
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> Semigroup.valid (ordered_semigroup V)"
+  by (simp add: valid_def Let_def)
+
+lemma valid_neutral :
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> Presheaf.valid_map (neutral V)"
+  by (simp add: valid_def Let_def)
+
+lemma valid_space :
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> space V = Presheaf.map_space (neutral V)"
+  by (simp add: valid_def Let_def)
+
+lemma valid_codomain :
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> Presheaf.cod (neutral V) = presheaf V"
+  by (simp add: valid_def Let_def)
+
+lemma valid_domain :
+  fixes V :: "('A,'a) OVA"
+  shows "valid V \<Longrightarrow> Presheaf.dom (neutral V) = Presheaf.terminal (space V)"
   by (simp add: valid_def Let_def)
 
 lemma valid_gc_poset :
@@ -190,7 +217,7 @@ moreover have "(Presheaf.ob ( Presheaf.terminal  (space V))) $ A = Poset.discret
     by (metis OVA.valid_welldefined Presheaf.valid_map_welldefined assms(2) assms(3) calculation(4))
   moreover have "(PresheafMap.nat (neutral V) $ A $$ ()) \<in> Poset.el ((Presheaf.ob (presheaf V)) $ A)"
     by (metis OVA.valid_welldefined Poset.fun_app2 Presheaf.valid_welldefined UNIV_unit UNIV_witness assms(2) assms(3) calculation(1) calculation(2) calculation(4) calculation(5) singletonD terminal_value)
-ultimately show ?thesis   
+ultimately show ?thesis
   by (metis OVA.valid_welldefined assms(2) assms(3) local_elem_gc)
 qed
 
@@ -222,8 +249,13 @@ proof -
 lemma d_neut : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> \<epsilon>A = neut V A \<Longrightarrow> d \<epsilon>A = A"
   by simp
 
+lemma d_comb : "valid V \<Longrightarrow>  a \<in> elems V \<Longrightarrow>  b \<in> elems V  ==>  A \<in> opens V
+\<Longrightarrow> B \<in> opens V \<Longrightarrow> d a = A \<Longrightarrow> d b = B \<Longrightarrow> ab = comb V a b
+\<Longrightarrow> d ab = A \<union> B"
+by (simp add: valid_domain_law)
+
 lemma d_gprj : "valid V \<Longrightarrow>  a \<in> elems V \<Longrightarrow>  B \<in> opens V
-\<Longrightarrow> A \<in> opens V\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d a = A \<Longrightarrow>  a_B = gprj V B a
+\<Longrightarrow> A \<in> opens V \<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d a = A \<Longrightarrow>  a_B = gprj V B a
 \<Longrightarrow> d a_B = B"
   by (simp add: gprj_def)
 
@@ -231,6 +263,21 @@ lemma d_gext : "valid V \<Longrightarrow>  b \<in> elems V \<Longrightarrow>  B 
 \<Longrightarrow> A \<in> opens V\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d b = B \<Longrightarrow>  b__A = gext V A b
 \<Longrightarrow> d b__A = A"
   by (simp add: d_neut gext_def neutral_is_element sup.order_iff valid_domain_law)
+
+lemma comb_is_element :
+fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
+assumes valid_V : "valid V"
+assumes dom_a : "d a = A" and dom_b : "d b = B"
+shows "comb V a b \<in> elems V" 
+
+
+
+lemma gprj_is_element :
+fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a :: "('A, 'a) Valuation"
+assumes "valid V"
+assumes "d a = A" and "B \<subseteq> A" and "B \<in> opens V"
+defines "a_B \<equiv> gprj V B a"
+shows "a_B \<in> elems V"
 
 lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> ea = e a
 \<Longrightarrow> \<Phi> = (presheaf V) \<Longrightarrow> ob_A = ob \<Phi> $ A
@@ -253,7 +300,6 @@ lemma gprj_functorial :
   and "d a = A"
   and "a \<in> elems V"
 defines "pr \<equiv> gprj V"
-and "l  \<equiv> (\<lambda> U a b . le V U (e a) (e b)) :: 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool"
 shows "pr C a = (pr C (pr B a))"
 proof -
   define "\<Phi>1" where "\<Phi>1 = Presheaf.ar (presheaf V)"
@@ -307,7 +353,7 @@ lemma combine_monotone : "valid V \<Longrightarrow>  a1 \<in> elems V \<Longrigh
   by (metis OVA.valid_welldefined valid_monotone)
 
 lemma le_imp_gle : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> local_elems V A
- \<Longrightarrow> a2 \<in> local_elems V A \<Longrightarrow> le V A a1 a2 \<Longrightarrow> gle V (A,a1) (A,a2)"   
+ \<Longrightarrow> a2 \<in> local_elems V A \<Longrightarrow> local_le V A (A,a1) (A,a2) \<Longrightarrow> gle V (A,a1) (A,a2)"
   apply (frule valid_welldefined)
   apply (simp_all add: Let_def)
   apply safe
@@ -317,11 +363,11 @@ lemma le_imp_gle : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> 
   by (metis (no_types, lifting) Poset.ident_app Presheaf.valid_welldefined make_inclusion_ident posets_valid valid_gc_1)
 
 lemma le_imp_gle2 : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> elems V
- \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> d a1 = A \<Longrightarrow> d a2 = A \<Longrightarrow> le V A (e a1) (e a2) \<Longrightarrow> gle V a1 a2"
+ \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> d a1 = A \<Longrightarrow> d a2 = A \<Longrightarrow> local_le V A a1 a2 \<Longrightarrow> gle V a1 a2"
   by (metis le_imp_gle  local_inclusion_element prod.collapse)
 
 lemma gle_imp_le : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> elems V \<Longrightarrow> d a1 = A \<Longrightarrow> d a2 = A
- \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> gle V a1 a2 \<Longrightarrow> le V A (e a1) (e a2)"
+ \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> gle V a1 a2 \<Longrightarrow> local_le V A a1 a2"
   apply (frule valid_welldefined)
   apply (simp_all add: Let_def)
   apply safe
@@ -352,11 +398,11 @@ proof -
   moreover have "Poset.le \<Phi>A (e a1) (e a2)"
     using assms(11) calculation(2) by blast
   moreover have "i \<in> inclusions V \<and> Space.dom i = B \<and> Space.cod i = A"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) OVA.valid_welldefined Presheaf.valid_welldefined Space.inclusions_def assms(4) assms(5) assms(6) assms(7) i_def make_inclusion_def mem_Collect_eq valid_V valid_make_inclusion)
+    by (metis (mono_tags, lifting) Inclusion.select_convs(2) Inclusion.select_convs(3) Inclusion.simps(1) OVA.valid_welldefined Presheaf.valid_welldefined assms(4) assms(5) assms(6) assms(7) i_def inclusions_def make_inclusion_def mem_Collect_eq valid_V valid_inclusionI)
   moreover have "Poset.le \<Phi>B (\<Phi>i $$ (e a1)) (\<Phi>i $$ (e a2))" using Presheaf.prj_monotone
     by (metis OVA.valid_welldefined \<Phi>A_def \<Phi>B_def \<Phi>i_def assms(10) assms(7) assms(9) calculation(3) calculation(4) local_inclusion_element valid_V)
   ultimately show ?thesis
-    by (metis OVA.valid_welldefined \<Phi>i_def assms(10) assms(4) assms(5) assms(7) assms(8) assms(9) gprj_def i_def image gl_def le_imp_gle  local_inclusion_element pr_def valid_V)
+    by (metis (no_types, lifting) OVA.valid_welldefined \<Phi>i_def assms(10) assms(4) assms(5) assms(7) assms(8) assms(9) fst_conv gl_def gprj_def i_def image le_imp_gle local_inclusion_element pr_def snd_conv valid_V)
 qed
 
 lemma stability:
@@ -394,22 +440,20 @@ moreover have "((f $ B) \<cdot> (ar one $ i)) $$ () = ((f $ B) $$ ((ar one $ i))
   moreover have "e \<epsilon>A=   (f $ A) $$ ()"
     by (simp add: \<epsilon>A_def f_def)
   ultimately show ?thesis
-    by (metis (no_types, lifting) OVA.valid_welldefined Presheaf.valid_map_welldefined Presheaf.valid_welldefined \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app eq_fst_iff f_def gprj_def i_def singletonI sndI terminal_value valid_V) 
+    by (metis (no_types, lifting) OVA.valid_welldefined Presheaf.valid_map_welldefined Presheaf.valid_welldefined \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app eq_fst_iff f_def gprj_def i_def singletonI sndI terminal_value valid_V)
 qed
 
-(* [Remark 3 cont., CVA] *)
-lemma local_mono_imp_global : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow>  a1 \<in> local_elems V A \<Longrightarrow>  a1' \<in> local_elems V A
-\<Longrightarrow>  a2' \<in> local_elems V A \<Longrightarrow>  a2' \<in> local_elems V A \<Longrightarrow> le V A a1 a2 \<Longrightarrow> le V A a1' a2'
- \<Longrightarrow> gle V (comb V (A,a1) (A,a1')) (comb V (A,a2) (A,a2'))"
-  by (metis OVA.valid_welldefined Poset.valid_welldefined combine_monotone le_imp_gle local_elem_gc  posets_valid)
-
-(* [Remark 3 cont., CVA] *)
-lemma global_mono_imp_local : "valid V \<Longrightarrow> A \<in> opens V
-\<Longrightarrow> a1 \<in> elems V \<Longrightarrow>  a1' \<in> elems V\<Longrightarrow>  a2' \<in> elems V \<Longrightarrow>  a2' \<in> elems V
-\<Longrightarrow> d a1 = A \<Longrightarrow> d a1' = A \<Longrightarrow> d a2 = A \<Longrightarrow> d a2' = A
-\<Longrightarrow> gle V a1 a2 \<Longrightarrow> gle V a1' a2'
-\<Longrightarrow> le V A (e (comb V a1 a1')) (e (comb V a2 a2'))"
-  by (smt (verit) OVA.valid_welldefined combine_monotone d_antitone gle_imp_le sup.order_iff valid_domain_law valid_gc_welldefined)
+(* [Remark 3, CVA] *)
+lemma local_mono_imp_global :
+  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a1' a2 a2' :: "('A, 'a) Valuation"
+  assumes valid_V : "valid V"
+  and A_open "A \<in> opens V"
+  and  "a1 \<in> elems V" and "d a1 = A"
+  and  "a1' \<in> elems V" and "d a1' = A"
+  and  "a2 \<in> elems V" and "d a2 = A"
+  and  "a2' \<in> elems V" and "d a2' = A"
+shows "gle V (comb V a1 a1') (comb V a2 a2') = local_le V A (comb V a1 a1') (comb V a2 a2')"
+  by (smt (verit) OVA.valid_welldefined Poset.valid_welldefined Semigroup.valid_def assms(10) assms(11) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) d_neut gle_imp_le le_imp_gle2 local_elem_gc neutral_is_element posets_valid prod.collapse valid_V valid_domain_law valid_neutral_law_right)
 
 (* [Remark 3 cont., CVA] *)
 lemma id_le_gprj :
@@ -603,46 +647,46 @@ proof -
   define "A" where "A \<equiv> d a"
   define "B" where "B \<equiv> d b"
   moreover have "gle V a a_B"
-    by (metis a_B_def assms(9) dom_a dom_b elem_a elem_b id_le_gprj local_inclusion_domain valid_V) 
+    by (metis a_B_def assms(9) dom_a dom_b elem_a elem_b id_le_gprj local_inclusion_domain valid_V)
   moreover have "a = comb V \<epsilon>A a"
-    by (metis \<epsilon>A_def dom_a elem_a local_inclusion_domain valid_V valid_neutral_law_left) 
+    by (metis \<epsilon>A_def dom_a elem_a local_inclusion_domain valid_V valid_neutral_law_left)
   moreover have a_B_le_b : "le V B ea_B eb"
-    by (simp add: B_def LHS a_B_def dom_b ea_B_def eb_def) 
+    by (simp add: B_def LHS a_B_def dom_b ea_B_def eb_def)
   moreover have "Poset.valid (\<Phi>0 A)"
-    by (metis A_def OVA.valid_welldefined \<Phi>0_def \<Phi>_def elem_a local_inclusion_domain posets_valid valid_V) 
+    by (metis A_def OVA.valid_welldefined \<Phi>0_def \<Phi>_def elem_a local_inclusion_domain posets_valid valid_V)
   moreover have "d \<epsilon>A = A"
-    by (simp add: A_def \<epsilon>A_def dom_a) 
+    by (simp add: A_def \<epsilon>A_def dom_a)
   moreover have " e \<epsilon>A \<in> Poset.el (\<Phi>0 A)"  using neutral_local_element
-    using A_def \<Phi>0_def \<Phi>_def \<epsilon>A_def dom_a elem_a local_inclusion_domain valid_V by blast 
+    using A_def \<Phi>0_def \<Phi>_def \<epsilon>A_def dom_a elem_a local_inclusion_domain valid_V by blast
   moreover have "local_le V A \<epsilon>A \<epsilon>A"
-    by (metis \<Phi>0_def \<Phi>_def calculation(5) calculation(7) valid_reflexivity)  
+    by (metis \<Phi>0_def \<Phi>_def calculation(5) calculation(7) valid_reflexivity)
     define "gc_poset" where "gc_poset = (Semigroup.poset (ordered_semigroup V))"
   moreover have "Poset.valid gc_poset"
     by (metis OVA.valid_welldefined Semigroup.valid_welldefined gc_poset_def valid_V)
   moreover have "\<epsilon>A \<in> Poset.el gc_poset" using gc_poset_def   \<epsilon>A_def
-    using dom_a elem_a local_inclusion_domain neutral_is_element valid_V by blast 
+    using dom_a elem_a local_inclusion_domain neutral_is_element valid_V by blast
   moreover have "gle V \<epsilon>A \<epsilon>A"
-    by (metis calculation(10) calculation(9) gc_poset_def valid_reflexivity) 
+    by (metis calculation(10) calculation(9) gc_poset_def valid_reflexivity)
   moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
-    by (meson OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(2) combine_monotone valid_V)  
+    by (meson OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(2) combine_monotone valid_V)
   moreover have "d a_B = B \<and> d b = B"
-    by (metis B_def a_B_def assms(9) d_gprj dom_a dom_b elem_a elem_b local_inclusion_domain valid_V) 
+    by (metis B_def a_B_def assms(9) d_gprj dom_a dom_b elem_a elem_b local_inclusion_domain valid_V)
   moreover have "a_B = (B, ea_B) \<and> b = (B, eb)"
-    by (metis calculation(13) ea_B_def eb_def prod.collapse) 
+    by (metis calculation(13) ea_B_def eb_def prod.collapse)
   moreover have "gle V a_B b"  using  a_B_le_b
-    by (metis OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(13) calculation(2) ea_B_def eb_def elem_b le_imp_gle2 local_inclusion_domain valid_V) 
+    by (metis OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(13) calculation(2) ea_B_def eb_def elem_b le_imp_gle2 local_inclusion_domain valid_V)
   moreover have "gle V (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)"
-    by (meson OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(15) combine_monotone valid_V)  
+    by (meson OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(15) combine_monotone valid_V)
 moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
-  using calculation(12) by auto 
+  using calculation(12) by auto
 moreover have "gle V a (comb V \<epsilon>A a_B)"
-  using calculation(12) calculation(3) by auto 
+  using calculation(12) calculation(3) by auto
   moreover have "A \<union> B = A"
-    by (simp add: A_def B_def Un_absorb2 assms(9) dom_a dom_b) 
+    by (simp add: A_def B_def Un_absorb2 assms(9) dom_a dom_b)
   moreover have "d (comb V \<epsilon>A a_B) = A" using valid_domain_law
-    by (metis Poset.valid_welldefined calculation(10) calculation(13) calculation(19) calculation(2) calculation(6) calculation(9) gc_poset_def valid_V) 
+    by (metis Poset.valid_welldefined calculation(10) calculation(13) calculation(19) calculation(2) calculation(6) calculation(9) gc_poset_def valid_V)
   ultimately show ?thesis
-    by (metis (no_types, lifting) A_def OVA.valid_welldefined Poset.valid_welldefined dom_a local_le valid_V valid_domain_law valid_transitivity) 
+    by (metis (no_types, lifting) A_def OVA.valid_welldefined Poset.valid_welldefined dom_a local_le valid_V valid_domain_law valid_transitivity)
 qed
 
 lemma prj_ext_adjunction_rhs_imp_lhs :
@@ -651,7 +695,7 @@ lemma prj_ext_adjunction_rhs_imp_lhs :
   defines "\<Phi>0 \<equiv> (\<lambda> A . (ob \<Phi>) $ A)"
   defines "\<epsilon>A \<equiv> neut V A"
   assumes valid_V : "valid V"
-  and A_open : "A \<in> opens V" and B_open : "B \<in> opens V" 
+  and A_open : "A \<in> opens V" and B_open : "B \<in> opens V"
   and B_le_A : "B \<subseteq> A"
   and elem_a : "a \<in> elems V" and elem_b : "b \<in> elems V"
   and dom_a : "d a = A" and dom_b : "d b = B"
@@ -659,18 +703,18 @@ lemma prj_ext_adjunction_rhs_imp_lhs :
 shows "local_le V B (gprj V B a) b"
 proof -
   have "gle V a (comb V \<epsilon>A b)"
-    by (metis (no_types, lifting) A_open B_le_A OVA.valid_welldefined Poset.valid_welldefined RHS \<epsilon>A_def d_neut dom_a dom_b elem_b le_imp_gle neutral_is_element posets_valid prod.exhaust_sel sup.absorb_iff1 valid_V valid_domain_law) 
+    by (metis (no_types, lifting) A_open B_le_A OVA.valid_welldefined Poset.valid_welldefined RHS \<epsilon>A_def d_neut dom_a dom_b elem_b le_imp_gle neutral_is_element posets_valid prod.exhaust_sel sup.absorb_iff1 valid_V valid_domain_law)
     moreover have "gle V (gprj V B a) (gprj V B (comb V \<epsilon>A b))"
-      by (smt (verit) A_open B_le_A B_open OVA.valid_welldefined Semigroup.valid_def Poset.valid_welldefined \<epsilon>A_def calculation dom_a dom_b elem_b fst_conv gprj_monotone neutral_is_element sup.orderE valid_V valid_domain_law) 
+      by (smt (verit) A_open B_le_A B_open OVA.valid_welldefined Semigroup.valid_def Poset.valid_welldefined \<epsilon>A_def calculation dom_a dom_b elem_b fst_conv gprj_monotone neutral_is_element sup.orderE valid_V valid_domain_law)
     moreover have "gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b"  using valid_comb_law_right
-      by (metis A_open \<epsilon>A_def dom_b elem_b fst_conv neutral_is_element valid_V) 
+      by (metis A_open \<epsilon>A_def dom_b elem_b fst_conv neutral_is_element valid_V)
     define "\<epsilon>B" where "\<epsilon>B \<equiv> neut V B"
     moreover have "gprj V (A \<inter> B) \<epsilon>A = \<epsilon>B"
-      by (simp add: A_open B_le_A B_open \<epsilon>A_def \<epsilon>B_def inf.absorb2 stability valid_V) 
+      by (simp add: A_open B_le_A B_open \<epsilon>A_def \<epsilon>B_def inf.absorb2 stability valid_V)
     moreover have "comb V (gprj V (A \<inter> B) \<epsilon>A) b = b"
-      by (metis B_open \<epsilon>B_def calculation(4) dom_b elem_b valid_V valid_neutral_law_left) 
+      by (metis B_open \<epsilon>B_def calculation(4) dom_b elem_b valid_V valid_neutral_law_left)
     moreover have "gle V (gprj V B a) b"
-      using \<open>gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b\<close> calculation(2) calculation(5) by fastforce 
+      using \<open>gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b\<close> calculation(2) calculation(5) by fastforce
     ultimately show ?thesis
       by (metis (no_types, lifting) A_open B_le_A B_open d_gprj dom_a dom_b elem_a elem_b gle_imp_le gprj_elem valid_V)
   qed
@@ -685,26 +729,26 @@ defines "pr \<equiv> gprj V" and "mul \<equiv> comb V" and "gl \<equiv> gle V"
 shows "local_le V B (pr B (mul a a')) (mul (pr B a) (pr B a'))"
 proof -
    have "gl a (pr B a)"
-     using A_open B_le_A B_open a_elem dom_a gl_def id_le_gprj pr_def valid_V by blast 
+     using A_open B_le_A B_open a_elem dom_a gl_def id_le_gprj pr_def valid_V by blast
    moreover have "gl a' (pr B a')"
-     using A_open B_le_A B_open a'_elem dom_a' gl_def id_le_gprj pr_def valid_V by blast 
+     using A_open B_le_A B_open a'_elem dom_a' gl_def id_le_gprj pr_def valid_V by blast
    define "m1" where "m1 = mul a a'"
    define "m2" where "m2 = mul (pr B a) (pr B a')"
    moreover have "d m1 = A"
-     by (simp add: a'_elem a_elem dom_a dom_a' m1_def mul_def valid_V valid_domain_law) 
+     by (simp add: a'_elem a_elem dom_a dom_a' m1_def mul_def valid_V valid_domain_law)
    moreover have "d m2 = B"
-     by (metis (no_types, lifting) A_open B_le_A B_open a'_elem a_elem d_gprj dom_a dom_a' dual_order.refl gprj_elem m2_def mul_def pr_def sup.order_iff valid_V valid_domain_law) 
+     by (metis (no_types, lifting) A_open B_le_A B_open a'_elem a_elem d_gprj dom_a dom_a' dual_order.refl gprj_elem m2_def mul_def pr_def sup.order_iff valid_V valid_domain_law)
    moreover have global_le : "gl m1 m2"
-     by (metis (no_types, lifting) A_open B_le_A B_open \<open>gl a' (pr B a')\<close> a'_elem a_elem calculation(1) combine_monotone dom_a dom_a' gl_def gprj_elem m1_def m2_def mul_def pr_def valid_V) 
+     by (metis (no_types, lifting) A_open B_le_A B_open \<open>gl a' (pr B a')\<close> a'_elem a_elem calculation(1) combine_monotone dom_a dom_a' gl_def gprj_elem m1_def m2_def mul_def pr_def valid_V)
    define "\<Phi>B" where "\<Phi>B = (Presheaf.ob (presheaf V)) $ B"
     moreover have "e m2 \<in> Poset.el \<Phi>B"
-      by (metis OVA.valid_welldefined \<Phi>B_def \<open>gl m1 m2\<close> calculation(4) gc_elem_local gl_def valid_V valid_gc_welldefined) 
+      by (metis OVA.valid_welldefined \<Phi>B_def \<open>gl m1 m2\<close> calculation(4) gc_elem_local gl_def valid_V valid_gc_welldefined)
    moreover have "e (pr B m1) \<in> Poset.el \<Phi>B"
      by (metis A_open B_le_A B_open OVA.valid_welldefined \<Phi>B_def \<open>gl m1 m2\<close> calculation(3) e_gprj gl_def pr_def valid_V valid_gc_welldefined)
    ultimately show ?thesis using global_le(* todo: why won't this prove? *)
      unfolding pr_def mul_def gl_def  valid_gc_poset
      apply auto
-     
+
 
    qed
 
@@ -718,14 +762,14 @@ theorem prj_ext_adjunction :
   and B_le_A : "B \<subseteq> A"
   and elem_a : "a \<in> elems V" and elem_b : "b \<in> elems V"
   and dom_b : "d a = A" and dom_b : "d b = B"
-shows "local_le V B (gprj V B a) b \<longleftrightarrow> local_le V A a (comb V (neut V A) b)" 
+shows "local_le V B (gprj V B a) b \<longleftrightarrow> local_le V A a (comb V (neut V A) b)"
 proof (rule iffI)
   assume "local_le V B (gprj V B a) b"
   show " local_le V A a (comb V (neut V A) b)"  using prj_ext_adjunction_lhs_imp_rhs
     using B_le_A \<open>Poset.le (ob (presheaf V) $ B) (e (gprj V B a)) (e b)\<close> assms(7) dom_b elem_a elem_b valid_V by blast
-next 
+next
   assume "local_le V A a (comb V (neut V A) b)"
-  show "local_le V B (gprj V B a) b" using prj_ext_adjunction_rhs_imp_lhs 
+  show "local_le V B (gprj V B a) b" using prj_ext_adjunction_rhs_imp_lhs
     apply (rule_tac b=b and B=B and V=V and a=a in prj_ext_adjunction_rhs_imp_lhs) (* todo: why do we need this? *)
             apply auto
     using valid_V apply blast
@@ -762,7 +806,7 @@ proof -
   have "pr B (ex A b) = pr B (mul \<epsilon>A b)"
     by (simp add: \<epsilon>A_def assms(3) assms(4) assms(6) ex_def gext_def mul_def)
   moreover have "... =  mul (pr (A \<inter> B) \<epsilon>A) b"  using valid_comb_law_right pr_def mul_def ex_def
-    by (metis \<epsilon>A_def assms(2) assms(3) assms(6) neutral_element neutral_is_element valid_V)
+    by (metis \<epsilon>A_def assms(2) assms(3) assms(6) fst_conv neutral_is_element valid_V)
   moreover have "... =  mul \<epsilon>B b"
   by (simp add: \<epsilon>A_def \<epsilon>B_def assms(4) assms(5) assms(6) inf.absorb2 pr_def stability valid_V)
   ultimately show ?thesis
@@ -905,17 +949,17 @@ lemma intermediate_extension :
   shows "local_le V B (gprj V B a) (gext V B c)"
 proof -
   have "A \<in> opens V \<and> B \<in> opens V \<and> C \<in> opens V"
-    using B_open a_elem c_elem dom_A dom_c local_inclusion_domain valid_V by blast  
-  moreover have "local_le V C (gprj V C a) c" by fact 
+    using B_open a_elem c_elem dom_A dom_c local_inclusion_domain valid_V by blast
+  moreover have "local_le V C (gprj V C a) c" by fact
   moreover have "local_le V A a (gext V A c)" using prj_ext_adjunction
-    by (smt (z3) B_leq_A C_le_B a_elem c_elem dom_A dom_c dual_order.trans gext_def gext_elem le_a_C_c local_inclusion_domain valid_V)  
+    by (smt (z3) B_leq_A C_le_B a_elem c_elem dom_A dom_c dual_order.trans gext_def gext_elem le_a_C_c local_inclusion_domain valid_V)
   moreover have "gext V A c = gext V A (gext V B c)" using ext_functorial
-    by (metis B_leq_A C_le_B c_elem calculation(1) dom_c valid_V)    
+    by (metis B_leq_A C_le_B c_elem calculation(1) dom_c valid_V)
   moreover have "local_le V A a (gext V A (gext V B c))"
-    using calculation(3) calculation(4) by auto 
+    using calculation(3) calculation(4) by auto
   ultimately show ?thesis using prj_ext_adjunction le_a_C_c (* todo: why isnt this using prj_ext_adjunction *)
-    by (smt (verit) B_leq_A C_le_B OVA.valid_welldefined Poset.valid_welldefined a_elem c_elem d_gext d_gprj dom_A dom_c galois_insertion gext_elem gprj_elem gprj_monotone le_imp_gle local_le posets_valid prod.collapse valid_V) 
-  
+    by (smt (verit) B_leq_A C_le_B OVA.valid_welldefined Poset.valid_welldefined a_elem c_elem d_gext d_gprj dom_A dom_c galois_insertion gext_elem gprj_elem gprj_monotone le_imp_gle local_le posets_valid prod.collapse valid_V)
+
    (* by (smt (z3) B_leq_A C_le_B a_elem c_elem d_gext d_gprj dom_A dom_c gext_elem gle_imp_le gprj_elem gprj_monotone le_imp_gle2 up_and_down valid_V) *)
 (* [Corollary 3, CVA] *)
 lemma locally_complete_imp_complete :
@@ -939,14 +983,14 @@ next
     have "elems V = el (OVA.poset V)"
       by (simp add:  )
     hence "U \<subseteq> elems V" using U by simp
-      
+
 
     define "d_U" where "d_U = \<Union> (d ` U)"
     define "ex_U" where "ex_U = ((e o ex d_U) ` U)"
     define "some_e_U" where "some_e_U = Poset.inf (\<Phi> (d_U)) ex_U"
 
     have "d_U \<in> opens V"
-      by (smt (verit, ccfv_threshold) OVA.valid_welldefined U d_U_def image_iff local_inclusion_domain space_valid subset_eq valid_V valid_union) 
+      by (smt (verit, ccfv_threshold) OVA.valid_welldefined U d_U_def image_iff local_inclusion_domain space_valid subset_eq valid_V valid_union)
 
     moreover have "ex_U \<subseteq> Poset.el (\<Phi> (d_U))"
       by (smt (verit) Sup_upper UN_subset_iff Union_least \<Phi>_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_gext ex_U_def ex_def image_subsetI in_mono local_inclusion_domain valid_V)
@@ -1004,24 +1048,24 @@ next
         moreover have lb2: "\<forall> v \<in> U . d v \<subseteq> d z"
           by (metis  OVA.valid_welldefined \<open>\<forall>u\<in>U. Poset.le (OVA.poset V) (a, b) u\<close> d_antitone valid_V valid_gc_welldefined z_def)
         moreover have "\<forall> v \<in> U . ll (d v) (pr (d v) z) v"
-          using U \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (Semigroup.poset (ordered_semigroup V)) (a, b) u\<close> elem_le_unwrap ll_def pr_def valid_V z_def by blast 
+          using U \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (Semigroup.poset (ordered_semigroup V)) (a, b) u\<close> elem_le_unwrap ll_def pr_def valid_V z_def by blast
         moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)"
           by (metis \<Phi>_def calculation(3) ll_def)
         moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)"  using prj_ext_adjunction
           using calculation(4) by blast
         define "z_U" where "z_U = gprj V d_U z"
         moreover have "\<forall> v \<in> U . pr d_U (ex (d z) v) = ex d_U v" using up_and_down
-          by (smt (verit) OVA.valid_welldefined U UN_subset_iff \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (Semigroup.poset (ordered_semigroup V)) i u\<close> \<open>i \<in> el (Semigroup.poset (ordered_semigroup V))\<close> d_U_def d_antitone ex_def fst_conv i_def lb2 local_inclusion_domain pr_def subsetD valid_V z_def) 
+          by (smt (verit) OVA.valid_welldefined U UN_subset_iff \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (Semigroup.poset (ordered_semigroup V)) i u\<close> \<open>i \<in> el (Semigroup.poset (ordered_semigroup V))\<close> d_U_def d_antitone ex_def fst_conv i_def lb2 local_inclusion_domain pr_def subsetD valid_V z_def)
         moreover have "Poset.valid (\<Phi> d_U)"
-          by (simp add: \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> local_completeness)   
+          by (simp add: \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> local_completeness)
         moreover have "e z_U \<in> Poset.el (\<Phi> d_U)"
-          by (metis UN_subset_iff \<Phi>_def \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> d_U_def e_gprj lb2 local_inclusion_domain valid_V z_U_def z_def) 
-        moreover have "\<forall> v \<in> U . ll d_U z_U (ex d_U v)" using calculation up_and_down      
-            moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))" 
+          by (metis UN_subset_iff \<Phi>_def \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> d_U_def e_gprj lb2 local_inclusion_domain valid_V z_U_def z_def)
+        moreover have "\<forall> v \<in> U . ll d_U z_U (ex d_U v)" using calculation up_and_down
+            moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))"
               moreover have "\<Union> (d ` U) \<subseteq> d z"
           using lb2 by auto
         moreover have "d i \<subseteq> d z"
-          by (simp add: \<open>d_U \<equiv> \<Union> (d ` U)\<close> calculation(11) i_def) 
+          by (simp add: \<open>d_U \<equiv> \<Union> (d ` U)\<close> calculation(11) i_def)
         define "i__Z" where "i__Z = gext V (d z) i"
 
         moreover have "Poset.le (\<Phi> d_U) (e ( gprj V d_U z)) e_U"  using inf_is_glb
@@ -1037,7 +1081,7 @@ next
           show "is_inf (\<Phi> d_U) ex_U e_U"
             using \<open>Poset.valid (\<Phi> d_U)\<close> \<open>e_U \<in> el (\<Phi> d_U)\<close> \<open>ex_U \<subseteq> el (\<Phi> d_U)\<close> \<open>some_e_U = Some e_U\<close> some_e_U_def some_inf_is_inf by fastforce
           have z_U_is_lb : "\<forall> v \<in> U . Poset.le (\<Phi> d_U) (e (gprj V d_U z)) (e (ex d_U v))"
-            using \<Phi>_def calculation(9) ll_def z_U_def by auto 
+            using \<Phi>_def calculation(9) ll_def z_U_def by auto
           show "\<forall> u \<in> ex_U. Poset.le (\<Phi> d_U) (e (gprj V d_U z)) u"  using z_U_is_lb
             by (simp add: ex_U_def)
           show "le_rel (\<Phi> d_U) \<subseteq> le_rel (\<Phi> d_U)"
@@ -1048,12 +1092,12 @@ next
           by (metis  \<Phi>_def \<open>(a, b) \<in> el (OVA.poset V)\<close> \<open>d i \<subseteq> d z\<close> \<open>i \<in> elems V\<close> elem_le_wrap fst_conv i_def snd_conv valid_V)
       qed
       moreover have "is_inf (OVA.poset V) U i"
-        by (simp add: calculation(1) calculation(2) calculation(3) calculation(4) is_inf_def) 
+        by (simp add: calculation(1) calculation(2) calculation(3) calculation(4) is_inf_def)
 
       ultimately show "U \<subseteq> el (poset V) \<and>
     i \<in> el (OVA.poset V) \<and>
     (\<forall>u\<in>U. Poset.le (OVA.poset V) i u) \<and> (\<forall>z\<in>el (OVA.poset V). (\<forall>u\<in>U. Poset.le (OVA.poset V) z u) \<longrightarrow> Poset.le (OVA.poset V) z i) "
-        by blast 
+        by blast
     qed
 
     thus "\<exists>a b. is_inf (OVA.poset V) U (a, b)"

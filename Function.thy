@@ -93,7 +93,7 @@ lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (
    This lemma asserts that for a valid function 'f', if 'a' is in its domain, then applying 'f' to 'a' results 
    in a value in the codomain.
 *)
-lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a \<in> cod f"
+lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f $ a \<Longrightarrow> fa \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
 (* 

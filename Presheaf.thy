@@ -21,7 +21,7 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
                            \<and>  Poset.dom (\<Phi>1 $ i) = \<Phi>0 $ (Space.cod i)
                            \<and>  Poset.cod (\<Phi>1 $ i) = \<Phi>0 $ (Space.dom i) );
       identity = (\<forall>A. A \<in> opens T \<longrightarrow> (\<Phi>1 $ (Space.ident T A)) = Poset.ident (\<Phi>0 $ A));
-      composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i 
+      composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i
         \<longrightarrow>  \<Phi>1 $ (Space.compose j i ) = (\<Phi>1 $ i) \<cdot> (\<Phi>1 $ j))
     in
     welldefined \<and> identity \<and> composition"
@@ -97,7 +97,28 @@ lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> let T = space \<Phi>;
                            \<and>  Poset.dom (\<Phi>1 $ i) = (\<Phi>0 $ (Space.cod i))
                            \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) )"
   unfolding valid_def by (simp add: Let_def)
-  
+
+lemma valid_space  : "valid \<Phi> \<Longrightarrow> T = space \<Phi> \<Longrightarrow> (Space.valid T)"
+  by (meson Presheaf.valid_welldefined)
+
+lemma valid_ob  : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> Poset.valid obA"
+  unfolding valid_def by (simp add: Let_def)
+
+(* To-do: why wont this prove?
+lemma valid_ar  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> $ i =  Poset.valid_map ari"
+ *)
+
+lemma valid_ar  : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> Poset.valid_map ((ar \<Phi>) $ i)"
+  by (metis Presheaf.valid_def)
+
+lemma valid_dom  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> $ i \<Longrightarrow> Poset.dom ari = ob \<Phi> $ (Space.cod i)"
+  unfolding valid_def
+  by (simp add: Let_def)
+
+lemma valid_cod  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> $ i \<Longrightarrow> Poset.cod ari = ob \<Phi> $ (Space.dom i)"
+  unfolding valid_def
+  by (simp add: Let_def)
+
 lemma valid_identity  : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> ar \<Phi> $ (Space.ident (space \<Phi>) A) = Poset.ident obA"
   unfolding valid_def by (simp add: Let_def)
 
@@ -141,7 +162,29 @@ lemma valid_map_welldefined :
                     \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.dom (f $ A) = (ob \<Phi> $ A))
                     \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.cod (f $ A) = (ob \<Phi>' $ A))"
   by (metis Presheaf.valid_map_def)
- 
+
+lemma valid_map_space : "valid_map \<phi> \<Longrightarrow> Space.valid (map_space \<phi>)"
+  unfolding valid_map_def by (simp add: Let_def)
+
+lemma valid_map_dom : "valid_map \<phi> \<Longrightarrow> valid (dom \<phi>)"
+  unfolding valid_map_def by (simp add: Let_def)
+
+lemma valid_map_cod : "valid_map \<phi> \<Longrightarrow> valid (cod \<phi>)"
+  unfolding valid_map_def by (simp add: Let_def)
+
+lemma valid_map_nat : "valid_map \<phi> \<Longrightarrow> Function.valid_map (nat \<phi>)"
+  unfolding valid_map_def by (simp add: Let_def)
+
+lemma valid_map_nat_welldefined :
+  "valid_map \<phi> \<Longrightarrow> A \<in> opens (map_space \<phi>) \<Longrightarrow> Poset.valid_map (nat \<phi> $ A)"
+  unfolding valid_map_def by (simp add: Let_def)
+
+lemma valid_map_nat_dom : "valid_map \<phi> \<Longrightarrow> A \<in> opens (map_space \<phi>) \<Longrightarrow> Poset.dom ((nat \<phi>) $ A) = ob (dom \<phi>) $ A"
+  by (meson Presheaf.valid_map_welldefined)
+
+lemma valid_map_nat_cod : "valid_map \<phi> \<Longrightarrow> A \<in> opens (map_space \<phi>) \<Longrightarrow> Poset.cod ((nat \<phi>) $ A) = ob (cod \<phi>) $ A"
+  by (meson Presheaf.valid_map_welldefined)
+
 lemma valid_map_naturality :
   "valid_map \<phi> \<Longrightarrow> i \<in> inclusions (map_space \<phi>) \<Longrightarrow>
      (ar (cod \<phi>) $ i) \<cdot> (nat \<phi> $ Space.cod i) = (nat \<phi> $ Space.dom i) \<cdot> (ar (dom \<phi>) $ i)"
@@ -158,34 +201,25 @@ lemma valid_map_image :
 shows " f $$ a \<in> Poset.el \<Phi>'A"
 proof -
   have "valid_map \<phi>"
-    using \<phi>_valid by force 
+    using \<phi>_valid by force
   moreover have "A \<in> Space.opens (map_space \<phi>)"
-    using A_open by blast 
+    using A_open by blast
   moreover have "a \<in> Poset.el \<Phi>A"
-    using a_dom by blast 
+    using a_dom by blast
   moreover have "Poset.dom f = \<Phi>A"
-    by (metis A_open Presheaf.valid_map_welldefined \<Phi>A_def \<phi>_valid f_def) 
+    by (metis A_open Presheaf.valid_map_welldefined \<Phi>A_def \<phi>_valid f_def)
   moreover have "Poset.valid_map f"
-    by (metis A_open Presheaf.valid_map_welldefined \<phi>_valid f_def) 
+    by (metis A_open Presheaf.valid_map_welldefined \<phi>_valid f_def)
   moreover have "Poset.cod f = \<Phi>'A"
-    by (metis A_open Presheaf.valid_map_welldefined \<Phi>'A_def \<phi>_valid f_def) 
+    by (metis A_open Presheaf.valid_map_welldefined \<Phi>'A_def \<phi>_valid f_def)
   ultimately show ?thesis
-    by (meson Poset.fun_app2) 
+    by (meson Poset.fun_app2)
 qed
 
-lemma ident_app [simp] : 
+lemma ident_app [simp] :
  "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> a \<in> el obA \<Longrightarrow>
   ar \<Phi> $ (Space.ident (space \<Phi>) A) $$ a = Poset.ident obA $$ a"
   by (simp add: valid_identity)
-
-lemma space_valid : "valid \<Phi> \<Longrightarrow> Space.valid (space \<Phi>)"
-  by (meson Presheaf.valid_welldefined) 
-
-lemma posets_valid : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> Poset.valid ((ob \<Phi>) $ A)"
-  by (metis Presheaf.valid_def)
-
-lemma poset_maps_valid  : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> Poset.valid_map ((ar \<Phi>) $ i)"
-  by (metis Presheaf.valid_def)
 
 lemma dom_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obB = ((ob \<Phi>) $ B) \<Longrightarrow> Poset.dom f = obB"
   by (metis Presheaf.valid_def)
@@ -195,12 +229,12 @@ lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions
 
 lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow> a \<in> Poset.el ((ob \<Phi>) $ A) \<Longrightarrow>
     (((ar \<Phi>) $ i) $$ a) \<in> Poset.el ((ob \<Phi>) $ B) "
-  by (metis Poset.fun_app2 cod_proj dom_proj poset_maps_valid)
+  by (metis Poset.fun_app2 cod_proj dom_proj valid_ar)
 
 lemma prj_monotone : "Presheaf.valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
 \<Longrightarrow> \<Phi>A = Presheaf.ob \<Phi> $ A \<Longrightarrow>  \<Phi>B = Presheaf.ob \<Phi> $ B \<Longrightarrow> a \<in> Poset.el \<Phi>A \<Longrightarrow> a' \<in> Poset.el \<Phi>'A \<Longrightarrow> Poset.le \<Phi>A a a'
  \<Longrightarrow> \<Phi>i = Presheaf.ar \<Phi> $ i \<Longrightarrow> Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
-  by (simp add: Poset.valid_welldefined poset_maps_valid posets_valid space_valid valid_inclusion_cod valid_monotonicity)
+  by (metis Poset.valid_welldefined Presheaf.valid_cod Presheaf.valid_dom valid_ar valid_inclusion_cod valid_monotonicity valid_ob valid_space)
 
 lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   unfolding valid_def terminal_def

@@ -205,7 +205,7 @@ lemma valid_map_monotone : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<L
 lemma fun_app : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (a, f $$ a) \<in> func f"
   by (metis app_def the_equality valid_map_deterministic valid_map_total)
 
-lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f $$ a \<in> el (cod f)"
+lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> fa = f $$ a \<Longrightarrow> fa \<in> el (cod f)"
   by (meson fun_app valid_map_welldefined)
 
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f $$ a = g $$ a) \<Longrightarrow> f = g"
@@ -243,10 +243,12 @@ lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> 
 
 
 lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow>
-    a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
+    a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> cod_gf = cod (g \<cdot> f) \<Longrightarrow> gfa = (g \<cdot> f) $$ a \<Longrightarrow> gfa' = ((g \<cdot> f) $$ a')
+\<Longrightarrow> le cod_gf gfa gfa'"
   apply (subst (asm) valid_map_def)
   apply (clarsimp simp: Let_unfold)
-  by (simp add: compose_app fun_app2 valid_mapI valid_map_monotone)
+  by (smt (verit) cod_compose compose_app fun_app2 valid_mapI valid_map_monotone)
+
 
 lemma valid_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
