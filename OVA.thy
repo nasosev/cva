@@ -50,10 +50,10 @@ abbreviation (input) local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightar
 "local_elems V A \<equiv> Poset.el (Presheaf.ob (presheaf V) $ A)"
 
 definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gprj V B a \<equiv> if B \<subseteq> d a \<and> B \<in> opens V then (B, Presheaf.ar (presheaf V) $ (Space.make_inclusion (space V) B (d a)) $$ (e a)) else undefined"
+"gprj V B a \<equiv> if B \<in> opens V \<and>  B \<subseteq> d a then (B, Presheaf.ar (presheaf V) $ (Space.make_inclusion (space V) B (d a)) $$ (e a)) else undefined"
 
 definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gext V A b \<equiv> if d b \<subseteq> A \<and> A \<in> opens V then (comb V (neut V A) b) else undefined"
+"gext V A b \<equiv> if A \<in> opens V \<and> d b \<subseteq> A then (comb V (neut V A) b) else undefined"
 
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid V \<equiv>
@@ -246,6 +246,9 @@ proof -
       by (metis Poset.fun_app2)
   qed
 
+lemma d_elem_is_open : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> A \<in> opens V"
+  by (metis local_dom valid_gc_poset valid_presheaf) 
+
 lemma d_neut : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> \<epsilon>A = neut V A \<Longrightarrow> d \<epsilon>A = A"
   by simp
 
@@ -267,17 +270,64 @@ lemma d_gext : "valid V \<Longrightarrow>  b \<in> elems V \<Longrightarrow>  B 
 lemma comb_is_element :
 fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
 assumes valid_V : "valid V"
-assumes dom_a : "d a = A" and dom_b : "d b = B"
-shows "comb V a b \<in> elems V" 
-
-
+and elem_a : "a \<in> elems V" and elem_b : "b \<in> elems V"
+and dom_a : "d a = A" and dom_b : "d b = B"
+shows "comb V a b \<in> elems V"
+  by (meson Poset.valid_welldefined elem_a elem_b valid_V valid_monotone valid_poset valid_reflexivity valid_semigroup) 
 
 lemma gprj_is_element :
 fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a :: "('A, 'a) Valuation"
 assumes "valid V"
-assumes "d a = A" and "B \<subseteq> A" and "B \<in> opens V"
+and elem_a : "a \<in> elems V" and "d a = A"
+and "B \<subseteq> A" and "B \<in> opens V"
 defines "a_B \<equiv> gprj V B a"
 shows "a_B \<in> elems V"
+  unfolding a_B_def gprj_def
+  apply standard
+   apply auto
+  using assms(5) apply auto[1]
+  using assms(3) assms(4) apply blast
+proof -
+  define "i" where "i = make_inclusion (Presheaf.space (presheaf V)) B (d a)"
+  define "f" where "f = ar (presheaf V) $ i"
+  define "\<Phi>A" where "\<Phi>A \<equiv> ((ob (presheaf V)) $ A)"
+  define "\<Phi>B" where "\<Phi>B \<equiv> ((ob (presheaf V)) $ B)"
+
+  have "Presheaf.valid (presheaf V)"
+    by (simp add: assms(1) valid_presheaf) 
+  moreover have "A \<in> opens V"
+    using assms(1) assms(3) d_elem_is_open elem_a by blast
+  moreover have "Space.valid_inclusion i"
+    using Presheaf.valid_space assms(3) assms(4) assms(5) calculation(1) calculation(2) i_def valid_make_inclusion by blast 
+  moreover have  "i \<in> inclusions V"
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) calculation(3) i_def inclusions_def make_inclusion_def mem_Collect_eq) 
+  moreover have "f =  ar (presheaf V) $ i"
+    by (simp add: f_def) 
+  moreover have "Poset.valid_map f" using Presheaf.valid_ar calculation
+    by blast
+  moreover have "d a_B = B"
+    using a_B_def assms(1) assms(3) assms(4) assms(5) calculation(2) d_gprj elem_a by blast  
+  moreover have "Poset.cod f = \<Phi>B"
+    by (metis Inclusion.select_convs(2) \<Phi>B_def calculation(1) calculation(4) cod_proj f_def i_def make_inclusion_def) 
+  moreover have "Poset.valid \<Phi>B"
+    using Poset.valid_cod calculation(6) calculation(8) by blast 
+  moreover have "e a \<in> Poset.el \<Phi>A"
+    by (metis OVA.valid_welldefined \<Phi>A_def assms(1) assms(3) elem_a gc_elem_local)
+  moreover have "a_B \<equiv> gprj V B a"
+    by (simp add: a_B_def) 
+  moreover have "e (gprj V B a) = f $$ (e a)"
+    by (simp add: assms(3) assms(4) assms(5) f_def gprj_def i_def) 
+  moreover have "f $$ (e a) \<in> Poset.el \<Phi>B"
+    by (metis Inclusion.simps(3) Poset.fun_app2 \<Phi>A_def assms(3) calculation(1) calculation(10) calculation(4) calculation(6) calculation(8) dom_proj f_def i_def make_inclusion_def)  
+  moreover have "f $$ (e a) = e a_B"
+    using a_B_def calculation(12) by force 
+  moreover have "e a_B \<in>  Poset.el \<Phi>B"
+    by (simp add: a_B_def calculation(12) calculation(13)) 
+  moreover have "a_B \<in> el (poset V)"
+    by (metis \<Phi>B_def assms(1) assms(5) calculation(1) calculation(15) calculation(7) local_elem_gc prod.exhaust_sel valid_gc_poset) 
+  ultimately show "(B, ar (presheaf V) $ make_inclusion (Presheaf.space (presheaf V)) B (d a) $$ e a) \<in> el (OVA.poset V)"
+    using i_def by fastforce
+qed
 
 lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> ea = e a
 \<Longrightarrow> \<Phi> = (presheaf V) \<Longrightarrow> ob_A = ob \<Phi> $ A

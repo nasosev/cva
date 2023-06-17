@@ -266,8 +266,8 @@ proof -
     by (simp add: valid)
   moreover have "i \<in> Space.inclusions (space \<Phi>)"
     by (metis (mono_tags, lifting) Inclusion.select_convs(1) calculation(4) i_def inclusions_def make_inclusion_def mem_Collect_eq)
-  moreover have "Poset.valid_map pr" 
-    by (simp add: calculation(6) pr_def valid valid_ar)  
+  moreover have "Poset.valid_map pr"
+    using calculation(6) pr_def valid valid_ar by auto  
   define "a_B" where "a_B = (pr $$ (e Aa))"
   moreover have "Poset.dom pr = \<Phi>A \<and> Poset.cod pr = \<Phi>B"
     by (metis Inclusion.simps(2) Inclusion.simps(3) \<Phi>A_def \<Phi>B_def calculation(6) cod_proj dom_proj i_def make_inclusion_def pr_def valid)
