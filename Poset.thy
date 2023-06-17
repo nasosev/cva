@@ -7,6 +7,7 @@ record 'a Poset =
   el :: "'a set"
   le_rel :: "('a \<times> 'a) set"
 
+(* To-do: should this give undefined if a or a' are not in el P? *)
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
 "le P a a' \<equiv>  (a, a') \<in> le_rel P"
 
@@ -247,8 +248,7 @@ lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightar
 \<Longrightarrow> le cod_gf gfa gfa'"
   apply (subst (asm) valid_map_def)
   apply (clarsimp simp: Let_unfold)
-  by (smt (verit) cod_compose compose_app fun_app2 valid_mapI valid_map_monotone)
-
+  by (metis cod_compose compose_app fun_app_iff valid_mapI valid_map_monotone)
 
 lemma valid_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
