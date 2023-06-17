@@ -98,8 +98,6 @@ lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> let T = space \<Phi>;
                            \<and>  Poset.cod (\<Phi>1 $ i) = (\<Phi>0 $ (Space.dom i)) )"
   unfolding valid_def by (simp add: Let_def)
   
-      
-
 lemma valid_identity  : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> ar \<Phi> $ (Space.ident (space \<Phi>) A) = Poset.ident obA"
   unfolding valid_def by (simp add: Let_def)
 

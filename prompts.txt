@@ -1,6 +1,6 @@
 TASK: Document Isabelle/HOL .thy files that formalize a research paper.
 
-DETAIL: Please output the source code with documentation in the form of comments above every record, definition, lemma, theorem, or other command.
+DETAIL: Please output documentation in the form of comments above every record, definition, lemma, theorem, or other command, omitting the actual source code.
 Additionally, please include at the top of the file a header describing the overall purpose of the .thy file.
 This header should be in the following format:
 
@@ -12,7 +12,7 @@ This header should be in the following format:
 *)
 
 The documentation should clearly and succinctly explain the purpose of its associated code.
-Besides adding this documentation and correcting erroneous whitespace, DO NOT CHANGE THE SOURCE CODE IN ANY WAY.
+Besides adding this documentation and correcting erroneous whitespace, DO NOT REPRODUCE THE SOURCE CODE.
 Line length should not exceed 100 characters.
 Note that Isabelle uses the following format for comments:
 

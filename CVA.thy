@@ -6,29 +6,29 @@ record ('A, 'a) CVA =
   par_algebra :: "('A, 'a) OVA"
   seq_algebra :: "('A, 'a) OVA"
 
-definition presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Presheaf" where
-"presheaf V = OVA.presheaf (par_algebra V)"
+abbreviation (input) presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Presheaf" where
+"presheaf V \<equiv> OVA.presheaf (par_algebra V)"
 
-definition elems :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation set" where
-"elems V = OVA.elems (par_algebra V)"
+abbreviation (input) elems :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation set" where
+"elems V \<equiv> OVA.elems (par_algebra V)"
 
-definition opens :: "('A,'a) CVA \<Rightarrow> 'A Open set" where
-"opens V = Space.opens (space (par_algebra V))"
+abbreviation (input) opens :: "('A,'a) CVA \<Rightarrow> 'A Open set" where
+"opens V \<equiv> Space.opens (space (par_algebra V))"
 
-definition par :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"par V =  OVA.comb (par_algebra V)"
+abbreviation (input) par :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"par V \<equiv> OVA.comb (par_algebra V)"
 
-definition seq :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"seq V =  OVA.comb (par_algebra V)"
+abbreviation (input) seq :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"seq V \<equiv> OVA.comb (par_algebra V)"
 
-definition gle :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
-"gle V = OVA.gle (par_algebra V)"
+abbreviation (input) gle :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
+"gle V \<equiv> OVA.gle (par_algebra V)"
 
-definition neut_par :: "('A, 'a) CVA \<Rightarrow> ('A set \<Rightarrow> ('A, 'a) Valuation)" where
-"neut_par V  = OVA.neut (par_algebra V)"
+abbreviation (input) neut_par :: "('A, 'a) CVA \<Rightarrow> ('A set \<Rightarrow> ('A, 'a) Valuation)" where
+"neut_par V \<equiv> OVA.neut (par_algebra V)"
 
-definition neut_seq :: "('A, 'a) CVA \<Rightarrow> ('A set \<Rightarrow> ('A, 'a) Valuation)" where
-"neut_seq V  = OVA.neut (seq_algebra V)"
+abbreviation (input) neut_seq :: "('A, 'a) CVA \<Rightarrow> ('A set \<Rightarrow> ('A, 'a) Valuation)" where
+"neut_seq V \<equiv> OVA.neut (seq_algebra V)"
 
 definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
   "valid V \<equiv>

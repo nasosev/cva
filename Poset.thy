@@ -126,11 +126,12 @@ lemma "complete_inf_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<
 lemma "cocomplete_sup_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
   by (simp add: is_sup_def sup_def)
 
-lemma  complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
+lemma "complete_equiv_cocomplete" : "is_complete P \<longleftrightarrow> is_cocomplete P"
 proof
   assume "is_complete P"
   fix U
   define "s" where "s = inf P {a \<in> Poset.el P . (\<forall> u \<in> U . le P u a)}"
+  have "s = sup P U" 
     oops
 
 (* Validity stuff *)

@@ -18,6 +18,20 @@ imports Main Presheaf Poset
 begin
 
 (*
+   The function d takes a pair (A, a) and returns the first component A.
+   It extracts the open set from the pair.
+*)
+abbreviation d :: "('A set \<times> 'a)  \<Rightarrow> 'A set" where
+"d Aa \<equiv> fst Aa"
+
+(*
+   The function e takes a pair (A, a) and returns the second component a.
+   It extracts the element from the pair.
+*)
+abbreviation e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
+"e Aa \<equiv> snd Aa"
+
+(*
    The function gc takes a presheaf \<Phi> and constructs a poset P, which represents
    the covariant Grothendieck construction for \<Phi>. The elements of P are pairs (A, a),
    where A is an open set in the space of \<Phi> and a is an element in the presheaf value at A.
@@ -40,20 +54,6 @@ definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" wh
     in
     \<lparr> Poset.el = el, Poset.le_rel = le_rel \<rparr>"
 
-(*
-   The function d takes a pair (A, a) and returns the first component A.
-   It extracts the open set from the pair.
-*)
-definition d :: "('A set \<times> 'a)  \<Rightarrow> 'A set" where
-"d Aa = fst Aa"
-
-(*
-   The function e takes a pair (A, a) and returns the second component a.
-   It extracts the element from the pair.
-*)
-definition e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
-"e Aa = snd Aa"
-
 (* LEMMAS *)
 
 (*
@@ -62,7 +62,7 @@ definition e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
 *)
 lemma local_dom : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa
 \<Longrightarrow> T = Presheaf.space \<Phi>  \<Longrightarrow>  A \<in> opens T"
-  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD d_def gc_def)
+  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
 
 (*
    The lemma gc_elem_local states that if \<Phi> is a valid presheaf, P = gc \<Phi>, and Aa is an element in Poset.el P,
@@ -70,7 +70,7 @@ lemma local_dom : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longr
 *)
 lemma gc_elem_local : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa
 \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a \<in> Poset.el P_A"
-  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD d_def gc_def)
+  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
 
 (*
    The lemma local_elem_gc states that if \<Phi> is a valid presheaf, P = gc \<Phi>, A is an open set in the space of \<Phi>,
@@ -88,7 +88,7 @@ lemma local_elem_gc : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<L
 lemma d_antitone : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Bb \<in> Poset.el P \<Longrightarrow>
 Poset.le P Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
   unfolding gc_def
-  by (smt (verit) Poset.Poset.select_convs(2) case_prod_conv case_prod_unfold d_def mem_Collect_eq)
+  by (smt (verit) Poset.Poset.select_convs(2) case_prod_conv case_prod_unfold mem_Collect_eq)
 
 (*
    The lemma local_le states that if \<Phi> is a valid presheaf, P = gc \<Phi>, Aa and Aa' are elements in Poset.el P,
@@ -99,7 +99,7 @@ lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longri
 d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a' = snd Aa' \<Longrightarrow>
  Poset.le P_A a a' "
   unfolding gc_def
-  by (smt (verit, del_insts) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv d_def make_inclusion_def posets_valid prod.collapse valid_identity)
+  by (smt (verit, del_insts) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD Space.ident_def case_prod_conv make_inclusion_def posets_valid prod.collapse valid_identity)
 
 (*
    The lemma valid_gc_1 states that if \<Phi> is a valid presheaf and A is an open set in the space of \<Phi>,
@@ -223,12 +223,12 @@ lemma valid_gc_le_wrap :
   unfolding gc_def
   apply (simp add:Let_def)
   apply safe
-  apply (metis assms(6) d_def fst_conv)
-      apply (metis assms(7) d_def fst_conv)
-     apply (metis \<Phi>A_def assms(8) d_def e_def fst_conv snd_conv)
-    apply (metis \<Phi>B_def assms(9) d_def e_def fst_conv snd_conv)
-   apply (metis assms(10) d_def fst_conv subsetD)
-  by (metis \<Phi>B_def assms(11) d_def e_def fst_conv i_def pr_def snd_conv)
+  apply (metis assms(6) fst_conv)
+      apply (metis assms(7) fst_conv)
+     apply (metis \<Phi>A_def assms(8) fst_conv snd_conv)
+    apply (metis \<Phi>B_def assms(9) fst_conv snd_conv)
+   apply (metis assms(10) fst_conv subsetD)
+  by (metis \<Phi>B_def assms(11) fst_conv i_def pr_def snd_conv)
 
 (*
    The lemma valid_gc_le_unwrap states that if \<Phi> is a valid presheaf, Aa and Bb are pairs of the form (A, a),
@@ -258,7 +258,7 @@ proof -
   moreover have "d Bb \<subseteq> d Aa"
     using assms(7) assms(8) d_antitone gc\<Phi>_def le_gc valid by blast
   moreover have "e Bb \<in> Poset.el \<Phi>B \<and> e Aa \<in> Poset.el \<Phi>A"
-    by (metis \<Phi>A_def \<Phi>B_def assms(7) assms(8) e_def gc\<Phi>_def gc_elem_local valid)
+    by (metis \<Phi>A_def \<Phi>B_def assms(7) assms(8) gc\<Phi>_def gc_elem_local valid)
   moreover have "Space.valid_inclusion i"
     by (metis assms(7) assms(8) calculation(2) gc\<Phi>_def i_def local_dom space_valid valid valid_make_inclusion)
   moreover have "Presheaf.valid \<Phi>"
@@ -282,7 +282,7 @@ proof -
     apply auto
     apply (simp_all add: Let_def)
     apply clarsimp
-    by (simp add: \<Phi>B_def a_B_def d_def e_def i_def pr_def)
+    by (simp add: \<Phi>B_def a_B_def i_def pr_def)
   ultimately show ?thesis
     by blast
 qed
