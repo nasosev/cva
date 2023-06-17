@@ -61,7 +61,7 @@ definition terminal :: "'A Space \<Rightarrow> ('A, unit) Presheaf" where
 
 (* LEMMAS *)
 
-(* Todo: can we prove this with meta implications?*)
+(* To-do: can we prove this with meta implications?*)
 lemma validI :
   fixes \<Phi> :: "('A,'a) Presheaf"
   defines "T \<equiv> space \<Phi>"
@@ -187,10 +187,10 @@ lemma posets_valid : "valid \<Phi> \<Longrightarrow> A \<in> opens (space \<Phi>
 lemma poset_maps_valid  : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> Poset.valid_map ((ar \<Phi>) $ i)"
   by (metis Presheaf.valid_def)
 
-lemma dom_proj : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obB = ((ob \<Phi>) $ B) \<Longrightarrow> Poset.dom f = obB"
+lemma dom_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obB = ((ob \<Phi>) $ B) \<Longrightarrow> Poset.dom f = obB"
   by (metis Presheaf.valid_def)
 
-lemma cod_proj : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.dom i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obA = ((ob \<Phi>) $ A) \<Longrightarrow> Poset.cod f = obA"
+lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.dom i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obA = ((ob \<Phi>) $ A) \<Longrightarrow> Poset.cod f = obA"
   by (metis Presheaf.valid_def)
 
 lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow> a \<in> Poset.el ((ob \<Phi>) $ A) \<Longrightarrow>
@@ -200,7 +200,7 @@ lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<
 lemma prj_monotone : "Presheaf.valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
 \<Longrightarrow> \<Phi>A = Presheaf.ob \<Phi> $ A \<Longrightarrow>  \<Phi>B = Presheaf.ob \<Phi> $ B \<Longrightarrow> a \<in> Poset.el \<Phi>A \<Longrightarrow> a' \<in> Poset.el \<Phi>'A \<Longrightarrow> Poset.le \<Phi>A a a'
  \<Longrightarrow> \<Phi>i = Presheaf.ar \<Phi> $ i \<Longrightarrow> Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
-  by (simp add: Poset.valid_welldefined cod_proj dom_proj poset_maps_valid posets_valid space_valid valid_inclusion_cod valid_monotonicity)
+  by (simp add: Poset.valid_welldefined poset_maps_valid posets_valid space_valid valid_inclusion_cod valid_monotonicity)
 
 lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   unfolding valid_def terminal_def

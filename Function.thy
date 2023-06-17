@@ -65,7 +65,7 @@ definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow
    This lemma asserts that if a function 'f' is valid, then any pair (a, b) in its function mapping implies 
    that 'a' is in the domain and 'b' is in the codomain.
 *)
-lemma valid_map_welldefined  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
+lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
   unfolding valid_map_def by (simp add: Let_def)
 
 (* 
@@ -79,7 +79,7 @@ lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (a, b) \<in> func
    This lemma asserts that if a function 'f' is valid, then for any 'a' in its domain, there exists 
    a 'b' such that (a, b) is in the function mapping.
 *)
-lemma valid_map_total  : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
+lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def by (simp add: Let_def)
 
 (* 
@@ -100,7 +100,7 @@ lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> 
    This lemma asserts that if two valid functions 'f' and 'g' have the same domain and codomain, and they map 
    every 'a' in the domain to the same 'b', then their function mappings are equal.
 *)
-lemma fun_ext: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
+lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
   unfolding  dom_def 
   apply (simp_all add: Let_def)
   apply auto
@@ -128,7 +128,7 @@ lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow
 (* 
    This lemma asserts that the constant function is a valid function, assuming 'b' is in 'B'.
 *)
-lemma const_valid  : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
+lemma const_valid : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
   unfolding valid_map_def const_def
   by (simp add: Function.dom_def app_def)
 

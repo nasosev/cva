@@ -152,15 +152,15 @@ lemma valid_make_inclusion : "valid T \<Longrightarrow> A \<in> opens T \<Longri
   by (simp add: make_inclusion_def valid_inclusion_def)
 
 (* An inclusion made from an open to itself in a valid space is the same as the identity inclusion of that open. *)
-lemma make_inclusion_ident : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> make_inclusion T A A = ident T A"
+lemma make_inclusion_ident [simp] : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> make_inclusion T A A = ident T A"
   by (simp add: ident_def make_inclusion_def)
 
 (* The union of the domain and codomain of an inclusion from the inclusions of a valid space is the codomain. *)
-lemma inc_cod_sup : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<union> B = A"
+lemma inc_cod_sup [simp] : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<union> B = A"
   by (meson Un_absorb2 valid_inclusion_def valid_inclusions)
 
 (* The intersection of the domain and codomain of an inclusion from the inclusions of a valid space is the domain. *)
-lemma inc_dom_inf : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<inter> B = B"
+lemma inc_dom_inf [simp] : "valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> B = dom i \<Longrightarrow> A = cod i \<Longrightarrow> A \<inter> B = B"
   by (meson Int_absorb1 valid_inclusion_def valid_inclusions)
 
 (* 

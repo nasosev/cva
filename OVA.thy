@@ -1,5 +1,5 @@
 theory OVA
-  imports Main Presheaf OrderedSemigroup Grothendieck Poset
+  imports Main Presheaf Semigroup Grothendieck Poset
 begin
 
 type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
@@ -7,28 +7,28 @@ type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
 record ('A, 'a) OVA =
   presheaf :: "('A, 'a) Presheaf"
   neutral :: "('A, unit, 'a) PresheafMap"
-  ordered_semigroup :: "(('A, 'a) Valuation) OrderedSemigroup"
+  ordered_semigroup :: "(('A, 'a) Valuation) Semigroup"
 
 abbreviation comb :: "('A, 'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"comb V a b \<equiv> (OrderedSemigroup.mult (ordered_semigroup V)) $$ (a, b)"
+"comb V a b \<equiv> (Semigroup.mult (ordered_semigroup V)) $$ (a, b)"
 
 (*
 abbreviation comb_V :: "('A, 'a) Valuation \<Rightarrow> ('A, 'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" ("_ \<otimes>\<langle>_\<rangle> _") where
-"comb_V a V b \<equiv> (OrderedSemigroup.mult (ordered_semigroup V)) $$ (a, b)"
+"comb_V a V b \<equiv> (Semigroup.mult (ordered_semigroup V)) $$ (a, b)"
 *)
 
-abbreviation (input) neut :: "('A, 'a) OVA \<Rightarrow> 'A set \<Rightarrow> ('A, 'a) Valuation" where
+abbreviation neut :: "('A, 'a) OVA \<Rightarrow> 'A set \<Rightarrow> ('A, 'a) Valuation" where
 "neut V A \<equiv> (A, (Presheaf.nat (neutral V) $ A) $$ ())"
 
-abbreviation (input) poset :: "('A,'a) OVA \<Rightarrow> (('A, 'a) Valuation) Poset" where
-"poset V \<equiv> OrderedSemigroup.poset (ordered_semigroup V)"
+abbreviation poset :: "('A,'a) OVA \<Rightarrow> (('A, 'a) Valuation) Poset" where
+"poset V \<equiv> Semigroup.poset (ordered_semigroup V)"
 
 abbreviation (input) gle :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
-"gle V a b \<equiv> Poset.le (OrderedSemigroup.poset (ordered_semigroup V)) a b"
+"gle V a b \<equiv> Poset.le (Semigroup.poset (ordered_semigroup V)) a b"
 
 (*
 abbreviation gle_V :: "('A, 'a) Valuation \<Rightarrow> ('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" ("_ \<preceq>\<langle>_\<rangle> _") where
-"gle_V a V b \<equiv> Poset.le (OrderedSemigroup.poset (ordered_semigroup V)) a b"
+"gle_V a V b \<equiv> Poset.le (Semigroup.poset (ordered_semigroup V)) a b"
 *)
 
 abbreviation (input) le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" where
@@ -71,12 +71,12 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
         pr = gprj V;
 
         welldefined = Presheaf.valid \<Phi>
-                      \<and> OrderedSemigroup.valid S
+                      \<and> Semigroup.valid S
                       \<and> Presheaf.valid_map E
                       \<and> T = Presheaf.map_space E
                       \<and> Presheaf.cod E = \<Phi>
                       \<and> Presheaf.dom E = Presheaf.terminal T
-                      \<and> OrderedSemigroup.poset S = gc \<Phi>;
+                      \<and> Semigroup.poset S = gc \<Phi>;
 
         domain_law = \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow> d (mul a b) = d a \<union> d b;
         neutral_law_left = (\<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> mul (\<epsilon> A) a = a);
@@ -100,8 +100,8 @@ lemma validI :
   defines "mul \<equiv> comb V"
   defines "elem \<equiv> elems V"
   defines "pr \<equiv> gprj V"
-  assumes welldefined : "Presheaf.valid \<Phi> \<and> OrderedSemigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
-    Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> OrderedSemigroup.poset S = gc \<Phi>"
+  assumes welldefined : "Presheaf.valid \<Phi> \<and> Semigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
+    Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> Semigroup.poset S = gc \<Phi>"
   assumes domain_law : " \<forall> a b . a \<in> elem \<longrightarrow> b \<in> elem \<longrightarrow> d (mul a b) = d a \<union> d b"
   assumes neutral_law_left : "( \<forall> A a . A \<in> opens V \<longrightarrow> a \<in> elem \<longrightarrow> d a = A \<longrightarrow> mul (\<epsilon> A) a = a)"
   assumes neutral_law_right : "(\<forall> A a .A \<in> opens V \<and> a \<in> elem \<longrightarrow> d a = A \<longrightarrow> mul a (\<epsilon> A) = a)"
@@ -131,13 +131,13 @@ lemma validI :
 lemma valid_welldefined  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> let \<Phi> = presheaf V; E = neutral V; \<epsilon> = neut V; T = space V; S = ordered_semigroup V in
-    Presheaf.valid \<Phi> \<and> OrderedSemigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
-    Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> OrderedSemigroup.poset S = gc \<Phi>"
+    Presheaf.valid \<Phi> \<and> Semigroup.valid S \<and> Presheaf.valid_map E \<and> T = Presheaf.map_space E \<and>
+    Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> Semigroup.poset S = gc \<Phi>"
   by (simp add: valid_def Let_def)
 
 lemma valid_gc_poset :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> OrderedSemigroup.poset (ordered_semigroup V) = gc (presheaf V)"
+  shows "valid V \<Longrightarrow> Semigroup.poset (ordered_semigroup V) = gc (presheaf V)"
   by (meson OVA.valid_welldefined)
 
 lemma valid_domain_law  :
@@ -517,7 +517,7 @@ proof -
   moreover have "b__A = mul (neut V A) b"
     by (simp add: b__A_def assms(4) assms(5) assms(8) gext_def mul_def)
   ultimately show ?thesis
-    by (smt (verit) OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_def assms(2) mul_def neutral_is_element valid_monotone)
+    by (smt (verit) OVA.valid_welldefined Semigroup.valid_def Poset.valid_def assms(2) mul_def neutral_is_element valid_monotone)
 qed
 
 lemma e_gprj :
@@ -616,23 +616,23 @@ proof -
     using A_def \<Phi>0_def \<Phi>_def \<epsilon>A_def dom_a elem_a local_inclusion_domain valid_V by blast 
   moreover have "local_le V A \<epsilon>A \<epsilon>A"
     by (metis \<Phi>0_def \<Phi>_def calculation(5) calculation(7) valid_reflexivity)  
-    define "gc_poset" where "gc_poset = (OrderedSemigroup.poset (ordered_semigroup V))"
+    define "gc_poset" where "gc_poset = (Semigroup.poset (ordered_semigroup V))"
   moreover have "Poset.valid gc_poset"
-    by (metis OVA.valid_welldefined OrderedSemigroup.valid_welldefined gc_poset_def valid_V)
+    by (metis OVA.valid_welldefined Semigroup.valid_welldefined gc_poset_def valid_V)
   moreover have "\<epsilon>A \<in> Poset.el gc_poset" using gc_poset_def   \<epsilon>A_def
     using dom_a elem_a local_inclusion_domain neutral_is_element valid_V by blast 
   moreover have "gle V \<epsilon>A \<epsilon>A"
     by (metis calculation(10) calculation(9) gc_poset_def valid_reflexivity) 
   moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
-    by (meson OVA.valid_welldefined OrderedSemigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(2) combine_monotone valid_V)  
+    by (meson OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(2) combine_monotone valid_V)  
   moreover have "d a_B = B \<and> d b = B"
     by (metis B_def a_B_def assms(9) d_gprj dom_a dom_b elem_a elem_b local_inclusion_domain valid_V) 
   moreover have "a_B = (B, ea_B) \<and> b = (B, eb)"
     by (metis calculation(13) ea_B_def eb_def prod.collapse) 
   moreover have "gle V a_B b"  using  a_B_le_b
-    by (metis OVA.valid_welldefined OrderedSemigroup.valid_welldefined Poset.valid_welldefined calculation(13) calculation(2) ea_B_def eb_def elem_b le_imp_gle2 local_inclusion_domain valid_V) 
+    by (metis OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(13) calculation(2) ea_B_def eb_def elem_b le_imp_gle2 local_inclusion_domain valid_V) 
   moreover have "gle V (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)"
-    by (meson OVA.valid_welldefined OrderedSemigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(15) combine_monotone valid_V)  
+    by (meson OVA.valid_welldefined Semigroup.valid_welldefined Poset.valid_welldefined calculation(11) calculation(15) combine_monotone valid_V)  
 moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
   using calculation(12) by auto 
 moreover have "gle V a (comb V \<epsilon>A a_B)"
@@ -661,7 +661,7 @@ proof -
   have "gle V a (comb V \<epsilon>A b)"
     by (metis (no_types, lifting) A_open B_le_A OVA.valid_welldefined Poset.valid_welldefined RHS \<epsilon>A_def d_neut dom_a dom_b elem_b le_imp_gle neutral_is_element posets_valid prod.exhaust_sel sup.absorb_iff1 valid_V valid_domain_law) 
     moreover have "gle V (gprj V B a) (gprj V B (comb V \<epsilon>A b))"
-      by (smt (verit) A_open B_le_A B_open OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined \<epsilon>A_def calculation dom_a dom_b elem_b fst_conv gprj_monotone neutral_is_element sup.orderE valid_V valid_domain_law) 
+      by (smt (verit) A_open B_le_A B_open OVA.valid_welldefined Semigroup.valid_def Poset.valid_welldefined \<epsilon>A_def calculation dom_a dom_b elem_b fst_conv gprj_monotone neutral_is_element sup.orderE valid_V valid_domain_law) 
     moreover have "gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b"  using valid_comb_law_right
       by (metis A_open \<epsilon>A_def dom_b elem_b fst_conv neutral_is_element valid_V) 
     define "\<epsilon>B" where "\<epsilon>B \<equiv> neut V B"
@@ -704,6 +704,7 @@ proof -
    ultimately show ?thesis using global_le(* todo: why won't this prove? *)
      unfolding pr_def mul_def gl_def  valid_gc_poset
      apply auto
+     
 
    qed
 
@@ -778,7 +779,7 @@ theorem galois_closure_extensive :
 proof -
   have "valid V" by fact
   moreover have "ll A (e a) (e a)"
-    by (metis OVA.valid_welldefined OrderedSemigroup.valid_def assms(2) assms(3) ll_def local_le valid_V valid_reflexivity)
+    by (metis OVA.valid_welldefined Semigroup.valid_def assms(2) assms(3) ll_def local_le valid_V valid_reflexivity)
   moreover have "ll B (e (pr B a)) (e (pr B a))"
     by (metis assms(2) assms(3) assms(4) assms(5) assms(6) calculation(2) d_gprj gle_imp_le gprj_elem gprj_monotone ll_def le_imp_gle2 pr_def valid_V)
   ultimately show ?thesis
@@ -796,7 +797,7 @@ lemma ext_functorial_lhs_imp_rhs :
   shows "gle V (ex A c) (ex A (ex B c))"
 proof -
   have "ll C c c"
-    by (metis OVA.valid_welldefined OrderedSemigroup.valid_def assms(7) assms(8) ll_def local_le valid_V valid_reflexivity)
+    by (metis OVA.valid_welldefined Semigroup.valid_def assms(7) assms(8) ll_def local_le valid_V valid_reflexivity)
   moreover have "ll C (pr C (ex A c)) c"
     by (metis (no_types, opaque_lifting) assms(2) assms(5) assms(6) assms(7) assms(8) calculation dual_order.trans ex_def galois_insertion local_inclusion_domain pr_def valid_V)
   moreover have "pr C (pr B (ex A c)) = pr C (ex A c)"
@@ -849,7 +850,7 @@ proof -
   moreover have "gle V (ex A c)  (ex A (ex B c))"
     using assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def ext_functorial_lhs_imp_rhs valid_V by blast
   ultimately show ?thesis
-    by (meson OVA.valid_welldefined OrderedSemigroup.valid_def Poset.valid_welldefined valid_V valid_antisymmetry)
+    by (meson OVA.valid_welldefined Semigroup.valid_def Poset.valid_welldefined valid_V valid_antisymmetry)
 qed
 
 (* [Corollary 2 cont., CVA] *)
@@ -1003,18 +1004,18 @@ next
         moreover have lb2: "\<forall> v \<in> U . d v \<subseteq> d z"
           by (metis  OVA.valid_welldefined \<open>\<forall>u\<in>U. Poset.le (OVA.poset V) (a, b) u\<close> d_antitone valid_V valid_gc_welldefined z_def)
         moreover have "\<forall> v \<in> U . ll (d v) (pr (d v) z) v"
-          using U \<open>(a, b) \<in> el (OrderedSemigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (OrderedSemigroup.poset (ordered_semigroup V)) (a, b) u\<close> elem_le_unwrap ll_def pr_def valid_V z_def by blast 
+          using U \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (Semigroup.poset (ordered_semigroup V)) (a, b) u\<close> elem_le_unwrap ll_def pr_def valid_V z_def by blast 
         moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)"
           by (metis \<Phi>_def calculation(3) ll_def)
         moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d v)) (e (pr (d v) z)) (e v)"  using prj_ext_adjunction
           using calculation(4) by blast
         define "z_U" where "z_U = gprj V d_U z"
         moreover have "\<forall> v \<in> U . pr d_U (ex (d z) v) = ex d_U v" using up_and_down
-          by (smt (verit) OVA.valid_welldefined U UN_subset_iff \<open>(a, b) \<in> el (OrderedSemigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (OrderedSemigroup.poset (ordered_semigroup V)) i u\<close> \<open>i \<in> el (OrderedSemigroup.poset (ordered_semigroup V))\<close> d_U_def d_antitone ex_def fst_conv i_def lb2 local_inclusion_domain pr_def subsetD valid_V z_def) 
+          by (smt (verit) OVA.valid_welldefined U UN_subset_iff \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>\<forall>u\<in>U. Poset.le (Semigroup.poset (ordered_semigroup V)) i u\<close> \<open>i \<in> el (Semigroup.poset (ordered_semigroup V))\<close> d_U_def d_antitone ex_def fst_conv i_def lb2 local_inclusion_domain pr_def subsetD valid_V z_def) 
         moreover have "Poset.valid (\<Phi> d_U)"
           by (simp add: \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> local_completeness)   
         moreover have "e z_U \<in> Poset.el (\<Phi> d_U)"
-          by (metis UN_subset_iff \<Phi>_def \<open>(a, b) \<in> el (OrderedSemigroup.poset (ordered_semigroup V))\<close> \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> d_U_def e_gprj lb2 local_inclusion_domain valid_V z_U_def z_def) 
+          by (metis UN_subset_iff \<Phi>_def \<open>(a, b) \<in> el (Semigroup.poset (ordered_semigroup V))\<close> \<open>d_U \<in> Space.opens (Presheaf.space (presheaf V))\<close> d_U_def e_gprj lb2 local_inclusion_domain valid_V z_U_def z_def) 
         moreover have "\<forall> v \<in> U . ll d_U z_U (ex d_U v)" using calculation up_and_down      
             moreover have "\<forall> v \<in> U . Poset.le (\<Phi> (d z)) (e z) (e (gext V (d z) v))" 
               moreover have "\<Union> (d ` U) \<subseteq> d z"
@@ -1043,7 +1044,7 @@ next
             by simp
         qed
 
-        ultimately show "Poset.le ((OrderedSemigroup.poset (ordered_semigroup V))) (a, b) i"
+        ultimately show "Poset.le ((Semigroup.poset (ordered_semigroup V))) (a, b) i"
           by (metis  \<Phi>_def \<open>(a, b) \<in> el (OVA.poset V)\<close> \<open>d i \<subseteq> d z\<close> \<open>i \<in> elems V\<close> elem_le_wrap fst_conv i_def snd_conv valid_V)
       qed
       moreover have "is_inf (OVA.poset V) U i"

@@ -15,7 +15,7 @@ abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> b
 "le_P a P a' \<equiv> (a, a') \<in> le_rel P"
 *)
 
-definition valid :: "'a Poset   \<Rightarrow> bool" where
+definition valid :: "'a Poset \<Rightarrow> bool" where
   "valid P \<equiv>
     let
       welldefined = (\<forall>x y. le P x y \<longrightarrow> x \<in> el P \<and> y \<in> el P);
@@ -100,37 +100,37 @@ lemma sup_unique : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarr
   unfolding is_sup_def
   by (smt (verit, best) valid_def)
 
-lemma "inf_smaller" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
+lemma inf_smaller : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
   unfolding is_inf_def
   by simp
 
-lemma "inf_is_glb" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i
+lemma inf_is_glb : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i
 \<Longrightarrow> \<forall>u\<in>U. le P z u \<Longrightarrow> le P z i"
   by (simp add: is_inf_def)
 
-lemma "sup_is_lub" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
+lemma sup_is_lub : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
 \<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P s z"
   by (simp add: is_sup_def)
 
-lemma "sup_greater" : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
+lemma sup_greater : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
   unfolding is_sup_def
   by simp
 
-lemma "some_inf_is_inf" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
+lemma some_inf_is_inf : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
   unfolding inf_def
   by (metis (no_types, lifting) option.distinct(1) option.inject someI_ex)
 
-lemma "some_sup_is_sup" : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
+lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
   unfolding sup_def
   by (metis (no_types, lifting) Poset.sup_unique option.distinct(1) option.inject some_equality)
 
-lemma "complete_inf_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
+lemma complete_inf_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
   by (simp add: inf_def is_inf_def)
 
-lemma "cocomplete_sup_not_none" : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
+lemma cocomplete_sup_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
   by (simp add: is_sup_def sup_def)
 
-lemma "complete_equiv_cocomplete" : "is_complete P \<longleftrightarrow> is_cocomplete P"
+lemma complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
 proof
   assume "is_complete P"
   fix U
@@ -215,11 +215,11 @@ lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom
   apply (metis fun_app valid_map_deterministic valid_map_welldefined)
   done
 
-lemma dom_compose : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
+lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<cdot> f) = dom f"
   unfolding compose_def
   by (simp add: Let_def)
 
-lemma cod_compose : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<cdot> f) = cod g"
+lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<cdot> f) = cod g"
   unfolding compose_def
   by (simp add: Let_def)
 
@@ -239,14 +239,14 @@ lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longri
 lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
   apply (clarsimp simp: app_def, safe; clarsimp?)
    apply (smt (verit, del_insts) PosetMap.select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
-  apply (metis app_def fun_app2)
-  by (simp add: dom_compose)
+  by (metis app_def fun_app2)
+
 
 lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow>
     a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod (g \<cdot> f)) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
   apply (subst (asm) valid_map_def)
   apply (clarsimp simp: Let_unfold)
-  by (simp add: cod_compose compose_app fun_app2 valid_mapI valid_map_monotone)
+  by (simp add: compose_app fun_app2 valid_mapI valid_map_monotone)
 
 lemma valid_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
@@ -258,17 +258,18 @@ lemma valid_cod : "valid_map f \<Longrightarrow> valid (cod f)"
 
 lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
   apply (rule valid_mapI; clarsimp?)
-       apply (simp add: dom_compose valid_dom)
-  apply (simp add: cod_compose valid_cod)
-  apply (simp add: cod_compose compose_welldefined dom_compose)
+       apply (simp add:  valid_dom)
+  apply (simp add:  valid_cod)
+  apply (simp add:  compose_welldefined )
   apply (simp add: compose_deterministic)
-   apply (simp add: compose_total dom_compose)
-  by (simp add: compose_monotone dom_compose)
+   apply (simp add: compose_total )
+  by (simp add: compose_app fun_app2 valid_map_monotone)
 
-lemma comp_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
+
+lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
                 (b, c) \<in> func g \<Longrightarrow> (g \<cdot> f) $$ a = c"
   apply (rule fun_app_iff)
-  apply (smt (verit) cod_compose compose_deterministic compose_monotone compose_total compose_welldefined dom_compose valid_cod valid_dom valid_mapI)
+  using compose_valid apply blast
   by (simp add: compose_def relcomp.relcompI)
 
 lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
