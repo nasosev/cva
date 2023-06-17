@@ -10,10 +10,10 @@ record 'a Poset =
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
 "le P a a' \<equiv>  (a, a') \<in> le_rel P"
 
+(*
 abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sqsubseteq>\<langle>_\<rangle> _") where
 "le_P a P a' \<equiv> (a, a') \<in> le_rel P"
-
-
+*)
 
 definition valid :: "'a Poset   \<Rightarrow> bool" where
   "valid P \<equiv>
