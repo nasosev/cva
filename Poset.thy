@@ -10,6 +10,11 @@ record 'a Poset =
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
 "le P a a' \<equiv>  (a, a') \<in> le_rel P"
 
+abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sqsubseteq>\<langle>_\<rangle> _") where
+"le_P a P a' \<equiv> (a, a') \<in> le_rel P"
+
+
+
 definition valid :: "'a Poset   \<Rightarrow> bool" where
   "valid P \<equiv>
     let
@@ -106,7 +111,6 @@ lemma "inf_is_glb" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longright
 lemma "sup_is_lub" : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
 \<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P s z"
   by (simp add: is_sup_def)
-
 
 lemma "sup_greater" : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
   unfolding is_sup_def
