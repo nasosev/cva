@@ -23,7 +23,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Definition 1 (valid_gc)
 - [x] Remark 2 (gprj_functorial)
 - [x] Remark 3 (local_mono_imp_global, global_mono_imp_local, id_le_gprj, laxity)
-- [x] Theorem 1 (ext_prj_adjunction, ext_functorial)
+- [x] Theorem 1 (prj_ext_adjunction, ext_functorial)
 - [x] Corollary 1 (strongly_neutral_covariance)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
 - [x] Corollary 3 (locally_complete_imp_complete)
