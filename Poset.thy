@@ -7,7 +7,8 @@ record 'a Poset =
   el :: "'a set"
   le_rel :: "('a \<times> 'a) set"
 
-(* To-do: should this give undefined if a or a' are not in el P? *)
+(* To-do: should this give undefined if a or a' are not in el P? Should we rewrite this as a 
+Function (el P) \<times> (el P) \<Rightarrow> Bool *)
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
 "le P a a' \<equiv>  (a, a') \<in> le_rel P"
 
