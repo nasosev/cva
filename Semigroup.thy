@@ -37,6 +37,11 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
   in
     (welldefined \<and> associative)"
 
+abbreviation elems :: "'a Semigroup \<Rightarrow> 'a set" where
+"elems S \<equiv> Poset.el (poset S)"
+
+abbreviation mul :: "'a Semigroup \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"mul S a b\<equiv> (mult S) $$ (a,b)"
 (* LEMMAS *)
 
 (*
@@ -46,11 +51,9 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
 lemma validI :
   fixes S :: "'a Semigroup"
   assumes welldefined : "(Poset.valid (poset S)) \<and> (Poset.valid_map (mult S)) \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
-  defines "mul \<equiv> \<lambda> a b . (mult S) $$ (a,b)"
-  defines "elems \<equiv> Poset.el (poset S)"
-  assumes associative : "\<And> a b c . a \<in> elems \<Longrightarrow> b \<in> elems \<Longrightarrow> c \<in> elems \<Longrightarrow> mul (mul a b) c = mul a (mul b c)"
+  assumes associative : "\<And> a b c . a \<in> elems S \<Longrightarrow> b \<in> elems S \<Longrightarrow> c \<in> elems S \<Longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)"
   shows "valid S"
-  using Semigroup.valid_def associative elems_def mul_def welldefined by fastforce
+  using Semigroup.valid_def associative  welldefined by fastforce
 
 (*
    This lemma states that if an ordered semigroup is valid, then it is well-defined.
@@ -76,13 +79,12 @@ lemma valid_cod : "valid S \<Longrightarrow> cod (mult S) = (poset S)"
 *)
 lemma valid_associative :
   fixes S :: "'a Semigroup"
-  fixes a :: "'a" and b :: "'a" and c :: "'a"
+  fixes a b c :: "'a"
   assumes "valid S"
-  defines "elems \<equiv> Poset.el (poset S)"
-  assumes "a \<in> elems" and "b \<in> elems" and "c \<in> elems"
-  defines "mul \<equiv> \<lambda> a b . (mult S) $$ (a,b)"
-  shows " mul (mul a b) c = mul a (mul b c)"
-  by (metis Semigroup.valid_def assms(1) assms(3) assms(4) assms(5) elems_def mul_def)
+  assumes "a \<in> elems S" and "b \<in> elems S" and "c \<in> elems S"
+  shows " mul S (mul S a b) c = mul S a (mul S b c)"
+  by (metis Semigroup.valid_def assms(1) assms(2) assms(3) assms(4))
+
 
 (*
    This lemma states that if an ordered semigroup is valid, then its multiplication operation is
@@ -90,36 +92,33 @@ lemma valid_associative :
 *)
 lemma valid_monotone :
   fixes S :: "'a Semigroup"
-  fixes a1 :: "'a" and a2 :: "'a" and b1 :: "'a" and b2:: "'a"
+  fixes a1 a2 b1 b2 :: "'a"
   assumes "valid S"
-  defines "elems \<equiv> Poset.el (poset S)"
-  assumes "a1 \<in> elems" and "a1 \<in> elems" and "b1 \<in> elems" and "b2 \<in> elems"
-  defines "mul \<equiv> \<lambda> a b . (mult S) $$ (a,b)"
-  assumes a1_le_a2: "Poset.le (poset S) a1 a2" and b1_le_b2: "Poset.le (poset S) b1 b2"
-  shows "Poset.le (poset S) (mul a1 b1) (mul a2 b2)"
-  unfolding mul_def
+  and a1_elem : "a1 \<in> elems S" and a2_elem : "a2 \<in> elems S" and b1_elem : "b1 \<in> elems S" and b2_elem : "b2 \<in> elems S"
+  and a1_le_a2: "Poset.le (poset S) a1 a2" and b1_le_b2: "Poset.le (poset S) b1 b2"
+  shows "Poset.le (poset S) (mul S a1 b1) (mul S a2 b2)"
 proof -
   have "Poset.valid_map (mult S)"
-    using Semigroup.valid_welldefined assms(1) by blast
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Poset.product_def Semigroup.valid_cod Semigroup.valid_dom SigmaI a1_elem a1_le_a2 a2_elem assms(1) b1_elem b1_le_b2 b2_elem mem_Collect_eq old.prod.case prod.sel(1) prod.sel(2) valid_map valid_map_monotone) 
   moreover have "(a1,b1) \<in> Poset.el (Poset.dom (mult S))"
-    by (metis (no_types, lifting) Semigroup.valid_welldefined Poset.Poset.select_convs(1) Poset.product_def SigmaI assms(1) assms(3) assms(5) elems_def)
+    by (simp add: Poset.product_def Semigroup.valid_dom a1_elem assms(1) b1_elem) 
   moreover have "(a2,b2) \<in> Poset.el (Poset.dom (mult S))"
-    by (metis (no_types, lifting) Semigroup.valid_welldefined Poset.Poset.select_convs(1) Poset.product_def Poset.valid_welldefined SigmaI a1_le_a2 assms(1) assms(6) elems_def)
-  moreover have "Poset.le (poset S) a1 a2"
+    by (simp add: Poset.product_def Semigroup.valid_dom a2_elem assms(1) b2_elem) 
+    moreover have "Poset.le (poset S) a1 a2"
     using a1_le_a2 by blast
   moreover have "Poset.le (poset S) b1 b2"
     using b1_le_b2 by blast
   moreover have "Poset.le (Poset.dom (mult S)) (a1,b1) (a2,b2)" using Poset.product_def
   proof -
     have f1: "b1 \<in> el (poset S) \<and> b2 \<in> el (poset S)"
-      by (metis (no_types) Semigroup.valid_welldefined Poset.valid_welldefined assms(1) b1_le_b2)
+      by (simp add: b1_elem b2_elem) 
     have "a1 \<in> el (poset S) \<and> a2 \<in> el (poset S)"
-      by (meson Semigroup.valid_welldefined Poset.valid_welldefined a1_le_a2 assms(1))
+      by (simp add: a1_elem a2_elem) 
     then show ?thesis
       using f1 by (simp add: Semigroup.valid_welldefined Poset.product_def a1_le_a2 assms(1) b1_le_b2)
   qed
   ultimately show "Poset.le (poset S) ((mult S) $$ (a1,b1)) ((mult S) $$ (a2,b2))"
-    by (simp add: Semigroup.valid_welldefined assms(1) valid_monotonicity)
+    by (metis Semigroup.valid_cod assms(1) valid_map_monotone)
 qed
 
 end

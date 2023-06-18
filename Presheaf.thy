@@ -104,7 +104,6 @@ lemma valid_space  : "valid \<Phi> \<Longrightarrow> T = space \<Phi> \<Longrigh
 lemma valid_ob  : "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> $ A \<Longrightarrow> Poset.valid obA"
   unfolding valid_def by (simp add: Let_def)
 
-
 lemma valid_ar  :
   fixes \<Phi> :: "('A, 'a) Presheaf" and i :: "'A Inclusion" and f ::  "('a,'a) PosetMap"
   assumes "valid \<Phi>"
@@ -244,10 +243,32 @@ lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<
     (((ar \<Phi>) $ i) $$ a) \<in> Poset.el ((ob \<Phi>) $ B) "
   by (metis Poset.fun_app2 cod_proj dom_proj valid_ar)
 
-lemma prj_monotone : "Presheaf.valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
-\<Longrightarrow> \<Phi>A = Presheaf.ob \<Phi> $ A \<Longrightarrow>  \<Phi>B = Presheaf.ob \<Phi> $ B \<Longrightarrow> a \<in> Poset.el \<Phi>A \<Longrightarrow> a' \<in> Poset.el \<Phi>'A \<Longrightarrow> Poset.le \<Phi>A a a'
- \<Longrightarrow> \<Phi>i = Presheaf.ar \<Phi> $ i \<Longrightarrow> Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
-  by (metis Poset.valid_welldefined Presheaf.valid_cod Presheaf.valid_dom valid_ar valid_inclusion_cod valid_monotonicity valid_ob valid_space)
+lemma prj_monotone : 
+  fixes \<Phi> :: "('A,'a) Presheaf" and i :: "'A Inclusion" and A B :: "'A Open" and a a' :: "'a"
+  defines "\<Phi>A \<equiv> Presheaf.ob \<Phi> $ A"
+  defines "\<Phi>B \<equiv> Presheaf.ob \<Phi> $ B"
+  defines "\<Phi>i \<equiv> Presheaf.ar \<Phi> $ i"
+  assumes \<Phi>_valid : "valid \<Phi>"
+  and i_inc : "i \<in> Space.inclusions (space \<Phi>)" 
+  and A_open : "A = Space.cod i" and B_open : "B = Space.dom i"
+  and a_elem : "a \<in> Poset.el \<Phi>A" and a'_elem : "a' \<in> Poset.el \<Phi>A" 
+  and a_le_a' : "Poset.le \<Phi>A a a'"
+shows "Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
+proof -
+  have "Poset.valid_map \<Phi>i"
+    by (metis Presheaf.valid_welldefined \<Phi>_valid \<Phi>i_def i_inc)
+ moreover have "\<Phi>A = Poset.dom \<Phi>i"
+   using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def i_inc by auto
+moreover have "\<Phi>B = Poset.cod \<Phi>i"
+  using B_open \<Phi>B_def \<Phi>_valid \<Phi>i_def i_inc by force 
+  moreover have "a \<in> Poset.el \<Phi>A"
+    using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def a_elem i_inc by auto
+  moreover have "a' \<in> Poset.el \<Phi>A"
+    using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def a'_elem i_inc by auto 
+  ultimately show ?thesis using assms Poset.valid_map_monotone [where ?f="ar \<Phi> $ i" and ?a=a and
+        ?a'=a']
+    by fastforce 
+qed
 
 lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
   unfolding valid_def terminal_def

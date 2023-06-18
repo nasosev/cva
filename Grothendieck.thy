@@ -161,41 +161,71 @@ proof -
 moreover have "Poset.valid_map prj_BC"
   by (metis (mono_tags, lifting) Inclusion.select_convs(1) Presheaf.valid_welldefined T_def \<Phi>1_def calculation(1) calculation(10) i_CB_def inclusions_def mem_Collect_eq prj_BC_def) 
   moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$  a)) (prj_BC $$  b)"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def calculation(1) calculation(10) calculation(11) calculation(2) calculation(4) calculation(9) cod_proj dom_proj i_CB_def inclusions_def mem_Collect_eq prj_BC_def valid_monotonicity)
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def calculation(1) calculation(10) calculation(11) calculation(2) calculation(4) calculation(9) cod_proj dom_proj i_CB_def inclusions_def mem_Collect_eq prj_BC_def valid_map_monotone)
    moreover have "le \<Phi>_C (prj_BC $$ b) c"
      by (simp add: assms(23))
-    moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$ a)) c"
-      by (metis Poset.valid_welldefined T_def \<Phi>0_def \<Phi>_C_def assms(18) calculation(1) calculation(12) calculation(13) valid_ob valid_transitivity) 
+   moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$ a)) c"
+     by (smt (verit, ccfv_threshold) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(18) calculation(1) calculation(10) calculation(12) calculation(13) calculation(4) i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_ob valid_transitivity) 
     ultimately show ?thesis
       by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Presheaf.valid_welldefined Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def compose_app i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
   qed
-
-(*
-   The lemma valid_gc_welldefined states that if \<Phi> is a valid presheaf, P = gc \<Phi>,
-   and Aa is an element in Poset.el P, then Aa \<in> el P \<and> Bb \<in> el P.
-*)
-lemma valid_gc_welldefined : "Presheaf.valid \<Phi> \<Longrightarrow> le (gc \<Phi>) Aa Bb \<Longrightarrow> Aa \<in> el (gc \<Phi>) \<and> Bb \<in> el (gc \<Phi>)"
-  unfolding gc_def
-  apply (simp_all add: Let_def)
-  by clarsimp
 
 (* THEOREM *)
 
 (*
    The theorem valid_gc states that if \<Phi> is a valid presheaf, then (gc \<Phi>) is a valid poset.
 *)
-theorem valid_gc:  "Presheaf.valid \<Phi> \<Longrightarrow> Poset.valid (gc \<Phi>)"
-  unfolding gc_def
-apply (intro Poset.validI)
-     apply clarsimp
-     apply auto
-        apply (simp_all add: Let_def)
-  apply (metis Poset.ident_app make_inclusion_ident valid_identity valid_ob valid_reflexivity valid_space)
 
-  apply blast
-    apply auto[1]
-  apply (metis Poset.ident_app make_inclusion_ident subset_antisym valid_antisymmetry valid_identity valid_ob valid_space)
-  by (smt (verit, best) make_inclusion_def order_trans valid_gc_transitive)
+theorem valid_gc:  
+  fixes \<Phi> :: "('A, 'a) Presheaf"
+  assumes valid_\<Phi> : "valid \<Phi>"
+  shows "Poset.valid (gc \<Phi>)"
+proof (intro Poset.validI)
+  fix x y
+  assume a1: "(x, y) \<in> le_rel (gc \<Phi>)" 
+
+   show "x \<in> el (gc \<Phi>) \<and> y \<in> el (gc \<Phi>)" using assms a1 gc_def [where ?\<Phi>=\<Phi>]
+     by (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) case_prod_unfold fst_conv mem_Collect_eq snd_conv) 
+next 
+  fix x
+  assume "x \<in> el (gc \<Phi>)"
+  define "T" where "T = Presheaf.space \<Phi>" 
+  define "i" where "i = Space.ident T (d x)"
+  have "e x = ((Presheaf.ar \<Phi>) $ i) $$ (e x)"
+    by (metis Poset.ident_app T_def \<open>x \<in> el (gc \<Phi>)\<close> gc_elem_local i_def local_dom valid_\<Phi> valid_identity valid_ob) 
+  moreover have "d x \<in> opens (Presheaf.space \<Phi>)"
+    using \<open>x \<in> el (gc \<Phi>)\<close> local_dom valid_\<Phi> by blast 
+
+  moreover have "e x \<in> Poset.el ((Presheaf.ob \<Phi>) $ (d x))"
+    by (meson \<open>x \<in> el (gc \<Phi>)\<close> gc_elem_local valid_\<Phi>) 
+  moreover have "Poset.le ((Presheaf.ob \<Phi>) $ (d x)) (((Presheaf.ar \<Phi>) $ i) $$ (e x)) (e x)"
+    by (metis calculation(1) calculation(2) calculation(3) valid_\<Phi> valid_ob valid_reflexivity) 
+
+  moreover have "(x,x) \<in> le_rel (gc \<Phi>)"  using  calculation i_def T_def gc_def [where ?\<Phi> = \<Phi>]
+    by (smt (verit, best) Poset.Poset.select_convs(2) case_prodI case_prod_unfold dual_order.refl make_inclusion_ident mem_Collect_eq valid_\<Phi> valid_space) 
+    
+  show "le (gc \<Phi>) x x"
+    by (simp add: \<open>(x, x) \<in> le_rel (gc \<Phi>)\<close> \<open>x \<in> el (gc \<Phi>)\<close>)
+next
+  fix x y
+  assume a1: "x \<in> el (gc \<Phi>)"
+  assume a2: "y \<in> el (gc \<Phi>)"
+  assume a3: "le (gc \<Phi>) x y"
+  assume a4: "le (gc \<Phi>) y x "
+  show "x = y" using gc_def  [where ?\<Phi> = \<Phi>] assms  a1 a2 a3 a4
+    by (smt (z3) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD case_prodD case_prodE' fst_conv make_inclusion_ident snd_conv subset_antisym valid_antisymmetry valid_identity valid_ob valid_space)
+next
+  fix x y z
+  assume a1: "x \<in> el (gc \<Phi>)"
+  assume a2: "y \<in> el (gc \<Phi>)"
+  assume a3: "z \<in> el (gc \<Phi>)"
+  assume a4: "le (gc \<Phi>) x y"
+  assume a5: "le (gc \<Phi>) y z "
+  show "le (gc \<Phi>) x z" using gc_def [where ?\<Phi> = \<Phi>] assms a1 a2 a3 a4 a5 
+valid_gc_transitive [where ?\<Phi> = \<Phi> and ?a="e x" and ?b="e y" and ?c="e z" and ?A="d x" and ?B="d y"
+  and ?C="d z"]
+    by (smt (verit, del_insts) Poset.Poset.select_convs(2) case_prod_conv make_inclusion_def mem_Collect_eq prod.collapse subset_trans) 
+qed
 
 (*
    The lemma valid_gc_le_wrap states that if \<Phi> is a valid presheaf, Aa and Bb are pairs of the form (A, a),
@@ -222,15 +252,8 @@ lemma valid_gc_le_wrap :
   assumes "Poset.le \<Phi>B (pr $$ (e Aa)) (e Bb) "
   shows "le (gc \<Phi>) Aa (Bb)"
   unfolding gc_def
-  apply (simp add:Let_def)
-  apply safe
-  apply (metis assms(6) fst_conv)
-      apply (metis assms(7) fst_conv)
-     apply (metis \<Phi>A_def assms(8) fst_conv snd_conv)
-    apply (metis \<Phi>B_def assms(9) fst_conv snd_conv)
-   apply (metis assms(10) fst_conv subsetD)
-  by (metis \<Phi>B_def assms(11) fst_conv i_def pr_def snd_conv)
-
+  by (smt (verit, del_insts) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) \<Phi>A_def \<Phi>B_def assms(10) assms(11) assms(6) assms(7) assms(8) case_prodI case_prod_unfold i_def mem_Collect_eq pr_def)
+  
 (*
    The lemma valid_gc_le_unwrap states that if \<Phi> is a valid presheaf, Aa and Bb are pairs of the form (A, a),
    where A is an open set in the space of \<Phi> and a is an element in the presheaf value at A, and
@@ -281,9 +304,10 @@ proof -
     apply (simp_all add: Let_def)
     unfolding gc\<Phi>_def gc_def
     apply auto
-    apply (simp_all add: Let_def)
-    apply clarsimp
-    by (simp add: \<Phi>B_def a_B_def i_def pr_def)
+      apply (simp_all add: Let_def)
+    apply (smt (verit) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD \<Phi>A_def \<Phi>B_def a_B_def assms(7) assms(8) calculation(3) case_prod_conv case_prod_unfold gc\<Phi>_def i_def local_dom pr_def valid)
+    using calculation(9) apply force
+    using calculation(3) by blast
   ultimately show ?thesis
     by blast
 qed

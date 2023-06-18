@@ -1,5 +1,5 @@
 theory Poset
-imports Main Function
+imports Main
 
 begin
 
@@ -7,11 +7,8 @@ record 'a Poset =
   el :: "'a set"
   le_rel :: "('a \<times> 'a) set"
 
-abbreviation le_fun :: "'a Poset => ('a \<times> 'a, bool) Function" where
-"le_fun P \<equiv>  \<lparr>cod = UNIV, func = { ((a, a'), (a, a') \<in> le_rel P)  | a a'. a \<in> el P \<and> a' \<in> el P }\<rparr>"
-
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
-"le P a a' \<equiv> le_fun P $ (a, a')"
+"le P a a' \<equiv> if a \<in> el P \<and> a' \<in> el P then (a, a') \<in> le_rel P else undefined"
 
 (*
 abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sqsubseteq>\<langle>_\<rangle> _") where
@@ -21,7 +18,7 @@ abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> b
 definition valid :: "'a Poset \<Rightarrow> bool" where
   "valid P \<equiv>
     let
-      welldefined = (\<forall>x y. le P x y \<longrightarrow> x \<in> el P \<and> y \<in> el P);
+      welldefined = (\<forall>x y. (x,y) \<in> le_rel P \<longrightarrow> x \<in> el P \<and> y \<in> el P);
       reflexivity = (\<forall>x. x \<in> el P \<longrightarrow> le P x x);
       antisymmetry = (\<forall>x y. x \<in> el P \<longrightarrow> y \<in> el P  \<longrightarrow> le P x y \<longrightarrow> le P y x  \<longrightarrow> x = y);
       transitivity = (\<forall>x y z. x \<in> el P\<longrightarrow> y \<in> el P \<longrightarrow> z \<in> el P\<longrightarrow> le P x y \<longrightarrow> le P y z \<longrightarrow> le P x z)
@@ -41,12 +38,12 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
   let
       le_dom = le (dom f);
       le_cod = le (cod f);
-      edom = el (dom f);
-      ecod = el (cod f);
-      welldefined = valid (dom f) \<and> valid (cod f) \<and> (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> edom \<and> b \<in> ecod);
+      e_dom = el (dom f);
+      e_cod = el (cod f);
+      welldefined = valid (dom f) \<and> valid (cod f) \<and> (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> e_dom \<and> b \<in> e_cod);
       deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
-      total = (\<forall>a. a \<in> edom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
-      monotone = (\<forall>a a'. a \<in> edom \<and> a' \<in> edom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))
+      total = (\<forall>a. a \<in> e_dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
+      monotone = (\<forall>a a'. a \<in> e_dom \<and> a' \<in> e_dom \<and> le_dom a a' \<longrightarrow> le_cod (f $$ a) (f $$ a'))
 
   in welldefined \<and> deterministic \<and> total \<and> monotone"
 
@@ -93,62 +90,14 @@ abbreviation is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 
 (* LEMMAS *)
 
-(* Infima & suprema *)
-
-lemma inf_unique : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P\<Longrightarrow> i' \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> is_inf P U i' \<Longrightarrow> i = i'"
-  unfolding is_inf_def
-  by (smt (verit, best) valid_def)
-
-lemma sup_unique : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P\<Longrightarrow> s' \<in> el P \<Longrightarrow> is_sup P U s \<Longrightarrow> is_sup P U s' \<Longrightarrow> s = s'"
-  unfolding is_sup_def
-  by (smt (verit, best) valid_def)
-
-lemma inf_smaller : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
-  unfolding is_inf_def
-  by simp
-
-lemma inf_is_glb : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i
-\<Longrightarrow> \<forall>u\<in>U. le P z u \<Longrightarrow> le P z i"
-  by (simp add: is_inf_def)
-
-lemma sup_is_lub : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
-\<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P s z"
-  by (simp add: is_sup_def)
-
-lemma sup_greater : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
-  unfolding is_sup_def
-  by simp
-
-lemma some_inf_is_inf : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
-  unfolding inf_def
-  by (metis (no_types, lifting) option.distinct(1) option.inject someI_ex)
-
-lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
-  unfolding sup_def
-  by (metis (no_types, lifting) Poset.sup_unique option.distinct(1) option.inject some_equality)
-
-lemma complete_inf_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
-  by (simp add: inf_def is_inf_def)
-
-lemma cocomplete_sup_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
-  by (simp add: is_sup_def sup_def)
-
-lemma complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
-proof
-  assume "is_complete P"
-  fix U
-  define "s" where "s = inf P {a \<in> Poset.el P . (\<forall> u \<in> U . le P u a)}"
-  have "s = sup P U" 
-    oops
-
-(* Validity stuff *)
+(* Validity *)
 
 lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
                    (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
                    (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
                    (\<And>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a'))
   \<Longrightarrow> valid_map f "
-  by (clarsimp simp: valid_map_def, intro conjI, fastforce+)
+  by (smt (verit) Poset.valid_map_def) 
 
 lemma product_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
   unfolding valid_def product_def
@@ -159,35 +108,24 @@ lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> 
 
 theorem validI :
   fixes P :: "'a Poset"
-  assumes welldefined : "(\<And>x y. le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P)"
+  assumes welldefined : "(\<And>x y. (x,y) \<in> le_rel P \<Longrightarrow> x \<in> el P \<and> y \<in> el P)"
   assumes reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
   assumes antisymmetry : "(\<And>x y. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow>  le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y)"
   assumes transitivity : "(\<And>x y z. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z)"
     shows "valid P"
   by (smt (verit, best) antisymmetry reflexivity transitivity valid_def welldefined)
 
-lemma valid_welldefined : "valid P \<Longrightarrow> le P x y \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
-  unfolding valid_def
-  by meson
+lemma valid_welldefined : "valid P \<Longrightarrow> (x,y) \<in> le_rel P \<Longrightarrow> x \<in> el P \<and> y \<in> el P"
+  by (smt (verit) valid_def)
 
 lemma valid_reflexivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> le P x x"
-  using valid_def by fastforce
+  by (smt (verit) valid_def)
 
 lemma valid_transitivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
-  unfolding valid_def
-  by meson
+  by (smt (verit, ccfv_threshold) valid_def)
 
 lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
-  unfolding valid_def
-  by meson
-
-lemma valid_monotonicity :
-  "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> x = dom f \<Longrightarrow> y = cod f \<Longrightarrow>
-    le x a a' \<Longrightarrow> le y (f $$ a) (f $$ a')"
-  unfolding valid_map_def
-  apply safe
-  apply auto
-  by meson
+  by (smt (verit, ccfv_threshold) valid_def)
 
 lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod f)"
   unfolding valid_map_def
@@ -202,8 +140,11 @@ lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Long
   by (simp add: Let_def)
 
 lemma valid_map_monotone : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a')"
-  unfolding valid_map_def
-  by (simp add: Let_def)
+unfolding valid_map_def
+  apply auto
+  apply meson
+   apply metis
+  by metis
 
 lemma fun_app : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (a, f $$ a) \<in> func f"
   by (metis app_def the_equality valid_map_deterministic valid_map_total)
@@ -239,19 +180,6 @@ lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
 lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f $$ a) = b"
   by (meson fun_app valid_map_deterministic valid_map_welldefined)
 
-lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
-  apply (clarsimp simp: app_def, safe; clarsimp?)
-   apply (smt (verit, del_insts) PosetMap.select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
-  by (metis app_def fun_app2)
-
-
-lemma compose_monotone: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow>
-    a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> cod_gf = cod (g \<cdot> f) \<Longrightarrow> gfa = (g \<cdot> f) $$ a \<Longrightarrow> gfa' = ((g \<cdot> f) $$ a')
-\<Longrightarrow> le cod_gf gfa gfa'"
-  apply (subst (asm) valid_map_def)
-  apply (clarsimp simp: Let_unfold)
-  by (metis cod_compose compose_app fun_app_iff valid_mapI valid_map_monotone)
-
 lemma valid_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   apply (subst (asm) valid_map_def)
   by (clarsimp simp: Let_unfold)
@@ -260,6 +188,27 @@ lemma valid_cod : "valid_map f \<Longrightarrow> valid (cod f)"
   apply (subst (asm) valid_map_def)
   by (clarsimp simp: Let_unfold)
 
+lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
+  apply (clarsimp simp: app_def, safe; clarsimp?)
+   apply (smt (verit, del_insts) PosetMap.select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
+  by (metis app_def fun_app2)
+
+lemma compose_monotone :
+  fixes f :: "('a,'b) PosetMap" and g :: "('b,'c) PosetMap" and a a' :: "'a"
+  assumes f_valid : "valid_map f" and g_valid : "valid_map g"
+  and a_elem : "a \<in> el (dom f)" and a'_elem : "a' \<in> el (dom f)" 
+  and le_aa' : "le (dom f) a a'"
+  and dom_cod : "dom g = cod f"
+shows "le (cod g) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
+proof -
+  have "le (cod f) (f $$ a) (f $$ a')" using valid_map_monotone
+    by (metis a'_elem a_elem f_valid le_aa')   
+  moreover have  "le (cod g) (g $$ (f $$ a)) (g $$ (f $$ a'))" using valid_map_monotone
+    by (metis a'_elem a_elem calculation dom_cod f_valid fun_app2 g_valid) 
+  ultimately show ?thesis using compose_app
+    by (metis a'_elem a_elem dom_cod f_valid g_valid)
+qed
+
 lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
   apply (rule valid_mapI; clarsimp?)
        apply (simp add:  valid_dom)
@@ -267,8 +216,7 @@ lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
   apply (simp add:  compose_welldefined )
   apply (simp add: compose_deterministic)
    apply (simp add: compose_total )
-  by (simp add: compose_app fun_app2 valid_map_monotone)
-
+  by (simp add: compose_monotone)
 
 lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
                 (b, c) \<in> func g \<Longrightarrow> (g \<cdot> f) $$ a = c"
@@ -279,7 +227,7 @@ lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightar
 lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
   unfolding valid_map_def  ident_def app_def
   apply ( simp add: Let_unfold Id_on_def )
-  done
+  by blast
 
 lemma ident_app [simp] :
   fixes a :: "'a" and P :: "'a Poset"
@@ -314,6 +262,56 @@ lemma ident_left_neutral [simp]  : "valid_map f \<Longrightarrow> cod f = x \<Lo
 
 lemma discrete_valid : "valid discrete"
   by (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) UNIV_I discrete_def fst_conv mem_Collect_eq snd_conv validI)
+
+
+(* Infima & suprema *)
+
+lemma inf_unique : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P\<Longrightarrow> i' \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> is_inf P U i' \<Longrightarrow> i = i'"
+  unfolding is_inf_def
+  by (metis valid_antisymmetry)
+
+lemma sup_unique : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P\<Longrightarrow> s' \<in> el P \<Longrightarrow> is_sup P U s \<Longrightarrow> is_sup P U s' \<Longrightarrow> s = s'"
+  unfolding is_sup_def
+  by (metis valid_antisymmetry)
+
+lemma inf_is_glb : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i
+\<Longrightarrow> \<forall>u\<in>U. le P z u \<Longrightarrow> le P z i"
+  by (simp add: is_inf_def)
+
+lemma sup_is_lub : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
+\<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P s z"
+  by (simp add: is_sup_def)
+
+lemma inf_smaller : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
+  unfolding is_inf_def
+  by blast
+
+
+lemma sup_greater : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
+  unfolding is_sup_def
+  by blast
+
+lemma some_inf_is_inf : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
+  unfolding inf_def
+  by (metis (no_types, lifting) option.distinct(1) option.inject someI_ex)
+
+lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
+  unfolding sup_def
+  by (metis (no_types, lifting) Poset.sup_unique option.distinct(1) option.inject some_equality)
+
+lemma complete_inf_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
+  by (simp add: inf_def is_inf_def)
+
+lemma cocomplete_sup_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
+  by (simp add: is_sup_def sup_def)
+
+lemma complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
+proof
+  assume "is_complete P"
+  fix U
+  define "s" where "s = inf P {a \<in> Poset.el P . (\<forall> u \<in> U . le P u a)}"
+  have "s = sup P U" 
+    oops
 
 (* EXAMPLES *)
 
