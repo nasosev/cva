@@ -1,5 +1,5 @@
 theory Poset
-imports Main
+imports Main Function
 
 begin
 
@@ -7,10 +7,11 @@ record 'a Poset =
   el :: "'a set"
   le_rel :: "('a \<times> 'a) set"
 
-(* To-do: should this give undefined if a or a' are not in el P? Should we rewrite this as a 
-Function (el P) \<times> (el P) \<Rightarrow> Bool *)
+abbreviation le_fun :: "'a Poset => ('a \<times> 'a, bool) Function" where
+"le_fun P \<equiv>  \<lparr>cod = UNIV, func = { ((a, a'), (a, a') \<in> le_rel P)  | a a'. a \<in> el P \<and> a' \<in> el P }\<rparr>"
+
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
-"le P a a' \<equiv>  (a, a') \<in> le_rel P"
+"le P a a' \<equiv> le_fun P $ (a, a')"
 
 (*
 abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sqsubseteq>\<langle>_\<rangle> _") where
