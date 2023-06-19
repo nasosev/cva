@@ -738,10 +738,12 @@ proof -
     by (metis B_def a_B_def assms(9) d_gprj a_dom b_dom a_elem b_elem local_inclusion_domain V_valid)
   moreover have "a_B = (B, ea_B) \<and> b = (B, eb)"
     by (metis calculation(13) ea_B_def eb_def prod.collapse)
-  moreover have "gle V a_B b"  using  a_B_le_b
-    by (smt (verit) LHS V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(13) calculation(2) elem_le_wrap equalityD2 gprj_functorial local_inclusion_domain) 
+  moreover have "B \<in> opens V"
+    using B_def V_valid b_elem local_inclusion_domain by blast 
+  moreover have "gle V a_B b"  using  calculation a_B_le_b a_B_def gle_eq_local_le [where ?V=V and ?a1.0=a_B and ?a2.0=b and ?A=B]
+    by (metis V_valid a_dom a_elem assms(9) b_dom b_elem gprj_elem)
   moreover have "gle V (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)"
-    by (smt (verit) V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(11) calculation(15) combine_monotone gc_poset_def gprj_elem local_inclusion_domain) 
+    by (smt (verit, ccfv_threshold) B_def V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(11) calculation(15) calculation(16) combine_monotone gc_poset_def gprj_elem) 
 moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
   using calculation(12) by auto
 moreover have "gle V a (comb V \<epsilon>A a_B)"
@@ -749,7 +751,7 @@ moreover have "gle V a (comb V \<epsilon>A a_B)"
   moreover have "A \<union> B = A"
     by (simp add: A_def B_def Un_absorb2 assms(9) a_dom b_dom)
   moreover have "d (comb V \<epsilon>A a_B) = A" using valid_domain_law
-    by (metis V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(13) calculation(19) calculation(6) gc_poset_def gprj_elem local_inclusion_domain) 
+    by (metis V_valid a_B_def a_dom a_elem assms(9) b_dom calculation(10) calculation(13) calculation(15) calculation(20) calculation(6) gc_poset_def gprj_elem) 
   ultimately show ?thesis
     by (smt (verit) A_def OVA.valid_welldefined V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem comb_is_element combine_monotone elem_le_wrap local_le valid_domain_law) 
 qed
