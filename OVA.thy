@@ -97,6 +97,8 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
 
 (* LEMMAS *)
 
+(* Validity *)
+
 lemma validI :
   fixes V :: "('A,'a) OVA"
   defines "\<Phi> \<equiv> presheaf V"
@@ -221,35 +223,37 @@ qed
 
 lemma valid_domain_law  :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow>
-    \<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> d (comb V a b) = d a \<union> d b"
-  by (simp add: valid_def Let_def)
+  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d (comb V a b) = d a \<union> d b"
+  unfolding valid_def
+  by meson
 
 lemma valid_neutral_law_left  :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> let \<epsilon> = neut V; com = comb V; elems = elems V in
-    \<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> com (\<epsilon> A) a = a"
-  by (simp add: valid_def Let_def)
+  shows "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a = A \<Longrightarrow> \<epsilon> = neut V \<Longrightarrow> comb V (\<epsilon> A) a = a"
+  unfolding valid_def
+  by (metis (no_types, lifting))
 
 lemma valid_neutral_law_right  :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> let  \<epsilon> = neut V; com = comb V; elems = elems V in
-    \<forall>A a. A \<in> opens V \<and> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> com a (\<epsilon> A) = a"
-  by (simp add: valid_def Let_def)
+  shows "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a = A \<Longrightarrow> \<epsilon> = neut V \<Longrightarrow> comb V a (\<epsilon> A) = a"
+  unfolding valid_def
+  by (metis (no_types, lifting))
 
 lemma valid_comb_law_left  :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> let \<Phi> = presheaf V; T = space V; S = semigroup V; com = comb V; elems = elems V; pr = gprj V in
-    \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow>
-      pr (d a) (com a b) = com a (pr (d a \<inter> d b) b)"
-  by (simp add: valid_def Let_def)
+  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
+      gprj V (d a) (comb V a b) = comb V a (gprj V (d a \<inter> d b) b)"
+  unfolding valid_def
+  by meson
 
 lemma valid_comb_law_right  :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> let \<Phi> = presheaf V; T = space V; S = semigroup V; com = comb V; elems = elems V; pr = gprj V in
-    \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow>
-      pr (d b) (com a b) = com (pr (d a \<inter> d b) a) b"
-  by (simp add: valid_def Let_def)
+  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
+      gprj V (d b) (comb V a b) = comb V (gprj V (d a \<inter> d b) a) b"
+  unfolding valid_def
+  by meson
+
+(* Paper results *)
 
 lemma neutral_is_element :
 fixes V :: "('A,'a) OVA" and A :: "'A Open"
@@ -714,7 +718,7 @@ proof -
   moreover have "gle V a a_B"
     by (metis a_B_def assms(9) a_dom b_dom a_elem b_elem id_le_gprj local_inclusion_domain V_valid)
   moreover have "a = comb V \<epsilon>A a"
-    by (metis \<epsilon>A_def a_dom a_elem local_inclusion_domain V_valid valid_neutral_law_left)
+    by (smt (verit, best) V_valid \<epsilon>A_def a_dom a_elem local_inclusion_domain valid_neutral_law_left)
   moreover have a_B_le_b : "local_le V B (B,ea_B) (B,eb)"
     by (simp add: B_def LHS a_B_def b_dom ea_B_def eb_def)
   moreover have "Poset.valid (\<Phi>0 A)"
@@ -780,11 +784,11 @@ proof -
     moreover have "gprj V (A \<inter> B) \<epsilon>A = \<epsilon>B"
       by (simp add: A_open B_le_A B_open \<epsilon>A_def \<epsilon>B_def inf.absorb2 stability V_valid)
     moreover have "comb V (gprj V (A \<inter> B) \<epsilon>A) b = b"
-      by (metis B_open \<epsilon>B_def calculation(4) b_dom b_elem V_valid valid_neutral_law_left)
+      using B_open V_valid \<epsilon>B_def b_dom b_elem calculation(4) valid_neutral_law_left by fastforce 
     moreover have "gle V (gprj V B a) b"
       using \<open>gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b\<close> calculation(2) calculation(5) by fastforce
     ultimately show ?thesis
-      by (metis (no_types, lifting) A_open B_le_A B_open d_gprj a_dom b_dom a_elem b_elem gle_eq_local_le gprj_elem V_valid)
+      by (metis (no_types, lifting) B_le_A V_valid a_dom a_elem b_dom b_elem d_gprj gprj_elem local_inclusion_domain local_le valid_gc_poset valid_presheaf) 
   qed
 
 (* [Remark 3, CVA] *)
@@ -876,7 +880,7 @@ proof -
   moreover have "... =  com \<epsilon>B b"
   by (simp add: \<epsilon>A_def \<epsilon>B_def assms(4) assms(5) assms(6) inf.absorb2 pr_def stability V_valid)
   ultimately show ?thesis
-    by (metis \<epsilon>B_def \<open>pr B (ex A b) = pr B (com \<epsilon>A b)\<close> assms(2) assms(3) assms(5) com_def valid_neutral_law_left V_valid)
+    by (smt (verit, best) V_valid \<epsilon>A_def assms(2) assms(3) assms(4) assms(5) assms(6) com_def inf.absorb2 pr_def stability valid_neutral_law_left) 
 qed
 
 (* [Corollary 2 cont., CVA] *)
@@ -1078,7 +1082,7 @@ next
           by (metis \<open>e_U \<in> el (\<Phi> d_U)\<close> \<open>ex_U \<subseteq> el (\<Phi> d_U)\<close> \<open>some_e_U = Some e_U\<close> calculation(3) some_e_U_def some_inf_is_inf)
         moreover have "local_le V (d_U) i (ex d_U u)"
           by (smt (verit, del_insts) \<Phi>_def calculation(1) calculation(5) comp_apply ex_U_def i_def image_iff is_inf_def snd_conv) 
-        moreover have "local_le V (d u) (pr (d u) i) u" using Poset.inf_smaller
+        moreover have "local_le V (d u) (pr (d u) i) u" 
           by (smt (verit) U V_valid \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) calculation(2) calculation(6) d_gext d_gprj elem_le_wrap ex_def fst_eqD galois_insertion gext_elem gprj_elem gprj_monotone i_def in_mono local_inclusion_domain local_le pr_def subset_Un_eq sup.cobounded2 up_and_down valid_gc_poset valid_presheaf) 
         moreover have i_is_lb: "gle V i u"
           by (smt (verit) U V_valid \<open>i \<in> el (poset V)\<close> calculation(1) calculation(2) calculation(7) elem_le_wrap fst_eqD i_def in_mono pr_def) 
