@@ -1,3 +1,0 @@
-OVA.thy: elem_le_wrap, elem_le_unwrap, locally_complete_imp_complete
-
-Poset.thy: complete_equiv_cocomplete
