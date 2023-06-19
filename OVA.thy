@@ -258,7 +258,7 @@ lemma valid_comb_associative :
   shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> c \<in> elems V \<Longrightarrow>
       comb V (comb V a b) c = comb V a (comb V b c)"
   unfolding valid_def
-  by (meson valid_associative) 
+  by (meson valid_associative)
 
 (* Paper results *)
 
@@ -418,6 +418,15 @@ lemma global_inclusion_element : "valid V \<Longrightarrow> A \<in> opens V
 
 lemma local_inclusion_domain : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> A \<in> opens V"
   by (metis OVA.valid_welldefined local_dom)
+
+lemma symmetric_gext:
+  fixes V :: "('A,'a) OVA" and A :: "'A Open" and b :: "('A,'a) Valuation"
+  assumes V_valid: "valid V"
+  and A_open : "A \<in> opens V"
+  and b_elem : "b \<in> elems V" 
+  and B_le_A : "d b \<subseteq> A" 
+shows "gext V A b = comb V b (neut V A)"
+  by (smt (verit, ccfv_SIG) A_open B_le_A V_valid b_elem comb_is_element d_gext fst_conv gext_def local_inclusion_domain neutral_is_element subset_Un_eq valid_comb_associative valid_domain_law valid_neutral_law_left valid_neutral_law_right)
 
 lemma gprj_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
@@ -859,7 +868,7 @@ next
   qed
 
 (* [Corollary 1, CVA] *)
-theorem strongly_neutral_covariance :
+corollary strongly_neutral_covariance :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid : "valid V"
   and strongly_neutral: "\<forall> A B . comb V (neut V A) (neut V B) = neut V (A \<union> B)"
@@ -869,7 +878,7 @@ shows "ex A (neut V B) = neut V A "
   by (metis (no_types, lifting) V_valid assms(3) assms(4) assms(5) ex_def fst_eqD gext_def neutral_is_element strongly_neutral sup.absorb_iff1)
 
 (* [Corollary 1 cont., CVA] *)
-lemma strongly_neutral_monoid :
+corollary strongly_neutral_monoid :
   fixes V :: "('A,'a) OVA" and a :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and a_elem : "a \<in> elems V"
@@ -887,9 +896,9 @@ proof standard
   moreover have "... = comb V \<epsilon>A a"
     by (simp add: \<epsilon>A_def identity_def strongly_neutral)
   moreover have "... = a"
-    using calculation(1) by presburger 
+    using calculation(1) by presburger
   ultimately show "comb V identity a = a"
-    by presburger  
+    by presburger
 next
   define "\<epsilon>A" where "\<epsilon>A = neut V (d a)"
   have "a = comb V a \<epsilon>A "
@@ -901,14 +910,13 @@ next
   moreover have "... = comb V a \<epsilon>A"
     by (simp add: \<epsilon>A_def identity_def strongly_neutral)
   moreover have "... = a"
-    using calculation(1) by presburger 
+    using calculation(1) by presburger
   ultimately show "comb V a identity = a"
     by presburger
 qed
 
-
 (* [Corollary 2, CVA] *)
-theorem galois_insertion :
+corollary galois_insertion :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "b \<in> elems V" and "d b = B"
   and " B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
@@ -928,7 +936,7 @@ proof -
 qed
 
 (* [Corollary 2 cont., CVA] *)
-theorem galois_closure_extensive :
+corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "a \<in> elems V" and "d a = A"
   and " B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
@@ -1013,7 +1021,7 @@ proof -
 qed
 
 (* [Corollary 2 cont., CVA] *)
-lemma galois_closure_idempotent :
+corollary galois_closure_idempotent :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
@@ -1064,7 +1072,7 @@ proof -
 qed
 
 (* [Corollary 3, CVA] *)
-lemma locally_complete_imp_complete :
+corollary locally_complete_imp_complete :
   fixes V :: "('A,'a) OVA"
   defines "\<Phi> A \<equiv> (Presheaf.ob (presheaf V)) $ A"
   and "pr \<equiv> gprj V" and "ex \<equiv> gext V"

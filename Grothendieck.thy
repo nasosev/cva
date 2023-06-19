@@ -176,7 +176,7 @@ moreover have "Poset.valid_map prj_BC"
    The theorem valid_gc states that if \<Phi> is a valid presheaf, then (gc \<Phi>) is a valid poset.
 *)
 
-theorem valid_gc:  
+proposition valid_gc:  
   fixes \<Phi> :: "('A, 'a) Presheaf"
   assumes valid_\<Phi> : "valid \<Phi>"
   shows "Poset.valid (gc \<Phi>)"
