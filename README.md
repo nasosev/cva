@@ -36,7 +36,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## To-do
 
-- Use abbreviations instead of definitions for partially applied functions
+- ...
 
 ## Acknowledgements
 
