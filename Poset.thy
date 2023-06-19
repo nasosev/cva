@@ -8,7 +8,10 @@ record 'a Poset =
   le_rel :: "('a \<times> 'a) set"
 
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
-"le P a a' \<equiv> if a \<in> el P \<and> a' \<in> el P then (a, a') \<in> le_rel P else undefined"
+"le P a a' \<equiv> 
+  if a \<in> el P \<and> a' \<in> el P 
+  then (a, a') \<in> le_rel P 
+  else undefined"
 
 (*
 abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sqsubseteq>\<langle>_\<rangle> _") where
