@@ -20,15 +20,24 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 #### Ordered valution algebras (OVAs): OVA.thy
 
+- [x] Definition 1 (valid_gc)
 - [x] Remark 2 (gprj_functorial)
-- [x] Remark 3 (local_mono_imp_global, global_mono_imp_local, id_le_gprj, laxity)
-- [x] Theorem 1 (ext_prj_adjunction, ext_functorial)
+- [x] Remark 3 (id_le_gprj, gle_eq_local_le, laxity)
+- [x] Theorem 1 (prj_ext_adjunction, ext_functorial)
 - [x] Corollary 1 (strongly_neutral_covariance)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
-- [ ] Corollary 3 ()
+- [x] Corollary 3 (locally_complete_imp_complete)
 
 #### Concurrent valution algebras (CVAs): CVA.thy
 
 - [ ] Proposition 1 ()
 - [ ] Proposition 2 ()
 - [ ] Proposition 3 ()
+
+## To-do
+
+- ...
+
+## Acknowledgements
+
+Many, many thanks to Callum Bannister, Kait Lam, and Scott Heiner for their help with this project! :heart:
