@@ -53,9 +53,9 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
         weak_exchange = \<forall> a b c d. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> c \<in> elems V \<longrightarrow> d \<in> elems V \<longrightarrow>
                          gle (seq (par a b) (par c d)) (par (seq a c) (seq b d)) ;
 
-        neutral_law_par = (\<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems V \<longrightarrow> gle (\<epsilon> A) (par (\<epsilon> A) (\<epsilon> A)));
+        neutral_law_par = (\<forall>A . A \<in> opens V \<longrightarrow> gle (seq (\<delta> A) (\<delta> A)) (\<delta> A));
 
-        neutral_law_seq = (\<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems V \<longrightarrow> gle (seq (\<delta> A) (\<delta> A)) (\<delta> A))
+        neutral_law_seq = (\<forall>A . A \<in> opens V \<longrightarrow> gle (\<epsilon> A) (par (\<epsilon> A) (\<epsilon> A)))
     in
       welldefined \<and> commutativity \<and> weak_exchange \<and> neutral_law_par \<and> neutral_law_seq"
 
@@ -94,16 +94,19 @@ lemma valid_weak_exchange: "valid V \<Longrightarrow> a1 \<in> elems V \<Longrig
   unfolding valid_def
   by presburger
   
-lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> gle V (neut_par V A) (par V (neut_par V A) (neut_par V A))"
+lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow>  \<delta>A = (neut_par V A)
+  \<Longrightarrow> gle V (seq V \<delta>A \<delta>A) \<delta>A"
   unfolding valid_def
-  by (smt (z3) fst_conv neutral_is_element valid_neutral_law_left valid_poset valid_reflexivity valid_semigroup)
+  by meson
 
-lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> gle V (seq V (neut_seq V A) (neut_seq V A)) (neut_seq V A)"
+lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longrightarrow> \<epsilon>A = (neut_seq V A)
+  \<Longrightarrow> gle V \<epsilon>A (par V \<epsilon>A \<epsilon>A)"
   unfolding valid_def
-  by (smt (z3) d_neut neutral_is_element valid_gc_poset valid_neutral_law_right valid_poset valid_reflexivity valid_semigroup)
+  by meson
 
 (* Paper results *)
 
+(* [Proposition 1, CVA] *)
 lemma epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
@@ -144,7 +147,7 @@ lemma epsilon_par_epsilon_le_epsilon :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
   defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
-  shows "gle V (par V \<epsilon>A \<epsilon>A) \<epsilon>A "
+  shows "gle V (par V \<epsilon>A \<epsilon>A) \<epsilon>A"
 proof -
   have "gle V (par V \<epsilon>A \<epsilon>A) (par V \<epsilon>A \<delta>A)" using assms OVA.combine_monotone
  [where ?V="par_algebra V" and ?a1.0=\<epsilon>A and ?a2.0=\<epsilon>A and ?b1.0=\<epsilon>A and ?b2.0=\<delta>A]
@@ -169,6 +172,38 @@ proof -
   ultimately show ?thesis
     by metis
 qed
+
+(* [Proposition 1 cont., CVA] *)
+lemma epsilon_par_epsilon_eq_epsilon [simp] :
+  fixes V :: "('A, 'a) CVA" and A :: "'A Open"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  defines "\<epsilon>A \<equiv> neut_seq V A"
+  shows "(par V \<epsilon>A \<epsilon>A) = \<epsilon>A"
+proof -
+  have "gle V (par V \<epsilon>A \<epsilon>A) \<epsilon>A" using assms epsilon_par_epsilon_le_epsilon
+    by blast 
+  moreover have "gle V \<epsilon>A (par V \<epsilon>A \<epsilon>A)" using assms valid_neutral_law_seq [where ?V=V and ?A=A]
+    by blast
+  ultimately show ?thesis
+    by (metis A_open CVA.valid_welldefined V_valid \<epsilon>A_def comb_is_element neutral_is_element valid_antisymmetry valid_elems valid_poset valid_semigroup)
+qed
+
+(* [Proposition 1 cont., CVA] *)
+lemma delta_seq_delta_eq_delta [simp] :
+  fixes V :: "('A, 'a) CVA" and A :: "'A Open"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  defines "\<delta>A \<equiv> neut_par V A"
+  shows "(par V \<delta>A \<delta>A) = \<delta>A"
+proof -
+  have "gle V \<delta>A (seq V \<delta>A \<delta>A)" using assms delta_le_delta_seq_delta
+    by blast 
+  moreover have "gle V (seq V \<delta>A \<delta>A) \<delta>A" using assms valid_neutral_law_par [where ?V=V and ?A=A]
+    by blast 
+  ultimately show ?thesis
+    using A_open CVA.valid_welldefined V_valid \<delta>A_def neutral_is_element valid_neutral_law_right by fastforce 
+qed
+
+
 
 
 end
