@@ -47,15 +47,26 @@ definition valid_map :: "('a, 'b) Function \<Rightarrow> bool" where
    This definition models the application of a function to an element. If the element belongs to the domain, 
    it returns the unique 'b' that 'a' maps to; otherwise, it returns 'undefined'.
 *)
+definition "Function_app_undefined_arg_not_in_domain a \<equiv> undefined"
+
 definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 998) where
-"app f a \<equiv> if a \<in> dom f then (THE b. (a, b) \<in> func f) else undefined"
+"app f a \<equiv> 
+  if a \<in> dom f
+   then (THE b. (a, b) \<in> func f) 
+  else Function_app_undefined_arg_not_in_domain a"
+
 
 (* 
    This definition creates a constant function over a given domain 'A' and codomain 'B', mapping every element 'a' 
-   in 'A' to a fixed element 'b' in 'B'.
+   in 'A' to a fixed element 'b' in 'B'. If `b` is not in the codomain, it returns `undefined`.
 *)
+definition "Function_const_undefined_arg_not_in_codomain b \<equiv> undefined"
+
 definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) Function" where
-"const A B b \<equiv> if b \<in> B then  \<lparr>cod = B, func = { (a, b) | a. a \<in> A }\<rparr> else undefined"
+"const A B b \<equiv> 
+  if b \<in> B
+  then  \<lparr>cod = B, func = { (a, b) | a. a \<in> A }\<rparr> 
+  else Function_const_undefined_arg_not_in_codomain b"
 
 (*
    This section includes various lemmas that specify properties of valid functions.

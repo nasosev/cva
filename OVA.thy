@@ -49,17 +49,21 @@ abbreviation (input) inclusions :: "('A,'a) OVA \<Rightarrow> 'A Inclusion set" 
 abbreviation (input) local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a set" where
 "local_elems V A \<equiv> Poset.el (Presheaf.ob (presheaf V) $ A)"
 
+definition "OVA_grpj_undefined_bad_args B a \<equiv> undefined"
+
 definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gprj V B a \<equiv> let i = (Space.make_inclusion (space V) B (d a)) in
   if a \<in> elems V \<and> B \<in> opens V \<and> B \<subseteq> d a
   then (B, Presheaf.ar (presheaf V) $ i $$ (e a))
-  else undefined"
+  else OVA_grpj_undefined_bad_args B a"
+
+definition "OVA_gext_undefined_bad_args A b \<equiv> undefined"
 
 definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gext V A b \<equiv> 
   if b \<in> elems V \<and> A \<in> opens V \<and> d b \<subseteq> A 
   then (comb V (neut V A) b) 
-  else undefined"
+  else OVA_gext_undefined_bad_args A b"
 
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid V \<equiv>

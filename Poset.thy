@@ -7,11 +7,13 @@ record 'a Poset =
   el :: "'a set"
   le_rel :: "('a \<times> 'a) set"
 
+definition "Poset_le_undefined_arg_not_in_domain a a' \<equiv> undefined"
+
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
 "le P a a' \<equiv> 
   if a \<in> el P \<and> a' \<in> el P 
   then (a, a') \<in> le_rel P 
-  else undefined"
+  else Poset_le_undefined_arg_not_in_domain a a'"
 
 (*
 abbreviation le_P :: "'a \<Rightarrow> 'a Poset \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sqsubseteq>\<langle>_\<rangle> _") where
@@ -33,8 +35,13 @@ record ('a, 'b) PosetMap =
   dom :: "'a Poset"
   cod :: "'b Poset"
 
+definition "Poset_app_undefined_arg_not_in_domain a \<equiv> undefined"
+
 definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 997) where
-"app f a \<equiv> if a \<in> el (dom f) then (THE b. (a, b) \<in> func f) else undefined"
+"app f a \<equiv> 
+  if a \<in> el (dom f) 
+  then (THE b. (a, b) \<in> func f) 
+  else Poset_app_undefined_arg_not_in_domain a"
 
 definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "valid_map f \<equiv>
@@ -50,11 +57,13 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 
   in welldefined \<and> deterministic \<and> total \<and> monotone"
 
+definition "Poset_compose_undefined_incomposable g f \<equiv> undefined"
+
 definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<cdot>" 55) where
   "compose g f \<equiv>
   if dom g = cod f
   then \<lparr> func = relcomp (func f) (func g), dom = dom f, cod = cod g \<rparr>
-  else undefined"
+  else Poset_compose_undefined_incomposable g f"
 
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident P \<equiv> \<lparr> func = Id_on (el P), dom = P, cod = P \<rparr>"
@@ -65,13 +74,6 @@ definition product :: "'a Poset \<Rightarrow> 'b Poset \<Rightarrow> ('a \<times
 
 definition discrete :: "'a Poset" where
   "discrete \<equiv> \<lparr>  el = UNIV , le_rel = {x. fst x = snd x} \<rparr>"
-
-(* Warning: this tuple builder syntax gives unexpected result (defines the total relation)
-definition discrete_fake :: "bool Poset" where
-  "discrete_fake \<equiv> \<lparr>  el = UNIV , le_rel = {(x,x) . True} \<rparr>"
-
-value discrete_fake
- *)
 
 definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
 "is_inf P U i \<equiv>  U \<subseteq> el P \<and> i \<in> el P \<and>  ((\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i))"
@@ -330,4 +332,24 @@ definition ex_divisibility :: "nat Poset" where
 lemma ex_divisibility_valid : "valid ex_divisibility"
   by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) UNIV_I case_prod_conv dvd_antisym ex_divisibility_def gcd_nat.refl gcd_nat.trans mem_Collect_eq valid_def)
 
+
+(* TESTS *)
+
+(* Warning: this tuple builder syntax gives unexpected result (defines the total relation)
+definition discrete_fake :: "bool Poset" where
+  "discrete_fake \<equiv> \<lparr>  el = UNIV , le_rel = {(x,x) . True} \<rparr>"
+
+value discrete_fake
+ *)
+
+(*
+definition test :: "nat Poset" where
+  "test \<equiv> \<lparr>  el = {0} , le_rel = {(0,0)} \<rparr>"
+
+lemma  "le test 0 0"
+  by (simp add: test_def) 
+
+lemma "le test 0 1"
+  apply auto 
+*)
  end
