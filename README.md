@@ -30,13 +30,13 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 #### Concurrent valution algebras (CVAs): CVA.thy
 
-- [x] Proposition 1 (epsilon_le_delta, epsilon_par_epsilon_eq_epsilon, delta_seq_delta_eq_delta)
-- [ ] Proposition 2 ()
-- [ ] Proposition 3 ()
+- [x] Proposition 1 (epsilon_le_delta, delta_seq_delta_eq_delta, epsilon_par_epsilon_eq_epsilon)
+- [x] Proposition 2 (comparitor)
+- [x] Proposition 3 (hoare_concurrency_rule)
 
 ## To-do
 
-- ...
+- Sections 3--6...
 
 ## Acknowledgements
 
