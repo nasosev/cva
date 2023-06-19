@@ -19,9 +19,9 @@ definition valid :: "'a Poset \<Rightarrow> bool" where
   "valid P \<equiv>
     let
       welldefined = (\<forall>x y. (x,y) \<in> le_rel P \<longrightarrow> x \<in> el P \<and> y \<in> el P);
-      reflexivity = (\<forall>x. x \<in> el P \<longrightarrow> le P x x);
-      antisymmetry = (\<forall>x y. x \<in> el P \<longrightarrow> y \<in> el P  \<longrightarrow> le P x y \<longrightarrow> le P y x  \<longrightarrow> x = y);
-      transitivity = (\<forall>x y z. x \<in> el P\<longrightarrow> y \<in> el P \<longrightarrow> z \<in> el P\<longrightarrow> le P x y \<longrightarrow> le P y z \<longrightarrow> le P x z)
+      reflexivity = (\<forall>x. x \<in> el P \<longrightarrow> (x,x) \<in> le_rel P);
+      antisymmetry = (\<forall>x y. x \<in> el P \<longrightarrow> y \<in> el P  \<longrightarrow>  (x,y) \<in> le_rel P \<longrightarrow> (y,x) \<in> le_rel P  \<longrightarrow> x = y);
+      transitivity = (\<forall>x y z. x \<in> el P\<longrightarrow> y \<in> el P \<longrightarrow> z \<in> el P\<longrightarrow>  (x,y) \<in> le_rel P \<longrightarrow> (y,z) \<in> le_rel P\<longrightarrow> (x,z) \<in> le_rel P)
     in
       welldefined \<and> reflexivity \<and> antisymmetry \<and> transitivity"
 
