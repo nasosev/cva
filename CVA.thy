@@ -107,7 +107,7 @@ lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longr
 (* Paper results *)
 
 (* [Proposition 1, CVA] *)
-lemma epsilon_le_delta [simp] :
+theorem epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
   defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
@@ -174,7 +174,7 @@ proof -
 qed
 
 (* [Proposition 1 cont., CVA] *)
-lemma epsilon_par_epsilon_eq_epsilon [simp] :
+theorem epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
   defines "\<epsilon>A \<equiv> neut_seq V A"
@@ -189,7 +189,7 @@ proof -
 qed
 
 (* [Proposition 1 cont., CVA] *)
-lemma delta_seq_delta_eq_delta [simp] :
+theorem delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
   defines "\<delta>A \<equiv> neut_par V A"
