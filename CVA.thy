@@ -104,13 +104,12 @@ lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longr
 
 (* Paper results *)
 
-lemma neut_seq_le_neut_par :
+lemma epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
-  shows "local_le V A (neut_seq V A) (neut_par V A)"
+  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  shows "gle V \<epsilon>A \<delta>A"
 proof - 
-  define "\<epsilon>A" where "\<epsilon>A = neut_seq V A"
-  define "\<delta>A" where "\<delta>A = neut_par V A"
   have "\<epsilon>A = seq V \<epsilon>A \<epsilon>A" using assms valid_welldefined [where ?V=V] valid_neutral_law_left
       [where ?V="seq_algebra V" and ?A=A and ?a=\<epsilon>A and ?\<epsilon>="neut_seq V"]
     by (simp add: \<epsilon>A_def neutral_is_element) 
@@ -122,7 +121,7 @@ proof -
       [where ?V="par_algebra V" and ?A=A and ?a=\<epsilon>A and ?\<epsilon>="neut_par V"]
     by (simp add: \<delta>A_def \<epsilon>A_def neutral_is_element valid_elems) 
   moreover have "seq V \<epsilon>A \<epsilon>A = seq V (par V \<delta>A \<epsilon>A) (par V \<epsilon>A \<delta>A)" using calculation assms
-    by presburger
+    by auto 
   moreover have "gle V (seq V (par V \<delta>A \<epsilon>A) (par V \<epsilon>A \<delta>A)) (par V (seq V \<delta>A \<epsilon>A) (seq V \<epsilon>A \<delta>A))"
     using calculation assms valid_weak_exchange
     by (metis CVA.valid_welldefined \<delta>A_def \<epsilon>A_def neutral_is_element valid_elems)
@@ -133,12 +132,43 @@ proof -
 [where ?V="seq_algebra V" and ?A=A and ?a=\<delta>A and ?\<epsilon>="neut_seq V"]
    by (metis CVA.valid_welldefined \<delta>A_def \<epsilon>A_def fstI neutral_is_element valid_elems) 
   moreover have "(par V (seq V \<delta>A \<epsilon>A) (seq V \<epsilon>A \<delta>A)) = par V \<delta>A \<delta>A" using calculation assms
-    by presburger 
+    by auto 
   moreover have "par V \<delta>A \<delta>A = \<delta>A" using assms valid_neutral_law_right 
 [where ?V="par_algebra V" and ?A=A and ?a=\<delta>A and ?\<epsilon>="neut_par V"]
     by (simp add: CVA.valid_welldefined \<delta>A_def neutral_is_element) 
   ultimately show ?thesis
-    by (metis A_open CVA.valid_welldefined Grothendieck.local_le V_valid \<delta>A_def \<epsilon>A_def fst_eqD neutral_is_element valid_gc_poset valid_presheaf) 
+    by metis 
 qed
+
+lemma epsilon_par_epsilon_le_epsilon :
+  fixes V :: "('A, 'a) CVA" and A :: "'A Open"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  shows "gle V (par V \<epsilon>A \<epsilon>A) \<epsilon>A "
+proof -
+  have "gle V (par V \<epsilon>A \<epsilon>A) (par V \<epsilon>A \<delta>A)" using assms OVA.combine_monotone
+ [where ?V="par_algebra V" and ?a1.0=\<epsilon>A and ?a2.0=\<epsilon>A and ?b1.0=\<epsilon>A and ?b2.0=\<delta>A]
+    by (smt (verit) CVA.valid_welldefined epsilon_le_delta neutral_is_element valid_elems valid_poset valid_reflexivity valid_semigroup) 
+  moreover have "par V \<epsilon>A \<delta>A = \<epsilon>A"
+    by (smt (verit) A_open CVA.valid_welldefined V_valid \<delta>A_def \<epsilon>A_def fst_conv neutral_is_element valid_elems valid_neutral_law_right) 
+  ultimately show ?thesis
+    by metis
+qed
+
+lemma delta_le_delta_seq_delta :
+  fixes V :: "('A, 'a) CVA" and A :: "'A Open"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  shows "gle V \<delta>A (seq V \<delta>A \<delta>A)"
+proof -
+  have "gle V (seq V \<epsilon>A \<delta>A) (seq V \<delta>A \<delta>A)" using assms OVA.combine_monotone
+ [where ?V="seq_algebra V" and ?a1.0=\<epsilon>A and ?a2.0=\<delta>A and ?b1.0=\<delta>A and ?b2.0=\<delta>A]
+    by (smt (verit) CVA.valid_welldefined epsilon_le_delta neutral_is_element valid_gc_poset valid_poset valid_reflexivity valid_semigroup) 
+  moreover have "seq V \<epsilon>A \<delta>A = \<delta>A"
+    by (smt (verit) A_open CVA.valid_welldefined V_valid \<delta>A_def \<epsilon>A_def fst_conv neutral_is_element surj_pair valid_elems valid_neutral_law_left) 
+  ultimately show ?thesis
+    by metis
+qed
+
 
 end
