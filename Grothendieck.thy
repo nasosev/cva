@@ -165,7 +165,7 @@ moreover have "Poset.valid_map prj_BC"
    moreover have "le \<Phi>_C (prj_BC $$ b) c"
      by (simp add: assms(23))
    moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$ a)) c"
-     by (smt (verit, ccfv_threshold) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(18) calculation(1) calculation(10) calculation(12) calculation(13) calculation(4) i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_ob valid_transitivity) 
+     by (smt (verit, best) Inclusion.simps(1) Inclusion.simps(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(18) assms(21) calculation(1) calculation(10) calculation(12) calculation(13) calculation(4) calculation(9) i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_ob valid_transitivity) 
     ultimately show ?thesis
       by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Presheaf.valid_welldefined Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def compose_app i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
   qed
@@ -252,7 +252,8 @@ lemma valid_gc_le_wrap :
   assumes "Poset.le \<Phi>B (pr $$ (e Aa)) (e Bb) "
   shows "le (gc \<Phi>) Aa (Bb)"
   unfolding gc_def
-  by (smt (verit, del_insts) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) \<Phi>A_def \<Phi>B_def assms(10) assms(11) assms(6) assms(7) assms(8) case_prodI case_prod_unfold i_def mem_Collect_eq pr_def)
+  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) \<Phi>A_def \<Phi>B_def assms(10) assms(11) assms(6) assms(7) assms(8) assms(9) case_prod_conv i_def mem_Collect_eq pr_def prod.collapse)
+
   
 (*
    The lemma valid_gc_le_unwrap states that if \<Phi> is a valid presheaf, Aa and Bb are pairs of the form (A, a),

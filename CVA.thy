@@ -85,5 +85,4 @@ lemma valid_neutral_law_seq: "valid V \<Longrightarrow> (\<forall>A a. A \<in> o
   unfolding valid_def
 oops
 
-
 end

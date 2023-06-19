@@ -55,7 +55,6 @@ definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr 
    then (THE b. (a, b) \<in> func f) 
   else Function_app_undefined_arg_not_in_domain a"
 
-
 (* 
    This definition creates a constant function over a given domain 'A' and codomain 'B', mapping every element 'a' 
    in 'A' to a fixed element 'b' in 'B'. If `b` is not in the codomain, it returns `undefined`.
