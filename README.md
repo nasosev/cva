@@ -46,6 +46,10 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
       2. As conclusions of theorems/lemmas/constructions/etc. (outputs)
 - In this way, all structures in the 'interior' of the formalisation can safely be assumed to be well-defined.
 
+## Notes
+
+- Documentation is generated using ChatGPT and has not been proofread! :sweat_smile:
+
 ## Acknowledgements
 
 Many, many thanks to Callum Bannister, Kait Lam, and Scott Heiner for their help with this project! :heart:
