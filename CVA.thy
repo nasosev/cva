@@ -1,44 +1,102 @@
+(*
+ Theory      :  CVA.thy
+
+ This theory file defines and verifies properties of Concurrent Valuation Algebras (CVA). It builds 
+ on the theory of Ordered Valuation Algebras (OVA), and extends the structure with operations 
+ for concurrency. Various lemmas and theorems derived in the accompanying research paper, "Trace models 
+ of concurrent valuation algebras", are formalized and proven within this theory.
+--------------------------------------------------------------------------------
+*)
+
 theory CVA
   imports Main OVA
 begin
 
+(*
+   The record 'CVA' introduces a Concurrent Valuation Algebra as an algebraic structure, built on 
+   Ordered Valuation Algebras (OVA). It comprises two OVA components: 'par_algebra' for dealing with 
+   parallelism and 'seq_algebra' for sequential operations.
+*)
 record ('A, 'a) CVA =
   par_algebra :: "('A, 'a) OVA"
   seq_algebra :: "('A, 'a) OVA"
 
+(*
+   The 'presheaf' abbreviation extracts the presheaf from the parallelism aspect of the CVA 'V'.
+*)
 abbreviation presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Presheaf" where
 "presheaf V \<equiv> OVA.presheaf (par_algebra V)"
 
+(*
+   The 'elems' abbreviation extracts the set of valuations from the parallelism aspect of the CVA 'V'.
+*)
 abbreviation elems :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems V \<equiv> OVA.elems (par_algebra V)"
 
+(*
+   The 'opens' abbreviation extracts the set of open elements from the parallelism aspect of the CVA 'V'.
+*)
 abbreviation opens :: "('A,'a) CVA \<Rightarrow> 'A Open set" where
 "opens V \<equiv> OVA.opens (par_algebra V)"
 
+(*
+   The 'par' abbreviation gives the binary operation corresponding to the parallel combination 
+   of two valuations in the CVA 'V'.
+*)
 abbreviation par :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "par V \<equiv> OVA.comb (par_algebra V)"
 
+(*
+   The 'seq' abbreviation gives the binary operation corresponding to the sequential combination 
+   of two valuations in the CVA 'V'.
+*)
 abbreviation seq :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "seq V \<equiv> OVA.comb (seq_algebra V)"
 
+(*
+   The 'gle' abbreviation captures the global ordering of valuations within the CVA 'V'.
+*)
 abbreviation gle :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "gle V \<equiv> OVA.gle (par_algebra V)"
 
+(*
+   The 'local_le' abbreviation captures the local ordering of valuations within the CVA 'V'.
+*)
 abbreviation local_le :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "local_le V \<equiv> OVA.local_le (par_algebra V)"
 
+(*
+   The 'neut_par' abbreviation gives the neutral element of the parallel operation for each open set 
+   within the CVA 'V'.
+*)
 abbreviation neut_par :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
 "neut_par V \<equiv> OVA.neut (par_algebra V)"
 
+(*
+   The 'neut_seq' abbreviation gives the neutral element of the sequential operation for each open set 
+   within the CVA 'V'.
+*)
 abbreviation neut_seq :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
 "neut_seq V \<equiv> OVA.neut (seq_algebra V)"
 
+(*
+   The 'gprj' abbreviation defines the global projection operation in the CVA 'V'.
+*)
 abbreviation gprj :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gprj V \<equiv> OVA.gprj (par_algebra V)"
 
+(*
+   The `gext` abbreviation defines an extension operation on the pair algebra. Given a concurrent valuation
+   algebra (CVA) V and an open set, it extends a valuation in the algebra, ensuring the trace is maintained.
+*)
 abbreviation gext :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gext V \<equiv>  OVA.gext (par_algebra V)"
 
+(*
+   The `valid` definition describes the validity of a concurrent valuation algebra (CVA) `V`. It consists of a
+   series of properties including well-definedness, commutativity, weak exchange, and neutral laws that need to be
+   fulfilled for `V` to be considered valid. These properties are central to the paper's construction and study of CVA.
+*)
 definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
   "valid V \<equiv>
     let
@@ -65,59 +123,112 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
     in
       welldefined \<and> commutativity \<and> weak_exchange \<and> neutral_law_par \<and> neutral_law_seq"
 
+(*
+   The `hoare` abbreviation defines the Hoare logic for the concurrent valuation algebra. It uses the greater-or-equal
+   operation to compare the result of a sequential operation with a valuation, thus capturing the notion of a Hoare triple.
+*)
 abbreviation hoare :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "hoare V p a q \<equiv> gle V (seq V p a) q" 
  
 (* LEMMAS *)
 
-(* Validity *)
+(* 
+   Validity.
+   These lemmas are concerned with the properties of a valid concurrent valuation algebra (CVA). They provide necessary
+   conditions for the validity of a CVA, addressing properties such as well-definedness, commutativity, element equality, 
+   and weak exchange, among others. This series of lemmas form the groundwork for the formal verification of the results
+   presented in the research paper.
+*)
 
+(*
+  This lemma confirms that for a valid CVA, both the parallel and sequential algebras are valid, and
+  they have the same presheaf.
+*)
 lemma valid_welldefined: "valid V \<Longrightarrow> OVA.valid (par_algebra V) \<and> OVA.valid (seq_algebra V) \<and> (OVA.presheaf (par_algebra V) = OVA.presheaf (seq_algebra V))"
   unfolding valid_def
   by metis
 
+(*
+  This lemma shows that for a valid CVA, the parallel algebra operation is commutative, meaning 
+  that swapping the operands doesn't change the result.
+*)
 lemma valid_commutativity: "valid V \<Longrightarrow> \<forall> a b . OVA.comb (par_algebra V) a b = OVA.comb (par_algebra V) b a"
   unfolding valid_def
   by metis
 
+(*
+  This lemma asserts that the set of elements in a valid CVA is the same as the set of elements 
+  in its sequential algebra.
+*)
 lemma valid_elems :
   fixes V :: "('A, 'a) CVA"
   assumes "valid V"
   shows "elems V = OVA.elems (seq_algebra V)"
   by (simp add: CVA.valid_welldefined assms valid_gc_poset)
 
+(*
+  This lemma demonstrates that the global ordering of elements in a valid CVA is the same as 
+  the global ordering in its sequential algebra.
+*)
 lemma valid_gle :
   fixes V :: "('A, 'a) CVA"
   assumes "valid V"
   shows "gle V = OVA.gle (seq_algebra V)"
   by (simp add: CVA.valid_welldefined assms valid_gc_poset)
 
+(*
+  This lemma shows that the local ordering of elements in a valid CVA is the same as the local 
+  ordering in its sequential algebra.
+*)
 lemma local_le :
   fixes V :: "('A, 'a) CVA"
   assumes "valid V"
   shows "local_le V = OVA.local_le (seq_algebra V)"
   by (simp add: CVA.valid_welldefined assms valid_gc_poset)
 
+(*
+  This lemma affirms the weak exchange law for a valid CVA. Given four elements in the CVA, the 
+  sequential composition of the parallel compositions of the first two and last two elements is 
+  globally less than or equal to the parallel composition of the sequential compositions of the 
+  first and third, and the second and fourth elements.
+*)
 lemma valid_weak_exchange: "valid V \<Longrightarrow> a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> a3 \<in> elems V \<Longrightarrow> a4 \<in> elems V \<Longrightarrow>
                         gle V (seq V (par V a1 a2) (par V a3 a4)) (par V (seq V a1 a3) (seq V a2 a4))"
   unfolding valid_def
   by presburger
 
+(*
+  This lemma underlines a neutral law for the parallel operation in a valid CVA. Given an open set A 
+  and \<delta>A as the neutral element of the parallel operation for A, the sequential composition of \<delta>A 
+  with itself is globally less than or equal to \<delta>A.
+*)
 lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow>  \<delta>A = (neut_par V A)
   \<Longrightarrow> gle V (seq V \<delta>A \<delta>A) \<delta>A"
   unfolding valid_def
   by meson
 
+(*
+  This lemma establishes a neutral law for the sequential operation in a valid CVA. Given an open 
+  set A and \<epsilon>A as the neutral element of the sequential operation for A, \<epsilon>A is globally less than or 
+  equal to the parallel composition of \<epsilon>A with itself.
+*)
 lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longrightarrow> \<epsilon>A = (neut_seq V A)
   \<Longrightarrow> gle V \<epsilon>A (par V \<epsilon>A \<epsilon>A)"
   unfolding valid_def
   by meson
 
+(*
+  This lemma affirms that for a valid CVA, the general projection function of an element onto an 
+  open set A in the CVA is the same as that in its sequential algebra.
+*)
 lemma valid_gprj: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> gprj V A a = OVA.gprj (seq_algebra V) A a"
   unfolding valid_def
   by (simp add: gprj_def valid_gc_poset)
 
-(* This follows by uniqueness of adjoints. *)
+(*
+   This lemma asserts the equality of extension operations on a concurrent valuation algebra (CVA) and a sequential
+   algebra under certain conditions. 
+*)
 lemma valid_gext: 
   fixes V :: "('A, 'a) CVA" and A :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" 
@@ -162,9 +273,20 @@ lemma valid_gext_funext:
   shows "ex = ex'"
   oops
 
-(* Paper results *)
+(* 
+   Paper results.
+   The following propositions replicate the results from the research paper in a formalized manner. They encompass 
+   fundamental properties of a valid concurrent valuation algebra (CVA) such as the comparison between \<epsilon> (neut_seq) and \<delta>
+   (neut_par), the equality of certain sequential and parallel operations, and the relation between different valuation 
+   sets. Finally, they provide a Hoare concurrency rule, showing how the logic of Hoare triples can be applied to CVA. 
+   These propositions constitute the core findings of the formalized study.
+*)
 
-(* [Proposition 1, CVA] *)
+(*
+  Proposition 1 [CVA].
+  Assuming a valid CVA and an open set A, the \<epsilon> element (neut_seq V A) is 
+  always less than or equal to the \<delta> element (neut_par V A) in the CVA ordering.
+*)
 proposition epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
@@ -201,6 +323,10 @@ proof -
     by metis
 qed
 
+(*
+  This lemma supports Proposition 1 [CVA] by showing that the parallel composition of the \<epsilon> element 
+  with itself is less than or equal to the \<epsilon> element.
+*)
 lemma epsilon_par_epsilon_le_epsilon :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
@@ -216,6 +342,10 @@ proof -
     by metis
 qed
 
+(*
+  This lemma also contributes to Proposition 1 [CVA], demonstrating that the \<delta> element is always 
+  less than or equal to the sequential composition of the \<delta> element with itself.
+*)
 lemma delta_le_delta_seq_delta :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
@@ -231,7 +361,11 @@ proof -
     by metis
 qed
 
-(* [Proposition 1 cont., CVA] *)
+(* 
+   [Proposition 1 cont., CVA].
+   Continuing with Proposition 1 [CVA], this proposition establishes that the sequential composition 
+   of the \<delta> element with itself equals the \<delta> element.
+*)
 proposition delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
@@ -246,7 +380,11 @@ proof -
     by (metis A_open CVA.valid_welldefined V_valid \<delta>A_def comb_is_element neutral_is_element valid_antisymmetry valid_elems valid_poset valid_semigroup)
 qed
 
-(* [Proposition 1 cont., CVA] *)
+(* 
+  [Proposition 1 cont., CVA].
+  Still within Proposition 1 [CVA], this proposition confirms that the parallel composition of the 
+  \<epsilon> element with itself equals the \<epsilon> element.
+*)
 proposition epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens V"
@@ -261,8 +399,14 @@ proof -
     by (metis A_open CVA.valid_welldefined V_valid \<epsilon>A_def comb_is_element neutral_is_element valid_antisymmetry valid_elems valid_poset valid_semigroup)
 qed
 
-(* [Proposition 2, CVA] *)
-(* Note we can assume either strongly_neutral_seq or strongly_neutral_par (c.f. neutral_collapse_strongly_neutral) .*)
+(* 
+  [Proposition 2, CVA].
+  Given a valid CVA and two valuations a and b, and assuming that  
+  neut_par V equals neut_seq V and strongly_neutral_seq holds, it is shown that the sequential 
+  composition of a and b is less than or equal to the parallel composition of a and b.
+  Note we can assume either strongly_neutral_seq or strongly_neutral_par 
+  (c.f. neutral_collapse_strongly_neutral).
+*)
 proposition comparitor :
   fixes V :: "('A, 'a) CVA" and a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -326,6 +470,10 @@ moreover have "... =   pc a b"
     by (metis pc_def sc_def) 
 qed
 
+(*
+  This lemma shows that when neutral elements coincide, strong neutrality of one is equivalent
+  to strong neutrality of the other.
+*)
 lemma neutral_collapse_strongly_neutral :
   fixes V :: "('A, 'a) CVA" and A B :: "'A Open"
   defines "\<gamma> \<equiv> neut_par V"
@@ -384,7 +532,12 @@ next
     by (metis \<open>CVA.gext V (A \<union> B) (\<gamma> B) = \<gamma> (A \<union> B)\<close> calculation(3) calculation(4) calculation(5) calculation(6) calculation(7) calculation(8) sc_def) 
 qed
 
-(* [Proposition 3, CVA] *)
+(*
+  Proposition 3 [CVA].
+  Given a valid CVA and valuations p, p', a, a', q, q', the Hoare rule of 
+  concurrency is demonstrated. If (p, a, q) and (p', a', q') are valid Hoare triples, then so is 
+  the triple formed by the parallel compositions of p and p', a and a', q and q' respectively.
+*)
 proposition hoare_concurrency_rule  :
   fixes V :: "('A, 'a) CVA" and p p' a a' q q' :: "('A,'a) Valuation"
   assumes V_valid : "valid V"

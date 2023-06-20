@@ -1,6 +1,28 @@
-TASK: Document Isabelle/HOL .thy files that formalize a research paper.
+TASK: Document Isabelle/HOL .thy files that formalize a research paper (titled "Trace models of concurrent valuation algebras").
 
-DETAIL: Please output documentation in the form of comments above every record, definition, lemma, theorem, or other command, omitting the actual source code.
+DETAIL: Please output documentation in the form of comments above every record, definition, lemma, theorem, or other command.
+In your output, only retain the first line of the command and omit the rest of the source code.
+
+E.g. given the following input
+
+```
+record 'a Semigroup =
+  poset :: "'a Poset"
+  mult :: "('a × 'a,'a) PosetMap"
+```
+
+You might output:
+
+```
+(*
+   This record introduces ordered semigroups as algebraic structures combining both semigroups and
+   partially ordered sets. `poset` captures the partial order, and `mult` captures the semigroup operation.
+*)
+record 'a Semigroup =
+```
+
+Here you have retained only the first line of the source code, and enclosed comments with `(*` and `)*`. You always enclose code constructs with backticks.
+
 Additionally, please include at the top of the file a header describing the overall purpose of the .thy file.
 This header should be in the following format:
 
@@ -12,20 +34,9 @@ This header should be in the following format:
 *)
 
 The documentation should clearly and succinctly explain the purpose of its associated code.
-Besides adding this documentation and correcting erroneous whitespace, DO NOT REPRODUCE THE SOURCE CODE.
+Besides adding this documentation, DO NOT REPRODUCE THE SOURCE CODE.
 Line length should not exceed 100 characters.
-Note that Isabelle uses the following format for comments:
 
-```
-(*
-   This record defines a type for functions between sets. The field 'cod' is the function'scodomain
-   and func is a relation representing whose first component is an element `a` in the domain of `f`
-   and whose second component is the element `f a` in `cod`.
-*)
-record ('a, 'b) Function =
-  cod :: "'b set"
-  func :: "('a × 'b) set"
-```
 
 Enclose your output with three backticks as below to ensure it renders properly
 
@@ -33,8 +44,8 @@ Enclose your output with three backticks as below to ensure it renders properly
 [WRITE CODE HERE]
 ```
 
----
+Because the file length is long, it will be submitted to you in multiple chunks.
 
-It is extremely important that you always remember to NOT CHANGE THE SEMANTIC CONTENT OF THE SOURCE CODE IN ANY WAY WHATSOEVER!
+---
 
 FILE SOURCE:
