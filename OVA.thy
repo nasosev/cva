@@ -1,14 +1,33 @@
+(*
+   Theory      :  OVA.thy
+
+   This theory formalizes the concept of Ordered Valuation Algebras (OVAs) as presented in the paper "Trace 
+   models of concurrent valuation algebras". An OVA is a structure comprising of a presheaf, a semigroup 
+   and a neutral element. Additionally, operations for combination of valuations, projection and extension 
+   are provided. Various properties and lemmas concerning these structures are also established.
+--------------------------------------------------------------------------------
+*)
+
 theory OVA
   imports Main Presheaf Semigroup Grothendieck Poset
 begin
 
 type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
 
+(*
+   The OVA record introduces the concept of Ordered Valuation Algebras (OVA). Each OVA is constructed from
+   a presheaf (given by 'presheaf'), a neutral presheaf map (given by 'neutral'), and an
+   ordered semigroup (given by 'semigroup').
+*)
 record ('A, 'a) OVA =
   presheaf :: "('A, 'a) Presheaf"
   neutral :: "('A, unit, 'a) PresheafMap"
   semigroup :: "(('A, 'a) Valuation) Semigroup"
 
+(*
+   The 'comb' function defines the combination of two valuations in the context of an OVA. It essentially applies
+   the semigroup operation of the OVA to the pair of valuations.
+*)
 abbreviation comb :: "('A, 'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "comb V a b \<equiv> (Semigroup.mult (semigroup V)) $$ (a, b)"
 
@@ -17,15 +36,27 @@ abbreviation comb_V :: "('A, 'a) Valuation \<Rightarrow> ('A, 'a) OVA \<Rightarr
 "comb_V a V b \<equiv> (Semigroup.mult (semigroup V)) $$ (a, b)"
 *)
 
+(*
+   The 'neut' function retrieves the neutral valuation in the context of an OVA for a given set.
+*)
 abbreviation neut :: "('A, 'a) OVA \<Rightarrow> 'A set \<Rightarrow> ('A, 'a) Valuation" where
 "neut V A \<equiv> (A, (Presheaf.nat (neutral V) $ A) $$ ())"
 
+(*
+   The 'poset' function retrieves the underlying poset of the semigroup in an OVA.
+*)
 abbreviation poset :: "('A,'a) OVA \<Rightarrow> (('A, 'a) Valuation) Poset" where
 "poset V \<equiv> Semigroup.poset (semigroup V)"
 
+(*
+   The 'gle' function defines the less than or equal to ('\<preceq>') relation for two valuations in the context of an OVA.
+*)
 abbreviation gle :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "gle V a b \<equiv> Poset.le (Semigroup.poset (semigroup V)) a b"
 
+(*
+   The 'elems' function retrieves the set of all valuations in the poset associated with the given OVA.
+*)
 abbreviation elems :: "('A,'a) OVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems V \<equiv> Poset.el (poset V)"
 
@@ -34,37 +65,80 @@ abbreviation gle_V :: "('A, 'a) Valuation \<Rightarrow> ('A,'a) OVA \<Rightarrow
 "gle_V a V b \<equiv> Poset.le (Semigroup.poset (semigroup V)) a b"
 *)
 
+(*
+   The 'local_le' function defines the less than or equal to relation on local valuations in the context of an OVA.
+*)
 abbreviation (input) local_le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "local_le V A a b \<equiv> Poset.le (Presheaf.ob (presheaf V) $ A) (e a) (e b)"
 
+(*
+   The 'space' function retrieves the space associated with the given OVA.
+*)
 abbreviation (input) space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space V \<equiv> Presheaf.space (presheaf V)"
 
+(*
+   The 'opens' function retrieves the set of open sets in the space associated with the given OVA.
+*)
 abbreviation (input) opens :: "('A,'a) OVA \<Rightarrow> 'A Open set" where
 "opens V \<equiv> Space.opens (space V)"
 
+(*
+   The 'inclusions' function retrieves the set of inclusions in the space associated with the given OVA.
+*)
 abbreviation (input) inclusions :: "('A,'a) OVA \<Rightarrow> 'A Inclusion set" where
 "inclusions V \<equiv> Space.inclusions (space V)"
 
+(*
+   The 'local_elems' function retrieves the set of local elements in the space associated with the given OVA.
+*)
 abbreviation (input) local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a set" where
 "local_elems V A \<equiv> Poset.el (Presheaf.ob (presheaf V) $ A)"
 
+(* 
+   This function handles undefined cases with bad arguments for gprj 
+*)
 definition "OVA_grpj_undefined_bad_args B a \<equiv> undefined"
 
+(*
+   This function defines the projection of a valuation onto a given open set B. It checks if
+   the valuation a belongs to the OVA V, the open set B belongs to V, and B is a subset of the domain
+   of a. If all conditions are satisfied, it computes the projection of a onto B by constructing an
+   inclusion map i from the space of V to B, and evaluating the presheaf map f corresponding to i on the
+   element e of a.
+*)
 definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gprj V B a \<equiv> let i = (Space.make_inclusion (space V) B (d a)) in
   if a \<in> elems V \<and> B \<in> opens V \<and> B \<subseteq> d a
   then (B, Presheaf.ar (presheaf V) $ i $$ (e a))
   else OVA_grpj_undefined_bad_args B a"
 
+(* 
+   This function handles undefined cases with bad arguments for gext 
+*)
 definition "OVA_gext_undefined_bad_args A b \<equiv> undefined"
 
+(*
+   This function extends a valuation b to a larger domain A. It checks if the valuation b belongs
+   to the OVA V, the open set A belongs to V, and the domain of b is a subset of A. If all conditions
+   are satisfied, it extends b to A by evaluating the combinator comb of V on the neutral element \<epsilon>
+   of A and b. The resulting valuation has domain A.
+*)
 definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gext V A b \<equiv>
   if b \<in> elems V \<and> A \<in> opens V \<and> d b \<subseteq> A
   then (comb V (neut V A) b)
   else OVA_gext_undefined_bad_args A b"
 
+(*
+   This function checks the validity of an OVA V. It ensures that the presheaf \<Phi>, neutral map E,
+   neutral element \<epsilon>, space T, semigroup S, combination map com, and element set elems satisfy the
+   well-definedness conditions. The well-definedness conditions include the validity of \<Phi> and S,
+   the validity of the neutral map E, the equality of T with the map space of E, the equality of
+   the codomain of E with \<Phi>, the equality of the domain of E with the terminal object of T, and the
+   equality of the poset of S with the geometric component of \<Phi>. It also verifies the domain law,
+   neutral laws, and combination laws for the OVA V.
+*)
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid V \<equiv>
     let
@@ -99,6 +173,10 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
 
 (* Validity *)
 
+(*
+   This lemma states that if the OVA V satisfies the well-definedness conditions, the domain law,
+   neutral laws, and combination laws, then V is valid.
+*)
 lemma validI :
   fixes V :: "('A,'a) OVA"
   defines "\<Phi> \<equiv> presheaf V"
@@ -137,6 +215,9 @@ lemma validI :
   using comb_law_left elem_def com_def pr_def apply simp
   using comb_law_right elem_def com_def pr_def by simp
 
+(*
+   This lemma states that if an OVA V is valid, then it satisfies the well-definedness conditions.
+*)
 lemma valid_welldefined  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> let \<Phi> = presheaf V; E = neutral V; \<epsilon> = neut V; T = space V; S = semigroup V in
@@ -144,41 +225,71 @@ lemma valid_welldefined  :
     Presheaf.cod E = \<Phi> \<and> Presheaf.dom E = Presheaf.terminal T \<and> Semigroup.poset S = gc \<Phi>"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then its presheaf \<Phi> is valid.
+*)
 lemma valid_presheaf :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> Presheaf.valid (presheaf V)"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then its semigroup S is valid.
+*)
 lemma valid_semigroup :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> Semigroup.valid (semigroup V)"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then its neutral map E is a valid map.
+*)
 lemma valid_neutral :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> Presheaf.valid_map (neutral V)"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then its space T is equal to the map space of its
+   neutral map E.
+*)
 lemma valid_space :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> space V = Presheaf.map_space (neutral V)"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then the codomain of its neutral map E is equal to
+   its presheaf \<Phi>.
+*)
 lemma valid_codomain :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> Presheaf.cod (neutral V) = presheaf V"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then the domain of its neutral map E is equal to
+   the terminal object of its space T.
+*)
 lemma valid_domain :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> Presheaf.dom (neutral V) = Presheaf.terminal (space V)"
   by (simp add: valid_def Let_def)
 
+(*
+   This lemma states that if an OVA V is valid, then the poset of its semigroup S is equal to the
+   geometric component of its presheaf \<Phi>.
+*)
 lemma valid_gc_poset :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> Semigroup.poset (semigroup V) = gc (presheaf V)"
   by (meson OVA.valid_welldefined)
 
+(*
+   This lemma states that if an OVA V is valid, and A and B are open sets in V, and a and b are
+   valuations in V, and a is locally dominated by b, then B is a subset of A, and the projection of
+   a onto B is locally dominated by b.
+*)
 lemma valid_gle :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -221,24 +332,43 @@ i_def V_valid a_dom b_dom valid_gc_poset valid_gc_le_unwrap [where ?Aa = a and ?
     by (metis B_le_A B_open \<Phi>B_def \<open>le \<Phi>B ea_B (e b)\<close> a_dom a_elem ea_B_def gprj_def i_def pr_B_def snd_eqD)
 qed
 
+(*
+   This lemma states that if an OVA V is valid, and a and b are valuations in V, then the domain of
+   their combination (comb V a b) is equal to the union of their individual domains (d a \<union> d b).
+*)
 lemma valid_domain_law  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d (comb V a b) = d a \<union> d b"
   unfolding valid_def
   by meson
 
+(*
+   This lemma states that if an OVA V is valid, and A is an open set in V, and a is a valuation in
+   V with domain A, then the combination of the neutral element of A with a (comb V (\<epsilon> A) a) is equal
+   to a.
+*)
 lemma valid_neutral_law_left  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a = A \<Longrightarrow> \<epsilon> = neut V \<Longrightarrow> comb V (\<epsilon> A) a = a"
   unfolding valid_def
   by (metis (no_types, lifting))
 
+(*
+   This lemma states that if an OVA V is valid, and A is an open set in V, and a is a valuation in
+   V with domain A, then the combination of a with the neutral element of A (comb V a (\<epsilon> A)) is equal
+   to a.
+*)
 lemma valid_neutral_law_right  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a = A \<Longrightarrow> \<epsilon> = neut V \<Longrightarrow> comb V a (\<epsilon> A) = a"
   unfolding valid_def
   by (metis (no_types, lifting))
 
+(*
+   This lemma states that if an OVA V is valid, and a and b are valuations in V, then the projection
+   of the combination of a and b (comb V a b) onto the domain of a (d a) is equal to the combination
+   of a and the projection of b onto the intersection of their domains (d a \<inter> d b).
+*)
 lemma valid_comb_law_left  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
@@ -246,6 +376,11 @@ lemma valid_comb_law_left  :
   unfolding valid_def
   by meson
 
+(*
+   This lemma states that if an OVA V is valid, and a and b are valuations in V, then the projection
+   of the combination of a and b (comb V a b) onto the domain of b (d b) is equal to the combination
+   of the projection of a onto the intersection of their domains (d a \<inter> d b) and b.
+*)
 lemma valid_comb_law_right  :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
@@ -253,6 +388,12 @@ lemma valid_comb_law_right  :
   unfolding valid_def
   by meson
 
+(*
+   This lemma states that if an OVA V is valid, and a, b, and c are valuations in V, then the
+   combination of the combination of a and b (comb V a b) with c is equal to the combination of
+   a with the combination of b and c (comb V (comb V a b) c). This shows that the combination
+   operation in the OVA is associative.
+*)
 lemma valid_comb_associative :
   fixes V :: "('A,'a) OVA"
   shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> c \<in> elems V \<Longrightarrow>
@@ -262,6 +403,10 @@ lemma valid_comb_associative :
 
 (* Paper results *)
 
+(*
+   This lemma states that if an OVA V is valid, and A is an open set in V, then the neutral element
+   of A (neut V A) is an element of V.
+*)
 lemma neutral_is_element :
 fixes V :: "('A,'a) OVA" and A :: "'A Open"
 defines "\<epsilon>A \<equiv> neut V A"
@@ -284,6 +429,11 @@ ultimately show ?thesis
   by (metis OVA.valid_welldefined assms(2) assms(3) local_elem_gc)
 qed
 
+(*
+   This lemma states that if an OVA V is valid, and A is an open set in V, then the evaluation of the
+   neutral element of A (neut V A) is an element of the presheaf associated with V at A
+   (ob (presheaf V)) $ A.
+*)
 lemma neutral_local_element :
   fixes V :: "('A,'a) OVA" and A :: "'A Open"
   defines "\<epsilon>A \<equiv> neut V A"
@@ -309,27 +459,54 @@ proof -
       by (metis Poset.fun_app2)
   qed
 
+(*
+   This lemma states that if an OVA V is valid, and a is an element of V, and A is the domain of a
+   (d a), then A is an open set in V.
+*)
 lemma d_elem_is_open : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> A \<in> opens V"
   by (metis local_dom valid_gc_poset valid_presheaf)
 
+(*
+   This lemma states that if an OVA V is valid, and A is an open set in V, and \<epsilon>A is the neutral
+   element of A (neut V A), then the domain of \<epsilon>A is equal to A.
+*)
 lemma d_neut : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> \<epsilon>A = neut V A \<Longrightarrow> d \<epsilon>A = A"
   by simp
 
+(*
+   This lemma states that if an OVA V is valid, and a and b are valuations in V with domains A and B
+   respectively, and ab is their combination (comb V a b), then the domain of ab is equal to the union
+   of A and B (A \<union> B).
+*)
 lemma d_comb : "valid V \<Longrightarrow>  a \<in> elems V \<Longrightarrow>  b \<in> elems V  ==>  A \<in> opens V
 \<Longrightarrow> B \<in> opens V \<Longrightarrow> d a = A \<Longrightarrow> d b = B \<Longrightarrow> ab = comb V a b
 \<Longrightarrow> d ab = A \<union> B"
 by (simp add: valid_domain_law)
 
+(*
+   This lemma states that if an OVA V is valid, and a is a valuation in V with domain A, and B is an
+   open set in V such that B is a subset of A, then the domain of the projection of a onto B
+   (gprj V B a) is equal to B.
+*)
 lemma d_gprj : "valid V \<Longrightarrow>  a \<in> elems V \<Longrightarrow>  B \<in> opens V
 \<Longrightarrow> A \<in> opens V \<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d a = A \<Longrightarrow>  a_B = gprj V B a
 \<Longrightarrow> d a_B = B"
   by (simp add: gprj_def)
 
+(*
+   This lemma states that if an OVA V is valid, and b is a valuation in V with domain B, and A is an
+   open set in V such that B is a subset of A, then the domain of the extension of b onto A
+   (gext V A b) is equal to A.
+*)
 lemma d_gext : "valid V \<Longrightarrow>  b \<in> elems V \<Longrightarrow>  B \<in> opens V
 \<Longrightarrow> A \<in> opens V\<Longrightarrow> B \<subseteq> A  \<Longrightarrow> d b = B \<Longrightarrow>  b__A = gext V A b
 \<Longrightarrow> d b__A = A"
   by (simp add: d_neut gext_def neutral_is_element sup.order_iff valid_domain_law)
 
+(*
+   This lemma states that if an OVA V is valid, and a and b are valuations in V, then their combination
+   (comb V a b) is an element of V.
+*)
 lemma comb_is_element :
 fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
 assumes V_valid : "valid V"
@@ -351,6 +528,11 @@ proof -
     by (metis Poset.fun_app2 \<open>PosetMap.cod (mult (OVA.semigroup V)) = poset V\<close>)
 qed
 
+(*
+   This lemma states that if an OVA V is valid, and B is an open set in V, and a is a valuation in V
+   with domain A, where B is a subset of A, then the projection of a onto B (gprj V B a) is an element
+   of V.
+*)
 lemma gprj_elem :
 fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a :: "('A, 'a) Valuation"
 assumes "valid V"
@@ -406,19 +588,39 @@ proof -
     using i_def by fastforce
 qed
 
+(*
+   This lemma states that if a valuation `a` is an element of the elements of `V` and its domain
+   is `A`, and if `A` is an open set in `V`, then the local element corresponding to `a` is an
+   element of the object corresponding to `A` in the presheaf of `V`.
+*)
 lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> ea = e a
 \<Longrightarrow> \<Phi> = (presheaf V) \<Longrightarrow> ob_A = ob \<Phi> $ A
 \<Longrightarrow> ea \<in> el ob_A"
   by (metis OVA.valid_welldefined gc_elem_local)
 
+(*
+   This lemma states that if `V` is a valid OVA, `A` is an open set in `V`, and `\<Phi>` is the
+   presheaf of `V`, then for any object `a` in the poset `\<Phi>A`, where `\<Phi>A` is the object
+   corresponding to `A` in `\<Phi>`, there exists an element `a` in the elements of `V` such that
+   its domain is `A`.
+*)
 lemma global_inclusion_element : "valid V \<Longrightarrow> A \<in> opens V
 \<Longrightarrow> \<Phi> = presheaf V \<Longrightarrow> \<Phi>A =(Presheaf.ob \<Phi>) $ A \<Longrightarrow> a \<in> Poset.el \<Phi>A
 \<Longrightarrow>  (A, a) \<in> elems V"
   by (metis OVA.valid_welldefined local_elem_gc)
 
+(*
+   This lemma states that if `V` is a valid OVA, `a` is an element of the elements of `V`,
+   and `A` is the domain of `a`, then `A` is an open set in `V`.
+*)
 lemma local_inclusion_domain : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> A \<in> opens V"
   by (metis OVA.valid_welldefined local_dom)
 
+(*
+   This lemma states that for a valid OVA `V`, and objects `A` and `B` in `V`, if `B` is a subset
+   of `A`, then the extension of the neutral element of `B` with respect to the operation in `V`
+   is equal to the combination of any valuation in `V` with the neutral element of `A` on the right.
+*)
 lemma symmetric_gext:
   fixes V :: "('A,'a) OVA" and A :: "'A Open" and b :: "('A,'a) Valuation"
   assumes V_valid: "valid V"
@@ -428,6 +630,12 @@ lemma symmetric_gext:
 shows "gext V A b = comb V b (neut V A)"
   by (smt (verit, ccfv_SIG) A_open B_le_A V_valid b_elem comb_is_element d_gext fst_conv gext_def local_inclusion_domain neutral_is_element subset_Un_eq valid_comb_associative valid_domain_law valid_neutral_law_left valid_neutral_law_right)
 
+(*
+   [Remark 2, CVA].
+   This lemma states that for a valid OVA `V`, and objects `A`, `B`, and `C` in `V`, if `C` is
+   a subset of `B`, and `B` is a subset of `A`, then the gprj (generalized projection) function
+   is functorial, i.e., `gprj V C (gprj V B a)` is equal to `gprj V C a`.
+*)
 lemma gprj_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -483,11 +691,21 @@ moreover have "Space.valid_inclusion i_CA \<and> Space.space i_CA = space V"
     by (metis f_def g_def)
 qed
 
+(*
+   This lemma states that for a valid OVA `V`, if `a1`, `a2`, `b1`, and `b2` are elements of `V`
+   such that `a1` is less than or equal to `a2`, and `b1` is less than or equal to `b2`, then the
+   combination of `a1` and `b1` is less than or equal to the combination of `a2` and `b2`.
+*)
 lemma combine_monotone : "valid V \<Longrightarrow>  a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> b1 \<in> elems V \<Longrightarrow> b2 \<in> elems V
 \<Longrightarrow> gle V a1 a2 \<Longrightarrow> gle V b1 b2
 \<Longrightarrow> gle V (comb V a1 b1) (comb V a2 b2)"
   by (smt (verit) valid_monotone valid_semigroup)
 
+(*
+   Lemma `le_imp_gle` asserts that if two elements `a1` and `a2` of a locale `A` in a valid 
+   OVA `V` are such that `a1` is locally less than or equal to `a2`, then `a1` is globally 
+   less than or equal to `a2` in `V`.
+*)
 lemma le_imp_gle : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> local_elems V A
  \<Longrightarrow> a2 \<in> local_elems V A \<Longrightarrow> local_le V A (A,a1) (A,a2) \<Longrightarrow> gle V (A,a1) (A,a2)"
   apply (frule valid_welldefined)
@@ -501,10 +719,21 @@ lemma le_imp_gle : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> 
    apply (metis local_elem_gc)
   by (simp add: local_elem_gc)
 
+(*
+   Lemma `gle_eq_local_le` states that, given a valid OVA `V` and two elements `a1` and `a2` 
+   belonging to `V`, if they are defined over the same locale `A`, the global less than or equal 
+   operation on `a1` and `a2` is equivalent to their local less than or equal operation.
+*)
 lemma gle_eq_local_le : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> elems V
  \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> d a1 = A \<Longrightarrow> d a2 = A \<Longrightarrow> gle V a1 a2 = local_le V A a1 a2"
   by (metis le_imp_gle local_inclusion_element local_le prod.exhaust_sel valid_gc_poset valid_presheaf)
 
+(*
+   Lemma `gprj_monotone` guarantees the monotonicity of the projection operation `gprj`, given a 
+   valid OVA `V` and two elements `a1` and `a2` defined on the same open set `A` such that `a1` 
+   is less than or equal to `a2` in the global order. The lemma then shows that this order 
+   relation is preserved when these elements are projected onto a subset `B` of `A`.
+*)
 lemma gprj_monotone :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a2 :: "('A, 'a) Valuation"
   assumes V_valid: "valid V"
@@ -534,6 +763,11 @@ proof -
     by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) gprj_def gprj_elem i_def local_inclusion_element prj_monotone snd_conv valid_presheaf)
 qed
 
+(*
+   Lemma `stability` states that, given two open sets `A` and `B` in a valid OVA `V` where `B` is 
+   a subset of `A`, the projection of the neutral element of `A` onto `B` is equal to the 
+   neutral element of `B`.
+*)
 lemma stability:
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid: "valid V"
@@ -572,7 +806,12 @@ moreover have "((f $ B) \<cdot> (ar one $ i)) $$ () = ((f $ B) $$ ((ar one $ i))
     by (metis (no_types, lifting) OVA.valid_space Presheaf.valid_map_welldefined Presheaf.valid_welldefined V_valid \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app eq_fst_iff f_def gprj_def i_def neutral_is_element singletonI sndI terminal_value valid_codomain valid_domain valid_neutral)
 qed
 
-(* [Remark 3, CVA] *)
+(* [Remark 3, CVA].
+   Lemma `local_mono_eq_global` claims that, in a valid OVA `V`, if four valuations `a1`, `a1'`, 
+   `a2`, `a2'` are all defined over the same open set `A`, the global order relation between the 
+   combinations of `a1` and `a1'` and `a2` and `a2'` is equivalent to the local order relation 
+   between the same combinations in `A`.
+*)
 lemma local_mono_eq_global :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a1' a2 a2' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -584,7 +823,11 @@ lemma local_mono_eq_global :
 shows "gle V (comb V a1 a1') (comb V a2 a2') = local_le V A (comb V a1 a1') (comb V a2 a2')"
   by (smt (verit, ccfv_threshold) assms(10) assms(11) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element d_neut gle_eq_local_le gle_eq_local_le neutral_is_element V_valid valid_domain_law valid_neutral_law_right)
 
-(* [Remark 3 cont., CVA] *)
+(* [Remark 3 cont., CVA].
+   Lemma `id_le_gprj` shows that, for a given valuation `a` defined over an open set `A` in a 
+   valid OVA `V`, the global order between `a` and its projection onto a subset `B` of `A` is such 
+   that `a` is globally less than or equal to its projection onto `B`.
+*)
 lemma id_le_gprj :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes "valid V"
@@ -631,6 +874,11 @@ proof -
     using \<Phi>B_def by fastforce
 qed
 
+(*
+   Lemma `elem_le_wrap` ensures that in a valid OVA `V`, if a valuation `a` defined over an open 
+   set `A` is locally less than or equal to a valuation `b` defined over a subset `B` of `A` (after 
+   `a` is projected onto `B`), then `a` is globally less than or equal to `b`.
+*)
 lemma elem_le_wrap :
   fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation" and A B :: "('A Open)"
   assumes V_valid : "valid V"
@@ -671,6 +919,10 @@ proof -
     by (smt (verit, best) a_B_def id_le_gprj valid_poset valid_semigroup valid_transitivity)
 qed
 
+(*
+   Lemma `gext_elem` shows that the extension of a valuation `b` from an open set `B` to a 
+   superspace `A` in a valid OVA `V` is an element of `V`.
+*)
 lemma gext_elem :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes "valid V"
@@ -691,6 +943,11 @@ proof -
     by (simp add: assms(2) com_def comb_is_element neutral_is_element)
 qed
 
+(*
+   Lemma `e_gprj` ensures that the embedding of the projection of a valuation `a` defined over an 
+   open set `A` onto a subset `B` of `A` in a valid OVA `V` is an element of the poset associated 
+   with `B`.
+*)
 lemma e_gprj :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   defines "pr \<equiv> gprj V"
@@ -703,6 +960,10 @@ lemma e_gprj :
 shows " e (a_B) \<in> Poset.el \<Phi>B"
   by (metis \<Phi>B_def a_B_def assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) d_gprj gc_elem_local gprj_elem valid_gc_poset valid_presheaf)
 
+(*
+   Lemma `e_gext` asserts that the embedding of the extension of a valuation `b` from an open 
+   set `B` to a superspace `A` in a valid OVA `V` is an element of the poset associated with `A`.
+*)
 lemma e_gext :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and b :: "('A, 'a) Valuation"
   defines "ex \<equiv> gext V"
@@ -715,6 +976,12 @@ lemma e_gext :
 shows " e (b__A) \<in> Poset.el \<Phi>A"
   by (metis \<Phi>A_def assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) b__A_def d_gext gext_elem local_inclusion_element)
 
+(*
+   Lemma `prj_ext_adjunction_lhs_imp_rhs` indicates that if the projection of a valuation `a` onto 
+   a subset `B` of its defining open set `A` is locally less than or equal to another valuation `b` 
+   defined over `B` in a valid OVA `V`, then `a` is locally less than or equal to the combination of 
+   the neutral element of `A` and `b`.
+*)
 lemma prj_ext_adjunction_lhs_imp_rhs :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   defines "\<Phi> \<equiv> presheaf V"
@@ -776,6 +1043,12 @@ moreover have "gle V a (comb V \<epsilon>A a_B)"
     by (smt (verit) A_def OVA.valid_welldefined V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem comb_is_element combine_monotone elem_le_wrap local_le valid_domain_law)
 qed
 
+(*
+   Lemma `prj_ext_adjunction_rhs_imp_lhs` declares that, in a valid OVA `V`, if a valuation `a` 
+   defined over an open set `A` is locally less than or equal to the combination of the neutral 
+   element of `A` and a valuation `b` defined over a subset `B` of `A`, then the projection of `a` 
+   onto `B` is locally less than or equal to `b`.
+*)
 lemma prj_ext_adjunction_rhs_imp_lhs :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   defines "\<Phi> \<equiv> presheaf V"
@@ -807,7 +1080,12 @@ proof -
       by (metis (no_types, lifting) B_le_A V_valid a_dom a_elem b_dom b_elem d_gprj gprj_elem local_inclusion_domain local_le valid_gc_poset valid_presheaf)
   qed
 
-(* [Remark 3, CVA] *)
+(* [Remark 3, CVA].
+   This lemma, corresponding to Remark 3 from the CVA paper, states that in a valid OVA, for two valuations
+   `a` and `a'` both defined over the same open set `A` which includes another open set `B`, the local order 
+   relation holds between the projection of the combination of `a` and `a'` onto `B`, and the combination of 
+   the projections of `a` and `a'` onto `B`.
+*)
 lemma laxity :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a a' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -845,7 +1123,11 @@ proof -
     using m1_B_def m1_def m2_def by auto
 qed
 
-(* [Theorem 1, CVA] *)
+(* [Theorem 1, CVA].
+   Theorem 1 from the CVA paper is formalized in this theorem. It asserts that, in a valid OVA, the projection 
+   of a valuation `a` onto a subset `B` of its defining open set `A` is locally less than or equal to another 
+   valuation `b` defined over `B` if and only if `a` is locally less than or equal to the extension of `b` to `A`.
+*)
 theorem prj_ext_adjunction :
   fixes V :: "('A,'a) OVA" and  a b :: "('A, 'a) Valuation" and A B :: "'A Open"
   assumes V_valid : "valid V"
@@ -867,7 +1149,11 @@ next
     by (metis \<open>le (ob (presheaf V) $ A) (e a) (e (gext V A b))\<close> a_dom a_elem b_dom b_elem gext_def)
   qed
 
-(* [Corollary 1, CVA] *)
+(* [Corollary 1, CVA].
+   The first part of Corollary 1 from the CVA paper, stating that for a valid OVA with a strongly neutral 
+   combination operation, the extension of the neutral element of a subset `B` of an open set `A` is the neutral 
+   element of `A`.
+*)
 corollary strongly_neutral_covariance :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid : "valid V"
@@ -877,7 +1163,11 @@ defines "ex \<equiv> gext V"
 shows "ex A (neut V B) = neut V A "
   by (metis (no_types, lifting) V_valid assms(3) assms(4) assms(5) ex_def fst_eqD gext_def neutral_is_element strongly_neutral sup.absorb_iff1)
 
-(* [Corollary 1 cont., CVA] *)
+(* [Corollary 1 cont., CVA].
+   The second part of Corollary 1 from the CVA paper asserts that in a valid OVA where the combination operation 
+   is strongly neutral, the combination of any valuation `a` with the identity (the neutral element of the empty 
+   set) is `a` itself, irrespective of the order in which the combination operation is performed.
+*)
 corollary strongly_neutral_monoid :
   fixes V :: "('A,'a) OVA" and a :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -915,7 +1205,10 @@ next
     by presburger
 qed
 
-(* [Corollary 2, CVA] *)
+(* [Corollary 2, CVA].
+   The first part of Corollary 2 from the CVA paper, stating that in a valid OVA, the projection of the extension 
+   of a valuation `b` from a subset `B` of an open set `A` back onto `B` results in `b`.
+*)
 corollary galois_insertion :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "b \<in> elems V" and "d b = B"
@@ -935,7 +1228,11 @@ proof -
     by (smt (verit, best) V_valid \<epsilon>A_def assms(2) assms(3) assms(4) assms(5) assms(6) com_def inf.absorb2 pr_def stability valid_neutral_law_left)
 qed
 
-(* [Corollary 2 cont., CVA] *)
+(* [Corollary 2 cont., CVA].
+   The second part of Corollary 2 from the CVA paper, asserting that for a valid OVA, a valuation `a` defined 
+   over an open set `A` is locally less than or equal to the extension of the projection of `a` onto a subset `B` 
+   of `A`, back onto `A`.
+*)
 corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "a \<in> elems V" and "d a = A"
@@ -955,6 +1252,11 @@ proof -
     by blast
 qed
 
+(*
+   This lemma, related to the functorial property of the extension operation, states that in a valid OVA, 
+   the extension of a valuation `c` from a subset `C` of an open set `A` directly to `A` is globally less than 
+   or equal to the extension of `c` first to a subset `B` of `A` that includes `C`, and then to `A`.
+*)
 lemma ext_functorial_lhs_imp_rhs :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -980,6 +1282,11 @@ proof -
       by (smt (verit) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.refl dual_order.trans elem_le_wrap ex_def galois_insertion gext_elem gprj_functorial pr_def)
 qed
 
+(*
+   The converse of the previous lemma, asserting that in a valid OVA, the extension of a valuation `c` first to 
+   a subset `B` of an open set `A` that includes `C`, and then to `A`, is globally less than or equal to the 
+   extension of `c` from `C` directly to `A`.
+*)
 lemma ext_functorial_rhs_imp_lhs :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -1003,7 +1310,11 @@ moreover have "local_le V C (pr C (ex A (ex B c))) c"
     by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem gle_eq_local_le)
 qed
 
-(* [Theorem 1 cont., CVA] *)
+(* [Theorem 1 cont., CVA].
+   Theorem 1 continued from the CVA paper, stating that for a valid OVA, the extension of a valuation `c` from a 
+   subset `C` of an open set `A` directly to `A` is globally equal to the extension of `c` first to a subset `B` 
+   of `A` that includes `C`, and then to `A`.
+*)
 theorem ext_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -1020,7 +1331,11 @@ proof -
     by (smt (z3) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem valid_antisymmetry valid_poset valid_semigroup)
 qed
 
-(* [Corollary 2 cont., CVA] *)
+(* [Corollary 2 cont., CVA].
+   The third part of Corollary 2 from the CVA paper, asserting that for a valid OVA, the extension of the projection 
+   of a valuation `a` onto a subset `B` of an open set `A`, back onto `A`, performed twice is the same as 
+   performing it once.
+*)
 corollary galois_closure_idempotent :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -1031,6 +1346,11 @@ corollary galois_closure_idempotent :
   shows "ex A (pr B (ex A (pr B a))) = ex A (pr B a)"
   by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_gprj ex_def galois_insertion gprj_elem pr_def V_valid)
 
+(*
+   This lemma is a variant of the previous ones, which asserts that the projection of the extension of a valuation 
+   `c` from a subset `C` of an open set `A` back onto a subset `B` of `A` that includes `C` gives the extension 
+   of `c` onto `B`.
+*)
 lemma up_and_down :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -1048,6 +1368,11 @@ proof -
     by auto
 qed
 
+(*
+   This lemma asserts that for a valid OVA, if a valuation `a` is locally less than or equal to another 
+   valuation `c` over a subset `C` of an open set `A`, then the projection of `a` onto a subset `B` of `A` that 
+   includes `C` is locally less than or equal to the extension of `c` to `B`.
+*)
 lemma intermediate_extension :
   fixes V :: "('A,'a) OVA" and a c :: "('A, 'a) Valuation" and A B C :: "('A Open)"
   assumes V_valid : "valid V"
@@ -1071,7 +1396,10 @@ proof -
     by (smt (verit, best) B_leq_A C_le_B V_valid a_elem c_elem d_gext dom_A dom_c gext_elem)
 qed
 
-(* [Corollary 3, CVA] *)
+(* [Corollary 3, CVA].
+   Corollary 3 from the CVA paper, stating that if a valid OVA is locally complete (i.e., every open set is 
+   a complete poset), then the entire OVA is a complete poset.
+*)
 corollary locally_complete_imp_complete :
   fixes V :: "('A,'a) OVA"
   defines "\<Phi> A \<equiv> (Presheaf.ob (presheaf V)) $ A"

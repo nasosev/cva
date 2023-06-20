@@ -1,15 +1,14 @@
 (*
- Theory      :  Grothendieck.thy
+   Theory      :  Grothendieck.thy
 
- This theory formalizes the covariant Grothendieck construction, which is a fundamental
- construction in category theory. The main goal of this theory is to define and prove
- properties of the Grothendieck construction for a given presheaf.
+   This theory formalizes the covariant Grothendieck construction, which is a fundamental
+   construction in category theory. The main goal of this theory is to define and prove
+   properties of the Grothendieck construction for a given presheaf.
 
- The covariant Grothendieck construction takes a presheaf \<Phi> and constructs a poset P,
- where the elements of P are pairs (A, a), where A is an open set in the space of \<Phi> and
- a is an element in the presheaf value at A. The ordering relation in P is determined by
- the inclusion relations between open sets and the ordering relation in the presheaf.
-
+   The covariant Grothendieck construction takes a presheaf \<Phi> and constructs a poset P,
+   where the elements of P are pairs (A, a), where A is an open set in the space of \<Phi> and
+   a is an element in the presheaf value at A. The ordering relation in P is determined by
+   the inclusion relations between open sets and the ordering relation in the presheaf.
 --------------------------------------------------------------------------------
 *)
 

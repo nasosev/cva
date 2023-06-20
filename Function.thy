@@ -1,11 +1,11 @@
 (*
- Theory      :  Function.thy
+   Theory      :  Function.thy
 
- This theory provides a formalization of mathematical functions as mappings between sets, including
- definitions of a function's domain, codomain, and application, as well as the definition of a 
- constant function. It also introduces the concept of a 'valid' function that satisfies conditions 
- of well-definedness, determinism, and totality. A number of lemmas are provided that specify properties 
- of these valid functions.
+   This theory formalizes the mathematical concept of functions as mappings between sets. It provides definitions
+   for key properties and operations on functions, such as the domain, codomain, application, and the creation of 
+   a constant function. It also introduces the concept of a 'valid' function, which satisfies the conditions of 
+   well-definedness, determinism, and totality. The theory also contains a number of lemmas that specify properties 
+   of these valid functions.
 --------------------------------------------------------------------------------
 *)
 
@@ -14,26 +14,25 @@ imports Main
 begin
 
 (* 
-   This record introduces a type for mapping between sets. It contains two fields: 'cod' representing
-   the codomain of the function, and 'func' encapsulating the set of tuples each of which corresponds
-   to a mapping from a domain element to a codomain element. 
+   This record defines a type for mapping between sets. The `cod` field represents
+   the codomain of the function, while `func` is a set of tuples each corresponding
+   to a mapping from an element of the domain to an element of the codomain.
 *)
 record ('a, 'b) Function =
   cod :: "'b set"
   func :: "('a \<times> 'b) set"
 
 (* 
-   This definition establishes the domain of a function. It returns the set of all 'a' such that there exists 
-   a 'b' for which the tuple (a, b) exists in the function mapping.
+   The `dom` function determines the domain of a function. It returns the set of all
+   elements that are mapped to some element in the codomain.
 *)
 definition dom :: "('a, 'b) Function \<Rightarrow> 'a set" where
 "dom f \<equiv> {a. \<exists>b. (a, b) \<in> func f}"
 
 (* 
-   This predicate checks the well-definedness of a function by verifying three conditions:
-     - 'welldefined': every (a, b) in the function mapping is valid, with 'a' in the domain and 'b' in the codomain.
-     - 'deterministic': the function is deterministic, i.e., every 'a' maps to exactly one 'b'.
-     - 'total': the function is total, i.e., every 'a' in the domain has a corresponding 'b' in the function mapping.
+   `valid_map` is a predicate that checks whether a function satisfies the conditions of 
+   being well-defined, deterministic, and total. These conditions ensure that the function
+   is properly defined for all inputs from its domain and consistently produces outputs in its codomain.
 *)
 definition valid_map :: "('a, 'b) Function \<Rightarrow> bool" where
 "valid_map f \<equiv>
@@ -44,8 +43,9 @@ definition valid_map :: "('a, 'b) Function \<Rightarrow> bool" where
   in welldefined \<and> deterministic \<and> total"
 
 (* 
-   This definition models the application of a function to an element. If the element belongs to the domain, 
-   it returns the unique 'b' that 'a' maps to; otherwise, it returns 'undefined'.
+   The `app` function represents the application of a function to an element. If the element is 
+   in the domain of the function, it returns the corresponding element in the codomain; otherwise, 
+   it returns 'undefined'.
 *)
 definition "Function_app_undefined_arg_not_in_domain a \<equiv> undefined"
 
@@ -56,8 +56,9 @@ definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr 
   else Function_app_undefined_arg_not_in_domain a"
 
 (* 
-   This definition creates a constant function over a given domain 'A' and codomain 'B', mapping every element 'a' 
-   in 'A' to a fixed element 'b' in 'B'. If `b` is not in the codomain, it returns `undefined`.
+   The `const` function creates a constant function over a specified domain and codomain. All elements 
+   in the domain are mapped to a fixed element in the codomain. If the fixed element is not in the 
+   codomain, the function returns 'undefined'.
 *)
 definition "Function_const_undefined_arg_not_in_codomain b \<equiv> undefined"
 
@@ -68,47 +69,47 @@ definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow
   else Function_const_undefined_arg_not_in_codomain b"
 
 (*
-   This section includes various lemmas that specify properties of valid functions.
+   The following lemmas specify various properties of valid functions.
 *)
 
 (* 
-   This lemma asserts that if a function 'f' is valid, then any pair (a, b) in its function mapping implies 
-   that 'a' is in the domain and 'b' is in the codomain.
+   `valid_map_welldefined` states that if a function is valid, then for any pair (a, b) in the 
+   function mapping, 'a' is in the domain and 'b' is in the codomain of the function.
 *)
 lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
   unfolding valid_map_def by (simp add: Let_def)
 
 (* 
-   This lemma asserts that if a function 'f' is valid, then for any 'a' in its domain, there is exactly 
-   one 'b' such that (a, b) is in the function mapping.
+   `valid_map_deterministic` states that if a function is valid, then for any 'a' in the domain, 
+   there is exactly one 'b' such that (a, b) is in the function mapping.
 *)
 lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
   unfolding valid_map_def by (simp add: Let_def)
 
 (* 
-   This lemma asserts that if a function 'f' is valid, then for any 'a' in its domain, there exists 
-   a 'b' such that (a, b) is in the function mapping.
+   `valid_map_total` states that if a function is valid, then for any 'a' in the domain, there is 
+   some 'b' such that (a, b) is in the function mapping.
 *)
 lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def by (simp add: Let_def)
 
 (* 
-   This lemma asserts that for a valid function 'f', if 'a' is in its domain, then applying 'f' to 'a' results 
-   in a pair (a, b) in the function mapping.
+   `fun_app` states that for a valid function, if an element 'a' is in its domain, applying the function 
+   to 'a' will produce a pair (a, b) in the function mapping.
 *)
 lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
   by (metis app_def theI' valid_map_deterministic valid_map_total)
 
 (* 
-   This lemma asserts that for a valid function 'f', if 'a' is in its domain, then applying 'f' to 'a' results 
-   in a value in the codomain.
+   `fun_app2` states that for a valid function, if an element 'a' is in its domain, applying the function 
+   to 'a' will produce a value 'b' in the codomain.
 *)
 lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f $ a \<Longrightarrow> fa \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
 (* 
-   This lemma asserts that if two valid functions 'f' and 'g' have the same domain and codomain, and they map 
-   every 'a' in the domain to the same 'b', then their function mappings are equal.
+   `fun_ext` states that if two valid functions have the same domain and codomain, and they map 
+   every element in the domain to the same value, then their function mappings are equal.
 *)
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
   unfolding  dom_def 
@@ -118,8 +119,8 @@ lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom
   by (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
 
 (* 
-   This lemma asserts that if two valid functions 'f' and 'g' have the same domain and codomain, and they map 
-   every 'a' in the domain to the same 'b', then the functions 'f' and 'g' are equal.
+   `fun_ext2` states that if two valid functions have the same domain and codomain, and they map 
+   every element in the domain to the same value, then the functions are equal.
 *)
 lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> f = g"
   apply simp
@@ -128,15 +129,15 @@ lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> do
   done
 
 (* 
-   This lemma asserts that the constant function, when applied to any 'a' in its domain, will return 
-   the fixed value 'b'.
+   `const_app` states that applying the constant function to any element in its domain will produce 
+   the fixed value.
 *)
 lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
   unfolding const_def
   by (simp add: Function.dom_def app_def)
 
 (* 
-   This lemma asserts that the constant function is a valid function, assuming 'b' is in 'B'.
+   `const_valid` states that the constant function is a valid function as long as the fixed value is in the codomain.
 *)
 lemma const_valid : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
   unfolding valid_map_def const_def

@@ -1,10 +1,10 @@
 (*
- Theory      :  Semigroup.thy
+   Theory      :  Semigroup.thy
 
- This theory presents a formalization of ordered semigroups. Ordered semigroups are algebraic structures
- that combine both semigroups and partially ordered sets. The file introduces the notion of a valid
- ordered semigroup and presents several lemmas regarding its well-definedness, associativity, and
- monotonicity.
+   This theory presents a formalization of ordered semigroups. Ordered semigroups are algebraic structures
+   that combine both semigroups and partially ordered sets. The file introduces the notion of a valid
+   ordered semigroup and presents several lemmas regarding its well-definedness, associativity, and
+   monotonicity.
 --------------------------------------------------------------------------------
 *)
 theory Semigroup

@@ -1,10 +1,10 @@
 (*
- Theory      :  Poset.thy
+   Theory      :  Poset.thy
 
- This theory provides the foundation of poset (partially ordered set) related constructs, operations, 
- and properties that will be used in the formalization of concurrent valuation algebras.
- It includes definitions of posets, maps between posets, various poset operations, as well as the 
- properties and lemmas related to these constructs. 
+   This theory provides the foundation of poset (partially ordered set) related constructs, operations, 
+   and properties that will be used in the formalization of concurrent valuation algebras.
+   It includes definitions of posets, maps between posets (monoetone functions), various poset 
+   operations, as well as the properties and lemmas related to these constructs. 
 --------------------------------------------------------------------------------
 *)
 
@@ -619,4 +619,4 @@ lemma  "le test 0 0"
 lemma "le test 0 1"
   apply auto 
 *)
- end
+end
