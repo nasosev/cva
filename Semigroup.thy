@@ -37,6 +37,9 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
   in
     (welldefined \<and> associative)"
 
+(*
+   These are abbreviations for the elements and the multiplication operation of an ordered semigroup.
+*)
 abbreviation elems :: "'a Semigroup \<Rightarrow> 'a set" where
 "elems S \<equiv> Poset.el (poset S)"
 
@@ -56,7 +59,9 @@ lemma validI :
   using Semigroup.valid_def associative  welldefined by fastforce
 
 (*
-   This lemma states that if an ordered semigroup is valid, then it is well-defined.
+   This series of lemmas states that if an ordered semigroup is valid, then it is well-defined, the
+   domain of the multiplication operation equals the cartesian product of the semigroup with itself, and
+   the codomain of the multiplication operation equals the semigroup.
 *)
 lemma valid_welldefined : "valid S \<Longrightarrow> (Poset.valid (poset S)) \<and> (Poset.valid_map (mult S))
 \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
