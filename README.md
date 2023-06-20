@@ -40,10 +40,10 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## Design principles
 
-- Mathematical structures (Functions, Posets, Presheaves and their maps, etc.) are implemented as record types.
-- Each structure has a corresponding validity predicate (`valid` or `valid_map`) which is used to constrain the structure's parameters and ensure that the structure is well-defined. These predicate should be verified at the boundaries of the formalisation, i.e.
-      1. As assumptions to theorems/lemmas/conclusions/etc. (inputs)
-      2. As conclusions of theorems/lemmas/constructions/etc. (outputs)
+- Mathematical structures (Functions, Posets, Presheaves, and their maps, etc.) are implemented as record types.
+- Each structure has a corresponding validity predicate (`valid` or `valid_map`) which is used to constrain the structure's parameters to ensure that the structure is well-defined. These predicate should be verified at the boundaries of the formalisation, i.e.
+   1. As assumptions to theorems/lemmas/constructions/etc. (inputs)
+   2. As conclusions of theorems/lemmas/constructions/etc. (outputs)
 - In this way, all structures in the 'interior' of the formalisation can safely be assumed to be well-defined.
 
 ## Notes
