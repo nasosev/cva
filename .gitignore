@@ -3,3 +3,8 @@
 *.thy#
 *.marks
 .DS_Store
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+output
