@@ -9,7 +9,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
       eprint={2305.18017},
       archivePrefix={arXiv},
       primaryClass={cs.LO},
-      url={<https://arxiv.org/abs/2305.18017}>
+      url={<https://arxiv.org/abs/2305.18017>
 }
 
 ---
