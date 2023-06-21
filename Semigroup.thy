@@ -1,4 +1,6 @@
-(*
+section \<open> Semigroup.thy \<close>
+
+text \<open>
    Theory      :  Semigroup.thy
 
    This theory presents a formalization of ordered semigroups. Ordered semigroups are algebraic structures
@@ -6,23 +8,23 @@
    ordered semigroup and presents several lemmas regarding its well-definedness, associativity, and
    monotonicity.
 --------------------------------------------------------------------------------
-*)
+\<close>
 theory Semigroup
   imports Main  Poset
 begin
 
-(*
+text \<open>
    This record introduces ordered semigroups as algebraic structures combining both semigroups and
    partially ordered sets. 'poset' captures the partial order, and 'mult' captures the semigroup operation.
-*)
+\<close>
 record 'a Semigroup =
   poset :: "'a Poset"
   mult :: "('a \<times> 'a,'a) PosetMap"
 
-(*
+text \<open>
    This definition introduces the concept of a valid ordered semigroup. A valid ordered semigroup is
    one that is well-defined and associative.
-*)
+\<close>
 definition valid :: "'a Semigroup \<Rightarrow> bool" where
 "valid S \<equiv>
   let
@@ -37,20 +39,20 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
   in
     (welldefined \<and> associative)"
 
-(*
+text \<open>
    These are abbreviations for the elements and the multiplication operation of an ordered semigroup.
-*)
+\<close>
 abbreviation elems :: "'a Semigroup \<Rightarrow> 'a set" where
 "elems S \<equiv> Poset.el (poset S)"
 
 abbreviation mul :: "'a Semigroup \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "mul S a b\<equiv> (mult S) $$ (a,b)"
-(* LEMMAS *)
+text \<open> LEMMAS \<close>
 
-(*
+text \<open>
    This lemma establishes that if an ordered semigroup is well-defined and associative, then it qualifies
    as a valid ordered semigroup.
-*)
+\<close>
 lemma validI :
   fixes S :: "'a Semigroup"
   assumes welldefined : "(Poset.valid (poset S)) \<and> (Poset.valid_map (mult S)) \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
@@ -58,11 +60,11 @@ lemma validI :
   shows "valid S"
   using Semigroup.valid_def associative  welldefined by fastforce
 
-(*
+text \<open>
    This series of lemmas states that if an ordered semigroup is valid, then it is well-defined, the
    domain of the multiplication operation equals the cartesian product of the semigroup with itself, and
    the codomain of the multiplication operation equals the semigroup.
-*)
+\<close>
 lemma valid_welldefined : "valid S \<Longrightarrow> (Poset.valid (poset S)) \<and> (Poset.valid_map (mult S))
 \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
   by (metis Semigroup.valid_def)
@@ -79,9 +81,9 @@ lemma valid_dom : "valid S \<Longrightarrow> dom (mult S) = (poset S) \<times>\<
 lemma valid_cod : "valid S \<Longrightarrow> cod (mult S) = (poset S)"
   by (metis Semigroup.valid_def)
 
-(*
+text \<open>
    This lemma establishes that if an ordered semigroup is valid, then it is associative.
-*)
+\<close>
 lemma valid_associative :
   fixes S :: "'a Semigroup"
   fixes a b c :: "'a"
@@ -91,10 +93,10 @@ lemma valid_associative :
   by (metis Semigroup.valid_def assms(1) assms(2) assms(3) assms(4))
 
 
-(*
+text \<open>
    This lemma states that if an ordered semigroup is valid, then its multiplication operation is
    monotone.
-*)
+\<close>
 lemma valid_monotone :
   fixes S :: "'a Semigroup"
   fixes a1 a2 b1 b2 :: "'a"
