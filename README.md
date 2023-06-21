@@ -18,9 +18,12 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ### Section 2 - Concurrent valuation algebras
 
-#### Ordered valution algebras (OVAs): OVA.thy
+#### (Covariant) Grothendieck construction: Grothendieck.thy
 
 - [x] Definition 1 (valid_gc)
+
+#### Ordered valution algebras (OVAs): OVA.thy
+
 - [x] Remark 2 (gprj_functorial)
 - [x] Remark 3 (id_le_gprj, local_mono_eq_global, laxity)
 - [x] Theorem 1 (prj_ext_adjunction, ext_functorial)
