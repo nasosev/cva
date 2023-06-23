@@ -15,7 +15,7 @@ imports Main Poset Space Function
 begin
 
 text \<open>
-   This record introduces a presheaf \<Phi> over a topological space. 
+   This record introduces a presheaf @{term \<Phi>} over a topological space. 
    `space` is the underlying topological space, `ob` maps each open set to a poset, and `ar` maps each 
    inclusion (i.e., an injective continuous function) to a poset map, preserving the order structure. 
 \<close>
@@ -49,7 +49,7 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
 
 text \<open>
    This record introduces a presheaf map, which is a functor between two presheaves over the same 
-   topological space. `map_space` is the underlying space, `nat` is the natural transformation which maps 
+   topological space. `map\_space` is the underlying space, `nat` is the natural transformation which maps 
    each open set to a poset map, `dom` is the domain presheaf, and `cod` is the codomain presheaf.
 \<close>
 record ('A, 'a, 'b) PresheafMap =

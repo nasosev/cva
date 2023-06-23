@@ -16,8 +16,8 @@ begin
 
 text \<open>
    The record 'CVA' introduces a Concurrent Valuation Algebra as an algebraic structure, built on 
-   Ordered Valuation Algebras (OVA). It comprises two OVA components: 'par_algebra' for dealing with 
-   parallelism and 'seq_algebra' for sequential operations.
+   Ordered Valuation Algebras (OVA). It comprises two OVA components: 'par\_algebra' for dealing with 
+   parallelism and 'seq\_algebra' for sequential operations.
 \<close>
 record ('A, 'a) CVA =
   par_algebra :: "('A, 'a) OVA"
@@ -62,20 +62,20 @@ abbreviation gle :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> 
 "gle V \<equiv> OVA.gle (par_algebra V)"
 
 text \<open>
-   The 'local_le' abbreviation captures the local ordering of valuations within the CVA 'V'.
+   The 'local\_le' abbreviation captures the local ordering of valuations within the CVA 'V'.
 \<close>
 abbreviation local_le :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "local_le V \<equiv> OVA.local_le (par_algebra V)"
 
 text \<open>
-   The 'neut_par' abbreviation gives the neutral element of the parallel operation for each open set 
+   The 'neut\_par' abbreviation gives the neutral element of the parallel operation for each open set 
    within the CVA 'V'.
 \<close>
 abbreviation neut_par :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
 "neut_par V \<equiv> OVA.neut (par_algebra V)"
 
 text \<open>
-   The 'neut_seq' abbreviation gives the neutral element of the sequential operation for each open set 
+   The 'neut\_seq' abbreviation gives the neutral element of the sequential operation for each open set 
    within the CVA 'V'.
 \<close>
 abbreviation neut_seq :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
@@ -201,8 +201,8 @@ lemma valid_weak_exchange: "valid V \<Longrightarrow> a1 \<in> elems V \<Longrig
 
 text \<open>
   This lemma underlines a neutral law for the parallel operation in a valid CVA. Given an open set A 
-  and \<delta>A as the neutral element of the parallel operation for A, the sequential composition of \<delta>A 
-  with itself is globally less than or equal to \<delta>A.
+  and @{term \<delta>A} as the neutral element of the parallel operation for A, the sequential composition of @{term \<delta>A} 
+  with itself is globally less than or equal to @{term \<delta>A}.
 \<close>
 lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow>  \<delta>A = (neut_par V A)
   \<Longrightarrow> gle V (seq V \<delta>A \<delta>A) \<delta>A"
@@ -211,8 +211,8 @@ lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens V \<Longri
 
 text \<open>
   This lemma establishes a neutral law for the sequential operation in a valid CVA. Given an open 
-  set A and \<epsilon>A as the neutral element of the sequential operation for A, \<epsilon>A is globally less than or 
-  equal to the parallel composition of \<epsilon>A with itself.
+  set A and @{term \<epsilon>A} as the neutral element of the sequential operation for A, @{term \<epsilon>A} is globally less than or 
+  equal to the parallel composition of @{term \<epsilon>A} with itself.
 \<close>
 lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longrightarrow> \<epsilon>A = (neut_seq V A)
   \<Longrightarrow> gle V \<epsilon>A (par V \<epsilon>A \<epsilon>A)"
@@ -241,13 +241,13 @@ lemma valid_gext:
   shows "ex A b = ex' A b"
   unfolding valid_def
 proof -
-text \<open>
+(*
     fix b
     assume "b \<in> elems V" 
     fix A
     assume "A \<in> opens V"
     assume "B \<subseteq> A" 
-\<close>
+*)
     define "B" where "B = d b"
     define "pr" where "pr = gprj V"
     have "local_le V B (pr B (ex A b)) b"
@@ -278,16 +278,16 @@ lemma valid_gext_funext:
 text \<open> 
    Paper results.
    The following propositions replicate the results from the research paper in a formalized manner. They encompass 
-   fundamental properties of a valid concurrent valuation algebra (CVA) such as the comparison between \<epsilon> (neut_seq) and \<delta>
-   (neut_par), the equality of certain sequential and parallel operations, and the relation between different valuation 
+   fundamental properties of a valid concurrent valuation algebra (CVA) such as the comparison between @{term \<epsilon>} (neut\_seq) and @{term \<delta>}
+   (neut\_par), the equality of certain sequential and parallel operations, and the relation between different valuation 
    sets. Finally, they provide a Hoare concurrency rule, showing how the logic of Hoare triples can be applied to CVA. 
    These propositions constitute the core findings of the formalized study.
 \<close>
 
 text \<open>
   Proposition 1 [CVA].
-  Assuming a valid CVA and an open set A, the \<epsilon> element (neut_seq V A) is 
-  always less than or equal to the \<delta> element (neut_par V A) in the CVA ordering.
+  Assuming a valid CVA and an open set A, the @{term \<epsilon>} element (neut\_seq V A) is 
+  always less than or equal to the @{term \<delta>} element (neut\_par V A) in the CVA ordering.
 \<close>
 proposition epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
@@ -326,8 +326,8 @@ proof -
 qed
 
 text \<open>
-  This lemma supports Proposition 1 [CVA] by showing that the parallel composition of the \<epsilon> element 
-  with itself is less than or equal to the \<epsilon> element.
+  This lemma supports Proposition 1 [CVA] by showing that the parallel composition of the @{term \<epsilon>} element 
+  with itself is less than or equal to the @{term \<epsilon>} element.
 \<close>
 lemma epsilon_par_epsilon_le_epsilon :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
@@ -345,8 +345,8 @@ proof -
 qed
 
 text \<open>
-  This lemma also contributes to Proposition 1 [CVA], demonstrating that the \<delta> element is always 
-  less than or equal to the sequential composition of the \<delta> element with itself.
+  This lemma also contributes to Proposition 1 [CVA], demonstrating that the @{term \<delta>} element is always 
+  less than or equal to the sequential composition of the @{term \<delta>} element with itself.
 \<close>
 lemma delta_le_delta_seq_delta :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
@@ -366,7 +366,7 @@ qed
 text \<open> 
    [Proposition 1 cont., CVA].
    Continuing with Proposition 1 [CVA], this proposition establishes that the sequential composition 
-   of the \<delta> element with itself equals the \<delta> element.
+   of the @{term \<delta>} element with itself equals the @{term \<delta>} element.
 \<close>
 proposition delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
@@ -385,7 +385,7 @@ qed
 text \<open> 
   [Proposition 1 cont., CVA].
   Still within Proposition 1 [CVA], this proposition confirms that the parallel composition of the 
-  \<epsilon> element with itself equals the \<epsilon> element.
+  @{term \<epsilon>} element with itself equals the @{term \<epsilon>} element.
 \<close>
 proposition epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
@@ -404,10 +404,10 @@ qed
 text \<open> 
   [Proposition 2, CVA].
   Given a valid CVA and two valuations a and b, and assuming that  
-  neut_par V equals neut_seq V and strongly_neutral_seq holds, it is shown that the sequential 
+  neut\_par V equals neut\_seq V and strongly\_neutral\_seq holds, it is shown that the sequential 
   composition of a and b is less than or equal to the parallel composition of a and b.
-  Note we can assume either strongly_neutral_seq or strongly_neutral_par 
-  (c.f. neutral_collapse_strongly_neutral).
+  Note we can assume either strongly\_neutral\_seq or strongly\_neutral\_par 
+  (c.f. neutral\_collapse\_strongly\_neutral).
 \<close>
 proposition comparitor :
   fixes V :: "('A, 'a) CVA" and a b :: "('A,'a) Valuation"

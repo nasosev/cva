@@ -20,6 +20,7 @@ END {
 	gsub(/\\<epsilon>/,"@{term \\<epsilon>}",line);
 	gsub(/\\<epsilon>}A/,"\\<epsilon>A}",line);
 	gsub(/\\<Phi>/,"@{term \\<Phi>}",line);
+	gsub(/_/,"\\_",line);
 	print line;
 }
 (intext == 0) {

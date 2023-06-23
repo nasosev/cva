@@ -15,7 +15,9 @@ imports Main
 
 begin
 
-text \<open> Type synonym 'A Open is used to represent a set of 'A elements. \<close>
+text \<open> 
+Type synonym 'A Open is used to represent a set of 'A elements. 
+\<close>
 type_synonym 'A Open = "'A set"
 
 text \<open> 
@@ -88,7 +90,9 @@ text \<open>
   The following lemmas correspond to various properties of the structures and operations defined above.
 \<close>
 
-text \<open> The empty set is always an element of opens of a valid space. \<close>
+text \<open> 
+The empty set is always an element of opens of a valid space. 
+\<close>
 lemma valid_empty : "valid T \<Longrightarrow> {} \<in> opens T"
   by (simp add: valid_def)
 
@@ -104,7 +108,9 @@ text \<open> The intersection of two elements of opens of a valid space is an el
 lemma valid_inter : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> A \<inter> B \<in> opens T"
   by (simp add: valid_def)
 
-text \<open> An inclusion is valid if it satisfies the conditions of 'valid_inclusion'. \<close>
+text \<open> 
+An inclusion is valid if it satisfies the conditions of 'valid\_inclusion'. 
+\<close>
 lemma valid_inclusionI : "valid (space i) \<Longrightarrow> dom i \<subseteq> cod i \<Longrightarrow> dom i \<in> opens (space i) \<Longrightarrow> cod i \<in> opens (space i) \<Longrightarrow> valid_inclusion i"
   using valid_inclusion_def by blast
 
@@ -112,8 +118,10 @@ text \<open> The identity inclusion of an open in a valid space is a valid inclu
 lemma valid_ident : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> valid_inclusion (ident T A)"
   by (simp add: ident_def valid_inclusion_def)
 
-text \<open> The composition of two valid inclusions in the same space where the domain of the second one is 
-   the codomain of the first one, is a valid inclusion. \<close>
+text \<open> 
+The composition of two valid inclusions in the same space where the domain of the second one is 
+   the codomain of the first one, is a valid inclusion. 
+\<close>
 lemma compose_valid : "valid_inclusion i \<Longrightarrow> valid_inclusion j \<Longrightarrow> space j = space i \<Longrightarrow> dom j = cod i \<Longrightarrow> valid_inclusion (compose j i)"
   by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) compose_def dual_order.trans valid_inclusion_def)
 

@@ -32,7 +32,7 @@ definition dom :: "('a, 'b) Function \<Rightarrow> 'a set" where
 "dom f \<equiv> {a. \<exists>b. (a, b) \<in> func f}"
 
 text \<open> 
-   `valid_map` is a predicate that checks whether a function satisfies the conditions of 
+   `valid\_map` is a predicate that checks whether a function satisfies the conditions of 
    being well-defined, deterministic, and total. These conditions ensure that the function
    is properly defined for all inputs from its domain and consistently produces outputs in its codomain.
 \<close>
@@ -75,42 +75,42 @@ text \<open>
 \<close>
 
 text \<open> 
-   `valid_map_welldefined` states that if a function is valid, then for any pair (a, b) in the 
+   `valid\_map\_welldefined` states that if a function is valid, then for any pair (a, b) in the 
    function mapping, 'a' is in the domain and 'b' is in the codomain of the function.
 \<close>
 lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
   unfolding valid_map_def by (simp add: Let_def)
 
 text \<open> 
-   `valid_map_deterministic` states that if a function is valid, then for any 'a' in the domain, 
+   `valid\_map\_deterministic` states that if a function is valid, then for any 'a' in the domain, 
    there is exactly one 'b' such that (a, b) is in the function mapping.
 \<close>
 lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
   unfolding valid_map_def by (simp add: Let_def)
 
 text \<open> 
-   `valid_map_total` states that if a function is valid, then for any 'a' in the domain, there is 
+   `valid\_map\_total` states that if a function is valid, then for any 'a' in the domain, there is 
    some 'b' such that (a, b) is in the function mapping.
 \<close>
 lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def by (simp add: Let_def)
 
 text \<open> 
-   `fun_app` states that for a valid function, if an element 'a' is in its domain, applying the function 
+   `fun\_app` states that for a valid function, if an element 'a' is in its domain, applying the function 
    to 'a' will produce a pair (a, b) in the function mapping.
 \<close>
 lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
   by (metis app_def theI' valid_map_deterministic valid_map_total)
 
 text \<open> 
-   `fun_app2` states that for a valid function, if an element 'a' is in its domain, applying the function 
+   `fun\_app2` states that for a valid function, if an element 'a' is in its domain, applying the function 
    to 'a' will produce a value 'b' in the codomain.
 \<close>
 lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f $ a \<Longrightarrow> fa \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
 text \<open> 
-   `fun_ext` states that if two valid functions have the same domain and codomain, and they map 
+   `fun\_ext` states that if two valid functions have the same domain and codomain, and they map 
    every element in the domain to the same value, then their function mappings are equal.
 \<close>
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
@@ -121,7 +121,7 @@ lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom
   by (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
 
 text \<open> 
-   `fun_ext2` states that if two valid functions have the same domain and codomain, and they map 
+   `fun\_ext2` states that if two valid functions have the same domain and codomain, and they map 
    every element in the domain to the same value, then the functions are equal.
 \<close>
 lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> f = g"
@@ -131,7 +131,7 @@ lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> do
   done
 
 text \<open> 
-   `const_app` states that applying the constant function to any element in its domain will produce 
+   `const\_app` states that applying the constant function to any element in its domain will produce 
    the fixed value.
 \<close>
 lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
@@ -139,7 +139,7 @@ lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow
   by (simp add: Function.dom_def app_def)
 
 text \<open> 
-   `const_valid` states that the constant function is a valid function as long as the fixed value is in the codomain.
+   `const\_valid` states that the constant function is a valid function as long as the fixed value is in the codomain.
 \<close>
 lemma const_valid : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
   unfolding valid_map_def const_def
