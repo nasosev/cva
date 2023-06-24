@@ -107,6 +107,31 @@ proof auto
     by (simp add: P_def Q_def R1 Tuple.valid_welldefined X_def Y_def \<open>Tuple.valid T\<close> \<open>i \<in> Space.inclusions (Presheaf.space T)\<close> image) 
 qed
 
+lemma relation_ar_dom : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow>  R0 = Presheaf.ob R \<Longrightarrow>
+R1 = Presheaf.ar R \<Longrightarrow> i \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow> PosetMap.dom (R1 $ i) = R0 $ Inclusion.cod i"
+  unfolding relation_prealgebra_def
+    apply (simp_all add : Let_def)
+  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def UNIV_I direct_image_dom fst_conv mem_Collect_eq snd_conv)
+
+lemma relation_ar_cod : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow>  R0 = Presheaf.ob R \<Longrightarrow>
+R1 = Presheaf.ar R \<Longrightarrow> i \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow> PosetMap.cod (R1 $ i) = R0 $ Inclusion.dom i"
+  unfolding relation_prealgebra_def
+    apply (simp_all add : Let_def)
+  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def UNIV_I direct_image_cod fst_conv mem_Collect_eq snd_conv) 
+
+lemma relation_ar_ident : 
+  fixes T :: "('A,'a) Presheaf" and A :: "'A Open"
+  defines "S \<equiv>  Presheaf.space (relation_prealgebra T)"
+  and "R0 \<equiv> Presheaf.ob (relation_prealgebra T)"
+  and "R1 \<equiv> Presheaf.ar (relation_prealgebra T)"
+assumes "valid T"
+  assumes "A \<in> Space.opens S"
+  shows "R1 $ Space.ident S A = Poset.ident (R0 $ A)"
+  unfolding relation_prealgebra_def
+proof -
+  define "f" where "f = R1 $ Space.ident S A"
+  have "Poset.dom f = R0 $ A" using R0_def relation_prealgebra_def
+    oops
 
 lemma valid_relation_prealgebra :
   fixes T :: "('A,'a) TupleSystem"
@@ -125,14 +150,12 @@ proof (rule Presheaf.validI, auto)
   show "\<And>i. i \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow> Poset.valid_map (ar R $ i)"
     by (metis R_def assms(1) relation_ar_value_valid relation_space_valid) 
   show "\<And>i. i \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow> PosetMap.dom (ar R $ i) = ob R $ Inclusion.cod
- i" 
-    oops
-
-(*Poset.powerset_valid  [where ?A="el (ob T $ A)"] *)
-
-next
-
-
+ i"
+    using R_def assms(1) relation_ar_dom by blast 
+  show "\<And>i. i \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow> PosetMap.cod (ar R $ i) = ob R $ Inclusion.dom
+ i"
+    using R_def assms(1) relation_ar_cod by blast 
+  oops
 
 
 end
