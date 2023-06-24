@@ -234,7 +234,13 @@ text \<open>
   less-than-or-equal-to relation is the subset relation.
 \<close>
 definition powerset :: "'a set \<Rightarrow> ('a set) Poset" where
-"powerset X = \<lparr> el = {U. U \<subseteq> X}, le_rel = {(U, V). U \<subseteq> X \<and> V \<subseteq> X \<and> U \<subseteq> V} \<rparr>"
+"powerset X = \<lparr> el = Pow X, le_rel = {(U, V). U \<in> Pow X \<and> V \<in> Pow X \<and> U \<subseteq> V} \<rparr>"
+
+definition direct_image :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a set) Poset \<Rightarrow> ('b set) Poset \<Rightarrow> ('a set, 'b set) PosetMap" where
+"direct_image f P Q \<equiv> \<lparr>
+        func = {(p, {f x | x . x \<in> p}) | p . p \<in> el P},
+        dom = P,
+        cod = Q \<rparr>"
 
 text \<open> ----------------- LEMMAS ----------------- \<close>
 
@@ -629,6 +635,104 @@ text \<open>
 lemma powerset_valid : "valid (powerset A)"
   unfolding powerset_def
   using valid_def by fastforce
+
+lemma direct_image_valid : "\<And> f A B  .  P = powerset A \<Longrightarrow> Q = powerset B \<Longrightarrow> (\<forall> x . x \<in> A \<longrightarrow> f x \<in> B) \<Longrightarrow> valid_map (direct_image f P Q)"
+proof (rule valid_mapI)
+  show "\<And>f A B. P = powerset A \<Longrightarrow> Q = powerset B \<Longrightarrow> \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> valid (PosetMap.dom
+ (direct_image f P Q))"
+    by (simp add: direct_image_def powerset_valid)
+  show "\<And>f A B. P = powerset A \<Longrightarrow> Q = powerset B \<Longrightarrow> \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> valid (cod (direct_image f P
+ Q))"
+    by (simp add: direct_image_def powerset_valid)
+  show "\<And>f A B a b.
+       P = powerset A \<Longrightarrow>
+       Q = powerset B \<Longrightarrow>
+       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow>
+       (a, b) \<in> func (direct_image f P Q) \<Longrightarrow>
+       a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> b \<in> el (cod (direct_image f P Q))"
+  proof -
+    fix f :: "'a \<Rightarrow> 'b"
+    fix A :: "'a set"
+    fix B :: "'b set"
+    fix P Q
+    fix a b 
+    assume "P = powerset A"
+    assume Q: "Q = powerset B"
+    assume "\<forall>x. x \<in> A \<longrightarrow> f x \<in> B"
+    assume  "(a, b) \<in> func (direct_image f P Q)"
+
+    have "PosetMap.dom (direct_image f P Q) = P"
+      by (simp add: direct_image_def)
+    moreover have "PosetMap.cod (direct_image f P Q) = Q"
+      by (simp add: direct_image_def) 
+    moreover have "a \<in> el P"
+      by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) \<open>(a, b) \<in> func (direct_image f P Q)\<close> direct_image_def fst_conv mem_Collect_eq) 
+    moreover have "b \<in> el Q" using  powerset_def [where ?X=B] Q
+      by (smt (z3) Pair_inject Poset.Poset.select_convs(1) PosetMap.select_convs(1) PowD PowI \<open>(a, b) \<in> func (direct_image f P Q)\<close> \<open>P = powerset A\<close> \<open>\<forall>x. x \<in> A \<longrightarrow> f x \<in> B\<close> direct_image_def mem_Collect_eq powerset_def subset_eq)  
+    ultimately show "a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> b \<in> el (cod (direct_image f P Q))"
+      by presburger
+  qed
+  show "\<And>f A B a b b'.
+       P = powerset A \<Longrightarrow>
+       Q = powerset B \<Longrightarrow>
+       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> (a, b) \<in> func (direct_image f P Q) \<Longrightarrow> (a, b') \<in> func (direct_image f P
+ Q) \<Longrightarrow> b = b'"
+    by (simp add: direct_image_def)
+  show "\<And>f A B a.
+       P = powerset A \<Longrightarrow>
+       Q = powerset B \<Longrightarrow>
+       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> a \<in> el (PosetMap.dom (direct_image f P Q)) \<Longrightarrow> \<exists>b. (a, b) \<in> func
+ (direct_image f P Q)"
+    by (simp add: direct_image_def) 
+  show "\<And>f A B a a'.
+       P = powerset A \<Longrightarrow>
+       Q = powerset B \<Longrightarrow>
+       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow>
+       a \<in> el (PosetMap.dom (direct_image f P Q)) \<and>
+       a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a' \<Longrightarrow>
+       le (cod (direct_image f P Q)) (direct_image f P Q $$ a) (direct_image f P Q $$ a')" 
+  proof -
+    fix f :: "'a \<Rightarrow> 'b"
+    fix A :: "'a set"
+    fix B :: "'b set"
+    fix a :: "'a set"
+    fix a' :: "'a set" 
+   (* define "P" where "P  = powerset A"
+    define "Q" where "Q = powerset B"*)
+    assume "P = powerset A"
+    assume "Q = powerset B"
+    assume "\<forall>x. x \<in> A \<longrightarrow> f x \<in> B"
+    assume " a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'"
+
+
+    have "PosetMap.dom (direct_image f P Q) = P"
+      by (simp add: direct_image_def)
+    moreover have "PosetMap.cod (direct_image f P Q) = Q"
+      by (simp add: direct_image_def) 
+    moreover have "a \<in> el P"
+      using \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) by auto 
+    moreover have "a' \<in> el P"
+      using \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) by auto 
+    moreover have "a \<subseteq> a'"
+      by (metis (no_types, lifting) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD \<open>P = powerset A\<close> \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) fst_conv powerset_def snd_conv) 
+    moreover have "(direct_image f P Q) $$ a = {f x | x . x \<in> a}"  using direct_image_def 
+        [where ?f=f and ?P=P and ?Q=Q]   app_def [where ?a=a and ?f=" (direct_image f P Q)"]
+      by (simp add: calculation(3)) 
+    moreover have "(direct_image f P Q) $$ a' = {f x | x . x \<in> a'}"  using direct_image_def 
+        [where ?f=f and ?P=P and ?Q=Q]   app_def [where ?a=a' and ?f=" (direct_image f P Q)"]
+      by (simp add: calculation(4)) 
+    moreover have "(direct_image f P Q $$ a) \<subseteq> (direct_image f P Q $$ a')" using direct_image_def
+        [where ?f=f and ?P=P and ?Q=Q] fun_app2
+      using calculation(5) calculation(6) calculation(7) by auto
+    moreover have "le (cod (direct_image f P Q)) (direct_image f P Q $$ a) (direct_image f P Q $$
+      a')" using direct_image_def powerset_def [where ?X=B]
+      by (smt (z3) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) PowD PowI \<open>P = powerset A\<close> \<open>Q = powerset B\<close> \<open>\<forall>x. x \<in> A \<longrightarrow> f x \<in> B\<close> \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) calculation(2) calculation(7) calculation(8) case_prodI mem_Collect_eq powerset_def subset_eq) 
+   
+    ultimately show "le (cod (direct_image f P Q)) (direct_image f P Q $$ a) (direct_image f P Q $$
+      a')"
+      by force  
+  qed
+qed
 
 text \<open> EXAMPLES \<close>
 
