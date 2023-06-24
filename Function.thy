@@ -21,8 +21,8 @@ text \<open>
    to a mapping from an element of the domain to an element of the codomain.
 \<close>
 record ('a, 'b) Function =
-  cod :: "'b set"
   func :: "('a \<times> 'b) set"
+  cod :: "'b set"
 
 text \<open> 
    The `dom` function determines the domain of a function. It returns the set of all
@@ -67,7 +67,7 @@ definition "Function_const_undefined_arg_not_in_codomain b \<equiv> undefined"
 definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) Function" where
 "const A B b \<equiv> 
   if b \<in> B
-  then  \<lparr>cod = B, func = { (a, b) | a. a \<in> A }\<rparr> 
+  then  \<lparr> func = { (a, b) | a. a \<in> A }, cod = B\<rparr> 
   else Function_const_undefined_arg_not_in_codomain b"
 
 text \<open>

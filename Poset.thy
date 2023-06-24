@@ -3,10 +3,10 @@ section \<open> Poset.thy \<close>
 text \<open>
    Theory      :  Poset.thy
 
-   This theory provides the foundation of poset (partially ordered set) related constructs, operations, 
+   This theory provides the foundation of poset (partially ordered set) related constructs, operations,
    and properties that will be used in the formalization of concurrent valuation algebras.
-   It includes definitions of posets, maps between posets (monoetone functions), various poset 
-   operations, as well as the properties and lemmas related to these constructs. 
+   It includes definitions of posets, maps between posets (monoetone functions), various poset
+   operations, as well as the properties and lemmas related to these constructs.
 --------------------------------------------------------------------------------
 \<close>
 
@@ -30,14 +30,14 @@ text \<open>
 definition "Poset_le_undefined_arg_not_in_domain a a' \<equiv> undefined"
 
 text \<open>
-  This abbreviation defines a partial order for a given poset. If 'a' and 'a'' are elements of the poset, 
+  This abbreviation defines a partial order for a given poset. If 'a' and 'a'' are elements of the poset,
   it checks whether the pair (a, a') is in the poset's partial order relation.
   If either 'a' or 'a'' are not elements of the poset, it returns @{term undefined}.
 \<close>
 abbreviation le :: "'a Poset \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool)" where
-"le P a a' \<equiv> 
-  if a \<in> el P \<and> a' \<in> el P 
-  then (a, a') \<in> le_rel P 
+"le P a a' \<equiv>
+  if a \<in> el P \<and> a' \<in> el P
+  then (a, a') \<in> le_rel P
   else Poset_le_undefined_arg_not_in_domain a a'"
 
 (*
@@ -63,8 +63,8 @@ definition valid :: "'a Poset \<Rightarrow> bool" where
       welldefined \<and> reflexivity \<and> antisymmetry \<and> transitivity"
 
 text \<open>
-  This record introduces a poset map. A poset map 'f' from a poset 'A' to a poset 'B' is a function 
-  @{term func} that maps elements of 'A' to 'B', with @{term dom} representing the domain poset 'A' and @{term cod} 
+  This record introduces a poset map. A poset map 'f' from a poset 'A' to a poset 'B' is a function
+  @{term func} that maps elements of 'A' to 'B', with @{term dom} representing the domain poset 'A' and @{term cod}
   representing the codomain poset 'B'.
 \<close>
 record ('a, 'b) PosetMap =
@@ -83,18 +83,18 @@ text \<open>
   If 'a' is not in the domain, it returns @{term undefined}.
 \<close>
 definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$$" 997) where
-"app f a \<equiv> 
-  if a \<in> el (dom f) 
-  then (THE b. (a, b) \<in> func f) 
+"app f a \<equiv>
+  if a \<in> el (dom f)
+  then (THE b. (a, b) \<in> func f)
   else Poset_app_undefined_arg_not_in_domain a"
 
 text \<open>
   This definition specifies the validity of a poset map. A poset map is valid if:
   \begin{itemize}
   \item The domain and codomain are valid posets.
-  \item Every pair (a, b) in the function is well-defined, i.e., a is an element of the domain and b is an 
+  \item Every pair (a, b) in the function is well-defined, i.e., a is an element of the domain and b is an
     element of the codomain.
-  \item The function is deterministic, i.e., each element of the domain is mapped to exactly one element of 
+  \item The function is deterministic, i.e., each element of the domain is mapped to exactly one element of
     the codomain.
   \item The function is total, i.e., every element of the domain is mapped to some element of the codomain.
   \item The function is monotone, i.e., if $a \le a'$ in the domain, then $f(a) \le f(a')$ in the codomain.
@@ -120,11 +120,11 @@ text \<open>
 \<close>
 definition "Poset_compose_undefined_incomposable g f \<equiv> undefined"
 
-text \<open> 
-  `compose` is a function that combines two poset maps `g` and `f`. If the codomain of `f` matches 
-  the domain of `g`, then the result is a new poset map with `dom f` as its domain and `cod g` as 
-  its codomain. The function of the resulting poset map is the relational composition of the 
-  functions of `f` and `g`. If the codomain of `f` does not match the domain of `g`, the result 
+text \<open>
+  `compose` is a function that combines two poset maps `g` and `f`. If the codomain of `f` matches
+  the domain of `g`, then the result is a new poset map with `dom f` as its domain and `cod g` as
+  its codomain. The function of the resulting poset map is the relational composition of the
+  functions of `f` and `g`. If the codomain of `f` does not match the domain of `g`, the result
   is undefined.
 \<close>
 definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Rightarrow> ('a, 'c) PosetMap" (infixl "\<cdot>" 55) where
@@ -133,36 +133,58 @@ definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Right
   then \<lparr> func = relcomp (func f) (func g), dom = dom f, cod = cod g \<rparr>
   else Poset_compose_undefined_incomposable g f"
 
-text \<open> 
-  `ident` is a function that takes a poset `P` and returns a poset map whose domain and codomain 
+text \<open>
+  `ident` is a function that takes a poset `P` and returns a poset map whose domain and codomain
   are `P`, and whose function is the identity relation on the elements of `P`.
 \<close>
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident P \<equiv> \<lparr> func = Id_on (el P), dom = P, cod = P \<rparr>"
 
-text \<open> 
-  `product` is a function that takes two posets `P` and `Q` and returns a new poset whose 
-  elements are pairs of elements from `P` and `Q`, and whose less-than-or-equal-to relation 
-  contains a pair of pairs `(x, y)` if and only if `x` and `y` are in `P` and `Q`, respectively, 
-  and both the first element of `x` is less than or equal to the first element of `y` in `P` and 
+text \<open>
+  `is_surjective` is a predicate that takes a poset map `f` and returns true if `f` is surjective,
+  i.e., if every element of the codomain of `f` is the image of some element of the domain of `f`.
+\<close>
+definition is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_surjective f \<equiv> \<forall>b \<in> el (cod f). \<exists>a \<in> el (dom f). f $$ a = b"
+
+text \<open>
+  `is_injective` is a predicate that takes a poset map `f` and returns true if `f` is injective,
+  i.e., if every element of the codomain of `f` is the image of at most one element of the domain
+  of `f`.
+\<close>
+definition is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_injective f \<equiv> \<forall>a a' . a \<in> el (dom f) \<longrightarrow> a' \<in> el (dom f) \<longrightarrow> f $$ a = f $$ a' \<longrightarrow> a = a'"
+
+text \<open>
+  `is_bijective` is a predicate that takes a poset map `f` and returns true if `f` is bijective,
+  i.e., if `f` is both surjective and injective.
+\<close>
+definition is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_bijective f \<equiv> is_surjective f \<and> is_injective f"
+
+text \<open>
+  `product` is a function that takes two posets `P` and `Q` and returns a new poset whose
+  elements are pairs of elements from `P` and `Q`, and whose less-than-or-equal-to relation
+  contains a pair of pairs `(x, y)` if and only if `x` and `y` are in `P` and `Q`, respectively,
+  and both the first element of `x` is less than or equal to the first element of `y` in `P` and
   the second element of `x` is less than or equal to the second element of `y` in `Q`.
 \<close>
 definition product :: "'a Poset \<Rightarrow> 'b Poset \<Rightarrow> ('a \<times> 'b) Poset" (infixl "\<times>\<times>" 55) where
 "product P Q \<equiv> \<lparr> el = el P \<times> el Q, le_rel =
  {(x, y). fst x \<in> el P \<and> snd x \<in> el Q \<and> fst y \<in> el P \<and> snd y \<in> el Q \<and> (fst x, fst y) \<in> le_rel P \<and> (snd x, snd y) \<in> le_rel Q} \<rparr>"
 
-text \<open> 
-  `discrete` is a poset whose elements are all possible values of the type `'a`, and whose 
-  less-than-or-equal-to relation contains a pair `(x, y)` if and only if `x` is equal to `y`. 
+text \<open>
+  `discrete` is a poset whose elements are all possible values of the type `'a`, and whose
+  less-than-or-equal-to relation contains a pair `(x, y)` if and only if `x` is equal to `y`.
   In other words, every element is less than or equal to itself and no other element.
 \<close>
 definition discrete :: "'a Poset" where
   "discrete \<equiv> \<lparr>  el = UNIV , le_rel = {x. fst x = snd x} \<rparr>"
 
-text \<open> 
-  @{term is_inf} is a function that takes a poset `P`, a set `U` of elements from `P`, and an element `i` 
-  from `P`, and returns true if and only if `i` is a lower bound of `U` in `P` and if every other 
-  lower bound `z` of `U` in `P` is less than or equal to `i` in `P`. In other words, `i` is the 
+text \<open>
+  @{term is_inf} is a function that takes a poset `P`, a set `U` of elements from `P`, and an element `i`
+  from `P`, and returns true if and only if `i` is a lower bound of `U` in `P` and if every other
+  lower bound `z` of `U` in `P` is less than or equal to `i` in `P`. In other words, `i` is the
   greatest lower bound of `U` in `P`.
 \<close>
 definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
@@ -170,8 +192,8 @@ definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarro
 
 text \<open>
   This definition formalizes the concept of supremum (@{term is_sup}) in a poset. It asserts that for an element
-  's' to be the supremum of a set 'U' in poset 'P', 's' should be an element of 'P' and 'U' should be a subset 
-  of 'P'. Every element 'u' of 'U' should be less than or equal to 's' and for any element 'z' in 'P' that is 
+  's' to be the supremum of a set 'U' in poset 'P', 's' should be an element of 'P' and 'U' should be a subset
+  of 'P'. Every element 'u' of 'U' should be less than or equal to 's' and for any element 'z' in 'P' that is
   greater than or equal to all elements of 'U', 's' should be less than or equal to 'z'.
 \<close>
 definition is_sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
@@ -201,11 +223,18 @@ abbreviation is_complete :: "'a Poset \<Rightarrow> bool" where
 "is_complete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i))"
 
 text \<open>
-  This abbreviation defines a poset 'P' as being cocomplete if it is valid and for all subsets 'U' of 'P', a 
+  This abbreviation defines a poset 'P' as being cocomplete if it is valid and for all subsets 'U' of 'P', a
   supremum exists.
 \<close>
 abbreviation is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 "is_cocomplete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>s. is_sup P U s))"
+
+text \<open>
+  This defines the powerset of a set 'X' as a poset. The elements of the poset are all subsets of 'X' and the
+  less-than-or-equal-to relation is the subset relation.
+\<close>
+definition powerset :: "'a set \<Rightarrow> ('a set) Poset" where
+"powerset X = \<lparr> el = {U. U \<subseteq> X}, le_rel = {(U, V). U \<subseteq> X \<and> V \<subseteq> X \<and> U \<subseteq> V} \<rparr>"
 
 text \<open> ----------------- LEMMAS ----------------- \<close>
 
@@ -219,7 +248,7 @@ lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarr
                    (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
                    (\<And>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a'))
   \<Longrightarrow> valid_map f "
-  by (smt (verit) Poset.valid_map_def) 
+  by (smt (verit) Poset.valid_map_def)
 
 text \<open>
   This lemma states that the Cartesian product of two valid posets is also a valid poset.
@@ -286,7 +315,7 @@ unfolding valid_map_def
   by metis
 
 text \<open>
-   This lemma asserts that for a valid poset map `f` and an element `a` in the domain of `f`, 
+   This lemma asserts that for a valid poset map `f` and an element `a` in the domain of `f`,
    the pair `(a, f \$\$ a)` is an element of the function `f`. This is essentially a representation
    of the functionality of a poset map.
 \<close>
@@ -294,15 +323,15 @@ lemma fun_app : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarr
   by (metis app_def the_equality valid_map_deterministic valid_map_total)
 
 text \<open>
-   This lemma establishes that if `fa` is equivalent to `f \$\$ a` for a valid poset map `f` and an element 
+   This lemma establishes that if `fa` is equivalent to `f \$\$ a` for a valid poset map `f` and an element
    `a` in the domain of `f`, then `fa` is an element of the codomain of `f`.
 \<close>
 lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> fa = f $$ a \<Longrightarrow> fa \<in> el (cod f)"
   by (meson fun_app valid_map_welldefined)
 
 text \<open>
-   This lemma is an extensionality result: If two valid poset maps `f` and `g` have the same 
-   domain and codomain, and map each element of their common domain to the same element in the 
+   This lemma is an extensionality result: If two valid poset maps `f` and `g` have the same
+   domain and codomain, and map each element of their common domain to the same element in the
    codomain, then `f` and `g` are the same poset map.
 \<close>
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f $$ a = g $$ a) \<Longrightarrow> f = g"
@@ -329,8 +358,8 @@ lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrigh
   by (simp add: Let_def)
 
 text \<open>
-   This lemma defines the well-definedness of composition of two valid poset maps `f` and `g`. 
-   If the pair `(a, b)` is in the function of $g \cdot f$, then `a` is an element of the domain of `f` 
+   This lemma defines the well-definedness of composition of two valid poset maps `f` and `g`.
+   If the pair `(a, b)` is in the function of $g \cdot f$, then `a` is an element of the domain of `f`
    and `b` is an element of the codomain of `g`.
 \<close>
 lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod g)"
@@ -345,7 +374,7 @@ lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longr
 
 text \<open>
    This lemma asserts that for two valid poset maps `f` and `g`, where the domain of `g` is the
-   codomain of `f`, and `a` is an element of the domain of `f`, there exists a `b` such that 
+   codomain of `f`, and `a` is an element of the domain of `f`, there exists a `b` such that
    `(a, b)` is in the function $g \cdot f$.
 \<close>
 lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<cdot> f)"
@@ -373,7 +402,7 @@ lemma valid_cod : "valid_map f \<Longrightarrow> valid (cod f)"
   by (clarsimp simp: Let_unfold)
 
 text \<open>
-   This lemma states that for two valid poset maps `f` and `g`, where `a` is an element of the domain 
+   This lemma states that for two valid poset maps `f` and `g`, where `a` is an element of the domain
    of `f` and the domain of `g` is the codomain of `f`, the value of $(g \cdot f) \$\$ a$ is the same as $g \$\$ (f \$\$ a)$.
 \<close>
 lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
@@ -382,30 +411,30 @@ lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> 
   by (metis app_def fun_app2)
 
 text \<open>
-  Lemma @{term compose_monotone} demonstrates the monotonicity of function composition. Given two valid 
-  poset maps `f` and `g`, and two elements `a` and `a'` from the domain of `f` such that `a` is less than or 
-  equal to `a'` under the partial order of the domain, and the domain of `g` equals the codomain of `f`, 
-  it shows that the application of the composition $(g \cdot f)$ on `a` is less than or equal to the application 
+  Lemma @{term compose_monotone} demonstrates the monotonicity of function composition. Given two valid
+  poset maps `f` and `g`, and two elements `a` and `a'` from the domain of `f` such that `a` is less than or
+  equal to `a'` under the partial order of the domain, and the domain of `g` equals the codomain of `f`,
+  it shows that the application of the composition $(g \cdot f)$ on `a` is less than or equal to the application
   on `a'` under the partial order of the codomain of `g`.
 \<close>
 lemma compose_monotone :
   fixes f :: "('a,'b) PosetMap" and g :: "('b,'c) PosetMap" and a a' :: "'a"
   assumes f_valid : "valid_map f" and g_valid : "valid_map g"
-  and a_elem : "a \<in> el (dom f)" and a'_elem : "a' \<in> el (dom f)" 
+  and a_elem : "a \<in> el (dom f)" and a'_elem : "a' \<in> el (dom f)"
   and le_aa' : "le (dom f) a a'"
   and dom_cod : "dom g = cod f"
 shows "le (cod g) ((g \<cdot> f) $$ a) ((g \<cdot> f) $$ a')"
 proof -
   have "le (cod f) (f $$ a) (f $$ a')" using valid_map_monotone
-    by (metis a'_elem a_elem f_valid le_aa')   
+    by (metis a'_elem a_elem f_valid le_aa')
   moreover have  "le (cod g) (g $$ (f $$ a)) (g $$ (f $$ a'))" using valid_map_monotone
-    by (metis a'_elem a_elem calculation dom_cod f_valid fun_app2 g_valid) 
+    by (metis a'_elem a_elem calculation dom_cod f_valid fun_app2 g_valid)
   ultimately show ?thesis using compose_app
     by (metis a'_elem a_elem dom_cod f_valid g_valid)
 qed
 
 text \<open>
-  Lemma @{term compose_valid} establishes the validity of the composition of two valid poset maps `f` and `g` 
+  Lemma @{term compose_valid} establishes the validity of the composition of two valid poset maps `f` and `g`
   under the condition that the domain of `g` equals the codomain of `f`.
 \<close>
 lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<cdot> f)"
@@ -418,8 +447,8 @@ lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
   by (simp add: compose_monotone)
 
 text \<open>
-  Lemma @{term comp_app} provides the result of the functional application of the composition of two valid poset 
-  maps `f` and `g` on an element `a`, given that `(a, b)` belongs to the function `f` and `(b, c)` belongs 
+  Lemma @{term comp_app} provides the result of the functional application of the composition of two valid poset
+  maps `f` and `g` on an element `a`, given that `(a, b)` belongs to the function `f` and `(b, c)` belongs
   to the function `g`, and the domain of `g` equals the codomain of `f`. The result is equal to `c`.
 \<close>
 lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
@@ -437,7 +466,7 @@ lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
   by blast
 
 text \<open>
-  Lemma @{term ident_app} describes the functional application of the identity map on an element `a` in a valid 
+  Lemma @{term ident_app} describes the functional application of the identity map on an element `a` in a valid
   poset `P`. The result is equal to `a` itself.
 \<close>
 lemma ident_app [simp] :
@@ -449,14 +478,14 @@ lemma ident_app [simp] :
   by (simp add: assms)
 
 text \<open>
-  Lemma @{term valid_map_dom} asserts that for a valid map `f`, if `(a, b)` is an element of the function `f`, 
+  Lemma @{term valid_map_dom} asserts that for a valid map `f`, if `(a, b)` is an element of the function `f`,
   then `a` is an element of the domain of `f`.
 \<close>
 lemma valid_map_dom: "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> el (dom f)"
   by (meson valid_map_welldefined)
 
 text \<open>
-  Lemma @{term ident_right_neutral} states that the composition of a valid map `f` with the identity map on the 
+  Lemma @{term ident_right_neutral} states that the composition of a valid map `f` with the identity map on the
   domain of `f` is equal to `f` itself.
 \<close>
 lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Longrightarrow> f \<cdot> (ident x) = f"
@@ -470,7 +499,7 @@ lemma ident_right_neutral [simp] : "valid_map f \<Longrightarrow> dom f = x \<Lo
   by blast
 
 text \<open>
-  Lemma @{term ident_left_neutral} states that the composition of the identity map on the codomain of `f` with 
+  Lemma @{term ident_left_neutral} states that the composition of the identity map on the codomain of `f` with
   a valid map `f` is equal to `f` itself.
 \<close>
 lemma ident_left_neutral [simp]  : "valid_map f \<Longrightarrow> cod f = x \<Longrightarrow> (ident x) \<cdot> f = f"
@@ -492,7 +521,7 @@ lemma discrete_valid : "valid discrete"
 text \<open> Infima \& suprema \<close>
 
 text \<open>
-  Lemma @{term inf_unique} establishes the uniqueness of the infimum `i` for a set `U` in a valid poset `P`, 
+  Lemma @{term inf_unique} establishes the uniqueness of the infimum `i` for a set `U` in a valid poset `P`,
   given `i` and `i'` are both infima of `U`. If `i` and `i'` are infima of `U`, then `i = i'`.
 \<close>
 lemma inf_unique : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P\<Longrightarrow> i' \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> is_inf P U i' \<Longrightarrow> i = i'"
@@ -500,7 +529,7 @@ lemma inf_unique : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarro
   by (metis valid_antisymmetry)
 
 text \<open>
-  Lemma @{term sup_unique} establishes the uniqueness of the supremum `s` for a set `U` in a valid poset `P`, 
+  Lemma @{term sup_unique} establishes the uniqueness of the supremum `s` for a set `U` in a valid poset `P`,
   given `s` and `s'` are both suprema of `U`. If `s` and `s'` are suprema of `U`, then `s = s'`.
 \<close>
 lemma sup_unique : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P\<Longrightarrow> s' \<in> el P \<Longrightarrow> is_sup P U s \<Longrightarrow> is_sup P U s' \<Longrightarrow> s = s'"
@@ -508,7 +537,7 @@ lemma sup_unique : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarr
   by (metis valid_antisymmetry)
 
 text \<open>
-  Lemma @{term inf_is_glb} states that in a valid poset `P`, if `i` is the infimum of a set `U`, and `z` is less 
+  Lemma @{term inf_is_glb} states that in a valid poset `P`, if `i` is the infimum of a set `U`, and `z` is less
   than or equal to all elements of `U`, then `z` is also less than or equal to `i`.
 \<close>
 lemma inf_is_glb : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i
@@ -516,7 +545,7 @@ lemma inf_is_glb : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightar
   by (simp add: is_inf_def)
 
 text \<open>
-  Lemma @{term sup_is_lub} states that in a valid poset `P`, if `s` is the supremum of a set `U`, and `z` is 
+  Lemma @{term sup_is_lub} states that in a valid poset `P`, if `s` is the supremum of a set `U`, and `z` is
   greater than or equal to all elements of `U`, then `s` is also less than or equal to `z`.
 \<close>
 lemma sup_is_lub : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> s \<in> el P \<Longrightarrow> is_sup P U s
@@ -524,7 +553,7 @@ lemma sup_is_lub : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightar
   by (simp add: is_sup_def)
 
 text \<open>
-  Lemma @{term inf_smaller} asserts that in a valid poset `P`, if `i` is the infimum of a set `U`, then `i` is 
+  Lemma @{term inf_smaller} asserts that in a valid poset `P`, if `i` is the infimum of a set `U`, then `i` is
   less than or equal to every element in `U`.
 \<close>
 lemma inf_smaller : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> i \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> \<forall> u \<in> U. le P i u"
@@ -532,7 +561,7 @@ lemma inf_smaller : "valid P  \<Longrightarrow> U \<subseteq> el P  \<Longrighta
   by blast
 
 text \<open>
-  Lemma @{term sup_greater} asserts that in a valid poset `P`, if `s` is the supremum of a set `U`, then `s` is 
+  Lemma @{term sup_greater} asserts that in a valid poset `P`, if `s` is the supremum of a set `U`, then `s` is
   greater than or equal to every element in `U`.
 \<close>
 lemma sup_greater : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> s \<in> el P  \<Longrightarrow> is_sup P U s \<Longrightarrow> \<forall> u \<in> U. le P u s"
@@ -540,7 +569,7 @@ lemma sup_greater : "valid P  \<Longrightarrow> U \<subseteq> el P \<Longrightar
   by blast
 
 text \<open>
-  Lemma @{term some_inf_is_inf} asserts that in a valid poset `P`, if `inf P U = Some i`, then `i` is the infimum 
+  Lemma @{term some_inf_is_inf} asserts that in a valid poset `P`, if `inf P U = Some i`, then `i` is the infimum
   of `U`.
 \<close>
 lemma some_inf_is_inf : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P \<Longrightarrow> inf P U = Some i \<Longrightarrow> is_inf P U i"
@@ -548,7 +577,7 @@ lemma some_inf_is_inf : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrigh
   by (metis (no_types, lifting) option.distinct(1) option.inject someI_ex)
 
 text \<open>
-  Lemma @{term some_sup_is_sup} asserts that in a valid poset `P`, if `sup P U = Some s`, then `s` is the supremum 
+  Lemma @{term some_sup_is_sup} asserts that in a valid poset `P`, if `sup P U = Some s`, then `s` is the supremum
   of `U`.
 \<close>
 lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
@@ -575,13 +604,36 @@ proof
   assume "is_complete P"
   fix U
   define "s" where "s = inf P {a \<in> Poset.el P . (\<forall> u \<in> U . le P u a)}"
-  have "s = sup P U" 
+  have "s = sup P U"
     oops
+
+text \<open>
+  Lemma @{term surjection_is_right_cancellative} states that in a valid map `f`, if `f` is surjective, and `g` and
+  `h` are valid maps such that `dom g = cod f` and `dom h = cod f`, and `g \<cdot> f = h \<cdot> f`, then `g = h`.
+\<close>
+lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
+  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<cdot> f = h \<cdot> f \<Longrightarrow> g = h"
+  by (metis cod_compose compose_app fun_ext is_surjective_def)
+
+text \<open>
+  Lemma @{term injection_is_left_cancellative} states that in a valid map `f`, if `f` is injective, and `g` and
+  `h` are valid maps such that `cod g = dom f` and `cod h = dom f`, and $`f \<cdot> g = f \<cdot> h`$, then `g = h`.
+\<close>
+lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
+  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<cdot> g = f \<cdot> h \<Longrightarrow> g = h"
+  by (smt (verit, best) compose_app dom_compose fun_app2 fun_ext is_injective_def)
+
+text \<open>
+  Lemma @{term powerset_valid} states that the powerset poset is valid.
+\<close>
+lemma powerset_valid : "valid (powerset A)"
+  unfolding powerset_def
+  using valid_def by fastforce
 
 text \<open> EXAMPLES \<close>
 
 text \<open>
-  Definition @{term ex_naturals} is an example of a poset that includes all natural numbers with the less than 
+  Definition @{term ex_naturals} is an example of a poset that includes all natural numbers with the less than
   or equal to relation.
 \<close>
 definition ex_naturals :: "nat Poset" where
@@ -594,7 +646,7 @@ lemma ex_naturals_valid : "valid ex_naturals"
   by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) UNIV_I dual_order.refl ex_naturals_def mem_Collect_eq old.prod.case order_antisym order_trans valid_def)
 
 text \<open>
-  Definition @{term ex_divisibility} is an example of a poset that includes all natural numbers with the 
+  Definition @{term ex_divisibility} is an example of a poset that includes all natural numbers with the
   divisibility relation.
 \<close>
 definition ex_divisibility :: "nat Poset" where
@@ -620,9 +672,9 @@ definition test :: "nat Poset" where
   "test \<equiv> \<lparr>  el = {0} , le_rel = {(0,0)} \<rparr>"
 
 lemma  "le test 0 0"
-  by (simp add: test_def) 
+  by (simp add: test_def)
 
 lemma "le test 0 1"
-  apply auto 
+  apply auto
 *)
 end
