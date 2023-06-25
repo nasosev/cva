@@ -9,7 +9,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
       eprint={2305.18017},
       archivePrefix={arXiv},
       primaryClass={cs.LO},
-      url={<https://arxiv.org/abs/2305.18017>
+      url={<https://arxiv.org/abs/2305.18017>}
 }
 
 ---
@@ -37,13 +37,23 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Proposition 2 (comparitor)
 - [x] Proposition 3 (hoare_concurrency_rule)
 
+### Section 3 - Tuple systems: Tuple.thy
+
+- [ ] Theorem 2 ()
+- [ ] Lemma 1 ()
+- [ ] Proposition 4 ()
+- [ ] Proposition 5 ()
+- [ ] Lemma 2 ()
+- [ ] Lemma 3 ()
+- [ ] Lemma 4 ()
+
 ## To-do
 
 - Sections 3-6...
 
 ## Design principles
 
-- Mathematical structures (Functions, Posets, Presheaves, and their maps, etc.) are implemented as record types.
+- Mathematical structures (Functions, Posets, Prealgebras (poset-valued presheaves), and their maps, etc.) are implemented as record types.
 - Each structure has a corresponding validity predicate (`valid` or `valid_map`) which is used to constrain the structure's parameters to ensure that the structure is well-defined. These predicate should be verified at the boundaries of the formalisation, i.e.
    1. As assumptions to theorems/lemmas/constructions/etc. (inputs)
    2. As conclusions of theorems/lemmas/constructions/etc. (outputs)
@@ -51,7 +61,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## Notes
 
-- Tuple systems (Tuple.thy) are defined as poset-valued presheaves instead of set-valued ones, to avoid redoing the Presheaf theory for the latter. The poset structure of the tuple system is simply ignored when generating the relational algebra.
+- Tuple systems (Tuple.thy) are defined as prealgebras instead of set-valued presheaves, to avoid redoing the Prealgebra theory for the latter. The poset structure of the tuple system is simply ignored when generating the relational algebra.
 - Documentation is generated using ChatGPT and has not been proofread! :sweat_smile:
 
 ## Acknowledgements
