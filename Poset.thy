@@ -726,7 +726,7 @@ proof -
     by (simp add: direct_image_def ident_def powerset_def)
 qed
 
-lemma direct_imag_trans : "\<And> f g X Y Z .
+lemma direct_image_trans : "\<And> f g X Y Z .
 (\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z )
 \<Longrightarrow>  direct_image g Y Z \<cdot> direct_image f X Y = direct_image (g \<circ> f) X Z"
 proof -
@@ -741,7 +741,6 @@ proof -
   proof auto
     fix p
     assume "p \<subseteq> X" 
-    define "t" where "t = (p, {g (f x) |x. x \<in> p})"
     have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} "
       using \<open>p \<subseteq> X\<close> by blast 
     moreover have "{f x |x. x \<in> p} \<subseteq> Y"
@@ -754,8 +753,44 @@ proof -
       by fastforce 
   qed
 qed
-  
 
+lemma direct_image_trans_weak : "\<And> f g gf X Y Z .
+(\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z ) \<Longrightarrow> (\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x))
+\<Longrightarrow>  direct_image g Y Z \<cdot> direct_image f X Y = direct_image gf X Z"
+  proof -
+  fix f :: "'a \<Rightarrow> 'b"
+  fix g :: "'b \<Rightarrow> 'c"
+  fix gf :: "'a \<Rightarrow> 'c"
+  fix X Y Z
+  assume "\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y"
+  assume "\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z"
+  assume "\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x)"
+
+  show "direct_image g Y Z \<cdot> direct_image f X Y = direct_image gf X Z" 
+    unfolding direct_image_def compose_def
+  proof clarsimp
+    show "{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y} = {(p, {gf x |x. x \<in>
+ p}) |p. p \<subseteq> X}" 
+      apply safe
+       apply clarsimp
+      using \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> subsetD apply fastforce
+    proof clarsimp
+      fix p
+      assume "p \<subseteq> X"
+have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} "
+      using \<open>p \<subseteq> X\<close> by blast 
+    moreover have "{f x |x. x \<in> p} \<subseteq> Y"
+      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto 
+    moreover have "({f x |x. x \<in> p}, {gf x |x. x \<in> p}) \<in> {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y}"
+      by (smt (verit) Collect_cong \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> \<open>p \<subseteq> X\<close> calculation(2) in_mono mem_Collect_eq) 
+    ultimately show "(p, {gf x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p
+ \<subseteq> Y}" using relcompI [where ?r="{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X}" and ?s="{(p, {g x |x. x \<in> p}) |p. p
+ \<subseteq> Y}" and ?a=p and ?c="{gf x |x. x \<in> p}" and ?b="{f x |x. x \<in> p}"]
+      by linarith
+  qed
+qed
+qed
+  
 text \<open> EXAMPLES \<close>
 
 text \<open>

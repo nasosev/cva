@@ -159,7 +159,22 @@ lemma relation_ar_trans :
   and endpoints : "Inclusion.dom j = Inclusion.cod i"
 shows "ar R $ Space.compose j i = ar R $ i \<cdot> ar R $ j"
 proof -
-  
+  define "f" where "f = (\<lambda>i. ($$) (ar T $ i))"
+  have "ar R $ i = direct_image (f i) (el (ob T $ Inclusion.cod i)) (el (ob T $ Inclusion.dom i))"
+    using R_def T_valid f_def i_inc relation_ar_value by blast 
+  moreover have "ar R $ j = direct_image (f j) (el (ob T $ Inclusion.cod j)) (el (ob T $ Inclusion.dom j))"
+    using R_def T_valid f_def j_inc relation_ar_value by blast
+  define "ji" where "ji = (Space.compose j i)"
+    moreover have "ar R $ ji = direct_image (f ji) (el (ob T $ Inclusion.cod ji)) (el (ob T $
+      Inclusion.dom ji))"
+      by (smt (z3) Inclusion.select_convs(1) R_def Space.compose_def Space.compose_valid T_valid endpoints f_def i_inc inclusions_def j_inc ji_def mem_Collect_eq relation_ar_value) 
+    moreover have "\<forall> x . x \<in> el (ob T $ (Inclusion.cod j)) \<longrightarrow> f ji x = (f i o f j) x"
+      by (smt (verit, ccfv_SIG) R_def T_valid Tuple.valid_welldefined cod_proj comp_apply compose_app dom_proj endpoints f_def i_inc j_inc ji_def relation_space_valid valid_ar valid_composition) 
+    moreover have "ar R $ Space.compose j i = ar R $ i \<cdot> ar R $ j"
+      by (smt (verit) Presheaf.valid_welldefined R_def Space.cod_compose Space.dom_compose T_valid Tuple.valid_welldefined \<open>ar R $ j = direct_image (f j) (el (ob T $ Inclusion.cod j)) (el (ob T $ Inclusion.dom j))\<close> calculation(1) calculation(3) compose_app direct_image_trans_weak endpoints f_def i_inc image inclusions_def j_inc ji_def mem_Collect_eq relation_space_valid valid_composition) 
+    ultimately show ?thesis
+      by meson
+  qed
 
 lemma valid_relation_prealgebra :
   fixes T :: "('A,'a) TupleSystem"
@@ -186,6 +201,10 @@ proof (rule Presheaf.validI, auto)
   show "\<And>A. A \<in> Space.opens (Presheaf.space R) \<Longrightarrow> ar R $ Space.ident (Presheaf.space R) A =
  Poset.ident (ob R $ A)"
     using R_def assms(1) relation_ar_ident by blast 
-
+  show "\<And>i j. j \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow>
+           i \<in> Space.inclusions (Presheaf.space R) \<Longrightarrow>
+           Inclusion.dom j = Inclusion.cod i \<Longrightarrow> ar R $ Space.compose j i = ar R $ i \<cdot> ar R $ j"
+    by (simp add: R_def assms(1) relation_ar_trans) 
+qed
 
 end
