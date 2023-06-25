@@ -710,6 +710,11 @@ proof (rule valid_mapI)
     using direct_image_mono by blast 
 qed
 
+lemma direct_image_ident : "direct_image id X X = ident (powerset X)" 
+  using powerset_def [where ?X=X] direct_image_def  [where ?X=X and ?Y=X and ?f=id] ident_def [where
+      ?P="powerset X"]
+  by auto
+
 text \<open> EXAMPLES \<close>
 
 text \<open>

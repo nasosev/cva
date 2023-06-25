@@ -118,6 +118,9 @@ text \<open> The identity inclusion of an open in a valid space is a valid inclu
 lemma valid_ident : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> valid_inclusion (ident T A)"
   by (simp add: ident_def valid_inclusion_def)
 
+lemma valid_ident_inclusion : "valid T \<Longrightarrow> A \<in> opens T  \<Longrightarrow> ident T A \<in> inclusions T"
+  by (metis (mono_tags, lifting) Inclusion.select_convs(1) ident_def inclusions_def mem_Collect_eq valid_ident)
+
 text \<open> 
 The composition of two valid inclusions in the same space where the domain of the second one is 
    the codomain of the first one, is a valid inclusion. 
