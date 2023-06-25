@@ -1,7 +1,7 @@
-section \<open> Poset.thy \<close>
+section \<open> thy \<close>
 
 text \<open>
-   Theory      :  Poset.thy
+   Theory      :  thy
 
    This theory provides the foundation of poset (partially ordered set) related constructs, operations,
    and properties that will be used in the formalization of concurrent valuation algebras.
@@ -236,11 +236,11 @@ text \<open>
 definition powerset :: "'a set \<Rightarrow> ('a set) Poset" where
 "powerset X = \<lparr> el = Pow X, le_rel = {(U, V). U \<in> Pow X \<and> V \<in> Pow X \<and> U \<subseteq> V} \<rparr>"
 
-definition direct_image :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a set) Poset \<Rightarrow> ('b set) Poset \<Rightarrow> ('a set, 'b set) PosetMap" where
-"direct_image f P Q \<equiv> \<lparr>
-        func = {(p, {f x | x . x \<in> p}) | p . p \<in> el P},
-        dom = P,
-        cod = Q \<rparr>"
+definition direct_image :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> ('a set, 'b set) PosetMap" where
+"direct_image f X Y \<equiv> \<lparr>
+        func = {(p, {f x | x . x \<in> p}) | p . p \<subseteq> X},
+        dom = powerset X,
+        cod = powerset Y \<rparr>"
 
 text \<open> ----------------- LEMMAS ----------------- \<close>
 
@@ -254,15 +254,14 @@ lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarr
                    (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
                    (\<And>a a'. a \<in> el (dom f) \<and> a' \<in> el (dom f) \<and> le (dom f) a a' \<Longrightarrow> le (cod f) (f $$ a) (f $$ a'))
   \<Longrightarrow> valid_map f "
-  by (smt (verit) Poset.valid_map_def)
+  by (smt (verit) valid_map_def)
 
 text \<open>
   This lemma states that the Cartesian product of two valid posets is also a valid poset.
 \<close>
 lemma product_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid (P \<times>\<times> Q)"
   unfolding valid_def product_def
-  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD case_prodI fst_conv mem_Collect_eq mem_Sigma_iff prod.collapse snd_conv)
-
+  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD SigmaE SigmaI case_prodI fst_conv mem_Collect_eq prod.collapse snd_conv) 
 text \<open>
   This lemma states that if two poset maps have the same domain, codomain, and function, they are equal.
 \<close>
@@ -369,14 +368,14 @@ text \<open>
    and `b` is an element of the codomain of `g`.
 \<close>
 lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod g)"
-  by (metis PosetMap.select_convs(1) compose_def relcomp.simps valid_map_welldefined)
+  by (metis select_convs(1) compose_def relcomp.simps valid_map_welldefined)
 
 text \<open>
    This lemma establishes the deterministic property of the composition of two valid poset maps.
    If `(a, b)` and `(a, b')` are both elements of the function $g \cdot f$, then `b` equals `b'`.
 \<close>
 lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<cdot> f) \<Longrightarrow> (a, b') \<in> func (g \<cdot> f) \<Longrightarrow> b = b'"
-  by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) compose_def relcomp.simps valid_map_deterministic)
+  by (smt (verit, ccfv_SIG) select_convs(1) compose_def relcomp.simps valid_map_deterministic)
 
 text \<open>
    This lemma asserts that for two valid poset maps `f` and `g`, where the domain of `g` is the
@@ -385,7 +384,7 @@ text \<open>
 \<close>
 lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<cdot> f)"
   unfolding compose_def
-  by (smt (verit, best) PosetMap.select_convs(1) fun_app fun_app2 relcomp.relcompI)
+  by (smt (verit, best) select_convs(1) fun_app fun_app2 relcomp.relcompI)
 
 text \<open>
    This lemma states that if `(a, b)` is an element of a valid poset map `f`, then `f \$\$ a` is equivalent to `b`.
@@ -413,7 +412,7 @@ text \<open>
 \<close>
 lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<cdot> f) $$ a = g $$ (f $$ a)"
   apply (clarsimp simp: app_def, safe; clarsimp?)
-   apply (smt (verit, del_insts) PosetMap.select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
+   apply (smt (verit, del_insts) select_convs(1) compose_def compose_deterministic fun_app relcomp.relcompI theI valid_map_deterministic)
   by (metis app_def fun_app2)
 
 text \<open>
@@ -522,7 +521,7 @@ text \<open>
   Lemma @{term discrete_valid} confirms the validity of the discrete poset.
 \<close>
 lemma discrete_valid : "valid discrete"
-  by (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) UNIV_I discrete_def fst_conv mem_Collect_eq snd_conv validI)
+  by (simp add: discrete_def valid_def) 
 
 text \<open> Infima \& suprema \<close>
 
@@ -588,7 +587,7 @@ text \<open>
 \<close>
 lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
   unfolding sup_def
-  by (metis (no_types, lifting) Poset.sup_unique option.distinct(1) option.inject some_equality)
+  by (metis (no_types, lifting) sup_unique option.distinct(1) option.inject some_equality)
 
 text \<open>
   Lemma @{term complete_inf_not_none} shows that in a complete poset `P`, `inf P U` cannot be `None`.
@@ -609,7 +608,7 @@ lemma complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomp
 proof
   assume "is_complete P"
   fix U
-  define "s" where "s = inf P {a \<in> Poset.el P . (\<forall> u \<in> U . le P u a)}"
+  define "s" where "s = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
   have "s = sup P U"
     oops
 
@@ -636,109 +635,80 @@ lemma powerset_valid : "valid (powerset A)"
   unfolding powerset_def
   using valid_def by fastforce
 
-lemma direct_image_valid : "\<And> f A B  .  P = powerset A \<Longrightarrow> Q = powerset B \<Longrightarrow> (\<forall> x . x \<in> A \<longrightarrow> f x \<in> B) \<Longrightarrow> valid_map (direct_image f P Q)"
-proof (rule valid_mapI)
-  show "\<And>f A B. P = powerset A \<Longrightarrow> Q = powerset B \<Longrightarrow> \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> valid (PosetMap.dom
- (direct_image f P Q))"
-    by (simp add: direct_image_def powerset_valid)
-  show "\<And>f A B. P = powerset A \<Longrightarrow> Q = powerset B \<Longrightarrow> \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> valid (cod (direct_image f P
- Q))"
-    by (simp add: direct_image_def powerset_valid)
-  show "\<And>f A B a b.
-       P = powerset A \<Longrightarrow>
-       Q = powerset B \<Longrightarrow>
-       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow>
-       (a, b) \<in> func (direct_image f P Q) \<Longrightarrow>
-       a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> b \<in> el (cod (direct_image f P Q))"
-  proof -
-    fix f :: "'a \<Rightarrow> 'b"
-    fix A :: "'a set"
-    fix B :: "'b set"
-    fix P Q
-    fix a b
-    assume "P = powerset A"
-    assume Q: "Q = powerset B"
-    assume "\<forall>x. x \<in> A \<longrightarrow> f x \<in> B"
-    assume  "(a, b) \<in> func (direct_image f P Q)"
+lemma direct_image_dom : "dom (direct_image f X Y) = powerset X"
+  by (simp add: direct_image_def)
 
-    have "PosetMap.dom (direct_image f P Q) = P"
-      by (simp add: direct_image_def)
-    moreover have "PosetMap.cod (direct_image f P Q) = Q"
-      by (simp add: direct_image_def)
-    moreover have "a \<in> el P"
-      by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) \<open>(a, b) \<in> func (direct_image f P Q)\<close> direct_image_def fst_conv mem_Collect_eq)
-    moreover have "b \<in> el Q" using  powerset_def [where ?X=B] Q
-      by (smt (z3) Pair_inject Poset.Poset.select_convs(1) PosetMap.select_convs(1) PowD PowI \<open>(a, b) \<in> func (direct_image f P Q)\<close> \<open>P = powerset A\<close> \<open>\<forall>x. x \<in> A \<longrightarrow> f x \<in> B\<close> direct_image_def mem_Collect_eq powerset_def subset_eq)
-    ultimately show "a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> b \<in> el (cod (direct_image f P Q))"
-      by presburger
-  qed
-  show "\<And>f A B a b b'.
-       P = powerset A \<Longrightarrow>
-       Q = powerset B \<Longrightarrow>
-       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> (a, b) \<in> func (direct_image f P Q) \<Longrightarrow> (a, b') \<in> func (direct_image f P
- Q) \<Longrightarrow> b = b'"
-    by (simp add: direct_image_def)
-  show "\<And>f A B a.
-       P = powerset A \<Longrightarrow>
-       Q = powerset B \<Longrightarrow>
-       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow> a \<in> el (PosetMap.dom (direct_image f P Q)) \<Longrightarrow> \<exists>b. (a, b) \<in> func
- (direct_image f P Q)"
-    by (simp add: direct_image_def)
-  show "\<And>f A B a a'.
-       P = powerset A \<Longrightarrow>
-       Q = powerset B \<Longrightarrow>
-       \<forall>x. x \<in> A \<longrightarrow> f x \<in> B \<Longrightarrow>
-       a \<in> el (PosetMap.dom (direct_image f P Q)) \<and>
-       a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a' \<Longrightarrow>
-       le (cod (direct_image f P Q)) (direct_image f P Q $$ a) (direct_image f P Q $$ a')"
-  proof -
+lemma direct_image_cod : "cod (direct_image f X Y) = powerset Y"
+  by (simp add: direct_image_def)
+
+lemma direct_image_app : "a \<subseteq> X \<Longrightarrow> (direct_image f X Y) $$ a = {f x | x . x \<in> a}"
+using direct_image_def
+        [where ?f=f and ?X=X and ?Y=Y]   app_def [where ?a=a and ?f=" (direct_image f X Y)"]
+  apply clarsimp
+  apply safe
+  apply (simp add: powerset_def)
+  by (simp add: powerset_def)
+
+lemma direct_image_mono_raw: "a \<subseteq> X \<Longrightarrow> a' \<subseteq> X \<Longrightarrow> a \<subseteq> a' \<Longrightarrow> (direct_image f X Y) $$ a \<subseteq> (direct_image f X Y)
+ $$ a'"  using direct_image_def  [where ?f=f and ?X=X and ?Y=Y]  
+ app_def [where ?a=a and ?f=" (direct_image f X Y)"]  app_def [where ?a=a' and ?f=" (direct_image f X Y)"]
+  by (smt (verit, del_insts) direct_image_app mem_Collect_eq subset_iff)
+
+lemma direct_image_mono: "\<And> f X Y a a' . Pow_f =direct_image f X Y \<Longrightarrow> P = dom Pow_f \<Longrightarrow>  Q = cod Pow_f
+ \<Longrightarrow> a \<in> el P \<Longrightarrow> a' \<in> el P
+ \<Longrightarrow> le P a a' \<Longrightarrow> Pf =direct_image f X Y \<Longrightarrow> fa = Pf $$ a \<Longrightarrow> fa' = Pf $$ a' \<Longrightarrow>
+\<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow> le Q fa fa'" 
+proof -
     fix f :: "'a \<Rightarrow> 'b"
-    fix A :: "'a set"
-    fix B :: "'b set"
+    fix X :: "'a set"
+    fix Y :: "'b set"
     fix a :: "'a set"
     fix a' :: "'a set"
-   (* define "P" where "P  = powerset A"
-    define "Q" where "Q = powerset B"*)
-    assume "P = powerset A"
-    assume "Q = powerset B"
-    assume "\<forall>x. x \<in> A \<longrightarrow> f x \<in> B"
-    assume " a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'"
-
-
-    have "PosetMap.dom (direct_image f P Q) = P"
-      by (simp add: direct_image_def)
-    moreover have "PosetMap.cod (direct_image f P Q) = Q"
-      by (simp add: direct_image_def)
-    moreover have "a \<in> el P"
-      using \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) by auto
-    moreover have "a' \<in> el P"
-      using \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) by auto
-    moreover have "a \<subseteq> a'"
-      by (metis (no_types, lifting) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD \<open>P = powerset A\<close> \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) fst_conv powerset_def snd_conv)
-    moreover have "(direct_image f P Q) $$ a = {f x | x . x \<in> a}"  using direct_image_def
-        [where ?f=f and ?P=P and ?Q=Q]   app_def [where ?a=a and ?f=" (direct_image f P Q)"]
-      by (simp add: calculation(3))
-    moreover have "(direct_image f P Q) $$ a' = {f x | x . x \<in> a'}"  using direct_image_def
-        [where ?f=f and ?P=P and ?Q=Q]   app_def [where ?a=a' and ?f=" (direct_image f P Q)"]
-      by (simp add: calculation(4))
-    moreover have "(direct_image f P Q $$ a) \<subseteq> (direct_image f P Q $$ a')" using direct_image_def
-        [where ?f=f and ?P=P and ?Q=Q] fun_app2
-      using calculation(5) calculation(6) calculation(7) by auto
-    moreover have "le (cod (direct_image f P Q)) (direct_image f P Q $$ a) (direct_image f P Q $$
-      a')" using direct_image_def powerset_def [where ?X=B]
-      by (smt (z3) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) PowD PowI \<open>P = powerset A\<close> \<open>Q = powerset B\<close> \<open>\<forall>x. x \<in> A \<longrightarrow> f x \<in> B\<close> \<open>a \<in> el (PosetMap.dom (direct_image f P Q)) \<and> a' \<in> el (PosetMap.dom (direct_image f P Q)) \<and> le (PosetMap.dom (direct_image f P Q)) a a'\<close> calculation(1) calculation(2) calculation(7) calculation(8) case_prodI mem_Collect_eq powerset_def subset_eq)
-
-    ultimately show "le (cod (direct_image f P Q)) (direct_image f P Q $$ a) (direct_image f P Q $$
-      a')"
-      by force
-  qed
+    assume "Pow_f = direct_image f X Y "
+    assume "P = dom Pow_f"
+    assume "Q = cod Pow_f"
+    assume " a \<in> el P"
+    assume "a' \<in> el P" 
+    assume "le P a a'" 
+    assume "Pf = direct_image f X Y" 
+    assume "fa = Pf $$ a" 
+    assume "fa' = Pf $$ a'" 
+    assume "\<forall>x. x \<in> X \<longrightarrow> f x \<in> Y "
+    have "fa = {f x | x . x \<in> a}"
+      by (metis (mono_tags, lifting) Poset.Poset.select_convs(1) PowD \<open>P = PosetMap.dom Pow_f\<close> \<open>Pf = direct_image f X Y\<close> \<open>Pow_f = direct_image f X Y\<close> \<open>a \<in> el P\<close> \<open>fa = Pf $$ a\<close> direct_image_app direct_image_dom powerset_def) 
+moreover have "fa' = {f x | x . x \<in> a'}"
+  by (metis (mono_tags, lifting) Poset.Poset.select_convs(1) PowD \<open>P = PosetMap.dom Pow_f\<close> \<open>Pf = direct_image f X Y\<close> \<open>Pow_f = direct_image f X Y\<close> \<open>a' \<in> el P\<close> \<open>fa' = Pf $$ a'\<close> direct_image_app direct_image_dom powerset_def) 
+  moreover have "fa \<subseteq> fa'"
+    by (metis (no_types, lifting) Poset.Poset.select_convs(2) PowD Product_Type.Collect_case_prodD \<open>P = PosetMap.dom Pow_f\<close> \<open>Pf = direct_image f X Y\<close> \<open>Pow_f = direct_image f X Y\<close> \<open>a \<in> el P\<close> \<open>a' \<in> el P\<close> \<open>fa = Pf $$ a\<close> \<open>fa' = Pf $$ a'\<close> \<open>le P a a'\<close> direct_image_dom direct_image_mono_raw fst_conv powerset_def snd_conv) 
+  ultimately show "le Q fa fa'" using direct_image_def [where ?f=f and ?X=X and ?Y=Y] and
+      powerset_def [where ?X=Y]
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) PowD PowI \<open>P = PosetMap.dom Pow_f\<close> \<open>Pow_f = direct_image f X Y\<close> \<open>Q = cod Pow_f\<close> \<open>\<forall>x. x \<in> X \<longrightarrow> f x \<in> Y\<close> \<open>a' \<in> el P\<close> case_prodI direct_image_cod direct_image_dom mem_Collect_eq powerset_def subset_eq) 
 qed
 
-lemma direct_image_dom : "PosetMap.dom (direct_image f P Q) = P"
-  by (simp add: direct_image_def)
-
-lemma direct_image_cod : "PosetMap.cod (direct_image f P Q) = Q"
-  by (simp add: direct_image_def)
+lemma direct_image_valid : "(\<forall> x . x \<in> X \<longrightarrow> f x \<in> Y) \<Longrightarrow> valid_map (direct_image f X Y)"
+proof (rule valid_mapI)
+  show "\<And>f X Y. \<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow> valid (dom (direct_image f X Y))"
+    by (simp add: direct_image_def powerset_valid)
+  show "\<And>f X Y. \<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow> valid (cod (direct_image f X Y))"
+    by (simp add: direct_image_def powerset_valid)
+  show "\<And>f X Y a b.
+       \<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow>
+       (a, b) \<in> func (direct_image f X Y) \<Longrightarrow> a \<in> el (dom (direct_image f X Y)) \<and> b \<in> el (cod
+ (direct_image f X Y))"
+    by (smt (verit) Pair_inject Poset.Poset.select_convs(1) PosetMap.select_convs(1) PowI direct_image_cod direct_image_def direct_image_dom mem_Collect_eq powerset_def subset_eq) 
+  show "\<And>f X Y a b b'. \<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow> (a, b) \<in> func (direct_image f X Y) \<Longrightarrow> (a, b') \<in> func
+ (direct_image f X Y) \<Longrightarrow> b = b'"
+    by (simp add: direct_image_def) 
+  show "\<And>f X Y a. \<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow> a \<in> el (dom (direct_image f X Y)) \<Longrightarrow> \<exists>b. (a, b) \<in>
+ func (direct_image f X Y)"
+    by (simp add: direct_image_def powerset_def) 
+  show "\<And>f X Y a a'.
+       \<forall>x. x \<in> X \<longrightarrow> f x \<in> Y \<Longrightarrow>
+       a \<in> el (dom (direct_image f X Y)) \<and>
+       a' \<in> el (dom (direct_image f X Y)) \<and> le (dom (direct_image f X Y)) a a' \<Longrightarrow>
+       le (cod (direct_image f X Y)) (direct_image f X Y $$ a) (direct_image f X Y $$ a')"
+    using direct_image_mono by blast 
+qed
 
 text \<open> EXAMPLES \<close>
 
@@ -753,8 +723,7 @@ text \<open>
   Lemma @{term ex_naturals_valid} validates the @{term ex_naturals} poset.
 \<close>
 lemma ex_naturals_valid : "valid ex_naturals"
-  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) UNIV_I dual_order.refl ex_naturals_def mem_Collect_eq old.prod.case order_antisym order_trans valid_def)
-
+  by (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD UNIV_I case_prodI ex_naturals_def fst_conv linorder_linear mem_Collect_eq order_antisym order_trans snd_conv validI) 
 text \<open>
   Definition @{term ex_divisibility} is an example of a poset that includes all natural numbers with the
   divisibility relation.
@@ -766,8 +735,7 @@ text \<open>
   Lemma @{term ex_divisibility_valid} validates the @{term ex_divisibility} poset.
 \<close>
 lemma ex_divisibility_valid : "valid ex_divisibility"
-  by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) UNIV_I case_prod_conv dvd_antisym ex_divisibility_def gcd_nat.refl gcd_nat.trans mem_Collect_eq valid_def)
-
+  by (smt (verit, del_insts) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD UNIV_I case_prodI dvd_antisym ex_divisibility_def fst_conv gcd_nat.refl gcd_nat.trans mem_Collect_eq snd_conv valid_def) 
 text \<open> TESTS \<close>
 
 (* Warning: this tuple builder syntax gives unexpected result (defines the total relation)
