@@ -88,6 +88,15 @@ definition app :: "('a, 'b) PosetMap \<Rightarrow> 'a \<Rightarrow> 'b" (infixr 
   then (THE b. (a, b) \<in> func f)
   else Poset_app_undefined_arg_not_in_domain a"
 
+definition "PosetMap_const_undefined_arg_not_in_codomain b \<equiv> undefined"
+
+
+definition const :: "'a Poset \<Rightarrow>  'b Poset  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) PosetMap" where
+"const P Q q \<equiv> 
+  if q \<in> el Q
+  then  \<lparr> func = { (p, q) | p . p \<in> el P }, dom = P, cod = Q\<rparr> 
+  else PosetMap_const_undefined_arg_not_in_codomain q"
+
 text \<open>
   This definition specifies the validity of a poset map. A poset map is valid if:
   \begin{itemize}
@@ -516,6 +525,50 @@ lemma ident_left_neutral [simp]  : "valid_map f \<Longrightarrow> cod f = x \<Lo
   apply (frule (1) valid_map_welldefined)
   apply (erule relcompI)
   by blast
+
+lemma const_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid_map (const P Q q)"
+proof (rule valid_mapI)
+  show "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid (PosetMap.dom (const P Q q))"
+    by (simp add: const_def) 
+  show "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid (cod (const P Q q))" 
+    by (simp add: const_def) 
+  show "\<And>a b. valid P \<Longrightarrow>
+           valid Q \<Longrightarrow>
+           q \<in> el Q \<Longrightarrow>
+           (a, b) \<in> func (const P Q q) \<Longrightarrow> a \<in> el (PosetMap.dom (const P Q q)) \<and> b \<in> el (cod (const P
+ Q q))"
+    by (simp add: const_def) 
+  show "\<And>a b b'.
+       valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> (a, b) \<in> func (const P Q q) \<Longrightarrow> (a, b') \<in> func (const P Q q) \<Longrightarrow> b
+ = b'"
+    by (simp add: const_def) 
+  show "\<And>a. valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> a \<in> el (PosetMap.dom (const P Q q)) \<Longrightarrow> \<exists>b. (a, b) \<in> func
+ (const P Q q)"
+    by (simp add: const_def) 
+  show "\<And>a a'.
+       valid P \<Longrightarrow>
+       valid Q \<Longrightarrow>
+       q \<in> el Q \<Longrightarrow>
+       a \<in> el (PosetMap.dom (const P Q q)) \<and>
+       a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a' \<Longrightarrow>
+       le (cod (const P Q q)) (const P Q q $$ a) (const P Q q $$ a') " 
+  proof -
+    fix a a' 
+    assume "valid P" 
+    assume "valid Q"
+    assume "q \<in> el Q" 
+    assume "a \<in> el (PosetMap.dom (const P Q q)) \<and>
+       a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'" 
+    have "(const P Q q $$ a) = q" using const_def [where ?P=P and ?Q=Q and ?q=q] app_def [where
+          ?a=a and ?f="const P Q q"]
+      using \<open>a \<in> el (PosetMap.dom (const P Q q)) \<and> a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'\<close> \<open>q \<in> el Q\<close> by auto
+    moreover have "(const P Q q $$ a') = q" using const_def [where ?P=P and ?Q=Q and ?q=q] app_def [where
+          ?a=a' and ?f="const P Q q"]
+      using \<open>a \<in> el (PosetMap.dom (const P Q q)) \<and> a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'\<close> \<open>q \<in> el Q\<close> by auto 
+    ultimately show "le (cod (const P Q q)) (const P Q q $$ a) (const P Q q $$ a')"
+      by (simp add: \<open>q \<in> el Q\<close> \<open>valid Q\<close> const_def valid_reflexivity) 
+  qed
+qed
 
 text \<open>
   Lemma @{term discrete_valid} confirms the validity of the discrete poset.

@@ -26,7 +26,7 @@ record ('A, 'a) CVA =
 text \<open>
    The 'presheaf' abbreviation extracts the presheaf from the parallelism aspect of the CVA 'V'.
 \<close>
-abbreviation presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Presheaf" where
+abbreviation presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Prealgebra" where
 "presheaf V \<equiv> OVA.presheaf (par_algebra V)"
 
 text \<open>
@@ -253,7 +253,7 @@ proof -
     have "local_le V B (pr B (ex A b)) b"
       by (metis A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le V_valid b_elem ex_def galois_insertion local_inclusion_domain pr_def valid_gc_poset valid_poset valid_presheaf valid_reflexivity valid_semigroup) 
      moreover have "A \<in> opens V \<and> B \<in> opens V"
-      using B_def CVA.valid_welldefined V_valid \<open>A \<in> Space.opens (Presheaf.space (CVA.presheaf V))\<close> \<open>b \<in> Semigroup.elems (OVA.semigroup (par_algebra V))\<close> local_inclusion_domain by blast 
+      using B_def CVA.valid_welldefined V_valid \<open>A \<in> Space.opens (Prealgebra.space (CVA.presheaf V))\<close> \<open>b \<in> Semigroup.elems (OVA.semigroup (par_algebra V))\<close> local_inclusion_domain by blast 
     moreover have lhs:"local_le V A (ex A b) (ex' A b)" using valid_gprj [where ?V=V] OVA.prj_ext_adjunction [where
    ?V="seq_algebra V" and ?A=A and ?B=B and ?a="(ex A b)" and ?b=b]
       by (smt (verit, ccfv_threshold) B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(1) calculation(2) d_gext ex'_def ex_def gext_elem pr_def valid_elems) 

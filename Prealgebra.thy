@@ -1,7 +1,7 @@
-section \<open> Presheaf.thy \<close>
+section \<open> Prealgebra.thy \<close>
 
 text \<open>
-   Theory      :  Presheaf.thy
+   Theory      :  Prealgebra.thy
 
    This theory describes the concept of poset-valued presheaves on a topological space. It 
    introduces the records to define a presheaf and a presheaf map, along with  the definitions of 
@@ -10,7 +10,7 @@ text \<open>
 --------------------------------------------------------------------------------
 \<close>
 
-theory Presheaf
+theory Prealgebra
 imports Main Poset Space Function
 begin
 
@@ -19,7 +19,7 @@ text \<open>
    `space` is the underlying topological space, `ob` maps each open set to a poset, and `ar` maps each 
    inclusion (i.e., an injective continuous function) to a poset map, preserving the order structure. 
 \<close>
-record ('A, 'a) Presheaf =
+record ('A, 'a) Prealgebra =
   space :: "'A Space"
   ob :: "('A Open, 'a Poset) Function "
   ar :: "('A Inclusion, ('a, 'a) PosetMap) Function"
@@ -28,7 +28,7 @@ text \<open>
    This definition introduces the notion of a valid presheaf. A presheaf is valid if it is well-defined, 
    respects identities, and respects composition of inclusions in the underlying space.
 \<close>
-definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
+definition valid :: "('A, 'a) Prealgebra \<Rightarrow> bool" where
   "valid \<Phi> \<equiv>
     let
       T = space \<Phi>;
@@ -52,18 +52,18 @@ text \<open>
    topological space. `map\_space` is the underlying space, `nat` is the natural transformation which maps 
    each open set to a poset map, `dom` is the domain presheaf, and `cod` is the codomain presheaf.
 \<close>
-record ('A, 'a, 'b) PresheafMap =
+record ('A, 'a, 'b) PrealgebraMap =
   map_space :: "'A Space"
   nat :: "('A Open, ('a, 'b) PosetMap) Function"
-  dom :: "('A, 'a) Presheaf"
-  cod :: "('A, 'b) Presheaf"
+  dom :: "('A, 'a) Prealgebra"
+  cod :: "('A, 'b) Prealgebra"
 
 text \<open>
    This definition introduces the notion of a valid presheaf map. A presheaf map is valid if it is 
    well-defined and natural, i.e., it commutes with the action of the presheaves on the inclusions 
    in the underlying space.
 \<close>
-definition valid_map :: "('A, 'a, 'b) PresheafMap \<Rightarrow> bool" where
+definition valid_map :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> bool" where
  "valid_map \<phi> \<equiv>
     let
       space = (map_space \<phi>);
@@ -84,7 +84,7 @@ text \<open>
    This definition introduces the terminal presheaf over a space, mapping each open set to the discrete 
    poset on a single element and each inclusion to the identity on this element.
 \<close>
-definition terminal :: "'A Space \<Rightarrow> ('A, unit) Presheaf" where
+definition terminal :: "'A Space \<Rightarrow> ('A, unit) Prealgebra" where
   "terminal T \<equiv>
     let
       space = T;
@@ -101,7 +101,7 @@ text \<open>
    identities and composition, then the presheaf is valid.
 \<close>
 lemma validI :
-  fixes \<Phi> :: "('A,'a) Presheaf"
+  fixes \<Phi> :: "('A,'a) Prealgebra"
   defines "T \<equiv> space \<Phi>"
   defines "\<Phi>0 \<equiv> ob \<Phi>"
   defines "\<Phi>1 \<equiv> ar \<Phi>"
@@ -143,7 +143,7 @@ text \<open>
    This lemma states that if a presheaf is valid, then its underlying space is a valid space.
 \<close>
 lemma valid_space  : "valid \<Phi> \<Longrightarrow> T = space \<Phi> \<Longrightarrow> (Space.valid T)"
-  by (meson Presheaf.valid_welldefined)
+  by (meson Prealgebra.valid_welldefined)
 
 text \<open>
    This lemma establishes that if a presheaf is valid, then the poset associated to each open set 
@@ -157,14 +157,14 @@ text \<open>
    of the underlying space by the presheaf is a valid poset map.
 \<close>
 lemma valid_ar  :
-  fixes \<Phi> :: "('A, 'a) Presheaf" and i :: "'A Inclusion" and f ::  "('a,'a) PosetMap"
+  fixes \<Phi> :: "('A, 'a) Prealgebra" and i :: "'A Inclusion" and f ::  "('a,'a) PosetMap"
   assumes "valid \<Phi>"
   and "i \<in> Space.inclusions (space \<Phi>)"
   and "f  \<equiv> ar \<Phi> $ i" 
   shows "Poset.valid_map f"
 proof -
-  define "\<Phi>1" where "\<Phi>1 = Presheaf.ar \<Phi>" 
-  define "T" where "T = Presheaf.space \<Phi>" 
+  define "\<Phi>1" where "\<Phi>1 = Prealgebra.ar \<Phi>" 
+  define "T" where "T = Prealgebra.space \<Phi>" 
   have "(\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 $ i))"  using valid_welldefined
     by (metis T_def \<Phi>1_def assms(1))
     moreover have "i \<in> Space.inclusions T"
@@ -205,7 +205,7 @@ text \<open>
 lemma valid_composition :
   "valid \<Phi> \<Longrightarrow> j \<in> inclusions (space \<Phi>) \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
     ar \<Phi> $ (Space.compose j i) = (ar \<Phi> $ i) \<cdot> (ar \<Phi> $ j)"
-  by (metis Presheaf.valid_def)
+  by (metis Prealgebra.valid_def)
 
 text \<open>
    This lemma establishes conditions for a presheaf map to be valid. Specifically, it shows that if the 
@@ -213,7 +213,7 @@ text \<open>
    properties, then the map is valid.
 \<close>
 lemma valid_mapI :
-  fixes \<phi> :: "('A,'a,'b) PresheafMap"
+  fixes \<phi> :: "('A,'a,'b) PrealgebraMap"
   defines "T \<equiv> map_space \<phi>"
   defines "f \<equiv> nat \<phi>"
   defines "\<Phi> \<equiv> dom \<phi>"
@@ -250,7 +250,7 @@ lemma valid_map_welldefined :
                     \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (f $ A))
                     \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (f $ A) = (ob \<Phi> $ A))
                     \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (f $ A) = (ob \<Phi>' $ A))"
-  by (metis Presheaf.valid_map_def)
+  by (metis Prealgebra.valid_map_def)
 
 text \<open>
    This lemma states that if a presheaf map is valid, then the space associated with the map is also valid.
@@ -290,7 +290,7 @@ text \<open>
    function at the open set.
 \<close>
 lemma valid_map_nat_dom : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Poset.dom ((nat \<phi>) $ A) = ob (dom \<phi>) $ A"
-  by (meson Presheaf.valid_map_welldefined)
+  by (meson Prealgebra.valid_map_welldefined)
 
 text \<open>
    This lemma shows that if a presheaf map is valid and an open set belongs to the associated space, 
@@ -298,7 +298,7 @@ text \<open>
    at the open set.
 \<close>
 lemma valid_map_nat_cod : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Poset.cod ((nat \<phi>) $ A) = ob (cod \<phi>) $ A"
-  by (meson Presheaf.valid_map_welldefined)
+  by (meson Prealgebra.valid_map_welldefined)
 
 text \<open>
    This lemma demonstrates the naturality of a valid presheaf map, showing that for each inclusion in 
@@ -316,9 +316,9 @@ text \<open>
    poset of an open set is an element of the poset of the codomain at the open set.
 \<close>
 lemma valid_map_image :
-  fixes \<phi> :: "('A, 'a, 'b) PresheafMap" and A :: "'A Open" and a :: "'a"
-  defines "\<Phi>A \<equiv> Presheaf.ob (dom \<phi>) $ A"
-  defines "\<Phi>'A \<equiv> Presheaf.ob (cod \<phi>) $ A"
+  fixes \<phi> :: "('A, 'a, 'b) PrealgebraMap" and A :: "'A Open" and a :: "'a"
+  defines "\<Phi>A \<equiv> Prealgebra.ob (dom \<phi>) $ A"
+  defines "\<Phi>'A \<equiv> Prealgebra.ob (cod \<phi>) $ A"
   defines "f \<equiv> (nat \<phi>) $ A"
   assumes \<phi>_valid :"valid_map \<phi>"
   and A_open : "A \<in> Space.opens (map_space \<phi>)"
@@ -332,11 +332,11 @@ proof -
   moreover have "a \<in> Poset.el \<Phi>A"
     using a_dom by blast
   moreover have "Poset.dom f = \<Phi>A"
-    by (metis A_open Presheaf.valid_map_welldefined \<Phi>A_def \<phi>_valid f_def)
+    by (metis A_open Prealgebra.valid_map_welldefined \<Phi>A_def \<phi>_valid f_def)
   moreover have "Poset.valid_map f"
-    by (metis A_open Presheaf.valid_map_welldefined \<phi>_valid f_def)
+    by (metis A_open Prealgebra.valid_map_welldefined \<phi>_valid f_def)
   moreover have "Poset.cod f = \<Phi>'A"
-    by (metis A_open Presheaf.valid_map_welldefined \<Phi>'A_def \<phi>_valid f_def)
+    by (metis A_open Prealgebra.valid_map_welldefined \<Phi>'A_def \<phi>_valid f_def)
   ultimately show ?thesis
     by (meson Poset.fun_app2)
 qed
@@ -357,7 +357,7 @@ text \<open>
    the codomain of the inclusion.
 \<close>
 lemma dom_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obB = ((ob \<Phi>) $ B) \<Longrightarrow> Poset.dom f = obB"
-  by (metis Presheaf.valid_def)
+  by (metis Prealgebra.valid_def)
 
 text \<open>
    This lemma establishes that if a presheaf is valid and an inclusion belongs to the inclusions of 
@@ -365,7 +365,7 @@ text \<open>
    at the domain of the inclusion.
 \<close>
 lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.dom i \<Longrightarrow> f = (ar \<Phi>) $ i \<Longrightarrow> obA = ((ob \<Phi>) $ A) \<Longrightarrow> Poset.cod f = obA"
-  by (metis Presheaf.valid_def)
+  by (metis Prealgebra.valid_def)
 
 text \<open>
    This lemma establishes that if a presheaf is valid, an inclusion belongs to the inclusions of the 
@@ -384,10 +384,10 @@ text \<open>
    a' under the arrow function in the poset of the domain of the inclusion.
 \<close>
 lemma prj_monotone : 
-  fixes \<Phi> :: "('A,'a) Presheaf" and i :: "'A Inclusion" and A B :: "'A Open" and a a' :: "'a"
-  defines "\<Phi>A \<equiv> Presheaf.ob \<Phi> $ A"
-  defines "\<Phi>B \<equiv> Presheaf.ob \<Phi> $ B"
-  defines "\<Phi>i \<equiv> Presheaf.ar \<Phi> $ i"
+  fixes \<Phi> :: "('A,'a) Prealgebra" and i :: "'A Inclusion" and A B :: "'A Open" and a a' :: "'a"
+  defines "\<Phi>A \<equiv> Prealgebra.ob \<Phi> $ A"
+  defines "\<Phi>B \<equiv> Prealgebra.ob \<Phi> $ B"
+  defines "\<Phi>i \<equiv> Prealgebra.ar \<Phi> $ i"
   assumes \<Phi>_valid : "valid \<Phi>"
   and i_inc : "i \<in> Space.inclusions (space \<Phi>)" 
   and A_open : "A = Space.cod i" and B_open : "B = Space.dom i"
@@ -396,7 +396,7 @@ lemma prj_monotone :
 shows "Poset.le \<Phi>B (\<Phi>i $$ a) (\<Phi>i $$ a')"
 proof -
   have "Poset.valid_map \<Phi>i"
-    by (metis Presheaf.valid_welldefined \<Phi>_valid \<Phi>i_def i_inc)
+    by (metis Prealgebra.valid_welldefined \<Phi>_valid \<Phi>i_def i_inc)
  moreover have "\<Phi>A = Poset.dom \<Phi>i"
    using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def i_inc by auto
 moreover have "\<Phi>B = Poset.cod \<Phi>i"
@@ -447,7 +447,7 @@ text \<open>
    and both the object function and the arrow function are constant functions that map to a discrete 
    poset and the identity on the discrete poset, respectively.
 \<close>
-definition ex_constant_discrete :: "('A, 'a) Presheaf" where
+definition ex_constant_discrete :: "('A, 'a) Prealgebra" where
   "ex_constant_discrete  \<equiv>
     let
       space = Space.ex_discrete;
