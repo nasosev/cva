@@ -109,6 +109,9 @@ text \<open>
 lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f $ a \<Longrightarrow> fa \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
+lemma fun_app3 [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a = (THE b. (a, b) \<in> func f) "
+  by (simp add: app_def)
+
 text \<open> 
    `fun\_ext` states that if two valid functions have the same domain and codomain, and they map 
    every element in the domain to the same value, then their function mappings are equal.

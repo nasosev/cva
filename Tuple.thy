@@ -59,6 +59,9 @@ definition relation_algebra :: "('A, 'a) TupleSystem \<Rightarrow> ('A, 'a set) 
   in
   undefined"
 
+abbreviation (input) space :: "('A,'a) TupleSystem \<Rightarrow> 'A Space" where
+"space T \<equiv> Prealgebra.space T"
+
 text \<open> ----------------- LEMMAS ----------------- \<close>
 
 lemma valid_welldefined :  "valid T \<Longrightarrow> Prealgebra.valid T" unfolding valid_def
@@ -227,6 +230,55 @@ proof (rule Prealgebra.validI, auto)
     by (simp add: R_def assms(1) relation_ar_trans) 
 qed
 
+lemma relation_neutral_nat_valid : "valid T \<Longrightarrow> \<epsilon> = relation_neutral T \<Longrightarrow> A \<in> Space.opens (map_space \<epsilon>) 
+\<Longrightarrow> Poset.valid_map (PrealgebraMap.nat \<epsilon> $ A)" 
+proof-
+  fix T \<epsilon> A 
+  assume "valid T"
+  assume "\<epsilon> = relation_neutral T"
+  assume "A \<in> Space.opens (map_space \<epsilon>)"
+  define "dom" where "dom = Prealgebra.terminal (map_space \<epsilon>)"
+  define "cod" where "cod = relation_prealgebra T"
+
+  have "PrealgebraMap.nat \<epsilon> $ A = Poset.const (Prealgebra.ob dom $ A) (Prealgebra.ob cod $ A) (el (ob
+ T $ A))" using relation_neutral_def [where ?T=T]
+    by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Pair_inject PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) UNIV_I \<open>A \<in> Space.opens (map_space \<epsilon>)\<close> \<open>\<epsilon> = relation_neutral T\<close> local.cod_def local.dom_def mem_Collect_eq) 
+  moreover have "Poset.valid (Prealgebra.ob dom $ A)"
+    by (simp add: \<open>A \<in> Space.opens (map_space \<epsilon>)\<close> discrete_valid local.dom_def terminal_def) 
+  moreover have "Poset.valid (Prealgebra.ob cod $ A)"  using valid_relation_prealgebra [where ?T=T]
+    by (metis (no_types, lifting) PrealgebraMap.select_convs(1) \<open>A \<in> Space.opens (map_space \<epsilon>)\<close> \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> local.cod_def relation_neutral_def relation_space_valid valid_ob) 
+  show "Poset.valid_map (PrealgebraMap.nat \<epsilon> $ A)" using Poset.const_valid [where ?P="Prealgebra.ob
+ dom $ A" and ?Q="Prealgebra.ob cod $ A" and ?q="el (ob
+ T $ A)"]
+    by (metis (no_types, lifting) Poset.Poset.simps(1) Pow_top PrealgebraMap.select_convs(1) \<open>A \<in> Space.opens (map_space \<epsilon>)\<close> \<open>Poset.valid (ob cod $ A)\<close> \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> calculation(1) calculation(2) local.cod_def powerset_def relation_neutral_def relation_ob_value) 
+qed
+
+lemma relation_neutral_nat_value : "valid T \<Longrightarrow> \<epsilon> = relation_neutral T \<Longrightarrow> A \<in> Space.opens (map_space \<epsilon>) 
+\<Longrightarrow> R = relation_prealgebra T \<Longrightarrow> \<epsilon>A = el (ob T $ A) \<Longrightarrow>
+ PrealgebraMap.nat \<epsilon> $ A =  Poset.const Poset.discrete (ob R $ A) \<epsilon>A" 
+  unfolding relation_neutral_def
+  apply (simp_all add : Let_def)
+  by (simp add: Function.dom_def Function.valid_map_def terminal_def)
+  
+lemma relation_neutral_dom : "\<And>A. valid T \<Longrightarrow> \<epsilon> = relation_neutral T \<Longrightarrow> A \<in> Space.opens (map_space \<epsilon>) \<Longrightarrow> PosetMap.dom (PrealgebraMap.nat \<epsilon> $ A) = ob
+ (PrealgebraMap.dom \<epsilon>) $ A" 
+proof -
+  fix T \<epsilon> A
+  assume "valid T"
+  assume "\<epsilon> = relation_neutral T"
+  assume "A \<in> Space.opens (map_space \<epsilon>)" 
+
+  have "dom \<epsilon> = Prealgebra.terminal (space T)"
+    by (metis (no_types, lifting) PrealgebraMap.select_convs(3) \<open>\<epsilon> = relation_neutral T\<close> relation_neutral_def) 
+  moreover have "ob (dom \<epsilon>) $ A = Poset.discrete"
+    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(2) PrealgebraMap.select_convs(1) UNIV_I \<open>A \<in> Space.opens (map_space \<epsilon>)\<close> \<open>\<epsilon> = relation_neutral T\<close> calculation const_app relation_neutral_def terminal_def) 
+  moreover have "PosetMap.dom (PrealgebraMap.nat \<epsilon> $ A) = Poset.discrete" using relation_neutral_def
+      [where ?T=T]  
+    apply (simp add: Let_def) 
+    
+  ultimately show "PosetMap.dom (PrealgebraMap.nat \<epsilon> $ A) = ob
+ (PrealgebraMap.dom \<epsilon>) $ A"  
+
 lemma valid_relation_neutral :
   fixes T :: "('A,'a) TupleSystem"
   assumes "valid T"
@@ -242,5 +294,9 @@ proof (rule valid_mapI, auto)
   show "Prealgebra.valid (PrealgebraMap.cod \<epsilon>)"
     by (metis (no_types, lifting) PrealgebraMap.select_convs(4) \<epsilon>_def assms(1) relation_neutral_def valid_relation_prealgebra) 
   show "\<And>A. A \<in> Space.opens (map_space \<epsilon>) \<Longrightarrow> Poset.valid_map (PrealgebraMap.nat \<epsilon> $ A)" using
-      Poset.const_valid 
+      Poset.const_valid
+    using \<epsilon>_def assms(1) relation_neutral_nat_valid by blast 
+  show "\<And>A. A \<in> Space.opens (map_space \<epsilon>) \<Longrightarrow> PosetMap.dom (PrealgebraMap.nat \<epsilon> $ A) = ob
+ (PrealgebraMap.dom \<epsilon>) $ A" using relation_neutral_def [where ?T=T] 
+    
 end

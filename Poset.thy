@@ -343,6 +343,9 @@ text \<open>
 lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> fa = f $$ a \<Longrightarrow> fa \<in> el (cod f)"
   by (meson fun_app valid_map_welldefined)
 
+lemma fun_app3 [simp] : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f $$ a = (THE b. (a, b) \<in> func f) "
+  by (simp add: app_def)
+
 text \<open>
    This lemma is an extensionality result: If two valid poset maps `f` and `g` have the same
    domain and codomain, and map each element of their common domain to the same element in the
@@ -351,9 +354,8 @@ text \<open>
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f $$ a = g $$ a) \<Longrightarrow> f = g"
   apply (rule pom_eqI; clarsimp?)
   apply (intro set_eqI iffI; clarsimp)
-   apply (metis fun_app valid_map_deterministic valid_map_welldefined)
-  apply (metis fun_app valid_map_deterministic valid_map_welldefined)
-  done
+   apply (metis fun_app fun_app3 valid_map_deterministic valid_map_welldefined)
+  by (metis fun_app fun_app3 valid_map_deterministic valid_map_welldefined)
 
 text \<open>
    This lemma establishes that for two valid poset maps `f` and `g`, where the domain of `g` is
@@ -525,6 +527,10 @@ lemma ident_left_neutral [simp]  : "valid_map f \<Longrightarrow> cod f = x \<Lo
   apply (frule (1) valid_map_welldefined)
   apply (erule relcompI)
   by blast
+
+lemma const_app [simp] : "valid P \<Longrightarrow> valid Q \<Longrightarrow> p \<in> el P \<Longrightarrow> q \<in> el Q \<Longrightarrow> ((const P Q q) $$ p) = q"
+  unfolding const_def app_def 
+  by auto
 
 lemma const_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid_map (const P Q q)"
 proof (rule valid_mapI)
