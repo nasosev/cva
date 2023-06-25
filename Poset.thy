@@ -710,10 +710,23 @@ proof (rule valid_mapI)
     using direct_image_mono by blast 
 qed
 
-lemma direct_image_ident : "direct_image id X X = ident (powerset X)" 
-  using powerset_def [where ?X=X] direct_image_def  [where ?X=X and ?Y=X and ?f=id] ident_def [where
-      ?P="powerset X"]
-  by auto
+lemma direct_image_ident : "\<And> f X . (\<And> x . x \<in> X \<Longrightarrow> f x = x) \<Longrightarrow> direct_image f X X = ident (powerset X)" 
+proof -
+  fix f :: "'a \<Rightarrow> 'a"
+  fix X :: "'a set"
+  assume a1: "\<And> x . x \<in> X \<Longrightarrow> f x = x" 
+  have "\<forall> p. p \<subseteq> X \<longrightarrow> (x \<in> p \<longrightarrow> f x = x)"
+    using a1 by blast 
+  moreover have "\<forall> p. p \<subseteq> X \<longrightarrow> {f x |x. x \<in> p} = p"  using calculation
+    by (smt (z3) Collect_cong Collect_mem_eq Collect_mono_iff a1)
+  moreover have "{(p, {f x |x. x \<in> p}) |p . p \<subseteq> X} = {(p, p) |p . p \<subseteq> X}"
+    using calculation(2) by fastforce  
+  moreover have " {(p, p) |p . p \<subseteq> X} =  Id_on (Pow X)" using Id_on_def [where ?A="Pow X"]   Pow_def
+      [where ?A=X] set_eqI [where ?A="Id_on (Pow X)" and ?B="{(p, p) |p. p \<subseteq> X}"]
+    by blast
+  ultimately show "direct_image f X X = ident (powerset X)"
+    by (simp add: direct_image_def ident_def powerset_def) 
+qed
 
 text \<open> EXAMPLES \<close>
 

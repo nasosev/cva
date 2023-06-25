@@ -122,7 +122,8 @@ proof -
     by (simp add: Space.ident_def i_def) 
   moreover have "Space.dom i = A"
     by (simp add: Space.ident_def i_def) 
-  moreover have "f i = id" 
+  moreover have "\<forall> u . u \<in> el ((ob T) $ A) \<longrightarrow> f i u = u"
+    by (metis Poset.ident_app R_def Tuple.valid_welldefined assms(2) assms(3) f_def i_def relation_space_valid valid_gc_1 valid_ob) 
   moreover have "(ob R) $ A = powerset (Poset.el ((ob T) $ A))" using  relation_prealgebra_def
       [where ?T=T]
     by (smt (verit) Function.fun_app Function.select_convs(1) Function.valid_map_def Presheaf.Presheaf.select_convs(1) Presheaf.Presheaf.select_convs(2) R_def assms(2) assms(3) mem_Collect_eq relation_ob_valid) 
