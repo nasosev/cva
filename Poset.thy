@@ -713,7 +713,7 @@ lemma direct_image_mono_raw: "a \<subseteq> X \<Longrightarrow> a' \<subseteq> X
  app_def [where ?a=a and ?f=" (direct_image f X Y)"]  app_def [where ?a=a' and ?f=" (direct_image f X Y)"]
   by (smt (verit, del_insts) direct_image_app mem_Collect_eq subset_iff)
 
-lemma direct_image_mono: "\<And> f X Y a a' . Pow_f =direct_image f X Y \<Longrightarrow> P = dom Pow_f \<Longrightarrow>  Q = cod Pow_f
+lemma direct_image_mono: "Pow_f =direct_image f X Y \<Longrightarrow> P = dom Pow_f \<Longrightarrow>  Q = cod Pow_f
  \<Longrightarrow> a \<in> el P \<Longrightarrow> a' \<in> el P
  \<Longrightarrow> le P a a' \<Longrightarrow> Pf =direct_image f X Y \<Longrightarrow> fa = Pf $$ a \<Longrightarrow> fa' = Pf $$ a' \<Longrightarrow>
 (\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y )\<Longrightarrow> le Q fa fa'"
@@ -767,7 +767,7 @@ proof (rule valid_mapI)
     using direct_image_mono by blast
 qed
 
-lemma direct_image_ident : "\<And> f X . (\<And> x . x \<in> X \<Longrightarrow> f x = x) \<Longrightarrow> direct_image f X X = ident (powerset X)"
+lemma direct_image_ident : "(\<And> x . x \<in> X \<Longrightarrow> f x = x) \<Longrightarrow> direct_image f X X = ident (powerset X)"
 proof -
   fix f :: "'a \<Rightarrow> 'a"
   fix X :: "'a set"
@@ -785,8 +785,7 @@ proof -
     by (simp add: direct_image_def ident_def powerset_def)
 qed
 
-lemma direct_image_trans : "\<And> f g X Y Z .
-(\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z )
+lemma direct_image_trans : "(\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z )
 \<Longrightarrow>  direct_image g Y Z \<cdot> direct_image f X Y = direct_image (g \<circ> f) X Z"
 proof -
   fix f :: "'a \<Rightarrow> 'b"
@@ -813,8 +812,7 @@ proof -
   qed
 qed
 
-lemma direct_image_trans_weak : "\<And> f g gf X Y Z .
-(\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z ) \<Longrightarrow> (\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x))
+lemma direct_image_trans_weak : "(\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z ) \<Longrightarrow> (\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x))
 \<Longrightarrow>  direct_image g Y Z \<cdot> direct_image f X Y = direct_image gf X Z"
   proof -
   fix f :: "'a \<Rightarrow> 'b"

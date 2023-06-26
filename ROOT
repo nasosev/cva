@@ -3,10 +3,11 @@ session cva = HOL +
 (*  theories [document = false] *)
   theories
     CVA
+    Tuple
     OVA
     Semigroup
     Grothendieck
-    Presheaf
+    Prealgebra
     Space
     Poset
     Function
