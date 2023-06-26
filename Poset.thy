@@ -92,9 +92,9 @@ definition "PosetMap_const_undefined_arg_not_in_codomain b \<equiv> undefined"
 
 
 definition const :: "'a Poset \<Rightarrow>  'b Poset  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) PosetMap" where
-"const P Q q \<equiv> 
+"const P Q q \<equiv>
   if q \<in> el Q
-  then  \<lparr> func = { (p, q) | p . p \<in> el P }, dom = P, cod = Q\<rparr> 
+  then  \<lparr> func = { (p, q) | p . p \<in> el P }, dom = P, cod = Q\<rparr>
   else PosetMap_const_undefined_arg_not_in_codomain q"
 
 text \<open>
@@ -153,7 +153,7 @@ text \<open>
   `is_surjective` is a predicate that takes a poset map `f` and returns true if `f` is surjective,
   i.e., if every element of the codomain of `f` is the image of some element of the domain of `f`.
 \<close>
-definition is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+abbreviation is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "is_surjective f \<equiv> \<forall>b \<in> el (cod f). \<exists>a \<in> el (dom f). f $$ a = b"
 
 text \<open>
@@ -161,7 +161,7 @@ text \<open>
   i.e., if every element of the codomain of `f` is the image of at most one element of the domain
   of `f`.
 \<close>
-definition is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+abbreviation is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "is_injective f \<equiv> \<forall>a a' . a \<in> el (dom f) \<longrightarrow> a' \<in> el (dom f) \<longrightarrow> f $$ a = f $$ a' \<longrightarrow> a = a'"
 
 text \<open>
@@ -529,50 +529,50 @@ lemma ident_left_neutral [simp]  : "valid_map f \<Longrightarrow> cod f = x \<Lo
   by blast
 
 lemma const_app [simp] : "valid P \<Longrightarrow> valid Q \<Longrightarrow> p \<in> el P \<Longrightarrow> q \<in> el Q \<Longrightarrow> ((const P Q q) $$ p) = q"
-  unfolding const_def app_def 
+  unfolding const_def app_def
   by auto
 
 lemma const_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid_map (const P Q q)"
 proof (rule valid_mapI)
   show "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid (PosetMap.dom (const P Q q))"
-    by (simp add: const_def) 
-  show "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid (cod (const P Q q))" 
-    by (simp add: const_def) 
+    by (simp add: const_def)
+  show "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid (cod (const P Q q))"
+    by (simp add: const_def)
   show "\<And>a b. valid P \<Longrightarrow>
            valid Q \<Longrightarrow>
            q \<in> el Q \<Longrightarrow>
            (a, b) \<in> func (const P Q q) \<Longrightarrow> a \<in> el (PosetMap.dom (const P Q q)) \<and> b \<in> el (cod (const P
  Q q))"
-    by (simp add: const_def) 
+    by (simp add: const_def)
   show "\<And>a b b'.
        valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> (a, b) \<in> func (const P Q q) \<Longrightarrow> (a, b') \<in> func (const P Q q) \<Longrightarrow> b
  = b'"
-    by (simp add: const_def) 
+    by (simp add: const_def)
   show "\<And>a. valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> a \<in> el (PosetMap.dom (const P Q q)) \<Longrightarrow> \<exists>b. (a, b) \<in> func
  (const P Q q)"
-    by (simp add: const_def) 
+    by (simp add: const_def)
   show "\<And>a a'.
        valid P \<Longrightarrow>
        valid Q \<Longrightarrow>
        q \<in> el Q \<Longrightarrow>
        a \<in> el (PosetMap.dom (const P Q q)) \<and>
        a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a' \<Longrightarrow>
-       le (cod (const P Q q)) (const P Q q $$ a) (const P Q q $$ a') " 
+       le (cod (const P Q q)) (const P Q q $$ a) (const P Q q $$ a') "
   proof -
-    fix a a' 
-    assume "valid P" 
+    fix a a'
+    assume "valid P"
     assume "valid Q"
-    assume "q \<in> el Q" 
+    assume "q \<in> el Q"
     assume "a \<in> el (PosetMap.dom (const P Q q)) \<and>
-       a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'" 
+       a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'"
     have "(const P Q q $$ a) = q" using const_def [where ?P=P and ?Q=Q and ?q=q] app_def [where
           ?a=a and ?f="const P Q q"]
       using \<open>a \<in> el (PosetMap.dom (const P Q q)) \<and> a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'\<close> \<open>q \<in> el Q\<close> by auto
     moreover have "(const P Q q $$ a') = q" using const_def [where ?P=P and ?Q=Q and ?q=q] app_def [where
           ?a=a' and ?f="const P Q q"]
-      using \<open>a \<in> el (PosetMap.dom (const P Q q)) \<and> a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'\<close> \<open>q \<in> el Q\<close> by auto 
+      using \<open>a \<in> el (PosetMap.dom (const P Q q)) \<and> a' \<in> el (PosetMap.dom (const P Q q)) \<and> le (PosetMap.dom (const P Q q)) a a'\<close> \<open>q \<in> el Q\<close> by auto
     ultimately show "le (cod (const P Q q)) (const P Q q $$ a) (const P Q q $$ a')"
-      by (simp add: \<open>q \<in> el Q\<close> \<open>valid Q\<close> const_def valid_reflexivity) 
+      by (simp add: \<open>q \<in> el Q\<close> \<open>valid Q\<close> const_def valid_reflexivity)
   qed
 qed
 
@@ -677,7 +677,7 @@ text \<open>
 \<close>
 lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<cdot> f = h \<cdot> f \<Longrightarrow> g = h"
-  by (metis cod_compose compose_app fun_ext is_surjective_def)
+  by (metis cod_compose compose_app fun_ext )
 
 text \<open>
   Lemma @{term injection_is_left_cancellative} states that in a valid map `f`, if `f` is injective, and `g` and
@@ -685,7 +685,7 @@ text \<open>
 \<close>
 lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<cdot> g = f \<cdot> h \<Longrightarrow> g = h"
-  by (smt (verit, best) compose_app dom_compose fun_app2 fun_ext is_injective_def)
+  by (smt (verit, best) compose_app dom_compose fun_app2 fun_ext)
 
 text \<open>
   Lemma @{term powerset_valid} states that the powerset poset is valid.
@@ -794,21 +794,21 @@ proof -
   assume "\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y"
   assume "\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z"
 
-  show "direct_image g Y Z \<cdot> direct_image f X Y = direct_image (g \<circ> f) X Z" 
+  show "direct_image g Y Z \<cdot> direct_image f X Y = direct_image (g \<circ> f) X Z"
     unfolding direct_image_def compose_def
   proof auto
     fix p
-    assume "p \<subseteq> X" 
+    assume "p \<subseteq> X"
     have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} "
-      using \<open>p \<subseteq> X\<close> by blast 
+      using \<open>p \<subseteq> X\<close> by blast
     moreover have "{f x |x. x \<in> p} \<subseteq> Y"
-      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto 
+      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto
     moreover have "({f x |x. x \<in> p}, {g (f x) |x. x \<in> p}) \<in> {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y}"
-      using calculation(2) by blast 
+      using calculation(2) by blast
     ultimately show "(p, {g (f x) |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p
  \<subseteq> Y}" using relcompI [where ?r="{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X}" and ?s="{(p, {g x |x. x \<in> p}) |p. p
  \<subseteq> Y}" and ?a=p and ?c="{g (f x) |x. x \<in> p}" and ?b="{f x |x. x \<in> p}"]
-      by fastforce 
+      by fastforce
   qed
 qed
 
@@ -823,11 +823,11 @@ lemma direct_image_trans_weak : "(\<And> x. x \<in> X \<Longrightarrow> f x \<in
   assume "\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z"
   assume "\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x)"
 
-  show "direct_image g Y Z \<cdot> direct_image f X Y = direct_image gf X Z" 
+  show "direct_image g Y Z \<cdot> direct_image f X Y = direct_image gf X Z"
     unfolding direct_image_def compose_def
   proof clarsimp
     show "{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y} = {(p, {gf x |x. x \<in>
- p}) |p. p \<subseteq> X}" 
+ p}) |p. p \<subseteq> X}"
       apply safe
        apply clarsimp
       using \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> subsetD apply fastforce
@@ -835,11 +835,11 @@ lemma direct_image_trans_weak : "(\<And> x. x \<in> X \<Longrightarrow> f x \<in
       fix p
       assume "p \<subseteq> X"
 have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} "
-      using \<open>p \<subseteq> X\<close> by blast 
+      using \<open>p \<subseteq> X\<close> by blast
     moreover have "{f x |x. x \<in> p} \<subseteq> Y"
-      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto 
+      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto
     moreover have "({f x |x. x \<in> p}, {gf x |x. x \<in> p}) \<in> {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y}"
-      by (smt (verit) Collect_cong \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> \<open>p \<subseteq> X\<close> calculation(2) in_mono mem_Collect_eq) 
+      by (smt (verit) Collect_cong \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> \<open>p \<subseteq> X\<close> calculation(2) in_mono mem_Collect_eq)
     ultimately show "(p, {gf x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p
  \<subseteq> Y}" using relcompI [where ?r="{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X}" and ?s="{(p, {g x |x. x \<in> p}) |p. p
  \<subseteq> Y}" and ?a=p and ?c="{gf x |x. x \<in> p}" and ?b="{f x |x. x \<in> p}"]
@@ -847,7 +847,35 @@ have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq>
   qed
 qed
 qed
-  
+
+lemma surj_imp_direct_image_surj :
+  fixes f :: "('a, 'b) PosetMap"
+  assumes f_valid "valid_map f"
+  and "is_surjective f"
+defines "X \<equiv> el (dom f)"
+and "Y \<equiv> el (cod f)"
+shows "is_surjective (direct_image (\<lambda> x  . f $$ x) X Y)"
+proof
+  fix b
+  assume "b \<in> el (cod (direct_image (($$) f) X Y))"
+  have "b \<subseteq> Y"
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) PowD \<open>b \<in> el (cod (direct_image (($$) f) X Y))\<close> direct_image_cod powerset_def)
+  moreover have "\<forall> y \<in> b . (\<exists> x . x \<in> X \<and> f $$ x = y)"
+    using X_def Y_def assms(3) calculation by auto
+  moreover have "\<exists> a . { y . (\<exists> x . x \<in> X \<and> f $$ x \<in> Y)} = b" 
+
+    oops
+                        
+(*  then obtain a where p :  "{ SOME x .  y \<in> b \<and> x \<in> X \<and> f $$ x = y}"*)
+
+    show "\<exists>a\<in>el (PosetMap.dom (direct_image (($$) f) X Y)). direct_image (($$) f) X Y $$ a = b"
+      oops
+
+(*
+definition is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_surjective f \<equiv> \<forall>b \<in> el (cod f). \<exists>a \<in> el (dom f). f $$ a = b"
+  *)
+
 text \<open> EXAMPLES \<close>
 
 text \<open>

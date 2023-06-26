@@ -67,18 +67,18 @@ text \<open> ----------------- LEMMAS ----------------- \<close>
 lemma valid_welldefined :  "valid T \<Longrightarrow> Prealgebra.valid T" unfolding valid_def
   by (simp add: Let_def)
 
-lemma valid_flasque : "valid T \<Longrightarrow> (\<forall>i. i \<in> Space.inclusions (Prealgebra.space T) \<longrightarrow> Poset.is_surjective (Prealgebra.ar T $ i))"
+lemma valid_flasque : "valid T \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space T) \<Longrightarrow> Poset.is_surjective (Prealgebra.ar T $ i)"
   unfolding valid_def
   by (simp add: Let_def)
 
-lemma valid_binary_gluing : "valid T \<Longrightarrow> (\<forall> A B a b i_A j_A i_B j_B . A \<in> Space.opens (Prealgebra.space T) \<longrightarrow> B \<in> Space.opens (Prealgebra.space T) \<longrightarrow> a \<in> Poset.el (Prealgebra.ob T $ A)
-        \<longrightarrow> b \<in> Poset.el (Prealgebra.ob T $ B)
-         \<longrightarrow> i_A = Space.make_inclusion (Prealgebra.space T) (A \<inter> B) A
-           \<longrightarrow> j_A = Space.make_inclusion (Prealgebra.space T) A (A \<union> B)
-         \<longrightarrow> i_B = Space.make_inclusion (Prealgebra.space T) (A \<inter> B) B
-           \<longrightarrow> j_B = Space.make_inclusion (Prealgebra.space T) B (A \<union> B)
-            \<longrightarrow> (Prealgebra.ar T $ i_A) $$ a = (Prealgebra.ar T $ i_B) $$ b
-            \<longrightarrow> (\<exists> c . c \<in> Poset.el (Prealgebra.ob T $ (A \<union> B)) \<and> (Prealgebra.ar T $ j_A) $$ c = a \<and> (Prealgebra.ar T $ j_B) $$ c = b))"
+lemma valid_binary_gluing : "valid T \<Longrightarrow>  A \<in> Space.opens (Prealgebra.space T) \<Longrightarrow> B \<in> Space.opens (Prealgebra.space T) \<Longrightarrow> a \<in> Poset.el (Prealgebra.ob T $ A)
+        \<Longrightarrow> b \<in> Poset.el (Prealgebra.ob T $ B)
+         \<Longrightarrow> i_A = Space.make_inclusion (Prealgebra.space T) (A \<inter> B) A
+           \<Longrightarrow> j_A = Space.make_inclusion (Prealgebra.space T) A (A \<union> B)
+         \<Longrightarrow> i_B = Space.make_inclusion (Prealgebra.space T) (A \<inter> B) B
+           \<Longrightarrow> j_B = Space.make_inclusion (Prealgebra.space T) B (A \<union> B)
+            \<Longrightarrow> (Prealgebra.ar T $ i_A) $$ a = (Prealgebra.ar T $ i_B) $$ b
+            \<Longrightarrow> (\<exists> c . c \<in> Poset.el (Prealgebra.ob T $ (A \<union> B)) \<and> (Prealgebra.ar T $ j_A) $$ c = a \<and> (Prealgebra.ar T $ j_B) $$ c = b)"
   unfolding valid_def
   by (simp add: Let_def)
 
@@ -97,24 +97,24 @@ lemma relation_ar_valid : "valid T \<Longrightarrow> R1 = Prealgebra.ar (relatio
     by (simp add: Function.dom_def Function.valid_map_def)
 
 lemma relation_ob_value : "valid T \<Longrightarrow> R0 = Prealgebra.ob (relation_prealgebra T) \<Longrightarrow>
- (\<forall> A . A \<in> Space.opens (Prealgebra.space T) \<longrightarrow> X = Poset.el ((ob T) $ A) \<longrightarrow> R0 $ A = Poset.powerset X)"
+ (\<And> A . A \<in> Space.opens (Prealgebra.space T) \<Longrightarrow> X = Poset.el ((ob T) $ A) \<Longrightarrow> R0 $ A = Poset.powerset X)"
   unfolding relation_prealgebra_def
   apply (simp_all add : Let_def)
   by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def UNIV_I fst_conv mem_Collect_eq snd_conv)
 
 lemma relation_ob_value_valid : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow>  R0 = Prealgebra.ob R \<Longrightarrow>
- (\<forall> A . A \<in> Space.opens (Prealgebra.space R) \<longrightarrow> Poset.valid (R0 $ A))"
+ (\<And> A .A \<in> Space.opens (Prealgebra.space R) \<Longrightarrow> Poset.valid (R0 $ A))"
   using relation_ob_value [where ?T=T]
   by (metis powerset_valid relation_space_valid)
 
 lemma relation_ar_value : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow> R1 = Prealgebra.ar (relation_prealgebra T) \<Longrightarrow>
- (\<forall> i . i \<in> Space.inclusions (Prealgebra.space R) \<longrightarrow> X = Poset.el ((ob T) $ (Space.cod i)) \<longrightarrow> Y = Poset.el ((ob T) $ (Space.dom i))
-\<longrightarrow> f=(($$) (ar T $ i)) \<longrightarrow> R1 $ i = Poset.direct_image f X Y)"
+ (\<And> i.  i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> X = Poset.el ((ob T) $ (Space.cod i)) \<Longrightarrow> Y = Poset.el ((ob T) $ (Space.dom i))
+\<Longrightarrow> f=(($$) (ar T $ i)) \<Longrightarrow> R1 $ i = Poset.direct_image f X Y)"
   unfolding relation_prealgebra_def [where ?T=T]
   by (smt (verit) Function.fun_app Function.select_convs(1) Function.valid_map_def Prealgebra.Prealgebra.select_convs(1) Prealgebra.Prealgebra.select_convs(3) \<open>relation_prealgebra T \<equiv> let S = Prealgebra.space T; T0 = ob T; T1 = ar T; f = \<lambda>i. ($$) (T1 $ i); R0 = \<lparr>Function.func = {(A, powerset (el (T0 $ A))) |A. A \<in> Space.opens S}, cod = UNIV\<rparr>; R1 = \<lparr>Function.func = {(i, direct_image (f i) (el (T0 $ Inclusion.cod i)) (el (T0 $ Inclusion.dom i))) | i. i \<in> Space.inclusions S}, cod = UNIV\<rparr> in \<lparr>Prealgebra.space = S, ob = R0, ar = R1\<rparr>\<close> mem_Collect_eq relation_ar_valid)
 
 lemma relation_ar_value_valid : "valid T \<Longrightarrow>  R = relation_prealgebra T \<Longrightarrow>  R1 = Prealgebra.ar (relation_prealgebra T) \<Longrightarrow>
-  (\<forall> i . i \<in> Space.inclusions (Prealgebra.space R) \<longrightarrow> Poset.valid_map (R1 $ i))"
+  (\<And> i . i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> Poset.valid_map (R1 $ i))"
 using relation_ar_value [where ?T=T]
   by (metis Tuple.valid_welldefined direct_image_valid image relation_space_valid)
 
@@ -331,6 +331,18 @@ proof -
     ultimately show "PosetMap.cod (PrealgebraMap.nat \<epsilon> $ A) = ob (PrealgebraMap.cod \<epsilon>) $ A"
       by meson 
   qed
+
+lemma relation_neutral_stable : 
+  fixes T :: "('A, 'a) Prealgebra" and i :: "'A Inclusion"
+  assumes T_valid: "valid T" and i_inc: "i \<in> Space.inclusions (space T)"
+  defines "R \<equiv> relation_prealgebra T"
+  and "\<epsilon> \<equiv> (relation_neutral T)"
+  and "\<epsilon>A \<equiv> (PrealgebraMap.nat (relation_neutral T) $ Space.cod i) $$ ()"
+  and "\<epsilon>B \<equiv> ((PrealgebraMap.nat (relation_neutral T)) $ Space.cod i) $$ ()"
+shows "(ar R $ i) $$ \<epsilon>A = \<epsilon>B"
+proof -
+  have "\<exists> x . (ar R $ i) $$ \<epsilon>A = \<epsilon>B" using valid_flasque [where ?T=T and ?i=i] 
+
 
 lemma relation_neutral_natural : "valid T \<Longrightarrow> \<epsilon> = relation_neutral T \<Longrightarrow> 
 i \<in> Space.inclusions (map_space \<epsilon>) \<Longrightarrow>
