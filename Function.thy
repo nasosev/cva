@@ -15,14 +15,16 @@ theory Function
 imports Main
 begin
 
+declare [[syntax_ambiguity_warning = false]]
+
 text \<open> 
    This record defines a type for mapping between sets. The `cod` field represents
    the codomain of the function, while `func` is a set of tuples each corresponding
    to a mapping from an element of the domain to an element of the codomain.
 \<close>
 record ('a, 'b) Function =
-  func :: "('a \<times> 'b) set"
   cod :: "'b set"
+  func :: "('a \<times> 'b) set"
 
 text \<open> 
    The `dom` function determines the domain of a function. It returns the set of all
@@ -51,7 +53,7 @@ text \<open>
 \<close>
 definition "Function_app_undefined_arg_not_in_domain a \<equiv> undefined"
 
-definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 998) where
+definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "\<cdot>" 998) where
 "app f a \<equiv> 
   if a \<in> dom f
    then (THE b. (a, b) \<in> func f) 
@@ -67,8 +69,11 @@ definition "Function_const_undefined_arg_not_in_codomain b \<equiv> undefined"
 definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) Function" where
 "const A B b \<equiv> 
   if b \<in> B
-  then  \<lparr> func = { (a, b) | a. a \<in> A }, cod = B\<rparr> 
+  then  \<lparr> cod = B, func = { (a, b) | a. a \<in> A }\<rparr> 
   else Function_const_undefined_arg_not_in_codomain b"
+
+definition ident :: "'a set \<Rightarrow> ('a, 'a) Function" where
+"ident X \<equiv> \<lparr> cod = X, func = Id_on X \<rparr>"
 
 text \<open>
    The following lemmas specify various properties of valid functions.
@@ -95,28 +100,35 @@ text \<open>
 lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
   unfolding valid_map_def by (simp add: Let_def)
 
+lemma valid_mapI: "(\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> dom f \<and> b \<in> cod f) \<Longrightarrow>
+                   (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
+                   (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f))
+  \<Longrightarrow> valid_map f " unfolding valid_map_def
+  using Function.dom_def by fastforce 
+
+
 text \<open> 
    `fun\_app` states that for a valid function, if an element 'a' is in its domain, applying the function 
    to 'a' will produce a pair (a, b) in the function mapping.
 \<close>
-lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
+lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f \<cdot> a) \<in> func f"
   by (metis app_def theI' valid_map_deterministic valid_map_total)
 
 text \<open> 
    `fun\_app2` states that for a valid function, if an element 'a' is in its domain, applying the function 
    to 'a' will produce a value 'b' in the codomain.
 \<close>
-lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f $ a \<Longrightarrow> fa \<in> cod f"
+lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f \<cdot> a \<Longrightarrow> fa \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
-lemma fun_app3 [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f $ a = (THE b. (a, b) \<in> func f) "
+lemma fun_app3 [simp] : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> f \<cdot> a = (THE b. (a, b) \<in> func f) "
   by (simp add: app_def)
 
 text \<open> 
    `fun\_ext` states that if two valid functions have the same domain and codomain, and they map 
    every element in the domain to the same value, then their function mappings are equal.
 \<close>
-lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
+lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f \<cdot> a = g \<cdot> a) \<Longrightarrow> func f = func g"
   unfolding  dom_def 
   apply (simp_all add: Let_def)
   apply auto
@@ -127,17 +139,20 @@ text \<open>
    `fun\_ext2` states that if two valid functions have the same domain and codomain, and they map 
    every element in the domain to the same value, then the functions are equal.
 \<close>
-lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> f = g"
+lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f \<cdot> a = g \<cdot> a) \<Longrightarrow> f = g"
   apply simp
   apply (frule fun_ext)
       apply auto
   done
 
+lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f \<cdot> a) = b"
+  by (meson fun_app valid_map_deterministic valid_map_welldefined)
+
 text \<open> 
    `const\_app` states that applying the constant function to any element in its domain will produce 
    the fixed value.
 \<close>
-lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
+lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) \<cdot> a) = b"
   unfolding const_def
   by (simp add: Function.dom_def app_def)
 
@@ -148,4 +163,72 @@ lemma const_valid : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
   unfolding valid_map_def const_def
   by (simp add: Function.dom_def app_def)
 
+lemma ident_valid : "valid_map (ident X)"
+  by (simp add: Function.dom_def Id_on_iff ident_def valid_map_def)
+
+lemma ident_app [simp] :
+  fixes x :: "'x" and X :: "'x set"
+  assumes "x \<in> X"
+  shows "ident X \<cdot> x = x"
+  unfolding ident_def app_def Id_on_def
+  apply auto
+  using assms apply blast
+  by (simp add: Function.dom_def assms)
+
+definition "Function_compose_undefined_incomposable g f \<equiv> undefined"
+
+
+definition compose :: "('b, 'c) Function \<Rightarrow> ('a, 'b) Function \<Rightarrow> ('a, 'c) Function" (infixl "\<circ>" 55) where
+  "compose g f \<equiv>
+  if dom g = cod f
+  then \<lparr> cod = cod g, func = relcomp (func f) (func g) \<rparr>
+  else Function_compose_undefined_incomposable g f"
+
+lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<circ> f) = dom f"
+  unfolding compose_def dom_def
+  apply clarsimp
+  by (metis Function.dom_def relcomp.simps valid_map_total valid_map_welldefined)
+
+lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<circ> f) = cod g"
+  unfolding compose_def
+  by force 
+
+lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<circ> f) \<Longrightarrow> a \<in> dom f \<and> b \<in> cod g"
+  unfolding compose_def dom_def valid_map_def
+  by clarsimp
+
+
+lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<circ> f) \<Longrightarrow> (a, b') \<in> func (g \<circ> f) \<Longrightarrow> b = b'"
+  unfolding compose_def dom_def valid_map_def
+  apply clarsimp
+  by metis
+
+lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<circ> f)"
+  unfolding compose_def
+  by (smt (verit, ccfv_threshold) fun_app fun_app2 relcomp.relcompI select_convs(2))
+
+lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<circ> f) \<cdot> a = g \<cdot> (f \<cdot> a)"
+  unfolding valid_map_def dom_def compose_def app_def
+  apply (simp add: Let_def)
+  apply clarsimp
+  apply safe
+     apply auto
+     apply (smt (verit, best) relcomp.simps the_equality)
+    apply (metis (mono_tags, lifting) theI_unique)
+  apply (meson relcomp.relcompI)
+  by (metis Function_app_undefined_arg_not_in_domain_def)
+
+lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<circ> f)"
+  apply (rule valid_mapI)
+  unfolding valid_map_def
+    apply (simp_all add :Let_def)
+  apply (smt (verit, del_insts) Function.dom_def compose_def mem_Collect_eq relcomp.simps select_convs(1) select_convs(2))
+   apply (metis (no_types, lifting) compose_def relcomp.simps select_convs(2))
+  by auto
+
+lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
+                (b, c) \<in> func g \<Longrightarrow> (g \<circ> f) \<cdot> a = c"
+  apply (rule fun_app_iff)
+  using compose_valid apply blast
+  by (simp add: compose_def relcomp.relcompI)
 end
