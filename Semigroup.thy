@@ -33,7 +33,7 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
                   \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S)
                   \<and> cod (mult S) = (poset S);
 
-    mul = \<lambda> a b . (mult S) $$ (a,b);
+    mul = \<lambda> a b . (mult S) \<cdot> (a,b);
     elems = Poset.el (poset S);
     associative = \<forall> a b c . a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow> c \<in> elems \<longrightarrow> mul (mul a b) c = mul a (mul b c)
   in
@@ -46,7 +46,7 @@ abbreviation elems :: "'a Semigroup \<Rightarrow> 'a set" where
 "elems S \<equiv> Poset.el (poset S)"
 
 abbreviation mul :: "'a Semigroup \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-"mul S a b\<equiv> (mult S) $$ (a,b)"
+"mul S a b\<equiv> (mult S) \<cdot> (a,b)"
 text \<open> LEMMAS \<close>
 
 text \<open>
@@ -124,7 +124,7 @@ proof -
     then show ?thesis
       using f1 by (simp add: Semigroup.valid_welldefined Poset.product_def a1_le_a2 assms(1) b1_le_b2)
   qed
-  ultimately show "Poset.le (poset S) ((mult S) $$ (a1,b1)) ((mult S) $$ (a2,b2))"
+  ultimately show "Poset.le (poset S) ((mult S) \<cdot> (a1,b1)) ((mult S) \<cdot> (a2,b2))"
     by (metis Semigroup.valid_cod assms(1) valid_map_monotone)
 qed
 

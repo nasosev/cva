@@ -77,7 +77,7 @@ definition ident :: "'a set \<Rightarrow> ('a, 'a) Function" where
 
 definition "Function_compose_undefined_incomposable g f \<equiv> undefined"
 
-definition compose :: "('b, 'c) Function \<Rightarrow> ('a, 'b) Function \<Rightarrow> ('a, 'c) Function" (infixl "\<circ>\<circ>" 55) where
+definition compose :: "('b, 'c) Function \<Rightarrow> ('a, 'b) Function \<Rightarrow> ('a, 'c) Function" (infixl "\<odot>\<odot>" 55) where
   "compose g f \<equiv>
   if dom g = cod f
   then \<lparr> cod = cod g, func = relcomp (func f) (func g) \<rparr>
@@ -197,30 +197,30 @@ lemma ident_app [simp] :
   using assms apply blast
   by (simp add: Function.dom_def assms)
 
-lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<circ>\<circ> f) = dom f"
+lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<odot>\<odot> f) = dom f"
   unfolding compose_def dom_def
   apply clarsimp
   by (metis Function.dom_def relcomp.simps valid_map_total valid_map_welldefined)
 
-lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<circ>\<circ> f) = cod g"
+lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<odot>\<odot> f) = cod g"
   unfolding compose_def
   by force 
 
-lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<circ>\<circ> f) \<Longrightarrow> a \<in> dom f \<and> b \<in> cod g"
+lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<odot>\<odot> f) \<Longrightarrow> a \<in> dom f \<and> b \<in> cod g"
   unfolding compose_def dom_def valid_map_def
   by clarsimp
 
 
-lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<circ>\<circ> f) \<Longrightarrow> (a, b') \<in> func (g \<circ>\<circ> f) \<Longrightarrow> b = b'"
+lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<odot>\<odot> f) \<Longrightarrow> (a, b') \<in> func (g \<odot>\<odot> f) \<Longrightarrow> b = b'"
   unfolding compose_def dom_def valid_map_def
   apply clarsimp
   by metis
 
-lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<circ>\<circ> f)"
+lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<odot>\<odot> f)"
   unfolding compose_def
   by (smt (verit, ccfv_threshold) fun_app fun_app2 relcomp.relcompI select_convs(2))
 
-lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<circ>\<circ> f) \<cdot>\<cdot> a = g \<cdot>\<cdot> (f \<cdot>\<cdot> a)"
+lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<odot>\<odot> f) \<cdot>\<cdot> a = g \<cdot>\<cdot> (f \<cdot>\<cdot> a)"
   unfolding valid_map_def dom_def compose_def app_def
   apply (simp add: Let_def)
   apply clarsimp
@@ -231,7 +231,7 @@ lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> 
   apply (meson relcomp.relcompI)
   by (metis Function_app_undefined_arg_not_in_domain_def)
 
-lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<circ>\<circ> f)"
+lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<odot>\<odot> f)"
   apply (rule valid_mapI)
   unfolding valid_map_def
     apply (simp_all add :Let_def)
@@ -240,17 +240,17 @@ lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
   by auto
 
 lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
-                (b, c) \<in> func g \<Longrightarrow> (g \<circ>\<circ> f) \<cdot>\<cdot> a = c"
+                (b, c) \<in> func g \<Longrightarrow> (g \<odot>\<odot> f) \<cdot>\<cdot> a = c"
   apply (rule fun_app_iff)
   using compose_valid apply blast
   by (simp add: compose_def relcomp.relcompI)
 
 lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
-  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<circ>\<circ> f = h \<circ>\<circ> f \<Longrightarrow> g = h"
+  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<odot>\<odot> f = h \<odot>\<odot> f \<Longrightarrow> g = h"
   by (metis cod_compose compose_app fun_ext2)
 
 lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
-  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<circ>\<circ> g = f \<circ>\<circ> h \<Longrightarrow> g = h"
+  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<odot>\<odot> g = f \<odot>\<odot> h \<Longrightarrow> g = h"
   by (metis compose_app dom_compose fun_app2 fun_ext2) 
 
 end

@@ -61,7 +61,6 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## Notes
 
-- Tuple systems (Tuple.thy) are defined as prealgebras instead of set-valued presheaves, to avoid redoing the Prealgebra theory for the latter. The poset structure of the tuple system is simply ignored when generating the relational algebra.
 - Documentation is generated using ChatGPT and has not been proofread! :sweat_smile:
 
 ## Acknowledgements
