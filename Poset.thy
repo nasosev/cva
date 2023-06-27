@@ -850,26 +850,38 @@ qed
 
 lemma surj_imp_direct_image_surj :
   fixes f :: "('a, 'b) PosetMap"
-  assumes f_valid "valid_map f"
-  and "is_surjective f"
-defines "X \<equiv> el (dom f)"
-and "Y \<equiv> el (cod f)"
-shows "is_surjective (direct_image (\<lambda> x  . f $$ x) X Y)"
+  assumes f_valid : "valid_map f"
+  and f_surj : "is_surjective f"
+  defines "X \<equiv> el (dom f)"
+  and "Y \<equiv> el (cod f)"
+  shows "is_surjective (direct_image (\<lambda> x  . f $$ x) X Y)"
 proof
   fix b
   assume "b \<in> el (cod (direct_image (($$) f) X Y))"
   have "b \<subseteq> Y"
     by (metis (no_types, lifting) Poset.Poset.select_convs(1) PowD \<open>b \<in> el (cod (direct_image (($$) f) X Y))\<close> direct_image_cod powerset_def)
   moreover have "\<forall> y \<in> b . (\<exists> x . x \<in> X \<and> f $$ x = y)"
-    using X_def Y_def assms(3) calculation by auto
-  moreover have "\<exists> a . { y . (\<exists> x . x \<in> X \<and> f $$ x \<in> Y)} = b" 
-
-    oops
-                        
-(*  then obtain a where p :  "{ SOME x .  y \<in> b \<and> x \<in> X \<and> f $$ x = y}"*)
-
-    show "\<exists>a\<in>el (PosetMap.dom (direct_image (($$) f) X Y)). direct_image (($$) f) X Y $$ a = b"
-      oops
+    using X_def Y_def calculation f_surj by auto 
+  define "pre" where "pre = (\<lambda> y. (SOME x. (y \<in> b) \<longrightarrow> (f $$ x = y \<and> x \<in> X) ))" 
+  moreover have "\<forall> y . (y \<in> b \<longrightarrow> f $$ (pre y) = y)"
+    by (smt (verit, best) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f $$ x = y\<close> pre_def someI_ex) 
+  moreover have "\<forall> y . y \<in> b \<longrightarrow> pre y \<in> X"
+    by (smt (verit) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f $$ x = y\<close> pre_def someI)   
+  define "a" where "a = { pre y | y . y \<in> b }"
+  moreover have "a \<subseteq> X"
+    using \<open>\<forall>y. y \<in> b \<longrightarrow> pre y \<in> X\<close> a_def by fastforce   
+  moreover have "a \<in> el (PosetMap.dom (direct_image (($$) f) X Y))"
+    by (simp add: calculation(5) direct_image_dom powerset_def) 
+  moreover have "\<forall> y . (y \<in> b \<longrightarrow> ( y = f $$  (pre y)))" using calculation
+  by presburger
+  moreover have "\<forall> y . (y \<in> b \<longrightarrow> (\<exists> x \<in> a . y = f $$ x))" using calculation
+    by blast 
+  moreover have "(($$) f) ` a = b" using a_def pre_def using calculation
+    by (smt (verit, ccfv_threshold) image_Collect_subsetI image_iff subsetI subset_antisym)
+    ultimately show "\<exists>a\<in>el (PosetMap.dom (direct_image (($$) f) X Y)). direct_image (($$) f) X Y $$ a = b"
+      by (metis Setcompr_eq_image direct_image_app)
+  qed   
+      
 
 (*
 definition is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
