@@ -157,7 +157,7 @@ text \<open>
   i.e., if every element of the codomain of `f` is the image of some element of the domain of `f`.
 \<close>
 abbreviation is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
-"is_surjective f \<equiv> \<forall>b \<in> el (cod f). \<exists>a \<in> el (dom f). f \<cdot> a = b"
+"is_surjective f \<equiv> \<forall> b . b \<in> el (cod f) \<longrightarrow> (\<exists> a . a \<in> el (dom f) \<and> f \<cdot> a = b)"
 
 text \<open>
   `is_injective` is a predicate that takes a poset map `f` and returns true if `f` is injective,
@@ -171,7 +171,7 @@ text \<open>
   `is_bijective` is a predicate that takes a poset map `f` and returns true if `f` is bijective,
   i.e., if `f` is both surjective and injective.
 \<close>
-definition is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+abbreviation is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "is_bijective f \<equiv> is_surjective f \<and> is_injective f"
 
 text \<open>
@@ -252,7 +252,7 @@ definition direct_image :: "('a, 'b) Function \<Rightarrow> ('a set, 'b set) Pos
 "direct_image f \<equiv> \<lparr>
         dom = powerset (Function.dom f),
         cod = powerset (Function.cod f),
-        func = {(p, {f \<cdot> x | x . x \<in> p}) | p . p \<subseteq> Function.dom f}
+        func = {(p, {f \<cdot>\<cdot> x | x . x \<in> p}) | p . p \<subseteq> Function.dom f}
  \<rparr>"
 
 text \<open> ----------------- LEMMAS ----------------- \<close>
@@ -691,7 +691,7 @@ lemma direct_image_dom : "dom (direct_image f) = powerset (Function.dom f)"
 lemma direct_image_cod : "cod (direct_image f) = powerset (Function.cod f)"
   by (simp add: direct_image_def) 
 
-lemma direct_image_app : "Function.valid_map f \<Longrightarrow> a \<subseteq> Function.dom f \<Longrightarrow> (direct_image f) \<cdot> a = {f \<cdot> x | x . x \<in> a}"
+lemma direct_image_app : "Function.valid_map f \<Longrightarrow> a \<subseteq> Function.dom f \<Longrightarrow> (direct_image f) \<cdot> a = {f \<cdot>\<cdot> x | x . x \<in> a}"
   unfolding Function.valid_map_def app_def direct_image_def
   apply (simp add: Let_def) 
   by (simp add: powerset_def)
@@ -742,13 +742,13 @@ proof (rule valid_mapI, safe)
     assume "a' \<in> el (PosetMap.dom (direct_image f))"
     assume "le (PosetMap.dom (direct_image f)) a a'" 
 
-    have "(direct_image f) \<cdot> a = {f \<cdot> x | x . x \<in> a}" using direct_image_def [where ?f=f] app_def
+    have "(direct_image f) \<cdot> a = {f \<cdot>\<cdot> x | x . x \<in> a}" using direct_image_def [where ?f=f] app_def
         [where ?f="direct_image f" and ?a=a]
       using \<open>\<And>a. a \<in> el (PosetMap.dom (direct_image f)) \<Longrightarrow> \<exists>b. (a, b) \<in> PosetMap.func (direct_image f)\<close> \<open>a \<in> el (PosetMap.dom (direct_image f))\<close> by auto 
-    moreover have "(direct_image f) \<cdot> a' = {f \<cdot> x | x . x \<in> a'}" using direct_image_def [where ?f=f] app_def
+    moreover have "(direct_image f) \<cdot> a' = {f \<cdot>\<cdot> x | x . x \<in> a'}" using direct_image_def [where ?f=f] app_def
         [where ?f="direct_image f" and ?a=a']
       using \<open>\<And>a. a \<in> el (PosetMap.dom (direct_image f)) \<Longrightarrow> \<exists>b. (a, b) \<in> PosetMap.func (direct_image f)\<close> \<open>a' \<in> el (PosetMap.dom (direct_image f))\<close> by auto 
-    moreover have "{f \<cdot> x | x . x \<in> a} \<subseteq> {f \<cdot> x | x . x \<in> a'}" using direct_image_def [where ?f=f]
+    moreover have "{f \<cdot>\<cdot> x | x . x \<in> a} \<subseteq> {f \<cdot>\<cdot> x | x . x \<in> a'}" using direct_image_def [where ?f=f]
         calculation
       by (smt (verit) Poset.Poset.select_convs(2) Pow_iff \<open>a \<in> el (PosetMap.dom (direct_image f))\<close> \<open>a' \<in> el (PosetMap.dom (direct_image f))\<close> \<open>le (PosetMap.dom (direct_image f)) a a'\<close> case_prod_unfold direct_image_dom direct_image_mono_raw f_valid fst_conv mem_Collect_eq powerset_def snd_conv)
     
@@ -780,7 +780,7 @@ proof -
   moreover have "cod (direct_image (Function.ident X)) = powerset X"
     by (simp add: Function.ident_def direct_image_cod) 
 
-  moreover have "\<forall> p . p \<subseteq> X \<longrightarrow> {Function.ident X \<cdot> x |x. x \<in> p} = p" using Function.ident_app [where
+  moreover have "\<forall> p . p \<subseteq> X \<longrightarrow> {Function.ident X \<cdot>\<cdot> x |x. x \<in> p} = p" using Function.ident_app [where
         ?X=X]
     by (smt (verit, ccfv_threshold) Collect_cong Collect_mem_eq in_mono) 
   moreover have "func (direct_image (Function.ident X)) = {(p, p) |p . p \<subseteq> X}" using calculation
@@ -791,103 +791,78 @@ proof -
      by (simp add: Poset.ident_def) 
  qed
 
-lemma direct_image_trans : "Function.valid_map g \<Longrightarrow> Function.valid_map f \<Longrightarrow>  Function.cod f = Function.dom g \<Longrightarrow>
-direct_image g \<circ> direct_image f = direct_image (g \<circ> f)"
-  unfolding direct_image_def compose_def 
-proof -
-  fix g :: "('b, 'c) Function"
-  fix f :: "('a , 'b) Function"
-  assume "Function.cod f = Function.dom g"
-
-  show "direct_image g Y Z \<circ> direct_image f X Y = direct_image (g \<circ> f) X Z"
-    unfolding direct_image_def compose_def
-  proof auto
+lemma direct_image_trans : 
+  fixes g :: "('b, 'c) Function" and f :: "('a , 'b) Function" 
+  assumes f_valid : "Function.valid_map f" 
+  and g_valid : "Function.valid_map g" 
+  and "Function.cod f = Function.dom g"
+shows "direct_image g \<circ> direct_image f = direct_image (g \<circ>\<circ> f)"
+proof (rule fun_ext)
+    show "Poset.valid_map (direct_image g \<circ> direct_image f)"
+      by (simp add: Poset.compose_valid assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
+    show "Poset.valid_map (direct_image (g \<circ>\<circ> f))"
+      using Function.compose_valid assms(3) direct_image_valid f_valid g_valid by blast
+    show "PosetMap.dom (direct_image g \<circ> direct_image f) = PosetMap.dom (direct_image (g \<circ>\<circ> f))"
+      by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
+    show "PosetMap.cod (direct_image g \<circ> direct_image f) = PosetMap.cod (direct_image (g \<circ>\<circ> f))"
+      by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
+    show "\<forall>a\<in>el (PosetMap.dom (direct_image g \<circ> direct_image f)).
+       (direct_image g \<circ> direct_image f) \<cdot> a = direct_image (g \<circ>\<circ> f) \<cdot> a "
+    proof 
     fix p
-    assume "p \<subseteq> X"
-    have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} "
-      using \<open>p \<subseteq> X\<close> by blast
-    moreover have "{f x |x. x \<in> p} \<subseteq> Y"
-      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto
-    moreover have "({f x |x. x \<in> p}, {g (f x) |x. x \<in> p}) \<in> {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y}"
-      using calculation(2) by blast
-    ultimately show "(p, {g (f x) |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p
- \<subseteq> Y}" using relcompI [where ?r="{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X}" and ?s="{(p, {g x |x. x \<in> p}) |p. p
- \<subseteq> Y}" and ?a=p and ?c="{g (f x) |x. x \<in> p}" and ?b="{f x |x. x \<in> p}"]
-      by fastforce
+    assume "p \<in> el (PosetMap.dom (direct_image g \<circ> direct_image f))"
+    have "p \<subseteq> Function.dom f"
+      by (metis (no_types, lifting) Function.dom_compose Poset.Poset.select_convs(1) PowD \<open>PosetMap.dom (direct_image g \<circ> direct_image f) = PosetMap.dom (direct_image (g \<circ>\<circ> f))\<close> \<open>p \<in> el (PosetMap.dom (direct_image g \<circ> direct_image f))\<close> assms(3) direct_image_dom f_valid g_valid powerset_def) 
+    have "(p, {f \<cdot>\<cdot> x |x. x \<in> p}) \<in> {(p, {f \<cdot>\<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} "
+      using \<open>p \<subseteq> Function.dom f\<close> by blast 
+    moreover have "{f \<cdot>\<cdot> x |x. x \<in> p} \<subseteq> Function.cod f"
+      using Function.fun_app2 \<open>p \<subseteq> Function.dom f\<close> f_valid by fastforce
+    moreover have "({f \<cdot>\<cdot> x |x. x \<in> p}, {g \<cdot>\<cdot> (f \<cdot>\<cdot> x) |x. x \<in> p}) \<in> {(p, {g \<cdot>\<cdot> x |x. x \<in> p}) |p. p \<subseteq>
+      Function.cod f}"
+      using calculation(2) by blast 
+    moreover have "(p, {g \<cdot>\<cdot> (f \<cdot>\<cdot> x) |x. x \<in> p}) \<in> 
+  {(p, {f \<cdot>\<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot>\<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
+      using calculation(1) calculation(3) by auto
+    ultimately
+    show "(direct_image g \<circ> direct_image f) \<cdot> p = direct_image (g \<circ>\<circ> f) \<cdot> p "
+      by (smt (verit) CollectD Collect_cong Function.compose_app Function.compose_valid Function.dom_compose Poset.compose_app \<open>PosetMap.dom (direct_image g \<circ> direct_image f) = PosetMap.dom (direct_image (g \<circ>\<circ> f))\<close> \<open>p \<in> el (PosetMap.dom (direct_image g \<circ> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid g_valid prod.inject subset_eq)
   qed
-qed
-
-lemma direct_image_trans_weak : "(\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y ) \<Longrightarrow> (\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z ) \<Longrightarrow> (\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x))
-\<Longrightarrow>  direct_image g Y Z \<circ> direct_image f X Y = direct_image gf X Z"
-  proof -
-  fix f :: "'a \<Rightarrow> 'b"
-  fix g :: "'b \<Rightarrow> 'c"
-  fix gf :: "'a \<Rightarrow> 'c"
-  fix X Y Z
-  assume "\<And> x. x \<in> X \<Longrightarrow> f x \<in> Y"
-  assume "\<And> y. y \<in> Y \<Longrightarrow> g y \<in> Z"
-  assume "\<And> x. x \<in> X \<Longrightarrow> gf x = g (f x)"
-
-  show "direct_image g Y Z \<circ> direct_image f X Y = direct_image gf X Z"
-    unfolding direct_image_def compose_def
-  proof clarsimp
-    show "{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y} = {(p, {gf x |x. x \<in>
- p}) |p. p \<subseteq> X}"
-      apply safe
-       apply clarsimp
-      using \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> subsetD apply fastforce
-    proof clarsimp
-      fix p
-      assume "p \<subseteq> X"
-have "(p, {f x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} "
-      using \<open>p \<subseteq> X\<close> by blast
-    moreover have "{f x |x. x \<in> p} \<subseteq> Y"
-      using \<open>\<And>x. x \<in> X \<Longrightarrow> f x \<in> Y\<close> \<open>p \<subseteq> X\<close> by auto
-    moreover have "({f x |x. x \<in> p}, {gf x |x. x \<in> p}) \<in> {(p, {g x |x. x \<in> p}) |p. p \<subseteq> Y}"
-      by (smt (verit) Collect_cong \<open>\<And>x. x \<in> X \<Longrightarrow> gf x = g (f x)\<close> \<open>p \<subseteq> X\<close> calculation(2) in_mono mem_Collect_eq)
-    ultimately show "(p, {gf x |x. x \<in> p}) \<in> {(p, {f x |x. x \<in> p}) |p. p \<subseteq> X} O {(p, {g x |x. x \<in> p}) |p. p
- \<subseteq> Y}" using relcompI [where ?r="{(p, {f x |x. x \<in> p}) |p. p \<subseteq> X}" and ?s="{(p, {g x |x. x \<in> p}) |p. p
- \<subseteq> Y}" and ?a=p and ?c="{gf x |x. x \<in> p}" and ?b="{f x |x. x \<in> p}"]
-      by linarith
-  qed
-qed
 qed
 
 lemma surj_imp_direct_image_surj :
-  fixes f :: "('a, 'b) PosetMap"
-  assumes f_valid : "valid_map f"
-  and f_surj : "is_surjective f"
-  defines "X \<equiv> el (dom f)"
-  and "Y \<equiv> el (cod f)"
-  shows "is_surjective (direct_image (\<lambda> x  . f \<cdot> x) X Y)"
-proof
+  fixes f :: "('a, 'b) Function"
+  assumes f_valid : "Function.valid_map f"
+  and f_surj : "Function.is_surjective f"
+  shows "Poset.is_surjective (direct_image f)"
+proof auto
   fix b
-  assume "b \<in> el (cod (direct_image ((\<cdot>) f) X Y))"
+  define "X" where "X = Function.dom f"
+  define "Y" where "Y = Function.cod f"
+
+  assume "b \<in> el (PosetMap.cod (direct_image f))"
   have "b \<subseteq> Y"
-    by (metis (no_types, lifting) Poset.Poset.select_convs(1) PowD \<open>b \<in> el (cod (direct_image ((\<cdot>) f) X Y))\<close> direct_image_cod powerset_def)
-  moreover have "\<forall> y \<in> b . (\<exists> x . x \<in> X \<and> f \<cdot> x = y)"
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) PowD Y_def \<open>b \<in> el (PosetMap.cod (direct_image f))\<close> direct_image_cod powerset_def) 
+  moreover have "\<forall> y \<in> b . (\<exists> x . x \<in> X \<and> f \<cdot>\<cdot> x = y)"
     using X_def Y_def calculation f_surj by auto 
-  define "pre" where "pre = (\<lambda> y. (SOME x. (y \<in> b) \<longrightarrow> (f \<cdot> x = y \<and> x \<in> X) ))" 
-  moreover have "\<forall> y . (y \<in> b \<longrightarrow> f \<cdot> (pre y) = y)"
-    by (smt (verit, best) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f \<cdot> x = y\<close> pre_def someI_ex) 
+  define "pre" where "pre = (\<lambda> y. (SOME x. (y \<in> b) \<longrightarrow> (f \<cdot>\<cdot> x = y \<and> x \<in> X) ))" 
+  moreover have "\<forall> y . (y \<in> b \<longrightarrow> f \<cdot>\<cdot> (pre y) = y)"
+    by (smt (verit, best) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f \<cdot>\<cdot> x = y\<close> pre_def someI_ex) 
   moreover have "\<forall> y . y \<in> b \<longrightarrow> pre y \<in> X"
-    by (smt (verit) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f \<cdot> x = y\<close> pre_def someI)   
+    by (smt (verit) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f \<cdot>\<cdot> x = y\<close> pre_def someI)   
   define "a" where "a = { pre y | y . y \<in> b }"
   moreover have "a \<subseteq> X"
     using \<open>\<forall>y. y \<in> b \<longrightarrow> pre y \<in> X\<close> a_def by fastforce   
-  moreover have "a \<in> el (PosetMap.dom (direct_image ((\<cdot>) f) X Y))"
-    by (simp add: calculation(5) direct_image_dom powerset_def) 
-  moreover have "\<forall> y . (y \<in> b \<longrightarrow> ( y = f \<cdot>  (pre y)))" using calculation
+  moreover have "a \<in> el (PosetMap.dom (direct_image f))"
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) PowI X_def calculation(5) direct_image_dom powerset_def)  
+  moreover have "\<forall> y . (y \<in> b \<longrightarrow> ( y = f \<cdot>\<cdot>  (pre y)))" using calculation
   by presburger
-  moreover have "\<forall> y . (y \<in> b \<longrightarrow> (\<exists> x \<in> a . y = f \<cdot> x))" using calculation
+  moreover have "\<forall> y . (y \<in> b \<longrightarrow> (\<exists> x \<in> a . y = f \<cdot>\<cdot> x))" using calculation
     by blast 
-  moreover have "((\<cdot>) f) ` a = b" using a_def pre_def using calculation
+  moreover have "((\<cdot>\<cdot>) f) ` a = b" using a_def pre_def using calculation
     by (smt (verit, ccfv_threshold) image_Collect_subsetI image_iff subsetI subset_antisym)
-    ultimately show "\<exists>a\<in>el (PosetMap.dom (direct_image ((\<cdot>) f) X Y)). direct_image ((\<cdot>) f) X Y \<cdot> a = b"
-      by (metis Setcompr_eq_image direct_image_app)
+  show "\<exists>a. a \<in> el (PosetMap.dom (direct_image f)) \<and> direct_image f \<cdot> a = b"
+    by (metis Setcompr_eq_image X_def \<open>(\<cdot>\<cdot>) f ` a = b\<close> calculation(5) calculation(6) direct_image_app f_valid) 
   qed   
-      
-
 
 text \<open> EXAMPLES \<close>
 
