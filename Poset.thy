@@ -436,7 +436,7 @@ lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> 
   apply (clarsimp simp: app_def, safe; clarsimp?)
   apply (smt (z3) Poset.fun_app PosetMap.select_convs(3) compose_def compose_deterministic fun_app_iff relcomp.relcompI theI')
   by (metis app_def fun_app2)
-
+                                                                        
 text \<open>
   Lemma @{term compose_monotone} demonstrates the monotonicity of function composition. Given two valid
   poset maps `f` and `g`, and two elements `a` and `a'` from the domain of `f` such that `a` is less than or
