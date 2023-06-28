@@ -195,6 +195,18 @@ lemma ident_app [simp] :
   using assms apply blast
   by (simp add: Function.dom_def assms)
 
+lemma ident_dom [simp] : "dom (ident X) = X"
+  by (simp add: Function.dom_def Id_on_iff ident_def) 
+
+lemma ident_cod [simp] : "cod (ident X) = X"
+  by (simp add: ident_def)
+
+lemma const_dom [simp] : "y \<in> Y \<Longrightarrow> dom (const X Y y) = X"
+  by (smt (z3) Collect_cong Collect_mem_eq Function.dom_def Pair_inject const_def mem_Collect_eq select_convs(2)) 
+
+lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
+  by (simp add: const_def)
+
 lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<bullet> f) = dom f"
   unfolding compose_def dom_def
   apply clarsimp

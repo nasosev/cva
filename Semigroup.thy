@@ -37,7 +37,7 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
     elems = Poset.el (poset S);
     associative = \<forall> a b c . a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow> c \<in> elems \<longrightarrow> mul (mul a b) c = mul a (mul b c)
   in
-    (welldefined \<and> associative)"
+    welldefined \<and> associative"
 
 text \<open>
    These are abbreviations for the elements and the multiplication operation of an ordered semigroup.
@@ -56,7 +56,7 @@ text \<open>
 lemma validI :
   fixes S :: "'a Semigroup"
   assumes welldefined : "(Poset.valid (poset S)) \<and> (Poset.valid_map (mult S)) \<and> (dom (mult S)) = (poset S) \<times>\<times> (poset S) \<and> cod (mult S) = (poset S)"
-  assumes associative : "\<And> a b c . a \<in> elems S \<Longrightarrow> b \<in> elems S \<Longrightarrow> c \<in> elems S \<Longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)"
+  and associative : "\<And> a b c . a \<in> elems S \<Longrightarrow> b \<in> elems S \<Longrightarrow> c \<in> elems S \<Longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)"
   shows "valid S"
   using Semigroup.valid_def associative  welldefined by fastforce
 
@@ -91,7 +91,6 @@ lemma valid_associative :
   assumes "a \<in> elems S" and "b \<in> elems S" and "c \<in> elems S"
   shows " mul S (mul S a b) c = mul S a (mul S b c)"
   by (metis Semigroup.valid_def assms(1) assms(2) assms(3) assms(4))
-
 
 text \<open>
    This lemma states that if an ordered semigroup is valid, then its multiplication operation is

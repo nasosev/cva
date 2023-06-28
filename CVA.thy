@@ -24,10 +24,10 @@ record ('A, 'a) CVA =
   seq_algebra :: "('A, 'a) OVA"
 
 text \<open>
-   The 'presheaf' abbreviation extracts the presheaf from the parallelism aspect of the CVA 'V'.
+   The 'prealgebra' abbreviation extracts the prealgebra from the parallelism aspect of the CVA 'V'.
 \<close>
-abbreviation presheaf :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Prealgebra" where
-"presheaf V \<equiv> OVA.presheaf (par_algebra V)"
+abbreviation prealgebra :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Prealgebra" where
+"prealgebra V \<equiv> OVA.prealgebra (par_algebra V)"
 
 text \<open>
    The 'elems' abbreviation extracts the set of valuations from the parallelism aspect of the CVA 'V'.
@@ -112,7 +112,7 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
 
         welldefined = OVA.valid (par_algebra V)
                       \<and> OVA.valid (seq_algebra V)
-                      \<and> (OVA.presheaf (par_algebra V) = OVA.presheaf (seq_algebra V));
+                      \<and> (OVA.prealgebra (par_algebra V) = OVA.prealgebra (seq_algebra V));
 
         commutativity = \<forall> a b . par a b = par b a;
 
@@ -144,9 +144,9 @@ text \<open>
 
 text \<open>
   This lemma confirms that for a valid CVA, both the parallel and sequential algebras are valid, and
-  they have the same presheaf.
+  they have the same prealgebra.
 \<close>
-lemma valid_welldefined: "valid V \<Longrightarrow> OVA.valid (par_algebra V) \<and> OVA.valid (seq_algebra V) \<and> (OVA.presheaf (par_algebra V) = OVA.presheaf (seq_algebra V))"
+lemma valid_welldefined: "valid V \<Longrightarrow> OVA.valid (par_algebra V) \<and> OVA.valid (seq_algebra V) \<and> (OVA.prealgebra (par_algebra V) = OVA.prealgebra (seq_algebra V))"
   unfolding valid_def
   by metis
 
@@ -251,9 +251,9 @@ proof -
     define "B" where "B = d b"
     define "pr" where "pr = gprj V"
     have "local_le V B (pr B (ex A b)) b"
-      by (metis A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le V_valid b_elem ex_def galois_insertion local_inclusion_domain pr_def valid_gc_poset valid_poset valid_presheaf valid_reflexivity valid_semigroup) 
+      by (metis A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le V_valid b_elem ex_def galois_insertion local_inclusion_domain pr_def valid_gc_poset valid_poset valid_prealgebra valid_reflexivity valid_semigroup) 
      moreover have "A \<in> opens V \<and> B \<in> opens V"
-      using B_def CVA.valid_welldefined V_valid \<open>A \<in> Space.opens (Prealgebra.space (CVA.presheaf V))\<close> \<open>b \<in> Semigroup.elems (OVA.semigroup (par_algebra V))\<close> local_inclusion_domain by blast 
+      using B_def CVA.valid_welldefined V_valid \<open>A \<in> Space.opens (Prealgebra.space (CVA.prealgebra V))\<close> \<open>b \<in> Semigroup.elems (OVA.semigroup (par_algebra V))\<close> local_inclusion_domain by blast 
     moreover have lhs:"local_le V A (ex A b) (ex' A b)" using valid_gprj [where ?V=V] OVA.prj_ext_adjunction [where
    ?V="seq_algebra V" and ?A=A and ?B=B and ?a="(ex A b)" and ?b=b]
       by (smt (verit, ccfv_threshold) B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(1) calculation(2) d_gext ex'_def ex_def gext_elem pr_def valid_elems) 
@@ -263,7 +263,7 @@ proof -
    ?V="par_algebra V" and ?A=A and ?B=B and ?a="(ex' A b)" and ?b=b]
       by (metis (full_types) B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(2) calculation(4) d_gext ex'_def ex_def gext_elem pr_def valid_elems) 
     moreover have "ex' A b = ex A b" using calculation
-      by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem d_gext e_gext ex'_def ex_def prod.collapse valid_antisymmetry valid_elems valid_ob valid_presheaf)     
+      by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem d_gext e_gext ex'_def ex_def prod.collapse valid_antisymmetry valid_elems valid_ob valid_prealgebra)     
     ultimately show "ex A b = ex' A b"
       by presburger 
   qed
