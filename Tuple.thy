@@ -2,14 +2,18 @@ theory Tuple
   imports Main Presheaf Prealgebra OVA
 begin
 
-(* We define a tuple system as Pos-valued presheaf for convenience, but we will ignore its poset
-structure *)
+
+
 type_synonym ('A, 'a) TupleSystem = "('A, 'a) Presheaf"
+
+
+abbreviation (input) space :: "('A,'a) TupleSystem \<Rightarrow> 'A Space" where
+"space T \<equiv> Presheaf.space T"
 
 definition valid :: "('A, 'a) TupleSystem \<Rightarrow> bool" where
   "valid T \<equiv>
     let
-      S = Presheaf.space T;
+      S = space T;
       T0 = Presheaf.ob T;
       T1 = Presheaf.ar T;
 
@@ -29,7 +33,7 @@ definition valid :: "('A, 'a) TupleSystem \<Rightarrow> bool" where
 definition relation_prealgebra :: "('A, 'a) TupleSystem \<Rightarrow> ('A, 'a set) Prealgebra" where
   "relation_prealgebra T \<equiv>
     let
-      S = Presheaf.space T;
+      S = space T;
       T0 = Presheaf.ob T;
       T1 = Presheaf.ar T;
       R0 = \<lparr> Function.cod = UNIV, func = {(A, Poset.powerset (T0 \<cdot> A)) | A . A \<in> Space.opens S} \<rparr>;
@@ -40,14 +44,27 @@ definition relation_prealgebra :: "('A, 'a) TupleSystem \<Rightarrow> ('A, 'a se
 definition relation_neutral :: "('A, 'a) TupleSystem \<Rightarrow> ('A, unit, 'a set) PrealgebraMap" where
   "relation_neutral T \<equiv>
     let
-      map_space = Presheaf.space T;
+      map_space = space T;
       dom = Prealgebra.terminal map_space;
       cod = relation_prealgebra T;
-      nat = \<lparr> Function.cod = UNIV , 
-              func = {(A, Poset.const (Prealgebra.ob dom \<cdot> A) (Prealgebra.ob cod \<cdot> A)  (Presheaf.ob T \<cdot> A)) 
-            | A . A \<in> Space.opens map_space}  \<rparr>
+      nat = \<lparr> 
+              Function.cod = UNIV , 
+              func = {(A, Poset.const (Prealgebra.ob dom \<cdot> A) (Prealgebra.ob cod \<cdot> A)  (Presheaf.ob T \<cdot> A)) | A . A \<in> Space.opens map_space} 
+            \<rparr>
     in
       \<lparr> PrealgebraMap.map_space = map_space, nat = nat, dom = dom, cod = cod \<rparr>"
+
+definition relation_comb :: "('A, 'a) TupleSystem \<Rightarrow> (('A, 'a set) Valuation) Semigroup" where
+  "relation_comb T \<equiv> 
+    let
+      poset = gc (relation_prealgebra T);
+      mult = \<lparr> 
+              PosetMap.dom = undefined, 
+              cod = undefined, 
+              func = undefined 
+             \<rparr>
+    in
+      \<lparr> Semigroup.poset = poset, Semigroup.mult = mult \<rparr>"
 
 definition relation_algebra :: "('A, 'a) TupleSystem \<Rightarrow> ('A, 'a set) OVA" where
 "relation_algebra T \<equiv>
@@ -56,10 +73,6 @@ definition relation_algebra :: "('A, 'a) TupleSystem \<Rightarrow> ('A, 'a set) 
 
   in
   undefined"
-
-abbreviation (input) space :: "('A,'a) TupleSystem \<Rightarrow> 'A Space" where
-"space T \<equiv> Presheaf.space T"
-
 text \<open> ----------------- LEMMAS ----------------- \<close>
 
 lemma valid_welldefined :  "valid T \<Longrightarrow> Presheaf.valid T" unfolding valid_def
