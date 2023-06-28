@@ -27,12 +27,12 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
 
       welldefined = (Space.valid T)
                     \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> valid_map (\<Phi>1 \<cdot>\<cdot> i)
-                           \<and>  Function.dom (\<Phi>1 \<cdot>\<cdot> i) = \<Phi>0 \<cdot>\<cdot> (Space.cod i)
-                           \<and>  Function.cod (\<Phi>1 \<cdot>\<cdot> i) = \<Phi>0 \<cdot>\<cdot> (Space.dom i) );
-      identity = (\<forall>A. A \<in> Space.opens T \<longrightarrow> (\<Phi>1 \<cdot>\<cdot> (Space.ident T A)) = Function.ident (\<Phi>0 \<cdot>\<cdot> A));
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> valid_map (\<Phi>1 \<cdot> i)
+                           \<and>  Function.dom (\<Phi>1 \<cdot> i) = \<Phi>0 \<cdot> (Space.cod i)
+                           \<and>  Function.cod (\<Phi>1 \<cdot> i) = \<Phi>0 \<cdot> (Space.dom i) );
+      identity = (\<forall>A. A \<in> Space.opens T \<longrightarrow> (\<Phi>1 \<cdot> (Space.ident T A)) = Function.ident (\<Phi>0 \<cdot> A));
       composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i
-        \<longrightarrow>  \<Phi>1 \<cdot>\<cdot> (Space.compose j i ) = (\<Phi>1 \<cdot>\<cdot> i) \<odot>\<odot> (\<Phi>1 \<cdot>\<cdot> j))
+        \<longrightarrow>  \<Phi>1 \<cdot> (Space.compose j i) = (\<Phi>1 \<cdot> i) \<bullet> (\<Phi>1 \<cdot> j))
     in
     welldefined \<and> identity \<and> composition"
 
@@ -61,11 +61,11 @@ definition valid_map :: "('A, 'a, 'b) PresheafMap \<Rightarrow> bool" where
       welldefined = Space.valid space
                     \<and> valid (dom \<phi>) \<and> valid (cod \<phi>)
                     \<and> (Function.valid_map f)
-                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Function.valid_map (f \<cdot>\<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Function.dom (f \<cdot>\<cdot> A) = (ob (dom \<phi>) \<cdot>\<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Function.cod (f \<cdot>\<cdot> A) = (ob (cod \<phi>) \<cdot>\<cdot> A));
+                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Function.valid_map (f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Function.dom (f \<cdot> A) = (ob (dom \<phi>) \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Function.cod (f \<cdot> A) = (ob (cod \<phi>) \<cdot> A));
       naturality = (\<forall>i. i \<in> inclusions space \<longrightarrow>
-          (f \<cdot>\<cdot> Space.dom i) \<odot>\<odot> (ar (dom \<phi>) \<cdot>\<cdot> i) = (ar (cod \<phi>) \<cdot>\<cdot> i) \<odot>\<odot> (f \<cdot>\<cdot> Space.cod i))
+          (f \<cdot> Space.dom i) \<bullet> (ar (dom \<phi>) \<cdot> i) = (ar (cod \<phi>) \<cdot> i) \<bullet> (f \<cdot> Space.cod i))
     in
     (welldefined \<and> naturality)"
 
@@ -82,12 +82,12 @@ lemma validI :
   defines "\<Phi>1 \<equiv> ar \<Phi>"
   assumes welldefined : "(Space.valid T)
                     \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Function.valid_map (\<Phi>1 \<cdot>\<cdot> i)
-                           \<and>  Function.dom (\<Phi>1 \<cdot>\<cdot> i) = (\<Phi>0 \<cdot>\<cdot> (Space.cod i))
-                           \<and>  Function.cod (\<Phi>1 \<cdot>\<cdot> i) = (\<Phi>0 \<cdot>\<cdot> (Space.dom i)) )"
-  assumes identity : "(\<forall>A. A \<in> Space.opens T \<longrightarrow> (\<Phi>1 \<cdot>\<cdot> (Space.ident T A)) = Function.ident (\<Phi>0 \<cdot>\<cdot> A))"
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Function.valid_map (\<Phi>1 \<cdot> i)
+                           \<and>  Function.dom (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.cod i))
+                           \<and>  Function.cod (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.dom i)) )"
+  assumes identity : "(\<forall>A. A \<in> Space.opens T \<longrightarrow> (\<Phi>1 \<cdot> (Space.ident T A)) = Function.ident (\<Phi>0 \<cdot> A))"
   assumes composition :" (\<forall> i j. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
-        Space.dom j = Space.cod i \<longrightarrow> (\<Phi>1 \<cdot>\<cdot> (Space.compose j i )) = (\<Phi>1 \<cdot>\<cdot> i) \<odot>\<odot> (\<Phi>1 \<cdot>\<cdot> j))"
+        Space.dom j = Space.cod i \<longrightarrow> (\<Phi>1 \<cdot> (Space.compose j i )) = (\<Phi>1 \<cdot> i) \<bullet> (\<Phi>1 \<cdot> j))"
   shows "valid \<Phi>"
   unfolding valid_def
   apply (simp add: Let_def)
@@ -108,9 +108,9 @@ text \<open>
 \<close>
 lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> let T = space \<Phi>; \<Phi>0 = ob \<Phi>; \<Phi>1 = ar \<Phi> in (Space.valid T)
                     \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Function.valid_map (\<Phi>1 \<cdot>\<cdot> i)
-                           \<and>  Function.dom (\<Phi>1 \<cdot>\<cdot> i) = (\<Phi>0 \<cdot>\<cdot> (Space.cod i))
-                           \<and>  Function.cod (\<Phi>1 \<cdot>\<cdot> i) = (\<Phi>0 \<cdot>\<cdot> (Space.dom i)) )"
+                    \<and> (\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Function.valid_map (\<Phi>1 \<cdot> i)
+                           \<and>  Function.dom (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.cod i))
+                           \<and>  Function.cod (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.dom i)) )"
   unfolding valid_def by (simp add: Let_def)
 
 text \<open>
@@ -128,16 +128,16 @@ lemma valid_ar  :
   fixes \<Phi> :: "('A, 'a) Presheaf" and i :: "'A Inclusion" and f ::  "('a,'a) Function"
   assumes "valid \<Phi>"
   and "i \<in> Space.inclusions (space \<Phi>)"
-  and "f  \<equiv> ar \<Phi> \<cdot>\<cdot> i" 
+  and "f  \<equiv> ar \<Phi> \<cdot> i" 
   shows "Function.valid_map f"
 proof -
   define "\<Phi>1" where "\<Phi>1 = Presheaf.ar \<Phi>" 
   define "T" where "T = Presheaf.space \<Phi>" 
-  have "(\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Function.valid_map (\<Phi>1 \<cdot>\<cdot> i))"  using valid_welldefined
+  have "(\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Function.valid_map (\<Phi>1 \<cdot> i))"  using valid_welldefined
     by (metis T_def \<Phi>1_def assms(1))
     moreover have "i \<in> Space.inclusions T"
       by (simp add: T_def assms(2))
-    moreover have "Function.valid_map (\<Phi>1 \<cdot>\<cdot> i)"
+    moreover have "Function.valid_map (\<Phi>1 \<cdot> i)"
       using calculation(1) calculation(2) by auto
     ultimately show ?thesis
       using \<Phi>1_def assms(3) by blast 
@@ -147,7 +147,7 @@ text \<open>
    This lemma establishes that if a presheaf is valid, then the domain of the poset map associated 
    to an inclusion by the presheaf is equal to the poset associated to the codomain of the inclusion.
 \<close>
-lemma valid_dom  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> \<cdot>\<cdot> i \<Longrightarrow> Function.dom ari = ob \<Phi> \<cdot>\<cdot> (Space.cod i)"
+lemma valid_dom  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> \<cdot> i \<Longrightarrow> Function.dom ari = ob \<Phi> \<cdot> (Space.cod i)"
   unfolding valid_def
   by (simp add: Let_def)
 
@@ -155,7 +155,7 @@ text \<open>
    This lemma states that if a presheaf is valid, then the codomain of the poset map associated 
    to an inclusion by the presheaf is equal to the poset associated to the domain of the inclusion.
 \<close>
-lemma valid_cod  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> \<cdot>\<cdot> i \<Longrightarrow> Function.cod ari = ob \<Phi> \<cdot>\<cdot> (Space.dom i)"
+lemma valid_cod  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> \<cdot> i \<Longrightarrow> Function.cod ari = ob \<Phi> \<cdot> (Space.dom i)"
   unfolding valid_def
   by (simp add: Let_def)
 
@@ -163,7 +163,7 @@ text \<open>
    This lemma establishes that if a presheaf is valid, then the presheaf maps the identity of an 
    open set to the identity of the associated poFunction.
 \<close>
-lemma valid_identity  : "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot>\<cdot> A \<Longrightarrow> ar \<Phi> \<cdot>\<cdot> (Space.ident (space \<Phi>) A) = Function.ident obA"
+lemma valid_identity  : "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot> A \<Longrightarrow> ar \<Phi> \<cdot> (Space.ident (space \<Phi>) A) = Function.ident obA"
   unfolding valid_def by (simp add: Let_def)
 
 text \<open>
@@ -172,7 +172,7 @@ text \<open>
 \<close>
 lemma valid_composition :
   "valid \<Phi> \<Longrightarrow> j \<in> inclusions (space \<Phi>) \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
-    ar \<Phi> \<cdot>\<cdot> (Space.compose j i) = (ar \<Phi> \<cdot>\<cdot> i) \<odot>\<odot> (ar \<Phi> \<cdot>\<cdot> j)"
+    ar \<Phi> \<cdot> (Space.compose j i) = (ar \<Phi> \<cdot> i) \<bullet> (ar \<Phi> \<cdot> j)"
   by (metis Presheaf.valid_def)
 
 text \<open>
@@ -189,11 +189,11 @@ lemma valid_mapI :
   assumes welldefined : "(Space.valid T)
                     \<and> (Function.valid_map f)
                     \<and> valid \<Phi> \<and> valid \<Phi>'
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.valid_map (f \<cdot>\<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.dom (f \<cdot>\<cdot> A) = (ob \<Phi> \<cdot>\<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.cod (f \<cdot>\<cdot> A) = (ob \<Phi>' \<cdot>\<cdot> A))"
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.valid_map (f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.dom (f \<cdot> A) = (ob \<Phi> \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.cod (f \<cdot> A) = (ob \<Phi>' \<cdot> A))"
   assumes naturality : "(\<forall>i. i \<in> inclusions T \<longrightarrow>
-          (f \<cdot>\<cdot> Space.dom i) \<odot>\<odot> (ar \<Phi> \<cdot>\<cdot> i) = (ar \<Phi>' \<cdot>\<cdot> i) \<odot>\<odot> (f \<cdot>\<cdot> Space.cod i))"
+          (f \<cdot> Space.dom i) \<bullet> (ar \<Phi> \<cdot> i) = (ar \<Phi>' \<cdot> i) \<bullet> (f \<cdot> Space.cod i))"
   shows "valid_map \<phi>"
   unfolding valid_map_def
   apply (simp add: Let_def)
@@ -217,9 +217,9 @@ lemma valid_map_welldefined :
   "valid_map \<phi> \<Longrightarrow> let f = nat \<phi>; \<Phi> = dom \<phi>; \<Phi>' = cod \<phi>; T = map_space \<phi> in (Space.valid T)
                     \<and> (Function.valid_map f)
                     \<and> valid \<Phi> \<and> valid \<Phi>'
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.valid_map (f \<cdot>\<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.dom (f \<cdot>\<cdot> A) = (ob \<Phi> \<cdot>\<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.cod (f \<cdot>\<cdot> A) = (ob \<Phi>' \<cdot>\<cdot> A))"
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.valid_map (f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.dom (f \<cdot> A) = (ob \<Phi> \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Function.cod (f \<cdot> A) = (ob \<Phi>' \<cdot> A))"
   by (metis Presheaf.valid_map_def)
 
 text \<open>
@@ -251,7 +251,7 @@ text \<open>
    then the function mapped to the open set is a valid poset map.
 \<close>
 lemma valid_map_nat_welldefined :
-  "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Function.valid_map (nat \<phi> \<cdot>\<cdot> A)"
+  "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Function.valid_map (nat \<phi> \<cdot> A)"
   unfolding valid_map_def by (simp add: Let_def)
 
 text \<open>
@@ -259,7 +259,7 @@ text \<open>
    space, then the domain of the function mapped to the open set is equal to the value of the object 
    function at the open Function.
 \<close>
-lemma valid_map_nat_dom : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Function.dom ((nat \<phi>) \<cdot>\<cdot> A) = ob (dom \<phi>) \<cdot>\<cdot> A"
+lemma valid_map_nat_dom : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Function.dom ((nat \<phi>) \<cdot> A) = ob (dom \<phi>) \<cdot> A"
   by (meson Presheaf.valid_map_welldefined)
 
 text \<open>
@@ -267,7 +267,7 @@ text \<open>
    then the codomain of the function mapped to the open set is equal to the value of the object function 
    at the open Function.
 \<close>
-lemma valid_map_nat_cod : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Function.cod ((nat \<phi>) \<cdot>\<cdot> A) = ob (cod \<phi>) \<cdot>\<cdot> A"
+lemma valid_map_nat_cod : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Function.cod ((nat \<phi>) \<cdot> A) = ob (cod \<phi>) \<cdot> A"
   by (meson Presheaf.valid_map_welldefined)
 
 text \<open>
@@ -278,7 +278,7 @@ text \<open>
 \<close>
 lemma valid_map_naturality :
   "valid_map \<phi> \<Longrightarrow> i \<in> inclusions (map_space \<phi>) \<Longrightarrow>
-     (ar (cod \<phi>) \<cdot>\<cdot> i) \<odot>\<odot> (nat \<phi> \<cdot>\<cdot> Space.cod i) = (nat \<phi> \<cdot>\<cdot> Space.dom i) \<odot>\<odot> (ar (dom \<phi>) \<cdot>\<cdot> i)"
+     (ar (cod \<phi>) \<cdot> i) \<bullet> (nat \<phi> \<cdot> Space.cod i) = (nat \<phi> \<cdot> Space.dom i) \<bullet> (ar (dom \<phi>) \<cdot> i)"
   unfolding valid_map_def by (simp add: Let_def)
 
 text \<open>
@@ -287,13 +287,13 @@ text \<open>
 \<close>
 lemma valid_map_image :
   fixes \<phi> :: "('A, 'a, 'b) PresheafMap" and A :: "'A Open" and a :: "'a"
-  defines "\<Phi>A \<equiv> Presheaf.ob (dom \<phi>) \<cdot>\<cdot> A"
-  defines "\<Phi>'A \<equiv> Presheaf.ob (cod \<phi>) \<cdot>\<cdot> A"
-  defines "f \<equiv> (nat \<phi>) \<cdot>\<cdot> A"
+  defines "\<Phi>A \<equiv> Presheaf.ob (dom \<phi>) \<cdot> A"
+  defines "\<Phi>'A \<equiv> Presheaf.ob (cod \<phi>) \<cdot> A"
+  defines "f \<equiv> (nat \<phi>) \<cdot> A"
   assumes \<phi>_valid :"valid_map \<phi>"
   and A_open : "A \<in> Space.opens (map_space \<phi>)"
   and a_dom : "a \<in>  \<Phi>A"
-shows " f \<cdot>\<cdot> a \<in>  \<Phi>'A"
+shows " f \<cdot> a \<in>  \<Phi>'A"
 proof -
   have "valid_map \<phi>"
     using \<phi>_valid by force
@@ -317,8 +317,8 @@ text \<open>
    the poset at the open Function.
 \<close>
 lemma ident_app [simp] :
- "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot>\<cdot> A \<Longrightarrow> a \<in> obA \<Longrightarrow>
-  ((ar \<Phi>) \<cdot>\<cdot> (Space.ident (space \<Phi>) A)) \<cdot>\<cdot> a = Function.ident obA \<cdot>\<cdot> a"
+ "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot> A \<Longrightarrow> a \<in> obA \<Longrightarrow>
+  ((ar \<Phi>) \<cdot> (Space.ident (space \<Phi>) A)) \<cdot> a = Function.ident obA \<cdot> a"
   by (simp add: valid_identity)
 
 text \<open>
@@ -326,7 +326,7 @@ text \<open>
    associated space, then the domain of the arrow function at the inclusion is equal to the poset at 
    the codomain of the inclusion.
 \<close>
-lemma dom_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) \<cdot>\<cdot> i \<Longrightarrow> obB = ((ob \<Phi>) \<cdot>\<cdot> B) \<Longrightarrow> Function.dom f = obB"
+lemma dom_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) \<cdot> i \<Longrightarrow> obB = ((ob \<Phi>) \<cdot> B) \<Longrightarrow> Function.dom f = obB"
   by (metis Presheaf.valid_def)
 
 text \<open>
@@ -334,7 +334,7 @@ text \<open>
    the associated space, then the codomain of the arrow function at the inclusion is equal to the poset 
    at the domain of the inclusion.
 \<close>
-lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.dom i \<Longrightarrow> f = (ar \<Phi>) \<cdot>\<cdot> i \<Longrightarrow> obA = ((ob \<Phi>) \<cdot>\<cdot> A) \<Longrightarrow> Function.cod f = obA"
+lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.dom i \<Longrightarrow> f = (ar \<Phi>) \<cdot> i \<Longrightarrow> obA = ((ob \<Phi>) \<cdot> A) \<Longrightarrow> Function.cod f = obA"
   by (metis Presheaf.valid_def)
 
 text \<open>
@@ -343,8 +343,8 @@ text \<open>
    of the element under the arrow function at the inclusion is an element of the poset at the domain of 
    the inclusion.
 \<close>
-lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow> a \<in>  ((ob \<Phi>) \<cdot>\<cdot> A) \<Longrightarrow>
-    (((ar \<Phi>) \<cdot>\<cdot> i) \<cdot>\<cdot> a) \<in>  ((ob \<Phi>) \<cdot>\<cdot> B) "
+lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow> a \<in>  ((ob \<Phi>) \<cdot> A) \<Longrightarrow>
+    (((ar \<Phi>) \<cdot> i) \<cdot> a) \<in>  ((ob \<Phi>) \<cdot> B) "
   by (metis Function.fun_app2 cod_proj dom_proj valid_ar)
 
 
