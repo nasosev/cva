@@ -150,7 +150,7 @@ text \<open>
 \<close>
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f \<cdot> a = g \<cdot> a) \<Longrightarrow> func f = func g"
   unfolding  dom_def 
-  apply (simp_all add: Let_def)
+  apply (simp_all add: Let_def) 
   apply auto
   apply (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
   by (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)

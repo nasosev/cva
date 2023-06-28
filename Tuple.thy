@@ -116,13 +116,13 @@ lemma relation_ar_value_valid : "valid T \<Longrightarrow>  R = relation_prealge
   by (metis Presheaf.valid_ar Tuple.valid_welldefined direct_image_valid relation_ar_value valid_relation_space)
 
 lemma relation_ar_dom : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow>  R0 = Prealgebra.ob R \<Longrightarrow>
-R1 = Prealgebra.ar R \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.dom (R1 \<cdot> i) = R0 \<cdot> Inclusion.cod i"
+R1 = Prealgebra.ar R \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.dom (R1 \<cdot> i) = R0 \<cdot> Space.cod i"
   unfolding relation_prealgebra_def
   apply (simp_all add : Let_def)
   by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.dom_proj Tuple.valid_welldefined UNIV_I direct_image_dom fst_conv inclusions_def mem_Collect_eq snd_conv valid_inclusion_def)
 
 lemma relation_ar_cod : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow>  R0 = Prealgebra.ob R \<Longrightarrow>
-R1 = Prealgebra.ar R \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.cod (R1 \<cdot> i) = R0 \<cdot> Inclusion.dom i"
+R1 = Prealgebra.ar R \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.cod (R1 \<cdot> i) = R0 \<cdot> Space.dom i"
   unfolding relation_prealgebra_def
   apply (simp_all add : Let_def)
   by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Pair_inject Presheaf.cod_proj Tuple.valid_welldefined UNIV_I direct_image_cod inclusions_def mem_Collect_eq valid_inclusion_def)
@@ -149,7 +149,7 @@ proof -
   moreover have "i \<in> Space.inclusions (Prealgebra.space R)" using R_def valid_relation_space [where
         ?T=T] Space.valid_ident_inclusion  [where ?T="(Presheaf.space T)" and ?A=A]
     using Presheaf.valid_space Tuple.valid_welldefined assms(2) assms(3) i_def by auto
-  moreover have "Poset.dom ((ar R) \<cdot> i) = (ob R) \<cdot> (Inclusion.cod i)"
+  moreover have "Poset.dom ((ar R) \<cdot> i) = (ob R) \<cdot> (Space.cod i)"
     using  assms(3)
     using R_def assms(2) calculation(6) relation_ar_dom by blast
   moreover have "Rf = Poset.direct_image (f \<cdot> i)" using Rf_def  relation_prealgebra_def [where ?T=T]
@@ -173,7 +173,7 @@ lemma relation_ar_trans :
   assumes T_valid: "valid T"
   and i_inc : "i \<in> Space.inclusions (Prealgebra.space R)"
   and j_inc :"j \<in> Space.inclusions (Prealgebra.space R)"
-  and endpoints : "Inclusion.dom j = Inclusion.cod i"
+  and endpoints : "Space.dom j = Space.cod i"
 shows "ar R \<cdot> Space.compose j i = ar R \<cdot> i \<diamondop> ar R \<cdot> j"
 proof -
   define "f" where "f = Presheaf.ar T"
@@ -186,8 +186,8 @@ proof -
     using R_def T_valid f_def j_inc relation_ar_value by blast
   define "ji" where "ji = (Space.compose j i)"
     moreover have "ar R \<cdot> ji = direct_image (f \<cdot> ji)"
-      by (smt (z3) Inclusion.select_convs(1) R_def Space.compose_def Space.compose_valid T_valid endpoints f_def i_inc inclusions_def j_inc ji_def mem_Collect_eq relation_ar_value)
-    moreover have "\<forall> x . x \<in> Presheaf.ob T \<cdot> (Inclusion.cod j) \<longrightarrow> (f \<cdot> ji) \<cdot> x = (f \<cdot> i \<bullet> f \<cdot> j) \<cdot> x"
+      by (smt (z3) Space.select_convs(1) R_def Space.compose_def Space.compose_valid T_valid endpoints f_def i_inc inclusions_def j_inc ji_def mem_Collect_eq relation_ar_value)
+    moreover have "\<forall> x . x \<in> Presheaf.ob T \<cdot> (Space.cod j) \<longrightarrow> (f \<cdot> ji) \<cdot> x = (f \<cdot> i \<bullet> f \<cdot> j) \<cdot> x"
       by (metis Presheaf.valid_composition R_def T_valid Tuple.valid_welldefined calculation(1) endpoints f_def j_inc ji_def valid_relation_space)
       
     moreover have "ar R \<cdot> Space.compose j i = ar R \<cdot> i \<diamondop> ar R \<cdot> j"
@@ -212,10 +212,10 @@ proof (rule Prealgebra.validI, auto)
     by (metis R_def assms(1) relation_ob_value_valid valid_relation_space)
   show "\<And>i. i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> Poset.valid_map (ar R \<cdot> i)"
     by (metis R_def assms(1) relation_ar_value_valid valid_relation_space)
-  show "\<And>i. i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.dom (ar R \<cdot> i) = ob R \<cdot> Inclusion.cod
+  show "\<And>i. i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.dom (ar R \<cdot> i) = ob R \<cdot> Space.cod
  i"
     using R_def assms(1) relation_ar_dom by blast
-  show "\<And>i. i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.cod (ar R \<cdot> i) = ob R \<cdot> Inclusion.dom
+  show "\<And>i. i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.cod (ar R \<cdot> i) = ob R \<cdot> Space.dom
  i"
     using R_def assms(1) relation_ar_cod by blast
   show "\<And>A. A \<in> Space.opens (Prealgebra.space R) \<Longrightarrow> ar R \<cdot> Space.ident (Prealgebra.space R) A =
@@ -223,7 +223,7 @@ proof (rule Prealgebra.validI, auto)
     using R_def assms(1) relation_ar_ident by blast
   show "\<And>i j. j \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow>
            i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow>
-           Inclusion.dom j = Inclusion.cod i \<Longrightarrow> ar R \<cdot> Space.compose j i = ar R \<cdot> i \<diamondop> ar R \<cdot> j"
+           Space.dom j = Space.cod i \<Longrightarrow> ar R \<cdot> Space.compose j i = ar R \<cdot> i \<diamondop> ar R \<cdot> j"
     by (simp add: R_def assms(1) relation_ar_trans)
 qed
 
@@ -414,16 +414,90 @@ lemma relation_neutral_natural :
   fixes T :: "('A, 'a) TupleSystem" and i :: "'A Inclusion"
   assumes T_valid: "valid T" and i_inc: "i \<in> Space.inclusions (space T)"
   defines "\<epsilon> \<equiv> relation_neutral T "
-  shows "PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
-         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.cod i"
+  shows "PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
+         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i"
 proof (rule Poset.fun_ext)
-  show "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>)
- \<cdot> i)" using \<epsilon>_def relation_neutral_nat_valid [where ?T=T] Poset.compose_valid
+  show "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>)
+ \<cdot> i)" 
+  proof -
+    have "Poset.valid_map (Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i)"
+      by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_ar PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_def terminal_def terminal_valid) 
+    moreover have "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i)"
+      by (metis Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_nat_valid valid_inclusion_dom valid_relation_neutral_space)  
+    ultimately show "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar
+ (PrealgebraMap.dom \<epsilon>) \<cdot> i)"
+      by (metis (no_types, lifting) Poset.compose_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.cod_proj PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_def relation_neutral_dom terminal_def terminal_valid valid_inclusion_dom valid_relation_neutral_space)
+  qed
+next
+  show "Poset.valid_map (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot>
+ Space.cod i)" 
+  proof -
+    have "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i)"
+      by (metis Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_nat_valid valid_inclusion_cod valid_relation_neutral_space) 
+    moreover have "Poset.valid_map (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i)"
+      by (metis (no_types, lifting) Prealgebra.valid_ar PrealgebraMap.select_convs(4) T_valid \<epsilon>_def i_inc relation_neutral_def valid_relation_prealgebra valid_relation_space) 
+    show "Poset.valid_map (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot>
+ Space.cod i)"
+      by (metis (no_types, lifting) Poset.compose_valid Prealgebra.valid_dom PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def \<open>Poset.valid_map (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i)\<close> calculation i_inc relation_neutral_cod relation_neutral_def valid_inclusion_cod valid_relation_neutral_space valid_relation_prealgebra valid_relation_space) 
+  qed
+next 
+  show "PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) =
+    PosetMap.dom (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i)"
+    by (metis (no_types, lifting) Poset.dom_compose Prealgebra.Prealgebra.select_convs(1) Prealgebra.cod_proj Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_cod relation_neutral_def relation_neutral_dom relation_neutral_nat_valid terminal_def terminal_valid valid_inclusion_cod valid_inclusion_dom valid_relation_neutral_space valid_relation_prealgebra valid_relation_space) 
+next 
+  show "PosetMap.cod (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) =
+    PosetMap.cod (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i)"
+    by (metis (no_types, lifting) Poset.compose_def PosetMap.select_convs(2) Prealgebra.Prealgebra.select_convs(1) Prealgebra.cod_proj Prealgebra.valid_dom PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_cod relation_neutral_def relation_neutral_dom terminal_def terminal_valid valid_inclusion_cod valid_inclusion_dom valid_relation_neutral_space valid_relation_prealgebra valid_relation_space)
+next 
+  show "\<And>a. a \<in> el (PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i)) \<Longrightarrow>
+         (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star> a =
+         (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i) \<star> a " 
+  proof -
+    fix a
+    assume "a \<in> el (PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar
+ (PrealgebraMap.dom \<epsilon>) \<cdot> i))"
+
+    define "\<epsilon>A" where "\<epsilon>A \<equiv> (PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i) \<star> ()"
+  define "\<epsilon>B" where "\<epsilon>B \<equiv> (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i) \<star> ()"
+    have "\<And> x .x \<in> el (ob (PrealgebraMap.dom \<epsilon>) \<cdot> (Space.cod i)) \<Longrightarrow> x = ()"
+      by simp 
+    moreover have "ar (PrealgebraMap.dom \<epsilon>) \<cdot> i \<star> () = ()"
+      by simp 
+    moreover have "Space.dom i \<in> Space.opens (map_space \<epsilon>)"
+      by (metis Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc valid_inclusion_dom valid_relation_neutral_space) 
+    moreover have " Presheaf.ob T \<cdot> (Space.dom i) \<in> el (ob (relation_prealgebra T) \<cdot> (Space.dom i))"
+      by (metis (no_types, lifting) Poset.Poset.select_convs(1) Pow_top T_valid \<epsilon>_def calculation(3) powerset_def relation_ob_value valid_relation_neutral_space)
+    moreover have "\<epsilon>B = Presheaf.ob T \<cdot> (Space.dom i)" using
+        relation_neutral_nat_value_app [where ?T=T and ?A="Space.dom i"]  calculation \<epsilon>B_def
+      by (metis (no_types, lifting) PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_I UNIV_unit \<epsilon>_def relation_neutral_def relation_neutral_dom terminal_value valid_relation_neutral_space) 
+    moreover have "\<epsilon>A = Presheaf.ob T \<cdot> (Space.cod i)" using \<epsilon>A_def
+      by (metis (mono_tags, lifting) PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_unit UNIV_witness \<epsilon>_def i_inc old.unit.exhaust relation_neutral_def relation_neutral_dom relation_neutral_nat_value_app terminal_value valid_inclusion_cod valid_relation_neutral_space)
+    moreover have "(ar (relation_prealgebra T) \<cdot> i) \<star>  Presheaf.ob T \<cdot> (Space.cod i) = Presheaf.ob T \<cdot> (Space.dom i)"
+      using relation_prealgebra_def [where ?T=T]  direct_image_def [where ?f="
+  (Presheaf.ar T \<cdot> i)" ]
+      by (metis (no_types, lifting) T_valid \<epsilon>A_def \<epsilon>B_def \<epsilon>_def calculation(5) calculation(6) i_inc relation_neutral_stable) 
+    moreover have "(Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i) \<star> a
+= \<epsilon>B"
+      by (smt (verit) Poset.compose_app PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_I UNIV_unit \<epsilon>A_def \<epsilon>_def calculation(5) calculation(6) calculation(7) i_inc old.unit.exhaust relation_ar_dom relation_ar_value_valid relation_neutral_cod relation_neutral_def relation_neutral_dom relation_neutral_nat_valid terminal_value valid_inclusion_cod valid_relation_neutral_space valid_relation_space)
+    moreover have "(Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star>
+ a = ()"
+      by auto 
+moreover have "(PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i) \<star> () = \<epsilon>B"
+  by (simp add: \<epsilon>B_def) 
+  moreover have "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i)"
+    using T_valid \<epsilon>_def calculation(3) relation_neutral_nat_valid by blast 
+  moreover have "Poset.valid_map ( Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i)"
+    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_ar PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_def terminal_def terminal_valid)  
+moreover have "(PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star> a =
+ \<epsilon>B" using compose_app [where ?f="Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i" and ?g="PrealgebraMap.nat
+ \<epsilon> \<cdot> Space.dom i" and ?a=a]  
+    ultimately show "(PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star> a =
+         (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i) \<star> a"  
 
 lemma relation_neutral_natural : "valid T \<Longrightarrow> \<epsilon> = relation_neutral T \<Longrightarrow> 
 i \<in> Space.inclusions (map_space \<epsilon>) \<Longrightarrow>
-         PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
-         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.cod i"
+         PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
+         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i"
 proof -
   fix T i \<epsilon>
   assume "valid T"
@@ -432,8 +506,8 @@ proof -
   define "R" where "R = relation_prealgebra T"
 
 
-  show "PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
-         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.cod i"
+  show "PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
+         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i"
   proof (rule Poset.fun_ext)
     define "one" where "one = PrealgebraMap.dom \<epsilon>"
     fix x
@@ -442,19 +516,20 @@ proof -
       by simp 
     moreover have "ar (PrealgebraMap.dom \<epsilon>) \<cdot> i \<star> x = ()"
       by simp 
-    moreover have "Inclusion.dom i \<in> Space.opens (map_space \<epsilon>)"
+    moreover have "Space.dom i \<in> Space.opens (map_space \<epsilon>)"
       using \<open>i \<in> Space.inclusions (map_space \<epsilon>)\<close> inclusions_def valid_inclusion_def by force 
     moreover have " Presheaf.ob T \<cdot> (Space.dom i) \<in> el (ob R \<cdot> (Space.dom i))"
       by (metis (no_types, lifting) Poset.Poset.select_convs(1) Pow_top PrealgebraMap.select_convs(1) R_def \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> calculation(3) powerset_def relation_neutral_def relation_ob_value) 
-    moreover have "PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<star> x = Presheaf.ob T \<cdot> (Space.dom i)" using
-        relation_neutral_nat_value_app [where ?T=T and ?A="Inclusion.dom i"]  calculation
+    moreover have "PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<star> x = Presheaf.ob T \<cdot> (Space.dom i)" using
+        relation_neutral_nat_value_app [where ?T=T and ?A="Space.dom i"]  calculation
       by (smt (z3) PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(3) UNIV_unit UNIV_witness \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> \<open>i \<in> Space.inclusions (PrealgebraMap.map_space \<epsilon>)\<close> inclusions_def mem_Collect_eq relation_neutral_def relation_neutral_dom singletonD terminal_value valid_inclusion_def) 
-    moreover have "PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.cod i \<star> x = Presheaf.ob T \<cdot> (Space.cod i)"
-      by (metis (no_types, lifting) PrealgebraMap.select_convs(1) Presheaf.valid_welldefined Tuple.valid_welldefined \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> \<open>i \<in> Space.inclusions (PrealgebraMap.map_space \<epsilon>)\<close> \<open>x \<in> el (Prealgebra.ob one \<cdot> Inclusion.cod i)\<close> one_def relation_neutral_def relation_neutral_dom relation_neutral_nat_value_app valid_inclusion_cod) 
+    moreover have "PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i \<star> x = Presheaf.ob T \<cdot> (Space.cod i)"
+      by (metis (no_types, lifting) PrealgebraMap.select_convs(1) Presheaf.valid_welldefined Tuple.valid_welldefined \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> \<open>i \<in> Space.inclusions (PrealgebraMap.map_space \<epsilon>)\<close> \<open>x \<in> el (Prealgebra.ob one \<cdot> Space.cod i)\<close> one_def relation_neutral_def relation_neutral_dom relation_neutral_nat_value_app valid_inclusion_cod) 
     moreover have "(ar R \<cdot> i) \<star>  Presheaf.ob T \<cdot> (Space.cod i) = Presheaf.ob T \<cdot> (Space.dom i)"
       using relation_prealgebra_def [where ?T=T] R_def direct_image_def [where ?f="
   (Presheaf.ar T \<cdot> i)" ]
       by (metis (no_types, lifting) \<open>Tuple.valid T\<close> \<open>\<epsilon> = relation_neutral T\<close> \<open>i \<in> Space.inclusions (PrealgebraMap.map_space \<epsilon>)\<close> calculation(1) calculation(5) calculation(6) relation_neutral_stable valid_relation_neutral_space) 
+    
     ultimately show ?thesis
 
 lemma valid_relation_neutral :
@@ -481,7 +556,7 @@ proof (rule valid_mapI, auto)
  (PrealgebraMap.cod \<epsilon>) \<cdot> A"
     using \<epsilon>_def assms(1) relation_neutral_cod by blast 
   show "\<And>i. i \<in> Space.inclusions (map_space \<epsilon>) \<Longrightarrow>
-         PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
-         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.cod i"
+         PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
+         ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i"
     oops
 end

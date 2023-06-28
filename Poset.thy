@@ -362,7 +362,7 @@ text \<open>
    domain and codomain, and map each element of their common domain to the same element in the
    codomain, then `f` and `g` are the same poset map.
 \<close>
-lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<forall>a \<in> el (dom f). f \<star> a = g \<star> a) \<Longrightarrow> f = g"
+lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And> a . a \<in> el (dom f) \<Longrightarrow> f \<star> a = g \<star> a) \<Longrightarrow> f = g"
   apply (rule pom_eqI; clarsimp?)
   apply (intro set_eqI iffI; clarsimp)
    apply (metis fun_app fun_app3 valid_map_deterministic valid_map_welldefined)
@@ -823,9 +823,9 @@ proof (rule fun_ext)
       by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
     show "PosetMap.cod (direct_image g \<diamondop> direct_image f) = PosetMap.cod (direct_image (g \<bullet> f))"
       by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
-    show "\<forall>a\<in>el (PosetMap.dom (direct_image g \<diamondop> direct_image f)).
-       (direct_image g \<diamondop> direct_image f) \<star> a = direct_image (g \<bullet> f) \<star> a "
-    proof
+    show "\<And>a. a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f)) \<Longrightarrow>
+         (direct_image g \<diamondop> direct_image f) \<star> a = direct_image (g \<bullet> f) \<star> a"
+    proof -
     fix p
     assume "p \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))"
     have "p \<subseteq> Function.dom f"
@@ -840,9 +840,8 @@ proof (rule fun_ext)
     moreover have "(p, {g \<cdot> (f \<cdot> x) |x. x \<in> p}) \<in>
   {(p, {f \<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
       using calculation(1) calculation(3) by auto
-    ultimately
-    show "(direct_image g \<diamondop> direct_image f) \<star> p = direct_image (g \<bullet> f) \<star> p "
-      by (smt (verit) CollectD Collect_cong Function.compose_app Function.compose_valid Function.dom_compose Poset.compose_app \<open>PosetMap.dom (direct_image g \<diamondop> direct_image f) = PosetMap.dom (direct_image (g \<bullet> f))\<close> \<open>p \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid g_valid prod.inject subset_eq)
+    ultimately show "(direct_image g \<diamondop> direct_image f) \<star> p = direct_image (g \<bullet> f) \<star> p"
+      by (smt (verit) Collect_cong Function.compose_app Function.compose_valid Function.dom_compose Pair_inject Poset.compose_app \<open>PosetMap.dom (direct_image g \<diamondop> direct_image f) = PosetMap.dom (direct_image (g \<bullet> f))\<close> \<open>p \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid g_valid mem_Collect_eq subsetD) 
   qed
 qed
 
