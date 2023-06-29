@@ -162,8 +162,7 @@ text \<open>
 lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f \<cdot> a = g \<cdot> a) \<Longrightarrow> f = g"
   apply simp
   apply (frule fun_ext)
-      apply auto
-  done
+  by auto
 
 lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f \<cdot> a) = b"
   by (meson fun_app valid_map_deterministic valid_map_welldefined)
