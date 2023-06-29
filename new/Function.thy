@@ -31,7 +31,7 @@ qed
 
 (* find_theorems Abs_Function Rep_Function*)
 
-setup_lifting type_definition_Function
+setup_lifting type_definition_Function (* This warning is apparently not a problem. *)
 
 lift_definition cod :: "('x, 'y) Function \<Rightarrow> 'y set" is raw_cod done
 
@@ -65,22 +65,25 @@ lemma valid_mapI: "((\<And>x y. (x, y) \<in> raw_func rf \<Longrightarrow>  x \<
 
 (* Function application *)
 
-definition "Function_app_undefined_arg_not_in_domain a \<equiv> undefined"
+definition "Function_app_undefined_arg_not_in_domain _ \<equiv> undefined"
 
-definition app :: "('x, 'y) Function \<Rightarrow> 'x \<Rightarrow> 'y" (infixr "\<cdot>" 998) where
-"app f x \<equiv>
-  if x \<in> dom f
-   then (THE y. (x, y) \<in> func f)
-  else Function_app_undefined_arg_not_in_domain x"
+definition raw_app :: "('x, 'y) RawFunction \<Rightarrow> 'x \<Rightarrow> 'y"  where
+"raw_app rf x \<equiv> 
+   if x \<in> raw_dom rf
+   then  (THE y. (x, y) \<in> raw_func rf)
+  else Function_app_undefined_arg_not_in_domain x" 
 
-lemma fun_app : "x \<in> dom f \<Longrightarrow> (x, f \<cdot> x) \<in> func f"
-  by (metis app_def theI' deterministic total)
+lift_definition app :: "('x, 'y) Function \<Rightarrow> 'x \<Rightarrow> 'y" (infixr "\<cdot>" 998) is "raw_app"  done
+
+lemma fun_app : "x \<in> dom f \<Longrightarrow> (x, f \<cdot> x) \<in> func f" 
+  apply transfer
+  by (smt (verit) raw_app_def the_equality valid_map_def)
 
 lemma fun_app2 : "x \<in> dom f \<Longrightarrow> f \<cdot> x  \<in> cod f"
   by (meson fun_app welldefined)
 
 lemma fun_app3 [simp] : "x \<in> dom f \<Longrightarrow> f \<cdot> x = (THE y. (x, y) \<in> func f) "
-  by (simp add: app_def)
+  by (metis deterministic fun_app the_equality)
 
 lemma fun_ext : "dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> func f = func g"
   unfolding  dom_def
@@ -90,10 +93,9 @@ lemma fun_ext : "dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow>
   by (metis deterministic dom.rep_eq fun_app welldefined) 
 
 lemma fun_ext2 : "dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> f = g"
+  apply transfer
   apply simp
-  apply (frule fun_ext)
-    apply auto
-  by (metis (full_types) Rep_Function_inject cod.rep_eq equality func.rep_eq old.unit.exhaust) 
+  by (metis (full_types) Abs_Function_inverse CollectI app.rep_eq cod.rep_eq dom.rep_eq equality fun_ext func.rep_eq old.unit.exhaust)
 
 lemma fun_app_iff  : "(x, y) \<in> func f \<Longrightarrow> (f \<cdot> x) = y"
   by (meson fun_app deterministic welldefined)
@@ -111,35 +113,27 @@ abbreviation is_bijective :: "('x, 'y) Function \<Rightarrow> bool" where
 
 (* Constant functions *)
 
+definition "Function_const_undefined_arg_not_in_codomain _ \<equiv> undefined"
+
 definition raw_const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow>  ('x, 'y) RawFunction" where
-"raw_const X Y y \<equiv>  \<lparr> raw_cod = Y, raw_func = { (x, y) | x. x \<in> X }\<rparr>"
-
-definition "Function_const_undefined_arg_not_in_codomain y \<equiv> undefined"
-
-lift_definition const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow>  ('x, 'y) Function" is 
-"\<lambda> X Y y . 
+"raw_const X Y y \<equiv> 
   if y \<in> Y
-  then raw_const X Y y
+  then \<lparr> raw_cod = Y, raw_func = { (x, y) | x. x \<in> X }\<rparr>
   else Rep_Function (Function_const_undefined_arg_not_in_codomain y)" 
-proof auto
-  fix X Y y
-  assume "y \<in> Y"
-  show "valid_map (raw_const X Y y)"
-  proof (rule valid_mapI)
-    show "\<And>x ya. (x, ya) \<in> raw_func (raw_const X Y y) \<Longrightarrow> x \<in> raw_dom (raw_const X Y y) \<and> ya \<in> raw_cod
- (raw_const X Y y)"
-      by (simp add: \<open>y \<in> Y\<close> raw_const_def raw_dom_def) 
-    show "\<And>x ya y'. (x, ya) \<in> raw_func (raw_const X Y y) \<Longrightarrow> (x, y') \<in> raw_func (raw_const X Y y) \<Longrightarrow> ya
- = y'"
-      by (simp add: raw_const_def)
-    show "\<And>x. x \<in> raw_dom (raw_const X Y y) \<Longrightarrow> \<exists>ya. (x, ya) \<in> raw_func (raw_const X Y y)"
-      by (simp add: raw_dom_def) 
-  qed
+
+lift_definition const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow> ('x, 'y) Function" is raw_const
+proof (intro valid_mapI, goal_cases)
+  case (1 X Y y x ya)
+  then show ?case
+    by (smt (verit) cod.rep_eq func.rep_eq mem_Collect_eq raw_const_def raw_dom_def select_convs(1) select_convs(2) snd_conv welldefined) 
 next
-  fix X Y y
-  assume "y \<notin> Y"
-  show " valid_map (Rep_Function (Function_const_undefined_arg_not_in_codomain y)) "
-    using Rep_Function by fastforce 
+  case (2 X Y y x ya y')
+  then show ?case
+    by (smt (verit, ccfv_SIG) CollectD deterministic func.rep_eq raw_const_def select_convs(2) snd_conv) 
+next
+  case (3 X Y y x)
+  then show ?case
+    by (simp add: raw_dom_def) 
 qed
 
 lemma const_dom [simp] : "y \<in> Y \<Longrightarrow> dom (const X Y y) = X"  
@@ -151,11 +145,8 @@ lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
   by (simp add: raw_const_def)
 
 lemma const_app [simp] : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (const X Y y) \<cdot> x = y"
-  unfolding raw_const_def app_def
   apply transfer
-  apply auto
-  apply (simp add: raw_const_def)
-  by (metis const.rep_eq const_dom dom.rep_eq)
+  by (smt (verit, best) CollectD app.rep_eq const.rep_eq const_dom fun_app func.rep_eq raw_const_def select_convs(2) snd_conv)
 
 (* Identity functions *)
 
@@ -167,48 +158,40 @@ lift_definition ident :: "'x set \<Rightarrow> ('x, 'x) Function" is raw_ident
 
 lemma ident_dom [simp] : "dom (ident X) = X" 
   apply transfer
-  apply safe
-  apply (smt (verit, del_insts) Id_on_iff eq_onp_def fun_app func.abs_eq mem_Collect_eq raw_dom_def raw_ident_def select_convs(1) select_convs(2) valid_mapI)
-  by (smt (verit, del_insts) Id_on_iff dom.abs_eq eq_onp_def mem_Collect_eq raw_dom_def raw_ident_def select_convs(1) select_convs(2) valid_mapI)
+  by (simp add: Id_on_iff raw_dom_def raw_ident_def)
 
 lemma ident_cod [simp] : "cod (ident X) = X"
   apply transfer
-  by (smt (verit, best) Id_on_iff cod.abs_eq eq_onp_def mem_Collect_eq raw_dom_def raw_ident_def select_convs(1) select_convs(2) valid_mapI)
+  by (simp add: raw_ident_def)
 
 lemma ident_app [simp] : "x \<in> X \<Longrightarrow> ident X \<cdot> x = x"
-  unfolding fun_app3 ident_def app_def
   apply transfer
-  apply clarsimp
-  apply safe
-  apply (metis Id_on_iff func.rep_eq ident.abs_eq ident.rep_eq raw_ident_def select_convs(2) the_equality)
-  by (metis ident.abs_eq ident_dom)
+  by (metis Id_onI app.rep_eq fun_app_iff func.rep_eq ident.rep_eq raw_ident_def select_convs(2))
 
 (* Composition of functions *)
 
-definition raw_compose :: "('y, 'z) RawFunction \<Rightarrow> ('x, 'y) RawFunction \<Rightarrow> ('x, 'z) RawFunction"where
-  "raw_compose g f \<equiv>  \<lparr> raw_cod = raw_cod g, raw_func = relcomp (raw_func f) (raw_func g) \<rparr>"
+definition "Function_compose_undefined_incomposable _ _ \<equiv> undefined"
 
-definition "Function_compose_undefined_incomposable g f \<equiv> undefined"
+definition raw_compose :: "('y, 'z) RawFunction \<Rightarrow> ('x, 'y) RawFunction \<Rightarrow> ('x, 'z) RawFunction" where
+  "raw_compose rg rf \<equiv>
+    if raw_dom rg = raw_cod rf
+    then \<lparr> raw_cod = raw_cod rg, raw_func = relcomp (raw_func rf) (raw_func rg) \<rparr>
+    else Rep_Function (Function_compose_undefined_incomposable rg rf)"
 
-lift_definition compose :: "('y, 'z) Function \<Rightarrow> ('x, 'y) Function \<Rightarrow> ('x, 'z) Function" (infixl "\<bullet>" 55) is
-  "\<lambda> g f .
-    if dom g = cod f
-    then raw_compose (Rep_Function g) (Rep_Function f)
-    else Rep_Function (Function_compose_undefined_incomposable g f)"
+lift_definition compose :: "('y, 'z) Function \<Rightarrow> ('x, 'y) Function \<Rightarrow> ('x, 'z) Function" (infixl "\<bullet>"
+    55) is raw_compose
 proof (intro valid_mapI conjI, goal_cases)
   case (1 g f x y)
-  then show ?case 
-apply transfer
-    by (metis Domain.DomainI Domain_unfold raw_dom_def)
+  then show ?case
+    using raw_dom_def by fastforce 
 next
   case (2 g f x y)
-  then show ?case 
-apply transfer
-    by (smt (verit) cod.rep_eq func.rep_eq raw_compose_def relcompEpair select_convs(1) select_convs(2) welldefined) 
+  then show ?case
+    by (metis cod.rep_eq func.rep_eq raw_compose_def relcompEpair select_convs(1) select_convs(2) valid_map_def welldefined_cod) 
 next
   case (3 g f x y y')
-  then show ?case 
-    by (smt (verit) deterministic fun_app func.rep_eq raw_compose_def relcomp.cases select_convs(2))
+  then show ?case
+    by (metis (no_types, opaque_lifting) fun_app_iff func.rep_eq raw_compose_def relcompEpair select_convs(2) valid_map_def) 
 next
   case (4 g f x)
   then show ?case
@@ -216,31 +199,47 @@ next
 qed
 
 lemma compose_welldefined_cod : "dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> y \<in> cod g"
-  apply transfer
+  by (metis (no_types) cod.rep_eq compose.rep_eq dom.rep_eq func.rep_eq raw_compose_def select_convs(1) welldefined_cod)
 
 lemma compose_welldefined_dom : "dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> x \<in> dom f"
   apply transfer
+  by (metis raw_compose_def relcomp.cases select_convs(2) valid_map_def)
 
 lemma compose_welldefined : "dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> x \<in> dom f \<and> y \<in> cod g"
+  by (simp add: compose_welldefined_cod compose_welldefined_dom)
 
 lemma compose_deterministic : "dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> (x, y') \<in> func (g \<bullet> f) \<Longrightarrow> y = y'"
-  apply transer
+  by (simp add: deterministic)
 
 lemma compose_total : "dom g = cod f \<Longrightarrow> x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func (g \<bullet> f)"
-  apply transer
+  apply transfer
+  by (metis (no_types, lifting) raw_compose_def relcomp.simps select_convs(2) valid_map_def)
 
 lemma cod_compose [simp] : "dom g = cod f \<Longrightarrow> cod (g \<bullet> f) = cod g"
   apply transfer
-proof -
-  fix g f
-  assume "valid_map g" 
-  assume "valid_map f "
+  by (simp add: raw_compose_def)
 
 lemma dom_compose [simp] : "dom g = cod f \<Longrightarrow> dom (g \<bullet> f) = dom f"
   apply transfer
+  by (smt (verit) Collect_cong raw_compose_def raw_dom_def relcomp.simps select_convs(2) valid_map_def)
 
-lemma compose_app_assoc: "x \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> x = g \<cdot> (f \<cdot> x)"
-  unfolding valid_map_def dom_def compose_def app_def
+lemma compose_assoc : "dom h = cod g \<Longrightarrow> dom g = cod f \<Longrightarrow> (h \<bullet> g) \<bullet> f = h \<bullet> (g \<bullet> f)"
+  apply transfer
+  apply (simp_all add: raw_dom_def valid_map_def raw_compose_def)
+  apply safe
+     apply blast
+  apply blast
+  apply blast
+  by (smt (verit) mem_Collect_eq relcomp.simps)
+
+lemma compose_app [simp] : "(x, y) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow> (y, z) \<in> func g 
+ \<Longrightarrow> (g \<bullet> f) \<cdot> x = z"
+  apply (rule fun_app_iff, transfer)
+  by (simp add: raw_compose_def relcomp.relcompI)
+
+lemma compose_app_assoc : "x \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> x = g \<cdot> (f \<cdot> x)"
+  apply transfer
+  unfolding valid_map_def raw_dom_def raw_compose_def raw_app_def
   apply (simp add: Let_def)
   apply clarsimp
   apply safe
@@ -250,20 +249,12 @@ lemma compose_app_assoc: "x \<in> dom f \<Longrightarrow> dom g = cod f \<Longri
   apply (meson relcomp.relcompI)
   by (metis Function_app_undefined_arg_not_in_domain_def)
 
-lemma compose_assoc "(g \<bullet> f) \<bullet> h = g \<bullet> (f \<bullet> h)"
-
-lemma compose_app [simp] : "(x, y) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow> (b, c) \<in> func g 
- \<Longrightarrow> (g \<bullet> f) \<cdot> a = c"
-  apply (rule fun_app_iff)
-  using compose_valid apply blast
-  by (simp add: compose_def relcomp.relcompI)
-
 lemma surjection_is_right_cancellative : "is_surjective f \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h
  \<Longrightarrow> g \<bullet> f = h \<bullet> f \<Longrightarrow> g = h"
   by (metis cod_compose compose_app_assoc fun_ext2)
 
 lemma injection_is_left_cancellative : "is_injective f \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f 
  \<Longrightarrow> f \<bullet> g = f \<bullet> h \<Longrightarrow> g = h"
-  by (metis compose_app_assoc dom_compose fun_app2 fun_ext2)
+  by (metis compose_app_assoc dom_compose fun_app2 fun_ext2) 
 
 end
