@@ -491,7 +491,7 @@ next
       by (metis (no_types, lifting) T_valid \<epsilon>A_def \<epsilon>B_def \<epsilon>_def calculation(5) calculation(6) i_inc relation_neutral_stable) 
     moreover have "(Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i) \<star> a
 = \<epsilon>B"
-      by (smt (verit) Poset.compose_app PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_I UNIV_unit \<epsilon>A_def \<epsilon>_def calculation(5) calculation(6) calculation(7) i_inc old.unit.exhaust relation_ar_dom relation_ar_value_valid relation_neutral_cod relation_neutral_def relation_neutral_dom relation_neutral_nat_valid terminal_value valid_inclusion_cod valid_relation_neutral_space valid_relation_space)
+      by (smt (verit) Poset.compose_app_assoc PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_I UNIV_unit \<epsilon>A_def \<epsilon>_def calculation(5) calculation(6) calculation(7) i_inc old.unit.exhaust relation_ar_dom relation_ar_value_valid relation_neutral_cod relation_neutral_def relation_neutral_dom relation_neutral_nat_valid terminal_value valid_inclusion_cod valid_relation_neutral_space valid_relation_space)
     moreover have "(Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star>
  a = ()"
       by auto 
@@ -516,7 +516,7 @@ moreover have "(PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i) \<star> () = \
   moreover have "a \<in> el (Poset.dom f)"
     using \<open>a \<in> el (PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> Inclusion.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i))\<close> calculation(10) calculation(11) calculation(12) calculation(15) g_def by fastforce 
   moreover have "(g \<diamondop> f) \<star> a =  g \<star> (f \<star> a)"
-using calculation compose_app [where ?f="Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i" and ?g="PrealgebraMap.nat
+using calculation compose_app_assoc [where ?f="Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i" and ?g="PrealgebraMap.nat
  \<epsilon> \<cdot> Space.dom i" and ?a=a]
   using g_def by fastforce  
     ultimately show "(PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star> a =

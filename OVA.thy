@@ -687,7 +687,7 @@ moreover have "Space.valid_inclusion i_CA \<and> Space.space i_CA = space V"
     by (metis \<Phi>1_def calculation(12) calculation(4) calculation(8) dom_proj f_def)
     moreover have "Poset.cod f  = Prealgebra.ob (prealgebra V) \<cdot> B \<and> Poset.dom g  = Prealgebra.ob (prealgebra V) \<cdot> B"
       by (metis \<Phi>1_def calculation(12) calculation(13) calculation(4) calculation(6) calculation(8) cod_proj dom_proj f_def g_def)
-    moreover have " (\<Phi>1 \<cdot> i_CB) \<star> ((\<Phi>1 \<cdot> i_BA) \<star> (e a)) =  (\<Phi>1 \<cdot> i_CA) \<star> (e a)"  using Poset.compose_app
+    moreover have " (\<Phi>1 \<cdot> i_CB) \<star> ((\<Phi>1 \<cdot> i_BA) \<star> (e a)) =  (\<Phi>1 \<cdot> i_CA) \<star> (e a)"  using Poset.compose_app_assoc
       by (metis \<Phi>1_def assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(15) calculation(16) calculation(4) calculation(6) calculation(8) f_def g_def local_inclusion_element V_valid valid_composition)
   ultimately show ?thesis
     by (metis f_def g_def)
@@ -799,13 +799,13 @@ proof -
 moreover have "() \<in> Poset.el (Poset.dom  (ar one \<cdot> i))" using Prealgebra.terminal_value
   by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined UNIV_unit assms(4) calculation(3) calculation(4) iso_tuple_UNIV_I one_def terminal_def V_valid)
 moreover have "((f \<cdot> B) \<diamondop> (ar one \<cdot> i)) \<star> () = ((f \<cdot> B) \<star> ((ar one \<cdot> i)) \<star> ())"
-  by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined assms(3) calculation(3) calculation(4) calculation(9) cod_proj compose_app f_def one_def terminal_def v1 V_valid)
+  by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined assms(3) calculation(3) calculation(4) calculation(9) cod_proj compose_app_assoc f_def one_def terminal_def v1 V_valid)
   moreover have "((Prealgebra.ar (prealgebra V) \<cdot> i) \<diamondop> (f \<cdot> A)) \<star> ()=  e \<epsilon>B"
     by (metis OVA.valid_welldefined \<epsilon>B_def calculation(10) calculation(3) calculation(4) calculation(8) f_def one_def snd_conv V_valid valid_map_naturality)
   moreover have "e \<epsilon>A=   (f \<cdot> A) \<star> ()"
     by (simp add: \<epsilon>A_def f_def)
   ultimately show ?thesis
-    by (metis (no_types, lifting) OVA.valid_space Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined V_valid \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app eq_fst_iff f_def gprj_def i_def neutral_is_element singletonI sndI terminal_value valid_codomain valid_domain valid_neutral)
+    by (metis (no_types, lifting) OVA.valid_space Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined V_valid \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app_assoc eq_fst_iff f_def gprj_def i_def neutral_is_element singletonI sndI terminal_value valid_codomain valid_domain valid_neutral)
 qed
 
 text \<open> [Remark 3, CVA].

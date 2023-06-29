@@ -169,7 +169,7 @@ moreover have "Poset.valid_map prj_BC"
    moreover have "le \<Phi>_C (prj_BC \<star> (prj_AB \<star> a)) c"
      by (smt (verit, best) Inclusion.simps(1) Inclusion.simps(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(18) assms(21) calculation(1) calculation(10) calculation(12) calculation(13) calculation(4) calculation(9) i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_ob valid_transitivity) 
     ultimately show ?thesis
-      by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Prealgebra.valid_welldefined Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def compose_app i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
+      by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Prealgebra.valid_welldefined Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def compose_app_assoc i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
   qed
 
 text \<open> THEOREM \<close>

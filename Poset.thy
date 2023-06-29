@@ -432,7 +432,7 @@ text \<open>
    This lemma states that for two valid poset maps `f` and `g`, where `a` is an element of the domain
    of `f` and the domain of `g` is the codomain of `f`, the value of \<star>(g \cdot f) \\<star>\\<star> a\<star> is the same as \<star>g \\<star>\\<star> (f \\<star>\\<star> a)\<star>.
 \<close>
-lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<diamondop> f) \<star> a = g \<star> (f \<star> a)"
+lemma compose_app_assoc: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<diamondop> f) \<star> a = g \<star> (f \<star> a)"
   apply (clarsimp simp: app_def, safe; clarsimp?)
   apply (smt (z3) Poset.fun_app PosetMap.select_convs(3) compose_def compose_deterministic fun_app_iff relcomp.relcompI theI')
   by (metis app_def fun_app2)
@@ -456,7 +456,7 @@ proof -
     by (metis a'_elem a_elem f_valid le_aa')
   moreover have  "le (cod g) (g \<star> (f \<star> a)) (g \<star> (f \<star> a'))" using valid_map_monotone
     by (metis a'_elem a_elem calculation dom_cod f_valid fun_app2 g_valid)
-  ultimately show ?thesis using compose_app
+  ultimately show ?thesis using compose_app_assoc
     by (metis a'_elem a_elem dom_cod f_valid g_valid)
 qed
 
@@ -483,6 +483,10 @@ lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightar
   apply (rule fun_app_iff)
   using compose_valid apply blast
   by (simp add: compose_def relcomp.relcompI)
+
+lemma compose_app : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> valid_map h \<Longrightarrow>  dom g = cod f \<Longrightarrow>  dom h = cod g 
+\<Longrightarrow>(h \<diamondop> g) \<diamondop> f = h \<diamondop> (g \<diamondop> f)"
+  by (metis Poset.cod_compose Poset.compose_app_assoc Poset.compose_valid Poset.dom_compose Poset.fun_app2 Poset.fun_ext)
 
 text \<open>
   Lemma @{term ident_valid} verifies the validity of the identity map on a valid poset `P`.
@@ -686,7 +690,7 @@ text \<open>
 \<close>
 lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<diamondop> f = h \<diamondop> f \<Longrightarrow> g = h"
-  by (metis cod_compose compose_app fun_ext )
+  by (metis cod_compose compose_app_assoc fun_ext )
 
 text \<open>
   Lemma @{term injection_is_left_cancellative} states that in a valid map `f`, if `f` is injective, and `g` and
@@ -694,7 +698,7 @@ text \<open>
 \<close>
 lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<diamondop> g = f \<diamondop> h \<Longrightarrow> g = h"
-  by (smt (verit, best) compose_app dom_compose fun_app2 fun_ext)
+  by (smt (verit, best) compose_app_assoc dom_compose fun_app2 fun_ext)
 
 text \<open>
   Lemma @{term powerset_valid} states that the powerset poset is valid.
@@ -841,7 +845,7 @@ proof (rule fun_ext)
   {(p, {f \<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
       using calculation(1) calculation(3) by auto
     ultimately show "(direct_image g \<diamondop> direct_image f) \<star> p = direct_image (g \<bullet> f) \<star> p"
-      by (smt (verit) Collect_cong Function.compose_app Function.compose_valid Function.dom_compose Pair_inject Poset.compose_app \<open>PosetMap.dom (direct_image g \<diamondop> direct_image f) = PosetMap.dom (direct_image (g \<bullet> f))\<close> \<open>p \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid g_valid mem_Collect_eq subsetD) 
+      by (smt (verit) Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Pair_inject Poset.compose_app_assoc \<open>PosetMap.dom (direct_image g \<diamondop> direct_image f) = PosetMap.dom (direct_image (g \<bullet> f))\<close> \<open>p \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid g_valid mem_Collect_eq subsetD) 
   qed
 qed
 
