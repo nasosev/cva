@@ -122,7 +122,7 @@ lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> dom f \<Longright
 
 lemma valid_mapI: "(\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> dom f \<and> b \<in> cod f) \<Longrightarrow>
                    (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
-                   (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f))
+                   (\<And>a. a \<in> dom f \<Longrightarrow> (\<exists>b. (a, b) \<in> func f))
   \<Longrightarrow> valid_map f " unfolding valid_map_def
   using Function.dom_def by fastforce 
 
@@ -220,7 +220,6 @@ lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrig
   unfolding compose_def dom_def valid_map_def
   by clarsimp
 
-
 lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<bullet> f) \<Longrightarrow> (a, b') \<in> func (g \<bullet> f) \<Longrightarrow> b = b'"
   unfolding compose_def dom_def valid_map_def
   apply clarsimp
@@ -230,7 +229,7 @@ lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
   unfolding compose_def
   by (smt (verit, ccfv_threshold) fun_app fun_app2 relcomp.relcompI select_convs(2))
 
-lemma compose_app: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> a = g \<cdot> (f \<cdot> a)"
+lemma compose_app_assoc: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> a = g \<cdot> (f \<cdot> a)"
   unfolding valid_map_def dom_def compose_def app_def
   apply (simp add: Let_def)
   apply clarsimp
@@ -247,7 +246,7 @@ lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
     apply (simp_all add :Let_def)
   apply (smt (verit, del_insts) Function.dom_def compose_def mem_Collect_eq relcomp.simps select_convs(1) select_convs(2))
    apply (metis (no_types, lifting) compose_def relcomp.simps select_convs(2))
-  by auto
+  by (simp add: Function.dom_def)
 
 lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
                 (b, c) \<in> func g \<Longrightarrow> (g \<bullet> f) \<cdot> a = c"
@@ -257,10 +256,10 @@ lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightar
 
 lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<bullet> f = h \<bullet> f \<Longrightarrow> g = h"
-  by (metis cod_compose compose_app fun_ext2)
+  by (metis cod_compose compose_app_assoc fun_ext2)
 
 lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<bullet> g = f \<bullet> h \<Longrightarrow> g = h"
-  by (metis compose_app dom_compose fun_app2 fun_ext2) 
+  by (metis compose_app_assoc dom_compose fun_app2 fun_ext2) 
 
 end
