@@ -2,7 +2,6 @@ section \<open> Space.thy \<close>
 
 theory Space
 imports Main
-
 begin
 
 (* Space type *)
@@ -22,10 +21,10 @@ definition valid :: "'A RawSpace \<Rightarrow> bool" where
 
 typedef 'A Space = "{ rT :: 'A RawSpace . valid rT}"
 proof
-  define "rT" where "rT = \<lparr> raw_opens = {{}}, raw_universe = {} \<rparr>"
-  have "valid rT"
-    using rT_def valid_def by fastforce
-  thus "rT \<in> {rT. valid rT}" by auto
+  define "empty_space" where "empty_space = \<lparr> raw_opens = {{}}, raw_universe = {} \<rparr>"
+  have "valid empty_space"
+    using empty_space_def valid_def by fastforce
+  thus "empty_space \<in> {rT. valid rT}" by auto
 qed
 
 setup_lifting type_definition_Space
@@ -89,14 +88,14 @@ definition raw_compose_inc :: "'A RawInclusion \<Rightarrow> 'A RawInclusion \<R
     then \<lparr> raw_dom = raw_dom i, raw_cod = raw_cod j \<rparr>
     else Rep_Inclusion (Space_compose_inclusion_endpoint_mistmatch j i)"
 
-lift_definition compose_inc :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A Inclusion" is raw_compose_inc 
+lift_definition compose_inc :: "'A Inclusion \<Rightarrow> 'A Inclusion \<Rightarrow> 'A Inclusion" (infixl "\<propto>" 55) is raw_compose_inc 
   unfolding raw_compose_inc_def
   by (smt (verit) RawInclusion.select_convs(1) RawInclusion.select_convs(2) Rep_Inclusion Un_subset_iff mem_Collect_eq sup.orderE)
 
-lemma dom_compose_inc [simp] : "dom j = cod i \<Longrightarrow> dom (compose_inc j i) = dom i"
+lemma dom_compose_inc [simp] : "dom j = cod i \<Longrightarrow> dom (j \<propto> i) = dom i"
   by (transfer, simp add: raw_compose_inc_def)
 
-lemma cod_compose_inc [simp] : "dom j = cod i \<Longrightarrow> cod (compose_inc j i) = cod j"
+lemma cod_compose_inc [simp] : "dom j = cod i \<Longrightarrow> cod (j \<propto> i) = cod j"
   by (transfer, simp add: raw_compose_inc_def)
 
 (* Identity inclusion *)
@@ -110,10 +109,10 @@ lift_definition ident :: "'A Open \<Rightarrow> 'A Inclusion" is raw_ident
 lemma valid_ident_inc : "A \<in> opens T \<Longrightarrow> ident A \<in> inclusions T" 
   by (transfer, simp add: raw_ident_def)
 
-lemma compose_inc_ident_left [simp] : "compose_inc (ident (cod i)) i = i"
+lemma compose_inc_ident_left [simp] : "ident (cod i) \<propto> i = i"
   by (transfer, simp add: raw_compose_inc_def raw_ident_def)
 
-lemma compose_inc_ident_right [simp] : "compose_inc i (ident (dom i)) = i"
+lemma compose_inc_ident_right [simp] : "i \<propto> ident (dom i) = i"
   by (transfer, simp add: raw_compose_inc_def raw_ident_def)
 
 (* Properties *)
@@ -128,27 +127,27 @@ lemma inc_dom_inf [simp] : "i \<in> inclusions T \<Longrightarrow> dom i \<inter
 
 (* Examples *)
 
-definition raw_ex_discrete :: "'a RawSpace" where
-  "raw_ex_discrete =\<lparr> raw_opens = Pow UNIV, raw_universe = UNIV \<rparr>"
+definition raw_discrete :: "'a RawSpace" where
+  "raw_discrete =\<lparr> raw_opens = Pow UNIV, raw_universe = UNIV \<rparr>"
 
-lift_definition ex_discrete :: "'a Space" is raw_ex_discrete
-  unfolding valid_def raw_ex_discrete_def
+lift_definition discrete :: "'a Space" is raw_discrete
+  unfolding valid_def raw_discrete_def
   by auto
 
-definition raw_ex_codiscrete :: "'a RawSpace" where
-  "raw_ex_codiscrete =\<lparr> raw_opens = {{}, UNIV}, raw_universe = UNIV \<rparr>"
+definition raw_codiscrete :: "'a RawSpace" where
+  "raw_codiscrete =\<lparr> raw_opens = {{}, UNIV}, raw_universe = UNIV \<rparr>"
 
-lift_definition ex_codiscrete :: "'a Space" is raw_ex_codiscrete
-  unfolding valid_def raw_ex_codiscrete_def
+lift_definition codiscrete :: "'a Space" is raw_codiscrete
+  unfolding valid_def raw_codiscrete_def
   by auto
 
-definition raw_ex_sierpinski :: "bool RawSpace" where
-  "raw_ex_sierpinski = 
+definition raw_sierpinski :: "bool RawSpace" where
+  "raw_sierpinski = 
     \<lparr> raw_opens = {{}, {False}, UNIV }, 
       raw_universe = UNIV \<rparr>"
 
-lift_definition ex_sierpinski :: "bool Space" is raw_ex_sierpinski
-  unfolding valid_def raw_ex_sierpinski_def
+lift_definition sierpinski :: "bool Space" is raw_sierpinski
+  unfolding valid_def raw_sierpinski_def
   by auto
 
 end

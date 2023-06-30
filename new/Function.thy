@@ -2,7 +2,6 @@ section \<open> Function.thy \<close>
 
 theory Function
   imports Main
-
 begin
 
 (* Types *)
@@ -25,10 +24,10 @@ definition valid_map :: "('x, 'y) RawFunction \<Rightarrow> bool" where
 
 typedef ('x, 'y) Function = "{ rf :: ('x, 'y) RawFunction . valid_map rf}"
 proof
-  define "rf" where "rf = \<lparr> raw_cod = {}, raw_func = {} \<rparr>"
-  have "valid_map rf"
-    by (simp add: rf_def valid_map_def raw_dom_def)
-  thus "rf \<in> {rf. valid_map rf}" by auto
+  define "empty_function" where "empty_function = \<lparr> raw_cod = {}, raw_func = {} \<rparr>"
+  have "valid_map empty_function"
+    by (simp add: empty_function_def valid_map_def raw_dom_def)
+  thus "empty_function \<in> {rf. valid_map rf}" by auto
 qed
 
 (* find_theorems Abs_Function Rep_Function*)
@@ -110,58 +109,6 @@ abbreviation is_injective :: "('x, 'y) Function \<Rightarrow> bool" where
 abbreviation is_bijective :: "('x, 'y) Function \<Rightarrow> bool" where
 "is_bijective f \<equiv> is_surjective f \<and> is_injective f"
 
-(* Constant functions *)
-
-definition "Function_const_undefined_arg_not_in_codomain _ \<equiv> undefined"
-
-definition raw_const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow>  ('x, 'y) RawFunction" where
-"raw_const X Y y \<equiv> 
-  if y \<in> Y
-  then \<lparr> raw_cod = Y, raw_func = { (x, y) | x. x \<in> X }\<rparr>
-  else Rep_Function (Function_const_undefined_arg_not_in_codomain y)" 
-
-lift_definition const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow> ('x, 'y) Function" is raw_const
-proof (intro valid_mapI, goal_cases)
-  case (1 X Y y x ya)
-  then show ?case
-    by (smt (verit) cod.rep_eq func.rep_eq mem_Collect_eq raw_const_def raw_dom_def select_convs(1) select_convs(2) snd_conv welldefined) 
-next
-  case (2 X Y y x ya y')
-  then show ?case
-    by (smt (verit, ccfv_SIG) CollectD deterministic func.rep_eq raw_const_def select_convs(2) snd_conv) 
-next
-  case (3 X Y y x)
-  then show ?case
-    by (simp add: raw_dom_def) 
-qed
-
-lemma const_dom [simp] : "y \<in> Y \<Longrightarrow> dom (const X Y y) = X"  
-  by (transfer, simp add: raw_const_def raw_dom_def)
-
-lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
-  by (transfer, simp add: raw_const_def)
-
-lemma const_app [simp] : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (const X Y y) \<cdot> x = y"
-  apply transfer
-  by (smt (verit, best) CollectD app.rep_eq const.rep_eq const_dom fun_app func.rep_eq raw_const_def select_convs(2) snd_conv)
-
-(* Identity functions *)
-
-definition raw_ident :: "'x set \<Rightarrow> ('x, 'x) RawFunction" where
-"raw_ident X \<equiv>  \<lparr> raw_cod = X, raw_func = Id_on X \<rparr>"
-
-lift_definition ident :: "'x set \<Rightarrow> ('x, 'x) Function" is raw_ident
-  by (simp add: Id_on_iff raw_dom_def raw_ident_def valid_map_def) 
-
-lemma ident_dom [simp] : "dom (ident X) = X" 
-  by (transfer, simp add: Id_on_iff raw_dom_def raw_ident_def)
-
-lemma ident_cod [simp] : "cod (ident X) = X"
-  by (transfer, simp add: raw_ident_def)
-
-lemma ident_app [simp] : "x \<in> X \<Longrightarrow> ident X \<cdot> x = x"
-  by (transfer, metis Id_onI app.rep_eq fun_app_iff func.rep_eq ident.rep_eq raw_ident_def select_convs(2))
-
 (* Composition of functions *)
 
 definition "Function_compose_undefined_incomposable _ _ \<equiv> undefined"
@@ -242,5 +189,67 @@ lemma surjection_is_right_cancellative : "is_surjective f \<Longrightarrow> cod 
 lemma injection_is_left_cancellative : "is_injective f \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f 
  \<Longrightarrow> f \<bullet> g = f \<bullet> h \<Longrightarrow> g = h"
   by (metis compose_app_assoc dom_compose fun_app2 fun_ext2) 
+
+(* Identity functions *)
+
+definition raw_ident :: "'x set \<Rightarrow> ('x, 'x) RawFunction" where
+"raw_ident X \<equiv>  \<lparr> raw_cod = X, raw_func = Id_on X \<rparr>"
+
+lift_definition ident :: "'x set \<Rightarrow> ('x, 'x) Function" is raw_ident
+  by (simp add: Id_on_iff raw_dom_def raw_ident_def valid_map_def) 
+
+lemma ident_dom [simp] : "dom (ident X) = X" 
+  by (transfer, simp add: Id_on_iff raw_dom_def raw_ident_def)
+
+lemma ident_cod [simp] : "cod (ident X) = X"
+  by (transfer, simp add: raw_ident_def)
+
+lemma ident_app [simp] : "x \<in> X \<Longrightarrow> ident X \<cdot> x = x"
+  by (transfer, metis Id_onI app.rep_eq fun_app_iff func.rep_eq ident.rep_eq raw_ident_def select_convs(2))
+
+lemma compose_ident_left [simp] : "ident (cod f) \<bullet> f = f"
+  by (smt (verit, ccfv_SIG) cod_compose compose_app_assoc dom_compose fun_app2 fun_ext2 ident_app ident_cod ident_dom)
+
+lemma compose_ident_right [simp] : "f \<bullet> ident (dom f) = f"
+  by (smt (verit, ccfv_SIG) cod_compose compose_app_assoc dom_compose fun_app2 fun_ext2 ident_app ident_cod ident_dom)
+
+(* Constant functions *)
+
+definition "Function_const_undefined_arg_not_in_codomain _ \<equiv> undefined"
+
+definition raw_const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow>  ('x, 'y) RawFunction" where
+"raw_const X Y y \<equiv> 
+  if y \<in> Y
+  then \<lparr> raw_cod = Y, raw_func = { (x, y) | x. x \<in> X }\<rparr>
+  else Rep_Function (Function_const_undefined_arg_not_in_codomain y)" 
+
+lift_definition const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow> ('x, 'y) Function" is raw_const
+proof (intro valid_mapI, goal_cases)
+  case (1 X Y y x ya)
+  then show ?case
+    by (smt (verit) cod.rep_eq func.rep_eq mem_Collect_eq raw_const_def raw_dom_def select_convs(1) select_convs(2) snd_conv welldefined) 
+next
+  case (2 X Y y x ya y')
+  then show ?case
+    by (smt (verit, ccfv_SIG) CollectD deterministic func.rep_eq raw_const_def select_convs(2) snd_conv) 
+next
+  case (3 X Y y x)
+  then show ?case
+    by (simp add: raw_dom_def) 
+qed
+
+lemma const_dom [simp] : "y \<in> Y \<Longrightarrow> dom (const X Y y) = X"  
+  by (transfer, simp add: raw_const_def raw_dom_def)
+
+lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
+  by (transfer, simp add: raw_const_def)
+
+lemma const_app [simp] : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (const X Y y) \<cdot> x = y"
+  apply transfer
+  by (smt (verit, best) CollectD app.rep_eq const.rep_eq const_dom fun_app func.rep_eq raw_const_def select_convs(2) snd_conv)
+
+lemma const_func : "y \<in> Y \<Longrightarrow> func (const X Y y) = {(x, y) | x . x \<in> X }"
+  by (transfer, simp add: raw_const_def)
+
 
 end
