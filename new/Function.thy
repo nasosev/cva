@@ -5,6 +5,8 @@ theory Function
 
 begin
 
+(* Types *)
+
 record ('x, 'y) RawFunction =
   raw_cod :: "'y set"
   raw_func :: "('x \<times> 'y) set"
@@ -23,7 +25,7 @@ definition valid_map :: "('x, 'y) RawFunction \<Rightarrow> bool" where
 
 typedef ('x, 'y) Function = "{ rf :: ('x, 'y) RawFunction . valid_map rf}"
 proof
-  define "rf" where "rf = (\<lparr> raw_cod = {}, raw_func = {} \<rparr> :: ('x,'y) RawFunction)"
+  define "rf" where "rf = \<lparr> raw_cod = {}, raw_func = {} \<rparr>"
   have "valid_map rf"
     by (simp add: rf_def valid_map_def raw_dom_def)
   thus "rf \<in> {rf. valid_map rf}" by auto
@@ -45,8 +47,7 @@ lemma welldefined_dom : "(x, y) \<in> func f \<Longrightarrow> x \<in> dom f"
   using dom.rep_eq func.rep_eq raw_dom_def by fastforce 
 
 lemma welldefined_cod : "(x, y) \<in> func f \<Longrightarrow> y \<in> cod f"
-  apply transfer
-  by (simp add: valid_map_def)
+  by (transfer, simp add: valid_map_def)
 
 lemma welldefined : "(x, y) \<in> func f \<Longrightarrow> x \<in> dom f \<and> y \<in> cod f"
   by (simp add: welldefined_cod welldefined_dom) 
@@ -87,14 +88,12 @@ lemma fun_app3 [simp] : "x \<in> dom f \<Longrightarrow> f \<cdot> x = (THE y. (
 
 lemma fun_ext : "dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> func f = func g"
   unfolding  dom_def
-  apply (simp_all add: Let_def)
-  apply auto
+  apply (simp_all add: Let_def, auto)
   apply (metis deterministic dom.rep_eq fun_app welldefined)
   by (metis deterministic dom.rep_eq fun_app welldefined) 
 
 lemma fun_ext2 : "dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> f = g"
-  apply transfer
-  apply simp
+  apply (transfer, simp)
   by (metis (full_types) Abs_Function_inverse CollectI app.rep_eq cod.rep_eq dom.rep_eq equality fun_ext func.rep_eq old.unit.exhaust)
 
 lemma fun_app_iff  : "(x, y) \<in> func f \<Longrightarrow> (f \<cdot> x) = y"
@@ -137,12 +136,10 @@ next
 qed
 
 lemma const_dom [simp] : "y \<in> Y \<Longrightarrow> dom (const X Y y) = X"  
-  apply transfer  
-  by (simp add: raw_const_def raw_dom_def)
+  by (transfer, simp add: raw_const_def raw_dom_def)
 
 lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
-  apply transfer  
-  by (simp add: raw_const_def)
+  by (transfer, simp add: raw_const_def)
 
 lemma const_app [simp] : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (const X Y y) \<cdot> x = y"
   apply transfer
@@ -157,16 +154,13 @@ lift_definition ident :: "'x set \<Rightarrow> ('x, 'x) Function" is raw_ident
   by (simp add: Id_on_iff raw_dom_def raw_ident_def valid_map_def) 
 
 lemma ident_dom [simp] : "dom (ident X) = X" 
-  apply transfer
-  by (simp add: Id_on_iff raw_dom_def raw_ident_def)
+  by (transfer, simp add: Id_on_iff raw_dom_def raw_ident_def)
 
 lemma ident_cod [simp] : "cod (ident X) = X"
-  apply transfer
-  by (simp add: raw_ident_def)
+  by (transfer, simp add: raw_ident_def)
 
 lemma ident_app [simp] : "x \<in> X \<Longrightarrow> ident X \<cdot> x = x"
-  apply transfer
-  by (metis Id_onI app.rep_eq fun_app_iff func.rep_eq ident.rep_eq raw_ident_def select_convs(2))
+  by (transfer, metis Id_onI app.rep_eq fun_app_iff func.rep_eq ident.rep_eq raw_ident_def select_convs(2))
 
 (* Composition of functions *)
 
@@ -216,20 +210,15 @@ lemma compose_total : "dom g = cod f \<Longrightarrow> x \<in> dom f \<Longright
   by (metis (no_types, lifting) raw_compose_def relcomp.simps select_convs(2) valid_map_def)
 
 lemma cod_compose [simp] : "dom g = cod f \<Longrightarrow> cod (g \<bullet> f) = cod g"
-  apply transfer
-  by (simp add: raw_compose_def)
+  by (transfer, simp add: raw_compose_def)
 
 lemma dom_compose [simp] : "dom g = cod f \<Longrightarrow> dom (g \<bullet> f) = dom f"
   apply transfer
   by (smt (verit) Collect_cong raw_compose_def raw_dom_def relcomp.simps select_convs(2) valid_map_def)
 
 lemma compose_assoc : "dom h = cod g \<Longrightarrow> dom g = cod f \<Longrightarrow> (h \<bullet> g) \<bullet> f = h \<bullet> (g \<bullet> f)"
-  apply transfer
-  apply (simp_all add: raw_dom_def valid_map_def raw_compose_def)
-  apply safe
-     apply blast
-  apply blast
-  apply blast
+  apply (transfer, simp_all add: raw_dom_def valid_map_def raw_compose_def)
+  apply (safe, blast, blast, blast)
   by (smt (verit) mem_Collect_eq relcomp.simps)
 
 lemma compose_app [simp] : "(x, y) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow> (y, z) \<in> func g 
@@ -240,10 +229,7 @@ lemma compose_app [simp] : "(x, y) \<in> func f \<Longrightarrow> dom g = cod f 
 lemma compose_app_assoc : "x \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> x = g \<cdot> (f \<cdot> x)"
   apply transfer
   unfolding valid_map_def raw_dom_def raw_compose_def raw_app_def
-  apply (simp add: Let_def)
-  apply clarsimp
-  apply safe
-     apply auto
+  apply (simp add: Let_def,safe)
      apply (smt (verit, best) relcomp.simps the_equality)
     apply (metis (mono_tags, lifting) theI_unique)
   apply (meson relcomp.relcompI)
