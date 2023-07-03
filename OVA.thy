@@ -320,7 +320,7 @@ next
   moreover have "Poset.valid_map pr_B"
     using calculation(3) calculation(4) pr_B_def valid_ar by blast
   moreover have "Poset.dom pr_B = \<Phi>A \<and> Poset.cod pr_B = \<Phi>B"
-    by (metis Inclusion.simps(2) Inclusion.simps(3) \<Phi>A_def \<Phi>B_def calculation(3) calculation(4) cod_proj dom_proj i_def make_inclusion_def pr_B_def)
+    by (metis Inclusion.simps(2) Inclusion.simps(3) \<Phi>A_def \<Phi>B_def calculation(3) calculation(4) res_cod res_dom i_def make_inclusion_def pr_B_def)
   moreover have "ea_B \<in> Poset.el \<Phi>B"
     by (metis Poset.fun_app2 calculation(1) calculation(5) calculation(6) ea_B_def)
   moreover have "e b \<in> Poset.el \<Phi>B"
@@ -569,7 +569,7 @@ proof -
   moreover have "d a_B = B"
     using a_B_def assms(1) assms(3) assms(4) assms(5) calculation(2) d_gprj a_elem by blast
   moreover have "Poset.cod f = \<Phi>B"
-    by (metis Inclusion.select_convs(2) \<Phi>B_def calculation(1) calculation(4) cod_proj f_def i_def make_inclusion_def)
+    by (metis Inclusion.select_convs(2) \<Phi>B_def calculation(1) calculation(4) res_cod f_def i_def make_inclusion_def)
   moreover have "Poset.valid \<Phi>B"
     using Poset.valid_cod calculation(6) calculation(8) by blast
   moreover have "e a \<in> Poset.el \<Phi>A"
@@ -579,7 +579,7 @@ proof -
   moreover have "e (gprj V B a) = f \<star> (e a)"
     by (simp add: a_elem assms(3) assms(4) assms(5) f_def gprj_def i_def)
   moreover have "f \<star> (e a) \<in> Poset.el \<Phi>B"
-    by (metis Inclusion.simps(3) Poset.fun_app2 \<Phi>A_def assms(3) calculation(1) calculation(10) calculation(4) calculation(6) calculation(8) dom_proj f_def i_def make_inclusion_def)
+    by (metis Inclusion.simps(3) Poset.fun_app2 \<Phi>A_def assms(3) calculation(1) calculation(10) calculation(4) calculation(6) calculation(8) res_dom f_def i_def make_inclusion_def)
   moreover have "f \<star> (e a) = e a_B"
     using a_B_def calculation(12) by force
   moreover have "e a_B \<in>  Poset.el \<Phi>B"
@@ -684,9 +684,9 @@ moreover have "Space.valid_inclusion i_CA \<and> Space.space i_CA = space V"
   moreover have "Space.cod i_CA = A \<and> Space.dom i_CA = C "
     by (simp add: i_CA_def make_inclusion_def)
   moreover have "Poset.dom f = Prealgebra.ob (prealgebra V) \<cdot> A"
-    by (metis \<Phi>1_def calculation(12) calculation(4) calculation(8) dom_proj f_def)
+    by (metis \<Phi>1_def calculation(12) calculation(4) calculation(8) res_dom f_def)
     moreover have "Poset.cod f  = Prealgebra.ob (prealgebra V) \<cdot> B \<and> Poset.dom g  = Prealgebra.ob (prealgebra V) \<cdot> B"
-      by (metis \<Phi>1_def calculation(12) calculation(13) calculation(4) calculation(6) calculation(8) cod_proj dom_proj f_def g_def)
+      by (metis \<Phi>1_def calculation(12) calculation(13) calculation(4) calculation(6) calculation(8) res_cod res_dom f_def g_def)
     moreover have " (\<Phi>1 \<cdot> i_CB) \<star> ((\<Phi>1 \<cdot> i_BA) \<star> (e a)) =  (\<Phi>1 \<cdot> i_CA) \<star> (e a)"  using Poset.compose_app_assoc
       by (metis \<Phi>1_def assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(15) calculation(16) calculation(4) calculation(6) calculation(8) f_def g_def local_inclusion_element V_valid valid_composition)
   ultimately show ?thesis
@@ -736,7 +736,7 @@ text \<open>
    is less than or equal to `a2` in the global order. The lemma then shows that this order 
    relation is preserved when these elements are projected onto a subset `B` of `A`.
 \<close>
-lemma gprj_monotone :
+lemma gres_monotone :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a2 :: "('A, 'a) Valuation"
   assumes V_valid: "valid V"
   and "B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
@@ -762,7 +762,7 @@ proof -
       by (metis V_valid assms(2) assms(3) assms(4) assms(6) assms(8) d_gprj)
   ultimately show ?thesis using gle_eq_local_le [where ?V=V and ?A=B and ?a1.0="(gprj V B a1)" and
         ?a2.0="(gprj V B a2)"]
-    by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) gprj_def gprj_elem i_def local_inclusion_element prj_monotone snd_conv valid_prealgebra)
+    by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) gprj_def gprj_elem i_def local_inclusion_element res_monotone snd_conv valid_prealgebra)
 qed
 
 text \<open>
@@ -799,7 +799,7 @@ proof -
 moreover have "() \<in> Poset.el (Poset.dom  (ar one \<cdot> i))" using Prealgebra.terminal_value
   by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined UNIV_unit assms(4) calculation(3) calculation(4) iso_tuple_UNIV_I one_def terminal_def V_valid)
 moreover have "((f \<cdot> B) \<diamondop> (ar one \<cdot> i)) \<star> () = ((f \<cdot> B) \<star> ((ar one \<cdot> i)) \<star> ())"
-  by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined assms(3) calculation(3) calculation(4) calculation(9) cod_proj compose_app_assoc f_def one_def terminal_def v1 V_valid)
+  by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined assms(3) calculation(3) calculation(4) calculation(9) res_cod compose_app_assoc f_def one_def terminal_def v1 V_valid)
   moreover have "((Prealgebra.ar (prealgebra V) \<cdot> i) \<diamondop> (f \<cdot> A)) \<star> ()=  e \<epsilon>B"
     by (metis OVA.valid_welldefined \<epsilon>B_def calculation(10) calculation(3) calculation(4) calculation(8) f_def one_def snd_conv V_valid valid_map_naturality)
   moreover have "e \<epsilon>A=   (f \<cdot> A) \<star> ()"
@@ -1073,7 +1073,7 @@ proof -
         ?a2.0="(comb V \<epsilon>A b)"]
     by (metis (no_types, lifting) comb_is_element fst_conv neutral_is_element sup.orderE valid_domain_law)
     moreover have "gle V (gprj V B a) (gprj V B (comb V \<epsilon>A b))"
-      by (metis (no_types, lifting) A_open B_le_A B_open V_valid \<epsilon>A_def a_dom a_elem b_dom b_elem calculation comb_is_element fst_conv gprj_monotone neutral_is_element sup.orderE valid_domain_law)
+      by (metis (no_types, lifting) A_open B_le_A B_open V_valid \<epsilon>A_def a_dom a_elem b_dom b_elem calculation comb_is_element fst_conv gres_monotone neutral_is_element sup.orderE valid_domain_law)
     moreover have "gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b"  using valid_comb_law_right
       by (metis A_open \<epsilon>A_def b_dom b_elem fst_conv neutral_is_element V_valid)
     define "\<epsilon>B" where "\<epsilon>B \<equiv> neut V B"
@@ -1470,7 +1470,7 @@ next
         moreover have "local_le V (d_U) i (ex d_U u)"
           by (smt (verit, del_insts) \<Phi>_def calculation(1) calculation(5) comp_apply ex_U_def i_def image_iff is_inf_def snd_conv)
         moreover have "local_le V (d u) (pr (d u) i) u"
-          by (smt (verit) U V_valid \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) calculation(2) calculation(6) d_gext d_gprj elem_le_wrap ex_def fst_eqD galois_insertion gext_elem gprj_elem gprj_monotone i_def in_mono local_inclusion_domain local_le pr_def subset_Un_eq sup.cobounded2 up_and_down valid_gc_poset valid_prealgebra)
+          by (smt (verit) U V_valid \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) calculation(2) calculation(6) d_gext d_gprj elem_le_wrap ex_def fst_eqD galois_insertion gext_elem gprj_elem gres_monotone i_def in_mono local_inclusion_domain local_le pr_def subset_Un_eq sup.cobounded2 up_and_down valid_gc_poset valid_prealgebra)
         moreover have i_is_lb: "gle V i u"
           by (smt (verit) U V_valid \<open>i \<in> el (poset V)\<close> calculation(1) calculation(2) calculation(7) elem_le_wrap fst_eqD i_def in_mono pr_def)
 

@@ -214,13 +214,35 @@ proof -
 qed
 
 lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<diamondop> f)"
-  apply (rule valid_mapI; clarsimp?)
-       apply (simp add:  valid_map_welldefined_dom)
-  apply (simp add:  valid_map_welldefined_cod)
-  apply (simp add:  compose_welldefined )
-  apply (simp add: compose_deterministic)
-   apply (simp add: compose_total )
-  by (simp add: compose_monotone)
+proof (intro valid_mapI, safe, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: Poset.valid_map_welldefined_dom) 
+next
+  case 2
+  then show ?case
+    by (simp add: Poset.valid_map_welldefined_cod) 
+next
+  case (3 a b)
+  then show ?case
+    by (simp add: Poset.compose_welldefined_dom) 
+next
+  case (4 a b)
+  then show ?case
+    by (simp add: Poset.compose_welldefined_cod) 
+next
+  case (5 a b b')
+  then show ?case
+    by (meson Poset.compose_deterministic) 
+next
+  case (6 a)
+  then show ?case
+    by (simp add: Poset.compose_total) 
+next
+  case (7 a a')
+  then show ?case
+    by (simp add: compose_monotone) 
+qed
 
 lemma compose_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
                 (b, c) \<in> func g \<Longrightarrow> (g \<diamondop> f) \<star> a = c"
@@ -300,7 +322,7 @@ lemma const_app [simp] : "valid P \<Longrightarrow> valid Q \<Longrightarrow> p 
   by auto
 
 lemma const_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> q \<in> el Q \<Longrightarrow> valid_map (const P Q q)"
-proof (rule valid_mapI,goal_cases)
+proof (intro valid_mapI,goal_cases)
   case 1
   then show ?case
     by simp 
@@ -452,7 +474,7 @@ lemma direct_image_valid :
   assumes f_valid : "Function.valid_map f"
   defines "X \<equiv> Function.dom f" and "Y \<equiv> Function.cod f"
   shows "valid_map (direct_image f)"
-proof (rule valid_mapI, safe, goal_cases)
+proof (intro valid_mapI, safe, goal_cases)
   case 1
   then show ?case
     by (simp add: direct_image_dom powerset_valid) 

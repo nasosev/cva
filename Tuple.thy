@@ -132,13 +132,13 @@ lemma relation_ar_dom : "valid T \<Longrightarrow> R = relation_prealgebra T \<L
 R1 = Prealgebra.ar R \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.dom (R1 \<cdot> i) = R0 \<cdot> Space.cod i"
   unfolding relation_prealgebra_def
   apply (simp_all add : Let_def)
-  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.dom_proj Tuple.valid_welldefined UNIV_I direct_image_dom fst_conv inclusions_def mem_Collect_eq snd_conv valid_inclusion_def)
+  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.res_dom Tuple.valid_welldefined UNIV_I direct_image_dom fst_conv inclusions_def mem_Collect_eq snd_conv valid_inclusion_def)
 
 lemma relation_ar_cod : "valid T \<Longrightarrow> R = relation_prealgebra T \<Longrightarrow>  R0 = Prealgebra.ob R \<Longrightarrow>
 R1 = Prealgebra.ar R \<Longrightarrow> i \<in> Space.inclusions (Prealgebra.space R) \<Longrightarrow> PosetMap.cod (R1 \<cdot> i) = R0 \<cdot> Space.dom i"
   unfolding relation_prealgebra_def
   apply (simp_all add : Let_def)
-  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Pair_inject Presheaf.cod_proj Tuple.valid_welldefined UNIV_I direct_image_cod inclusions_def mem_Collect_eq valid_inclusion_def)
+  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Pair_inject Presheaf.res_cod Tuple.valid_welldefined UNIV_I direct_image_cod inclusions_def mem_Collect_eq valid_inclusion_def)
 
 lemma relation_ar_ident :
   fixes T :: "('A,'a) TupleSystem" and A :: "'A Open"
@@ -204,7 +204,7 @@ proof -
       by (metis Presheaf.valid_composition R_def T_valid Tuple.valid_welldefined calculation(1) endpoints f_def j_inc ji_def valid_relation_space)
       
     moreover have "ar R \<cdot> Space.compose j i = ar R \<cdot> i \<diamondop> ar R \<cdot> j"
-      by (metis Presheaf.cod_proj Presheaf.dom_proj Presheaf.valid_ar Presheaf.valid_composition R_def T_valid Tuple.valid_welldefined \<open>Prealgebra.ar R \<cdot> j = direct_image (f \<cdot> j)\<close> calculation(1) calculation(2) calculation(4) direct_image_trans endpoints f_def j_inc ji_def valid_relation_space) 
+      by (metis Presheaf.res_cod Presheaf.res_dom Presheaf.valid_ar Presheaf.valid_composition R_def T_valid Tuple.valid_welldefined \<open>Prealgebra.ar R \<cdot> j = direct_image (f \<cdot> j)\<close> calculation(1) calculation(2) calculation(4) direct_image_trans endpoints f_def j_inc ji_def valid_relation_space) 
     ultimately show ?thesis
       by meson
   qed
@@ -214,7 +214,7 @@ lemma valid_relation_prealgebra :
   assumes "valid T"
   defines "R \<equiv> relation_prealgebra T"
   shows "Prealgebra.valid R"
-proof (rule Prealgebra.validI, auto)
+proof (intro Prealgebra.validI, auto)
   show "Space.valid (Prealgebra.space R)"
     by (metis Presheaf.valid_space R_def Tuple.valid_welldefined assms(1) valid_relation_space) 
   show "Function.valid_map (ob R)"
@@ -420,7 +420,7 @@ proof -
   moreover have "le (PosetMap.dom Ri) x \<epsilon>A"
     by (metis Presheaf.valid_space R_def Ri_def T_valid Tuple.valid_welldefined assms(4) calculation(5) i_inc relation_ar_dom relation_neutral_top valid_inclusion_cod valid_relation_space) 
   ultimately show ?thesis
-    by (smt (verit) Poset.valid_cod Poset.valid_def Prealgebra.cod_proj Prealgebra.image Prealgebra.valid_dom Presheaf.valid_ar Presheaf.valid_space R_def Ri_def T_valid Ti_def Tuple.valid_welldefined \<epsilon>A_def \<epsilon>B_def direct_image_mono direct_image_valid i_inc relation_neutral_top valid_inclusion_cod valid_inclusion_dom valid_relation_prealgebra valid_relation_space)
+    by (smt (verit) Poset.valid_cod Poset.valid_def Prealgebra.res_cod Prealgebra.image Prealgebra.valid_dom Presheaf.valid_ar Presheaf.valid_space R_def Ri_def T_valid Ti_def Tuple.valid_welldefined \<epsilon>A_def \<epsilon>B_def direct_image_mono direct_image_valid i_inc relation_neutral_top valid_inclusion_cod valid_inclusion_dom valid_relation_prealgebra valid_relation_space)
 qed
 
 lemma relation_neutral_natural : 
@@ -439,7 +439,7 @@ proof (rule Poset.fun_ext)
       by (metis Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_nat_valid valid_inclusion_dom valid_relation_neutral_space)  
     ultimately show "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar
  (PrealgebraMap.dom \<epsilon>) \<cdot> i)"
-      by (metis (no_types, lifting) Poset.compose_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.cod_proj PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_def relation_neutral_dom terminal_def terminal_valid valid_inclusion_dom valid_relation_neutral_space)
+      by (metis (no_types, lifting) Poset.compose_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.res_cod PrealgebraMap.select_convs(3) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_def relation_neutral_dom terminal_def terminal_valid valid_inclusion_dom valid_relation_neutral_space)
   qed
 next
   show "Poset.valid_map (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot>
@@ -456,11 +456,11 @@ next
 next 
   show "PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) =
     PosetMap.dom (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i)"
-    by (metis (no_types, lifting) Poset.dom_compose Prealgebra.Prealgebra.select_convs(1) Prealgebra.cod_proj Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_cod relation_neutral_def relation_neutral_dom relation_neutral_nat_valid terminal_def terminal_valid valid_inclusion_cod valid_inclusion_dom valid_relation_neutral_space valid_relation_prealgebra valid_relation_space) 
+    by (metis (no_types, lifting) Poset.dom_compose Prealgebra.Prealgebra.select_convs(1) Prealgebra.res_cod Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_cod relation_neutral_def relation_neutral_dom relation_neutral_nat_valid terminal_def terminal_valid valid_inclusion_cod valid_inclusion_dom valid_relation_neutral_space valid_relation_prealgebra valid_relation_space) 
 next 
   show "PosetMap.cod (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) =
     PosetMap.cod (Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i)"
-    by (metis (no_types, lifting) Poset.compose_def PosetMap.select_convs(2) Prealgebra.Prealgebra.select_convs(1) Prealgebra.cod_proj Prealgebra.valid_dom PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_cod relation_neutral_def relation_neutral_dom terminal_def terminal_valid valid_inclusion_cod valid_inclusion_dom valid_relation_neutral_space valid_relation_prealgebra valid_relation_space)
+    by (metis (no_types, lifting) Poset.compose_def PosetMap.select_convs(2) Prealgebra.Prealgebra.select_convs(1) Prealgebra.res_cod Prealgebra.valid_dom PrealgebraMap.select_convs(3) PrealgebraMap.select_convs(4) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def i_inc relation_neutral_cod relation_neutral_def relation_neutral_dom terminal_def terminal_valid valid_inclusion_cod valid_inclusion_dom valid_relation_neutral_space valid_relation_prealgebra valid_relation_space)
 next 
   show "\<And>a. a \<in> el (PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i)) \<Longrightarrow>
          (PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i) \<star> a =
@@ -530,7 +530,7 @@ lemma valid_relation_neutral :
   assumes "valid T"
   defines "\<epsilon> \<equiv> relation_neutral T"
   shows "Prealgebra.valid_map \<epsilon>"
-proof (rule valid_mapI, auto)
+proof (intro valid_mapI, auto)
   show "Space.valid (map_space \<epsilon>)" unfolding relation_neutral_def
     by (metis (no_types, lifting) Prealgebra.valid_space PrealgebraMap.select_convs(1) \<epsilon>_def assms(1) relation_neutral_def valid_relation_space valid_relation_prealgebra) 
   show "Function.valid_map (PrealgebraMap.nat \<epsilon>)"

@@ -25,11 +25,14 @@ record 'A Inclusion =
   dom :: "'A Open"
   cod :: "'A Open"
 
-abbreviation valid_inc :: "'A Inclusion \<Rightarrow> bool" where
+abbreviation (input) valid_inc :: "'A Inclusion \<Rightarrow> bool" where
   "valid_inc i \<equiv> dom i \<subseteq> cod i"
 
 abbreviation inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
   "inclusions T \<equiv> {i. valid_inc i \<and> dom i \<in> opens T \<and> cod i \<in> opens T}"
+
+abbreviation (input) make_inc :: "'A Open \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
+"make_inc B A \<equiv> \<lparr> dom = B, cod = A \<rparr>"
 
 (* Validity *)
 
@@ -80,7 +83,7 @@ lemma cod_compose_inc [simp] : "dom j = cod i \<Longrightarrow> cod (j \<propto>
 (* Identity inclusion *)
 
 definition ident :: "'A Open \<Rightarrow> 'A Inclusion" where
-  "ident A \<equiv> \<lparr> dom = A, cod = A \<rparr>"
+  "ident A \<equiv> make_inc A A"
 
 lemma ident_valid : "A \<in> opens T \<Longrightarrow> valid_inc (ident A)"
   by (simp add: ident_def)
