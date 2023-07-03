@@ -1,478 +1,354 @@
 section \<open> Prealgebra.thy \<close>
 
-text \<open>
-   Theory      :  Prealgebra.thy
-
-   This theory describes the concept of poset-valued presheaves on a topological space. It 
-   introduces the records to define a presheaf and a presheaf map, along with  the definitions of 
-   validity for a presheaf, a presheaf map (natural transformation)  and a terminal presheaf. 
-   Furthermore, the theory provides a collection of lemmas which establish basic properties of presheaves.
---------------------------------------------------------------------------------
-\<close>
-
 theory Prealgebra
 imports Main Poset Space Function
 begin
 
-text \<open>
-   This record introduces a presheaf @{term \<Phi>} over a topological space. 
-   `space` is the underlying topological space, `ob` maps each open set to a poset, and `ar` maps each 
-   inclusion (i.e., an injective continuous function) to a poset map, preserving the order structure. 
-\<close>
+(* Prealgebra type (poset-valued presheaf) *)
+
 record ('A, 'a) Prealgebra =
   space :: "'A Space"
   ob :: "('A Open, 'a Poset) Function "
   ar :: "('A Inclusion, ('a, 'a) PosetMap) Function"
 
-text \<open>
-   This definition introduces the notion of a valid presheaf. A presheaf is valid if it is well-defined, 
-   respects identities, and respects composition of inclusions in the underlying space.
-\<close>
 definition valid :: "('A, 'a) Prealgebra \<Rightarrow> bool" where
-  "valid \<Phi> \<equiv>
+  "valid F \<equiv>
     let
-      T = space \<Phi>;
-      \<Phi>0 = ob \<Phi>;
-      \<Phi>1 = ar \<Phi>;
+      T = space F;
+      F0 = ob F;
+      F1 = ar F;
 
-      welldefined = (Space.valid T)
-                    \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (\<Phi>0 \<cdot> A))
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 \<cdot> i)
-                           \<and>  Poset.dom (\<Phi>1 \<cdot> i) = \<Phi>0 \<cdot> (Space.cod i)
-                           \<and>  Poset.cod (\<Phi>1 \<cdot> i) = \<Phi>0 \<cdot> (Space.dom i) );
-      identity = (\<forall>A. A \<in> Space.opens T \<longrightarrow> (\<Phi>1 \<cdot> (Space.ident T A)) = Poset.ident (\<Phi>0 \<cdot> A));
+      welldefined = Space.valid T
+                    \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
+                           \<and>  Poset.dom (F1 \<cdot> i) = F0 \<cdot> Space.cod i
+                           \<and>  Poset.cod (F1 \<cdot> i) = F0 \<cdot> Space.dom i );
+      identity = (\<forall>A. A \<in> Space.opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Poset.ident (F0 \<cdot> A));
       composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i
-        \<longrightarrow>  \<Phi>1 \<cdot> (Space.compose j i ) = (\<Phi>1 \<cdot> i) \<diamondop> (\<Phi>1 \<cdot> j))
+        \<longrightarrow>  F1 \<cdot> (j \<propto> i) = (F1 \<cdot> i) \<diamondop> (F1 \<cdot> j))
     in
     welldefined \<and> identity \<and> composition"
 
-text \<open>
-   This record introduces a presheaf map, which is a functor between two presheaves over the same 
-   topological space. `map\_space` is the underlying space, `nat` is the natural transformation which maps 
-   each open set to a poset map, `dom` is the domain presheaf, and `cod` is the codomain presheaf.
-\<close>
+(* PrealgebraMap type (natural transformation *)
+
 record ('A, 'a, 'b) PrealgebraMap =
-  map_space :: "'A Space"
   nat :: "('A Open, ('a, 'b) PosetMap) Function"
   dom :: "('A, 'a) Prealgebra"
   cod :: "('A, 'b) Prealgebra"
 
-text \<open>
-   This definition introduces the notion of a valid presheaf map. A presheaf map is valid if it is 
-   well-defined and natural, i.e., it commutes with the action of the presheaves on the inclusions 
-   in the underlying space.
-\<close>
-definition valid_map :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> bool" where
- "valid_map \<phi> \<equiv>
-    let
-      space = (map_space \<phi>);
-      f = nat \<phi>;
+abbreviation map_space :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> 'A Space" where
+"map_space f \<equiv> space (dom f)"
 
-      welldefined = Space.valid space
-                    \<and> valid (dom \<phi>) \<and> valid (cod \<phi>)
-                    \<and> (Function.valid_map f)
-                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Poset.valid_map (f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Poset.dom (f \<cdot> A) = (ob (dom \<phi>) \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens space \<longrightarrow> Poset.cod (f \<cdot> A) = (ob (cod \<phi>) \<cdot> A));
-      naturality = (\<forall>i. i \<in> inclusions space \<longrightarrow>
-          (f \<cdot> Space.dom i) \<diamondop> (ar (dom \<phi>) \<cdot> i) = (ar (cod \<phi>) \<cdot> i) \<diamondop> (f \<cdot> Space.cod i))
+definition valid_map :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> bool" where
+ "valid_map f \<equiv>
+    let
+      T = (map_space f);
+
+      welldefined = Space.valid T
+                    \<and> T = space (cod f)
+                    \<and> valid (dom f) \<and> valid (cod f)
+                    \<and> (Function.valid_map (nat f))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A));
+      naturality = (\<forall>i. i \<in> inclusions T \<longrightarrow>
+          (nat f \<cdot> Space.dom i) \<diamondop> (ar (dom f) \<cdot> i) = (ar (cod f) \<cdot> i) \<diamondop> (nat f \<cdot> Space.cod i))
     in
     (welldefined \<and> naturality)"
 
-text \<open>
-   This definition introduces the terminal presheaf over a space, mapping each open set to the discrete 
-   poset on a single element and each inclusion to the identity on this element.
-\<close>
-definition terminal :: "'A Space \<Rightarrow> ('A, unit) Prealgebra" where
-  "terminal T \<equiv>
-    let
-      space = T;
-      ob = Function.const (Space.opens T) UNIV (Poset.discrete);
-      ar = Function.const (Space.inclusions T) UNIV (Poset.ident Poset.discrete)
-    in
-    \<lparr> space = space, ob = ob, ar = ar \<rparr>
-"
+(* Validity *)
 
-text \<open> LEMMAS \<close>
-
-text \<open>
-   This lemma states that if all components of a presheaf are well-defined and the presheaf respects 
-   identities and composition, then the presheaf is valid.
-\<close>
 lemma validI :
-  fixes \<Phi> :: "('A,'a) Prealgebra"
-  defines "T \<equiv> space \<Phi>"
-  defines "\<Phi>0 \<equiv> ob \<Phi>"
-  defines "\<Phi>1 \<equiv> ar \<Phi>"
+  fixes F :: "('A,'a) Prealgebra"
+  defines "T \<equiv> space F"
+  defines "F0 \<equiv> ob F"
+  defines "F1 \<equiv> ar F"
   assumes welldefined : "(Space.valid T)
-                    \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (\<Phi>0 \<cdot> A))
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 \<cdot> i)
-                           \<and>  Poset.dom (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.cod i))
-                           \<and>  Poset.cod (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.dom i)) )"
-  assumes identity : "(\<forall>A. A \<in> Space.opens T \<longrightarrow> (\<Phi>1 \<cdot> (Space.ident T A)) = Poset.ident (\<Phi>0 \<cdot> A))"
+                    \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
+                           \<and>  Poset.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
+                           \<and>  Poset.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i) )"
+  assumes identity : "(\<forall>A. A \<in> Space.opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Poset.ident (F0 \<cdot> A))"
   assumes composition :" (\<forall> i j. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
-        Space.dom j = Space.cod i \<longrightarrow> (\<Phi>1 \<cdot> (Space.compose j i )) = (\<Phi>1 \<cdot> i) \<diamondop> (\<Phi>1 \<cdot> j))"
-  shows "valid \<Phi>"
+        Space.dom j = Space.cod i \<longrightarrow> (F1 \<cdot> (j \<propto> i )) = (F1 \<cdot> i) \<diamondop> (F1 \<cdot> j))"
+  shows "valid F"
   unfolding valid_def
   apply (simp add: Let_def)
   apply safe
   using T_def welldefined apply blast
-  using \<Phi>0_def welldefined apply blast
-  using \<Phi>1_def welldefined apply fastforce
-  using T_def \<Phi>0_def welldefined apply presburger
-  using T_def \<Phi>1_def welldefined apply blast
-  using T_def \<Phi>0_def \<Phi>1_def welldefined apply blast
-  using T_def \<Phi>0_def \<Phi>1_def welldefined apply blast
-  using T_def \<Phi>0_def \<Phi>1_def identity apply blast
-  using T_def \<Phi>1_def composition by blast
+  using F0_def welldefined apply blast
+  using F1_def welldefined apply fastforce
+  using T_def F0_def welldefined apply presburger
+  using T_def F1_def welldefined apply blast
+  using T_def F0_def F1_def welldefined apply blast
+  using T_def F0_def F1_def welldefined apply blast
+  using T_def F0_def F1_def identity apply blast
+  using T_def F1_def composition by blast
 
-text \<open>
-   This lemma establishes that if a presheaf is valid, then all its components are well-defined.
-\<close>
-lemma valid_welldefined  : "valid \<Phi> \<Longrightarrow> let T = space \<Phi>; \<Phi>0 = ob \<Phi>; \<Phi>1 = ar \<Phi> in (Space.valid T)
-                    \<and> (Function.valid_map \<Phi>0) \<and> (Function.valid_map \<Phi>1)
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (\<Phi>0 \<cdot> A))
-                    \<and> (\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 \<cdot> i)
-                           \<and>  Poset.dom (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.cod i))
-                           \<and>  Poset.cod (\<Phi>1 \<cdot> i) = (\<Phi>0 \<cdot> (Space.dom i)) )"
+lemma valid_welldefined  : "valid F \<Longrightarrow> let T = space F; F0 = ob F; F1 = ar F in (Space.valid T)
+                    \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
+                    \<and> (\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
+                           \<and>  Poset.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
+                           \<and>  Poset.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i) )"
   unfolding valid_def by (simp add: Let_def)
 
-text \<open>
-   This lemma states that if a presheaf is valid, then its underlying space is a valid space.
-\<close>
-lemma valid_space  : "valid \<Phi> \<Longrightarrow> T = space \<Phi> \<Longrightarrow> (Space.valid T)"
+lemma valid_space  : "valid F \<Longrightarrow> T = space F \<Longrightarrow> (Space.valid T)"
   by (meson Prealgebra.valid_welldefined)
 
-text \<open>
-   This lemma establishes that if a presheaf is valid, then the poset associated to each open set 
-   of the underlying space by the presheaf is a valid poset.
-\<close>
-lemma valid_ob  : "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot> A \<Longrightarrow> Poset.valid obA"
+lemma valid_ob  : "valid F \<Longrightarrow> A \<in> Space.opens (space F) \<Longrightarrow> obA = ob F \<cdot> A \<Longrightarrow> Poset.valid obA"
   unfolding valid_def by (simp add: Let_def)
 
-text \<open>
-   This lemma states that if a presheaf is valid, then the poset map associated to each inclusion 
-   of the underlying space by the presheaf is a valid poset map.
-\<close>
 lemma valid_ar  :
-  fixes \<Phi> :: "('A, 'a) Prealgebra" and i :: "'A Inclusion" and f ::  "('a,'a) PosetMap"
-  assumes "valid \<Phi>"
-  and "i \<in> Space.inclusions (space \<Phi>)"
-  and "f  \<equiv> ar \<Phi> \<cdot> i" 
+  fixes F :: "('A, 'a) Prealgebra" and i :: "'A Inclusion" and f ::  "('a,'a) PosetMap"
+  assumes "valid F"
+  and "i \<in> Space.inclusions (space F)"
+  and "f  \<equiv> ar F \<cdot> i" 
   shows "Poset.valid_map f"
 proof -
-  define "\<Phi>1" where "\<Phi>1 = Prealgebra.ar \<Phi>" 
-  define "T" where "T = Prealgebra.space \<Phi>" 
-  have "(\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (\<Phi>1 \<cdot> i))"  using valid_welldefined
-    by (metis T_def \<Phi>1_def assms(1))
+  define "F1" where "F1 = Prealgebra.ar F" 
+  define "T" where "T = Prealgebra.space F" 
+  have "(\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i))"  using valid_welldefined
+    by (metis (mono_tags, lifting) CollectD CollectI F1_def T_def assms(1)) 
     moreover have "i \<in> Space.inclusions T"
-      by (simp add: T_def assms(2))
-    moreover have "Poset.valid_map (\<Phi>1 \<cdot> i)"
+      using T_def assms(2) by fastforce 
+    moreover have "Poset.valid_map (F1 \<cdot> i)"
       using calculation(1) calculation(2) by auto
     ultimately show ?thesis
-      using \<Phi>1_def assms(3) by blast 
+      using F1_def assms(3) by blast 
   qed
 
-text \<open>
-   This lemma establishes that if a presheaf is valid, then the domain of the poset map associated 
-   to an inclusion by the presheaf is equal to the poset associated to the codomain of the inclusion.
-\<close>
-lemma valid_dom  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> \<cdot> i \<Longrightarrow> Poset.dom ari = ob \<Phi> \<cdot> (Space.cod i)"
+lemma valid_dom  : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> Space.cod i"
   unfolding valid_def
   by (simp add: Let_def)
 
-text \<open>
-   This lemma states that if a presheaf is valid, then the codomain of the poset map associated 
-   to an inclusion by the presheaf is equal to the poset associated to the domain of the inclusion.
-\<close>
-lemma valid_cod  : "valid \<Phi> \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> ari = ar \<Phi> \<cdot> i \<Longrightarrow> Poset.cod ari = ob \<Phi> \<cdot> (Space.dom i)"
+lemma valid_cod  : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Poset.cod (ar F \<cdot> i) = ob F \<cdot> Space.dom i"
   unfolding valid_def
   by (simp add: Let_def)
 
-text \<open>
-   This lemma establishes that if a presheaf is valid, then the presheaf maps the identity of an 
-   open set to the identity of the associated poset.
-\<close>
-lemma valid_identity  : "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot> A \<Longrightarrow> ar \<Phi> \<cdot> (Space.ident (space \<Phi>) A) = Poset.ident obA"
+lemma valid_identity  : "valid F \<Longrightarrow> A \<in> Space.opens (space F) \<Longrightarrow> ar F \<cdot> (Space.ident A) = Poset.ident (ob F \<cdot> A)"
   unfolding valid_def by (simp add: Let_def)
 
-text \<open>
-   This lemma states that if a presheaf is valid, then the presheaf respects composition of 
-   inclusions in the underlying space.
-\<close>
 lemma valid_composition :
-  "valid \<Phi> \<Longrightarrow> j \<in> inclusions (space \<Phi>) \<Longrightarrow> i \<in> inclusions (space \<Phi>) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
-    ar \<Phi> \<cdot> (Space.compose j i) = (ar \<Phi> \<cdot> i) \<diamondop> (ar \<Phi> \<cdot> j)"
-  by (metis Prealgebra.valid_def)
+  "valid F \<Longrightarrow> j \<in> inclusions (space F) \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Space.dom j = Space.cod i \<Longrightarrow>
+    ar F \<cdot> (j \<propto> i) = (ar F \<cdot> i) \<diamondop> (ar F \<cdot> j)" 
+  unfolding valid_def
+  by meson 
 
-text \<open>
-   This lemma establishes conditions for a presheaf map to be valid. Specifically, it shows that if the 
-   space, function, domain and codomain associated with the map are valid and adhere to certain 
-   properties, then the map is valid.
-\<close>
 lemma valid_mapI :
-  fixes \<phi> :: "('A,'a,'b) PrealgebraMap"
-  defines "T \<equiv> map_space \<phi>"
-  defines "f \<equiv> nat \<phi>"
-  defines "\<Phi> \<equiv> dom \<phi>"
-  defines "\<Phi>' \<equiv> cod \<phi>"
-  assumes welldefined : "(Space.valid T)
-                    \<and> (Function.valid_map f)
-                    \<and> valid \<Phi> \<and> valid \<Phi>'
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (f \<cdot> A) = (ob \<Phi> \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (f \<cdot> A) = (ob \<Phi>' \<cdot> A))"
+  fixes f :: "('A,'a,'b) PrealgebraMap"
+  defines "T \<equiv> map_space f"
+  defines "F \<equiv> dom f"
+  defines "F' \<equiv> cod f"
+  assumes welldefined : "Space.valid T
+                    \<and> T = space (cod f)
+                    \<and> (Function.valid_map (nat f))
+                    \<and> valid F \<and> valid F'
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob F \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
   assumes naturality : "(\<forall>i. i \<in> inclusions T \<longrightarrow>
-          (f \<cdot> Space.dom i) \<diamondop> (ar \<Phi> \<cdot> i) = (ar \<Phi>' \<cdot> i) \<diamondop> (f \<cdot> Space.cod i))"
-  shows "valid_map \<phi>"
+          (nat f \<cdot> Space.dom i) \<diamondop> (ar F \<cdot> i) = (ar F' \<cdot> i) \<diamondop> (nat f \<cdot> Space.cod i))"
+  shows "valid_map f"
   unfolding valid_map_def
   apply (simp add: Let_def)
   apply safe
   using T_def welldefined apply blast
-  using \<Phi>_def welldefined apply blast
-  using \<Phi>'_def welldefined apply blast
-  using f_def welldefined apply blast
-  using T_def f_def welldefined apply blast
-  using T_def \<Phi>_def f_def welldefined apply presburger
-  using T_def \<Phi>'_def f_def welldefined apply presburger
-  using T_def \<Phi>'_def \<Phi>_def f_def naturality by presburger
+  using T_def welldefined apply blast
+  using F_def welldefined apply blast
+  using F'_def welldefined apply blast
+  using welldefined apply blast
+  using T_def welldefined apply blast
+  apply (simp add: F_def T_def welldefined)
+  apply (simp add: F'_def T_def welldefined)
+  using F'_def F_def T_def naturality by blast
 
-text \<open>
-   This lemma demonstrates that if a presheaf map is valid, then the space, function, domain, and 
-   codomain associated with that map must also be valid and adhere to specific properties.
-\<close>
 lemma valid_map_welldefined :
-  "valid_map \<phi> \<Longrightarrow> let f = nat \<phi>; \<Phi> = dom \<phi>; \<Phi>' = cod \<phi>; T = map_space \<phi> in (Space.valid T)
-                    \<and> (Function.valid_map f)
-                    \<and> valid \<Phi> \<and> valid \<Phi>'
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (f \<cdot> A) = (ob \<Phi> \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (f \<cdot> A) = (ob \<Phi>' \<cdot> A))"
-  by (metis Prealgebra.valid_map_def)
+  "valid_map f \<Longrightarrow> let F = dom f; F' = cod f; T = map_space f in (Space.valid T)
+                    \<and> (Function.valid_map (nat f))
+                    \<and> valid F \<and> valid F'
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob F \<cdot> A))
+                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
+  by (meson Prealgebra.valid_map_def)
 
-text \<open>
-   This lemma states that if a presheaf map is valid, then the space associated with the map is also valid.
-\<close>
-lemma valid_map_space : "valid_map \<phi> \<Longrightarrow> Space.valid (map_space \<phi>)"
+lemma valid_map_space : "valid_map f \<Longrightarrow> Space.valid (map_space f)"
+  by (meson Prealgebra.valid_map_welldefined)
+ 
+lemma valid_map_dom : "valid_map f \<Longrightarrow> valid (dom f)"
   unfolding valid_map_def by (simp add: Let_def)
 
-text \<open>
-   This lemma shows that if a presheaf map is valid, then the domain of the map is also valid.
-\<close>
-lemma valid_map_dom : "valid_map \<phi> \<Longrightarrow> valid (dom \<phi>)"
+lemma valid_map_cod : "valid_map f \<Longrightarrow> valid (cod f)"
   unfolding valid_map_def by (simp add: Let_def)
 
-text \<open>
-   This lemma demonstrates that if a presheaf map is valid, then the codomain of the map is also valid.
-\<close>
-lemma valid_map_cod : "valid_map \<phi> \<Longrightarrow> valid (cod \<phi>)"
+lemma valid_map_nat : "valid_map f \<Longrightarrow> Function.valid_map (nat f)"
   unfolding valid_map_def by (simp add: Let_def)
 
-text \<open>
-   This lemma shows that if a presheaf map is valid, then the function associated with the map is also valid.
-\<close>
-lemma valid_map_nat : "valid_map \<phi> \<Longrightarrow> Function.valid_map (nat \<phi>)"
-  unfolding valid_map_def by (simp add: Let_def)
-
-text \<open>
-   This lemma states that if a presheaf map is valid and an open set belongs to the associated space, 
-   then the function mapped to the open set is a valid poset map.
-\<close>
 lemma valid_map_nat_welldefined :
-  "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Poset.valid_map (nat \<phi> \<cdot> A)"
+  "valid_map f \<Longrightarrow> A \<in> Space.opens (map_space f) \<Longrightarrow> Poset.valid_map (nat f \<cdot> A)"
   unfolding valid_map_def by (simp add: Let_def)
 
-text \<open>
-   This lemma establishes that if a presheaf map is valid and an open set belongs to the associated 
-   space, then the domain of the function mapped to the open set is equal to the value of the object 
-   function at the open set.
-\<close>
-lemma valid_map_nat_dom : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Poset.dom ((nat \<phi>) \<cdot> A) = ob (dom \<phi>) \<cdot> A"
+lemma valid_map_nat_dom : "valid_map f \<Longrightarrow> A \<in> Space.opens (map_space f) \<Longrightarrow> Poset.dom ((nat f) \<cdot> A) = ob (dom f) \<cdot> A"
   by (meson Prealgebra.valid_map_welldefined)
 
-text \<open>
-   This lemma shows that if a presheaf map is valid and an open set belongs to the associated space, 
-   then the codomain of the function mapped to the open set is equal to the value of the object function 
-   at the open set.
-\<close>
-lemma valid_map_nat_cod : "valid_map \<phi> \<Longrightarrow> A \<in> Space.opens (map_space \<phi>) \<Longrightarrow> Poset.cod ((nat \<phi>) \<cdot> A) = ob (cod \<phi>) \<cdot> A"
+lemma valid_map_nat_cod : "valid_map f \<Longrightarrow> A \<in> Space.opens (map_space f) \<Longrightarrow> Poset.cod ((nat f) \<cdot> A) = ob (cod f) \<cdot> A"
   by (meson Prealgebra.valid_map_welldefined)
 
-text \<open>
-   This lemma demonstrates the naturality of a valid presheaf map, showing that for each inclusion in 
-   the associated space, the composition of the arrow at the codomain, the function at the codomain of 
-   the inclusion, the function at the domain of the inclusion, and the arrow at the domain follows a 
-   specific pattern.
-\<close>
 lemma valid_map_naturality :
-  "valid_map \<phi> \<Longrightarrow> i \<in> inclusions (map_space \<phi>) \<Longrightarrow>
-     (ar (cod \<phi>) \<cdot> i) \<diamondop> (nat \<phi> \<cdot> Space.cod i) = (nat \<phi> \<cdot> Space.dom i) \<diamondop> (ar (dom \<phi>) \<cdot> i)"
+  "valid_map f \<Longrightarrow> i \<in> inclusions (map_space f) \<Longrightarrow>
+     (ar (cod f) \<cdot> i) \<diamondop> (nat f \<cdot> Space.cod i) = (nat f \<cdot> Space.dom i) \<diamondop> (ar (dom f) \<cdot> i)"
   unfolding valid_map_def by (simp add: Let_def)
 
-text \<open>
-   This lemma shows that if a presheaf map is valid, then the function's image of an element in the 
-   poset of an open set is an element of the poset of the codomain at the open set.
-\<close>
 lemma valid_map_image :
-  fixes \<phi> :: "('A, 'a, 'b) PrealgebraMap" and A :: "'A Open" and a :: "'a"
-  defines "\<Phi>A \<equiv> Prealgebra.ob (dom \<phi>) \<cdot> A"
-  defines "\<Phi>'A \<equiv> Prealgebra.ob (cod \<phi>) \<cdot> A"
-  defines "f \<equiv> (nat \<phi>) \<cdot> A"
-  assumes \<phi>_valid :"valid_map \<phi>"
-  and A_open : "A \<in> Space.opens (map_space \<phi>)"
-  and a_dom : "a \<in> Poset.el \<Phi>A"
-shows " f \<star> a \<in> Poset.el \<Phi>'A"
+  fixes f :: "('A, 'a, 'b) PrealgebraMap" and A :: "'A Open" and a :: "'a"
+  defines "FA \<equiv> Prealgebra.ob (dom f) \<cdot> A"
+  defines "F'A \<equiv> Prealgebra.ob (cod f) \<cdot> A"
+  defines "fA \<equiv> (nat f) \<cdot> A"
+  assumes f_valid :"valid_map f"
+  and A_open : "A \<in> Space.opens (map_space f)"
+  and a_dom : "a \<in> Poset.el FA"
+shows "fA \<star> a \<in> Poset.el F'A"
 proof -
-  have "valid_map \<phi>"
-    using \<phi>_valid by force
-  moreover have "A \<in> Space.opens (map_space \<phi>)"
+  have "valid_map f"
+    using f_valid by force
+  moreover have "A \<in> Space.opens (map_space f)"
     using A_open by blast
-  moreover have "a \<in> Poset.el \<Phi>A"
+  moreover have "a \<in> Poset.el FA"
     using a_dom by blast
-  moreover have "Poset.dom f = \<Phi>A"
-    by (metis A_open Prealgebra.valid_map_welldefined \<Phi>A_def \<phi>_valid f_def)
-  moreover have "Poset.valid_map f"
-    by (metis A_open Prealgebra.valid_map_welldefined \<phi>_valid f_def)
-  moreover have "Poset.cod f = \<Phi>'A"
-    by (metis A_open Prealgebra.valid_map_welldefined \<Phi>'A_def \<phi>_valid f_def)
+  moreover have "Poset.dom fA = FA"
+    by (metis A_open Prealgebra.valid_map_welldefined FA_def f_valid fA_def)
+  moreover have "Poset.valid_map fA"
+    by (metis A_open Prealgebra.valid_map_welldefined f_valid fA_def)
+  moreover have "Poset.cod fA = F'A"
+    by (metis A_open Prealgebra.valid_map_welldefined F'A_def f_valid fA_def)
   ultimately show ?thesis
     by (meson Poset.fun_app2)
 qed
 
-text \<open>
-   This lemma shows that if a presheaf is valid and an open set belongs to the associated space, then 
-   the arrow function at the identity of the open set behaves as the identity function on elements of 
-   the poset at the open set.
-\<close>
+(* Application *)
+
 lemma ident_app [simp] :
- "valid \<Phi> \<Longrightarrow> A \<in> Space.opens (space \<Phi>) \<Longrightarrow> obA = ob \<Phi> \<cdot> A \<Longrightarrow> a \<in> el obA \<Longrightarrow>
-  ar \<Phi> \<cdot> (Space.ident (space \<Phi>) A) \<star> a = Poset.ident obA \<star> a"
+ "valid F \<Longrightarrow> A \<in> Space.opens (space F) \<Longrightarrow> a \<in> el obA \<Longrightarrow>
+  ar F \<cdot> (Space.ident A) \<star> a = Poset.ident (ob F \<cdot> A) \<star> a"
   by (simp add: valid_identity)
 
-text \<open>
-   This lemma shows that if a presheaf is valid and an inclusion belongs to the inclusions of the 
-   associated space, then the domain of the arrow function at the inclusion is equal to the poset at 
-   the codomain of the inclusion.
-\<close>
-lemma dom_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> B = Space.cod i \<Longrightarrow> f = (ar \<Phi>) \<cdot> i \<Longrightarrow> obB = ((ob \<Phi>) \<cdot> B) \<Longrightarrow> Poset.dom f = obB"
-  by (metis Prealgebra.valid_def)
+lemma image : "valid F \<Longrightarrow> i \<in> Space.inclusions (space F) \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> (Space.cod i)) \<Longrightarrow>
+    ((ar F \<cdot> i) \<star> a) \<in> Poset.el (ob F \<cdot> (Space.dom i)) "
+  using Poset.fun_app2 valid_ar
+  using valid_cod valid_dom by fastforce 
 
-text \<open>
-   This lemma establishes that if a presheaf is valid and an inclusion belongs to the inclusions of 
-   the associated space, then the codomain of the arrow function at the inclusion is equal to the poset 
-   at the domain of the inclusion.
-\<close>
-lemma cod_proj [simp] : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.dom i \<Longrightarrow> f = (ar \<Phi>) \<cdot> i \<Longrightarrow> obA = ((ob \<Phi>) \<cdot> A) \<Longrightarrow> Poset.cod f = obA"
-  by (metis Prealgebra.valid_def)
+(* Restriction *)
 
-text \<open>
-   This lemma establishes that if a presheaf is valid, an inclusion belongs to the inclusions of the 
-   associated space, and an element belongs to the poset of the codomain of the inclusion, then the image 
-   of the element under the arrow function at the inclusion is an element of the poset at the domain of 
-   the inclusion.
-\<close>
-lemma image : "valid \<Phi> \<Longrightarrow> i \<in> Space.inclusions (space \<Phi>) \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i \<Longrightarrow> a \<in> Poset.el ((ob \<Phi>) \<cdot> A) \<Longrightarrow>
-    (((ar \<Phi>) \<cdot> i) \<star> a) \<in> Poset.el ((ob \<Phi>) \<cdot> B) "
-  by (metis Poset.fun_app2 cod_proj dom_proj valid_ar)
+lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> Space.inclusions (space F) \<Longrightarrow> B = Space.cod i \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> B"
+  using valid_dom by blast
 
-text \<open>
-   This lemma demonstrates the monotonicity of the arrow function at an inclusion in a valid presheaf. It 
-   establishes that if an element a is less than or equal to an element a' in the poset of the codomain 
-   of the inclusion, then the image of a under the arrow function is less than or equal to the image of 
-   a' under the arrow function in the poset of the domain of the inclusion.
-\<close>
-lemma prj_monotone : 
-  fixes \<Phi> :: "('A,'a) Prealgebra" and i :: "'A Inclusion" and A B :: "'A Open" and a a' :: "'a"
-  defines "\<Phi>A \<equiv> Prealgebra.ob \<Phi> \<cdot> A"
-  defines "\<Phi>B \<equiv> Prealgebra.ob \<Phi> \<cdot> B"
-  defines "\<Phi>i \<equiv> Prealgebra.ar \<Phi> \<cdot> i"
-  assumes \<Phi>_valid : "valid \<Phi>"
-  and i_inc : "i \<in> Space.inclusions (space \<Phi>)" 
+lemma res_cod [simp] : "valid F \<Longrightarrow> i \<in> Space.inclusions (space F) \<Longrightarrow> A = Space.dom i \<Longrightarrow> Poset.cod (ar F \<cdot> i) = ob F \<cdot> A"
+  using valid_cod by blast
+
+lemma res_monotone : 
+  fixes F :: "('A,'a) Prealgebra" and i :: "'A Inclusion" and A B :: "'A Open" and a a' :: "'a"
+  defines "FA \<equiv> Prealgebra.ob F \<cdot> A"
+  defines "FB \<equiv> Prealgebra.ob F \<cdot> B"
+  defines "Fi \<equiv> Prealgebra.ar F \<cdot> i"
+  assumes F_valid : "valid F"
+  and i_inc : "i \<in> Space.inclusions (space F)" 
   and A_open : "A = Space.cod i" and B_open : "B = Space.dom i"
-  and a_elem : "a \<in> Poset.el \<Phi>A" and a'_elem : "a' \<in> Poset.el \<Phi>A" 
-  and a_le_a' : "Poset.le \<Phi>A a a'"
-shows "Poset.le \<Phi>B (\<Phi>i \<star> a) (\<Phi>i \<star> a')"
+  and a_elem : "a \<in> Poset.el FA" and a'_elem : "a' \<in> Poset.el FA" 
+  and a_le_a' : "Poset.le FA a a'"
+shows "Poset.le FB (Fi \<star> a) (Fi \<star> a')"
 proof -
-  have "Poset.valid_map \<Phi>i"
-    by (metis Prealgebra.valid_welldefined \<Phi>_valid \<Phi>i_def i_inc)
- moreover have "\<Phi>A = Poset.dom \<Phi>i"
-   using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def i_inc by auto
-moreover have "\<Phi>B = Poset.cod \<Phi>i"
-  using B_open \<Phi>B_def \<Phi>_valid \<Phi>i_def i_inc by force 
-  moreover have "a \<in> Poset.el \<Phi>A"
-    using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def a_elem i_inc by auto
-  moreover have "a' \<in> Poset.el \<Phi>A"
-    using A_open \<Phi>A_def \<Phi>_valid \<Phi>i_def a'_elem i_inc by auto 
-  ultimately show ?thesis using assms Poset.valid_map_monotone [where ?f="ar \<Phi> \<cdot> i" and ?a=a and
+  have "Poset.valid_map Fi"
+    using F_valid Fi_def i_inc valid_ar by blast 
+ moreover have "FA = Poset.dom Fi"
+   using A_open FA_def F_valid Fi_def i_inc by auto
+moreover have "FB = Poset.cod Fi"
+  using B_open FB_def F_valid Fi_def i_inc by force 
+  moreover have "a \<in> Poset.el FA"
+    using A_open FA_def F_valid Fi_def a_elem i_inc by auto
+  moreover have "a' \<in> Poset.el FA"
+    using A_open FA_def F_valid Fi_def a'_elem i_inc by auto 
+  ultimately show ?thesis using assms Poset.valid_map_monotone [where ?f="ar F \<cdot> i" and ?a=a and
         ?a'=a']
     by fastforce 
 qed
 
-text \<open>
-   This lemma shows that the terminal presheaf associated with a valid space is also valid.
-\<close>
-lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
-  unfolding valid_def terminal_def
-  apply (simp add: Let_def)
-  apply safe
-       apply (simp_all add:   discrete_valid ident_valid)
-       apply (simp_all add: Poset.ident_def  valid_inclusion_cod valid_inclusion_dom const_valid)
-  apply (simp_all add: Function.const_valid)
-  apply (simp add: valid_ident_inclusion)
-  by (smt (verit, del_insts) Function.const_app Inclusion.select_convs(1) Poset.ident_def Poset.ident_valid PosetMap.select_convs(2) Space.compose_def Space.compose_valid UNIV_I discrete_valid ident_left_neutral inclusions_def mem_Collect_eq)
+(* Examples *)
 
+definition const ::  "'A Space \<Rightarrow> ('A, 'a) Prealgebra" where
+  "const T \<equiv>
+    let
+      ob = Function.const (opens T) UNIV Poset.discrete;
+      ar = Function.const (inclusions T) UNIV (Poset.ident Poset.discrete)
+    in
+    \<lparr> space = T, ob = ob, ar = ar \<rparr>"
 
-text \<open>
-   This lemma states that if a space is valid and an open set belongs to the space, then the elements of 
-   the poset at the open set in the terminal presheaf associated with the space are the singleton set 
-   containing the unit element.
-\<close>
-lemma terminal_value : "Space.valid T \<Longrightarrow> A \<in> Space.opens T \<Longrightarrow> one = terminal T \<Longrightarrow> Poset.el (ob one \<cdot> A) = {()}"
-  by (simp add: UNIV_unit discrete_def terminal_def)
+lemma const_ob [simp] : "Space.valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> ob (const T) \<cdot> A = Poset.discrete"
+  by (smt (verit) Function.const_app Prealgebra.Prealgebra.select_convs(2) Prealgebra.const_def UNIV_I) 
 
-text \<open>
-   This lemma shows that if a space is valid, an inclusion belongs to the inclusions of the space, and 
-   an element belongs to the poset of the codomain of the inclusion in the terminal presheaf associated 
-   with the space, then the image of the element under the arrow function at the inclusion is the unit 
-   element.
-\<close>
-lemma terminal_value_proj : "Space.valid T \<Longrightarrow> i \<in> Space.inclusions T \<Longrightarrow> A = Space.cod i \<Longrightarrow> B = Space.dom i
-\<Longrightarrow> a \<in> Poset.el (ob one \<cdot> A) \<Longrightarrow> prj = (ar one) \<cdot> i \<Longrightarrow> prj \<star> a = ()"
+lemma const_ar [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> ar (const T) \<cdot> i = Poset.ident Poset.discrete"
+  by (metis (no_types, lifting) CollectD CollectI Function.const_app Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def UNIV_I) 
+
+lemma const_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> Space.inclusions T \<Longrightarrow> a \<in> el (ob (const T) \<cdot> (Space.cod i)) 
+\<Longrightarrow> (ar (const T) \<cdot> i) \<star> a = a"
+  by (simp add: discrete_valid) 
+
+lemma const_valid : "Space.valid T \<Longrightarrow> valid (const T)"
+proof (intro validI, safe, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: Prealgebra.const_def)  
+next
+  case 2
+  then show ?case
+    by (metis (no_types, lifting) Function.const_valid Prealgebra.Prealgebra.select_convs(2) Prealgebra.const_def UNIV_I valid_universe) 
+next
+  case 3
+  then show ?case
+    by (metis (no_types, lifting) Function.const_valid Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def Space.valid_def UNIV_I valid_ident_inc) 
+next
+  case (4 A)
+  then show ?case
+    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ob discrete_valid) 
+next
+  case (5 i)
+  then show ?case
+    by (metis (no_types, lifting) Poset.ident_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar discrete_valid mem_Collect_eq) 
+next
+  case (6 i)
+  then show ?case
+    by (metis (no_types, lifting) Poset.ident_dom Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob mem_Collect_eq)  
+next
+  case (7 i)
+  then show ?case
+    by (metis (no_types, lifting) Poset.ident_cod Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob mem_Collect_eq) 
+next
+  case (8 A)
+  then show ?case
+    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob valid_ident_inc) 
+next
+  case (9 i j)
+  then show ?case
+    by (smt (verit) Poset.compose_ident_left Poset.ident_cod Poset.ident_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def cod_compose_inc compose_inc_valid const_ar discrete_valid dom_compose_inc mem_Collect_eq) 
+qed 
+
+abbreviation terminal :: "'A Space \<Rightarrow> ('A, unit) Prealgebra" where
+"terminal \<equiv> const"
+
+lemma terminal_ob [simp] : "Space.valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> ob (terminal T) \<cdot> A = Poset.discrete"
+  by simp 
+
+lemma terminal_ar [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> ar (terminal T) \<cdot> i = Poset.ident Poset.discrete"
+  by simp 
+
+lemma terminal_value [simp] : "Space.valid T \<Longrightarrow> A \<in> Space.opens T \<Longrightarrow> Poset.el (ob (terminal T) \<cdot> A) = {()}"
+  by (simp add: Poset.discrete_def UNIV_unit) 
+
+lemma terminal_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> Space.inclusions T \<Longrightarrow> (ar (terminal T) \<cdot> i) \<star> a = ()"
   by simp
 
-text \<open> EXAMPLES \<close>
-
-text \<open>
-   This definition introduces an example of a constant discrete presheaf. The space is a discrete space, 
-   and both the object function and the arrow function are constant functions that map to a discrete 
-   poset and the identity on the discrete poset, respectively.
-\<close>
-definition ex_constant_discrete :: "('A, 'a) Prealgebra" where
-  "ex_constant_discrete  \<equiv>
-    let
-      space = Space.ex_discrete;
-      discretePoset = Poset.discrete;
-      ob = Function.const (opens space) UNIV discretePoset;
-      ar = Function.const (inclusions space) UNIV (Poset.ident discretePoset)
-    in
-    (| space = space, ob = ob, ar = ar |)"
-
-text \<open>
-   This lemma establishes the validity of the example constant discrete presheaf.
-\<close>
-lemma ex_constant_discrete_valid : "valid ex_constant_discrete"
-  apply (intro validI)
-    apply safe
-          apply (simp_all add: ex_constant_discrete_def ex_discrete_valid)
-  apply (simp add: Function.const_valid) 
-       apply (simp_all add: discrete_valid)
-      apply (simp_all add: discrete_valid ident_valid)
-     apply (simp_all add: Poset.ident_def ex_discrete_valid valid_inclusion_cod)
-    apply (simp_all add: ex_discrete_valid valid_inclusion_dom)
-  apply (simp add: Function.const_valid)
-  apply (simp add: ex_discrete_valid valid_ident_inclusion)
-  by (smt (verit, del_insts) Function.const_app Inclusion.select_convs(1) Poset.ident_def Poset.ident_valid PosetMap.select_convs(2) Space.compose_def Space.compose_valid UNIV_I discrete_valid ident_left_neutral inclusions_def mem_Collect_eq)
+lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"
+  by (simp add: Prealgebra.const_valid) 
 
 end

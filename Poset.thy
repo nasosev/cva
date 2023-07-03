@@ -133,7 +133,7 @@ unfolding valid_map_def
    apply metis
   by metis
 
-lemma pom_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
+lemma valid_map_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
   by simp
 
 (* Map application *)
@@ -147,11 +147,11 @@ lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightar
 lemma fun_app3 [simp] : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f \<star> a = (THE b. (a, b) \<in> func f) "
   by (simp add: app_def)
 
+lemma fun_ext_raw : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> el (dom f) \<Longrightarrow> f \<star> a = g \<star> a) \<Longrightarrow> func f = func g"
+  by (metis Poset.fun_app pred_equals_eq2 valid_map_deterministic valid_map_welldefined_func)
+
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And> a . a \<in> el (dom f) \<Longrightarrow> f \<star> a = g \<star> a) \<Longrightarrow> f = g"
-  apply (rule pom_eqI; clarsimp?)
-  apply (intro set_eqI iffI; clarsimp)
-   apply (metis fun_app fun_app3 valid_map_deterministic valid_map_welldefined)
-  by (metis fun_app fun_app3 valid_map_deterministic valid_map_welldefined)
+  by (meson Poset.fun_ext_raw valid_map_eqI)
 
 lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f \<star> a) = b"
   by (meson fun_app valid_map_deterministic valid_map_welldefined)
@@ -166,13 +166,13 @@ definition compose :: "('b, 'c) PosetMap \<Rightarrow> ('a, 'b) PosetMap \<Right
   then \<lparr> dom = dom f, cod = cod g, func = relcomp (func f) (func g) \<rparr>
   else Poset_compose_undefined_incomposable g f"
 
-lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<diamondop> f) = dom f"
+lemma compose_welldefined_cod : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<diamondop> f) \<Longrightarrow> b \<in> el (cod g)"
   unfolding compose_def
-  by (simp add: Let_def)
+  using Poset.valid_map_welldefined by auto               
 
-lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<diamondop> f) = cod g"
+lemma compose_welldefined_dom : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<diamondop> f) \<Longrightarrow> a \<in> el (dom f)"
   unfolding compose_def
-  by (simp add: Let_def)
+  using Poset.valid_map_welldefined by auto               
 
 lemma compose_welldefined : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> (a, b) \<in> func (g \<diamondop> f) \<Longrightarrow> a \<in> el (dom f) \<and> b \<in> el (cod g)"
   by (metis Poset.valid_map_welldefined PosetMap.select_convs(3) compose_def relcomp.cases)
@@ -183,6 +183,14 @@ lemma compose_deterministic : "valid_map f \<Longrightarrow> valid_map g \<Longr
 lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> \<exists>b. (a, b) \<in> func (g \<diamondop> f)"
   unfolding compose_def
   by (smt (z3) Poset.fun_app Poset.fun_app2 PosetMap.select_convs(3) relcomp.relcompI)
+
+lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<diamondop> f) = dom f"
+  unfolding compose_def
+  by (simp add: Let_def)
+
+lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<diamondop> f) = cod g"
+  unfolding compose_def
+  by (simp add: Let_def)
 
 lemma compose_app_assoc: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<diamondop> f) \<star> a = g \<star> (f \<star> a)"
   apply (clarsimp simp: app_def, safe; clarsimp?)
@@ -214,7 +222,7 @@ lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
    apply (simp add: compose_total )
   by (simp add: compose_monotone)
 
-lemma comp_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
+lemma compose_app [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow>
                 (b, c) \<in> func g \<Longrightarrow> (g \<diamondop> f) \<star> a = c"
   apply (rule fun_app_iff)
   using compose_valid apply blast
@@ -224,7 +232,26 @@ lemma compose_assoc : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
 \<Longrightarrow> (h \<diamondop> g) \<diamondop> f = h \<diamondop> (g \<diamondop> f)"
   by (smt (verit) Poset.cod_compose Poset.compose_app_assoc Poset.compose_valid Poset.dom_compose Poset.fun_app2 Poset.fun_ext) 
 
-(* Identity map *)
+(* Properties *)
+
+abbreviation is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_surjective f \<equiv> \<forall> b . b \<in> el (cod f) \<longrightarrow> (\<exists> a . a \<in> el (dom f) \<and> f \<star> a = b)"
+
+abbreviation is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_injective f \<equiv> \<forall>a a' . a \<in> el (dom f) \<longrightarrow> a' \<in> el (dom f) \<longrightarrow> f \<star> a = f \<star> a' \<longrightarrow> a = a'"
+
+abbreviation is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+"is_bijective f \<equiv> is_surjective f \<and> is_injective f"
+
+lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
+  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<diamondop> f = h \<diamondop> f \<Longrightarrow> g = h"
+  by (metis cod_compose compose_app_assoc fun_ext )
+
+lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
+  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<diamondop> g = f \<diamondop> h \<Longrightarrow> g = h"
+  by (smt (verit, best) compose_app_assoc dom_compose fun_app2 fun_ext)
+
+(* Identity maps *)
 
 definition ident :: "'a Poset \<Rightarrow> ('a, 'a) PosetMap" where
 "ident P \<equiv> \<lparr> dom = P, cod = P, func = Id_on (el P) \<rparr>"
@@ -234,25 +261,25 @@ lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
   apply ( simp add: Let_unfold Id_on_def )
   by blast
 
-lemma ident_app [simp] :
-  fixes a :: "'a" and P :: "'a Poset"
-  assumes "valid P" and "a \<in> el P"
-  shows "ident P \<star> a = a"
-  by (metis Id_onI Poset.fun_app_iff Poset.ident_def Poset.ident_valid PosetMap.select_convs(3) assms(1) assms(2))
-
 lemma ident_dom [simp] : "dom (ident P) = P"
   by (simp add: Poset.ident_def)
 
 lemma ident_cod [simp] : "cod (ident P) = P"
   by (simp add: Poset.ident_def)
 
-lemma ident_right_neutral [simp] : "valid_map f  \<Longrightarrow> f \<diamondop> ident (dom f) = f"
-  by (smt (verit, ccfv_SIG) Poset.cod_compose Poset.compose_app_assoc Poset.compose_valid Poset.dom_compose Poset.fun_ext Poset.ident_app Poset.ident_cod Poset.ident_dom Poset.ident_valid valid_map_welldefined_dom)
+lemma ident_app [simp] :
+  fixes a :: "'a" and P :: "'a Poset"
+  assumes "valid P" and "a \<in> el P"
+  shows "ident P \<star> a = a"
+  by (metis Id_onI Poset.fun_app_iff Poset.ident_def Poset.ident_valid PosetMap.select_convs(3) assms(1) assms(2))
 
-lemma ident_left_neutral [simp]  : "valid_map f \<Longrightarrow> ident (cod f) \<diamondop> f = f"
+lemma compose_ident_left [simp]  : "valid_map f \<Longrightarrow> ident (cod f) \<diamondop> f = f"
   by (smt (verit, best) Poset.cod_compose Poset.compose_app_assoc Poset.compose_valid Poset.dom_compose Poset.fun_app2 Poset.fun_ext Poset.ident_app Poset.ident_cod Poset.ident_dom Poset.ident_valid valid_map_welldefined_cod) 
 
-(* Constant map *)
+lemma compose_ident_right [simp] : "valid_map f  \<Longrightarrow> f \<diamondop> ident (dom f) = f"
+  by (smt (verit, ccfv_SIG) Poset.cod_compose Poset.compose_app_assoc Poset.compose_valid Poset.dom_compose Poset.fun_ext Poset.ident_app Poset.ident_cod Poset.ident_dom Poset.ident_valid valid_map_welldefined_dom)
+
+(* Constant maps *)
 
 definition "PosetMap_const_undefined_arg_not_in_codomain b \<equiv> undefined"
 
@@ -297,26 +324,6 @@ next
   then show ?case
     by (simp add: valid_reflexivity) 
 qed
-
-(* Properties *)
-
-abbreviation is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
-"is_surjective f \<equiv> \<forall> b . b \<in> el (cod f) \<longrightarrow> (\<exists> a . a \<in> el (dom f) \<and> f \<star> a = b)"
-
-abbreviation is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
-"is_injective f \<equiv> \<forall>a a' . a \<in> el (dom f) \<longrightarrow> a' \<in> el (dom f) \<longrightarrow> f \<star> a = f \<star> a' \<longrightarrow> a = a'"
-
-abbreviation is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
-"is_bijective f \<equiv> is_surjective f \<and> is_injective f"
-
-lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
-  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<diamondop> f = h \<diamondop> f \<Longrightarrow> g = h"
-  by (metis cod_compose compose_app_assoc fun_ext )
-
-lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
-  valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<diamondop> g = f \<diamondop> h \<Longrightarrow> g = h"
-  by (smt (verit, best) compose_app_assoc dom_compose fun_app2 fun_ext)
-
 
 (* Cartesian product of posets *)
 

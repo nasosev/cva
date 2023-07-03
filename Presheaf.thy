@@ -6,12 +6,12 @@ begin
 
 (* Presheaf type *)
 
-record ('A, 'a) Presheaf =
+record ('A, 'x) Presheaf =
   space :: "'A Space"
-  ob :: "('A Open, 'a set) Function "
-  ar :: "('A Inclusion, ('a, 'a) Function) Function"
+  ob :: "('A Open, 'x set) Function "
+  ar :: "('A Inclusion, ('x, 'x) Function) Function"
 
-definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
+definition valid :: "('A, 'x) Presheaf \<Rightarrow> bool" where
   "valid F \<equiv>
     let
       T = space F;
@@ -31,15 +31,15 @@ definition valid :: "('A, 'a) Presheaf \<Rightarrow> bool" where
 
 (* PresheafMap type (natural transformation) *)
 
-record ('A, 'a, 'b) PresheafMap =
-  nat :: "('A Open, ('a, 'b) Function) Function"
-  dom :: "('A, 'a) Presheaf"
-  cod :: "('A, 'b) Presheaf"
+record ('A, 'x, 'y) PresheafMap =
+  nat :: "('A Open, ('x, 'y) Function) Function"
+  dom :: "('A, 'x) Presheaf"
+  cod :: "('A, 'y) Presheaf"
 
-abbreviation map_space :: "('A, 'a, 'b) PresheafMap \<Rightarrow> 'A Space" where
+abbreviation map_space :: "('A, 'x, 'y) PresheafMap \<Rightarrow> 'A Space" where
 "map_space f \<equiv> space (dom f)"
 
-definition valid_map :: "('A, 'a, 'b) PresheafMap \<Rightarrow> bool" where
+definition valid_map :: "('A, 'x, 'y) PresheafMap \<Rightarrow> bool" where
  "valid_map f \<equiv>
     let
       T = map_space f;
@@ -59,7 +59,7 @@ definition valid_map :: "('A, 'a, 'b) PresheafMap \<Rightarrow> bool" where
 (* Validity *)
 
 lemma validI :
-  fixes F :: "('A,'a) Presheaf"
+  fixes F :: "('A,'x) Presheaf"
   defines "T \<equiv> space F"
   defines "F0 \<equiv> ob F"
   defines "F1 \<equiv> ar F"
@@ -97,12 +97,12 @@ lemma valid_space  : "valid F \<Longrightarrow> T = space F \<Longrightarrow> Sp
   by (meson Presheaf.valid_welldefined)
 
 lemma valid_ar  :
-  fixes F :: "('A, 'a) Presheaf" and i :: "'A Inclusion" and f ::  "('a,'a) Function"
+  fixes F :: "('A, 'x) Presheaf" and i :: "'A Inclusion" and f :: "('x,'x) Function"
   assumes "valid F"
   and "i \<in> Space.inclusions (space F)"
   and "f  \<equiv> ar F \<cdot> i" 
   shows "Function.valid_map f"
-  by (metis (mono_tags, lifting) Presheaf.valid_welldefined assms) 
+  by (smt (verit, best) CollectD CollectI Presheaf.valid_welldefined assms(1) assms(2) assms(3))
 
 lemma valid_dom : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Function.dom (ar F \<cdot> i) = ob F \<cdot> Space.cod i"
   unfolding valid_def
@@ -122,7 +122,7 @@ lemma valid_composition :
   by meson 
 
 lemma valid_mapI :
-  fixes f :: "('A,'a,'b) PresheafMap"
+  fixes f :: "('A,'x,'y) PresheafMap"
   defines "T \<equiv> map_space f"
   defines "F \<equiv> dom f"
   defines "F' \<equiv> cod f"
@@ -193,7 +193,7 @@ lemma valid_map_naturality :
   unfolding valid_map_def by (simp add: Let_def)
 
 lemma valid_map_image :
-  fixes f :: "('A, 'a, 'b) PresheafMap" and A :: "'A Open" and a :: "'a"
+  fixes f :: "('A, 'x, 'y) PresheafMap" and A :: "'A Open" and a :: "'x"
   defines "FA \<equiv> Presheaf.ob (dom f) \<cdot> A"
   defines "F'A \<equiv> Presheaf.ob (cod f) \<cdot> A"
   defines "fA \<equiv> (nat f) \<cdot> A"
