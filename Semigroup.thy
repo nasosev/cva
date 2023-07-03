@@ -18,7 +18,7 @@ text \<open>
    partially ordered sets. 'poset' captures the partial order, and 'mult' captures the semigroup operation.
 \<close>
 
-(* todo: make this a type_def of PosetMap (the poset field is redundant) *)
+(* TODO: make this a type_def of PosetMap (the poset field is redundant) *)
 record 'a Semigroup =
   poset :: "'a Poset"
   mult :: "('a \<times> 'a,'a) PosetMap"

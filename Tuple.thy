@@ -3,7 +3,7 @@ theory Tuple
 begin
 
 
-
+(* TODO Change this to datatype to prevent accidentally using the wrong valid method *)
 type_synonym ('A, 'a) TupleSystem = "('A, 'a) Presheaf"
 
 
