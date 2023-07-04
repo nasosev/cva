@@ -21,10 +21,10 @@ definition valid :: "('A, 'a) TupleSystem \<Rightarrow> bool" where
       flasque = (\<forall>i. i \<in> Space.inclusions S \<longrightarrow> Function.is_surjective (T1 \<cdot> i));
       binary_gluing = (\<forall> A B a b i_A j_A i_B j_B . A \<in> Space.opens S \<longrightarrow> B \<in> Space.opens S \<longrightarrow> a \<in> (T0 \<cdot> A)
         \<longrightarrow> b \<in> (T0 \<cdot> B)
-         \<longrightarrow> i_A = Space.make_inclusion S (A \<inter> B) A
-           \<longrightarrow> j_A = Space.make_inclusion S A (A \<union> B)
-         \<longrightarrow> i_B = Space.make_inclusion S (A \<inter> B) B
-           \<longrightarrow> j_B = Space.make_inclusion S B (A \<union> B)
+         \<longrightarrow> i_A = Space.make_inc S (A \<inter> B) A
+           \<longrightarrow> j_A = Space.make_inc S A (A \<union> B)
+         \<longrightarrow> i_B = Space.make_inc S (A \<inter> B) B
+           \<longrightarrow> j_B = Space.make_inc S B (A \<union> B)
             \<longrightarrow> (T1 \<cdot> i_A) \<cdot> a = (T1 \<cdot> i_B) \<cdot> b
             \<longrightarrow> (\<exists> c . c \<in> (T0 \<cdot> (A \<union> B)) \<and> (T1 \<cdot> j_A) \<cdot> c = a \<and> (T1 \<cdot> j_B) \<cdot> c = b))
     in
@@ -84,10 +84,10 @@ lemma valid_flasque : "valid T \<Longrightarrow> i \<in> Space.inclusions (Presh
 
 lemma valid_binary_gluing : "valid T \<Longrightarrow>  A \<in> Space.opens (Presheaf.space T) \<Longrightarrow> B \<in> Space.opens (Presheaf.space T) \<Longrightarrow> a \<in> Presheaf.ob T \<cdot> A
         \<Longrightarrow> b \<in> Presheaf.ob T \<cdot> B
-         \<Longrightarrow> i_A = Space.make_inclusion (Presheaf.space T) (A \<inter> B) A
-           \<Longrightarrow> j_A = Space.make_inclusion (Presheaf.space T) A (A \<union> B)
-         \<Longrightarrow> i_B = Space.make_inclusion (Presheaf.space T) (A \<inter> B) B
-           \<Longrightarrow> j_B = Space.make_inclusion (Presheaf.space T) B (A \<union> B)
+         \<Longrightarrow> i_A = Space.make_inc (Presheaf.space T) (A \<inter> B) A
+           \<Longrightarrow> j_A = Space.make_inc (Presheaf.space T) A (A \<union> B)
+         \<Longrightarrow> i_B = Space.make_inc (Presheaf.space T) (A \<inter> B) B
+           \<Longrightarrow> j_B = Space.make_inc (Presheaf.space T) B (A \<union> B)
             \<Longrightarrow> (Presheaf.ar T \<cdot> i_A) \<cdot> a = (Presheaf.ar T \<cdot> i_B) \<cdot> b
             \<Longrightarrow> (\<exists> c . c \<in> (Presheaf.ob T \<cdot> (A \<union> B)) \<and> (Presheaf.ar T \<cdot> j_A) \<cdot> c = a \<and> (Presheaf.ar T \<cdot> j_B) \<cdot> c = b)"
   unfolding valid_def
