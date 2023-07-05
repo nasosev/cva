@@ -2,10 +2,8 @@ theory Tuple
   imports Main Presheaf Prealgebra OVA
 begin
 
-
-(* TODO Change this to datatype to prevent accidentally using the wrong valid method *)
-type_synonym ('A, 'a) TupleSystem = "('A, 'a) Presheaf"
-
+record ('A, 'a) TupleSystem =
+  presheaf :: "('A, 'a) Presheaf"
 
 abbreviation (input) space :: "('A,'a) TupleSystem \<Rightarrow> 'A Space" where
 "space T \<equiv> Presheaf.space T"
