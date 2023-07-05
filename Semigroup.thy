@@ -1,7 +1,7 @@
 section \<open> Semigroup.thy \<close>
 
 theory Semigroup
-  imports Main  Poset
+  imports Main Poset
 begin
 
 (* Semigroup type (ordered semigroup *)

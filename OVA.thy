@@ -1,7 +1,7 @@
 section \<open> OVA.thy \<close>
 
 theory OVA
-  imports Main Prealgebra Semigroup Grothendieck Poset
+  imports Main Poset Grothendieck Semigroup Prealgebra
 begin
 
 type_synonym ('A, 'a) Valuation = "('A set \<times> 'a)"
@@ -53,15 +53,15 @@ abbreviation (input) inclusions :: "('A,'a) OVA \<Rightarrow> 'A Inclusion set" 
 abbreviation (input) local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a set" where
 "local_elems V A \<equiv> Poset.el (Prealgebra.ob (prealgebra V) \<cdot> A)"
 
-definition "OVA_grpj_undefined_bad_args B a \<equiv> undefined"
+definition "OVA_grpj_undefined_bad_args _ _ \<equiv> undefined"
 
-definition gprj :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"gprj V B a \<equiv> let i = Space.make_inc B (d a) in
+definition gres :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"gres V B a \<equiv> let i = Space.make_inc B (d a) in
   if a \<in> elems V \<and> B \<in> opens V \<and> B \<subseteq> d a
   then (B, Prealgebra.ar (prealgebra V) \<cdot> i \<star> (e a))
   else OVA_grpj_undefined_bad_args B a"
 
-definition "OVA_gext_undefined_bad_args A b \<equiv> undefined"
+definition "OVA_gext_undefined_bad_args _ _ \<equiv> undefined"
 
 definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "gext V A b \<equiv>
@@ -72,30 +72,19 @@ definition gext :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Val
 definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
   "valid V \<equiv>
     let
-        F = prealgebra V;
-        E = neutral V;
-        \<epsilon> = neut V;
-        T = space V;
-        S = semigroup V;
-        com = comb V;
-        elems = elems V;
-        pr = gprj V;
-
-        welldefined = Prealgebra.valid F
-                      \<and> Semigroup.valid S
-                      \<and> Prealgebra.valid_map E
-                      \<and> T = Prealgebra.map_space E
-                      \<and> Prealgebra.cod E = F
-                      \<and> Prealgebra.dom E = Prealgebra.terminal T
-                      \<and> Semigroup.poset S = gc F;
-
-        domain_law = \<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow> d (com a b) = d a \<union> d b;
-        neutral_law_left = (\<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> com (\<epsilon> A) a = a);
-        neutral_law_right = (\<forall>A a. A \<in> opens V \<and> a \<in> elems \<longrightarrow> d a = A \<longrightarrow> com a (\<epsilon> A) = a);
-        comb_law_left = (\<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow>
-             pr (d a) (com a b) = com a (pr (d a \<inter> d b) b));
-        comb_law_right = (\<forall> a b. a \<in> elems \<longrightarrow> b \<in> elems \<longrightarrow>
-             pr (d b) (com a b) = com (pr (d a \<inter> d b) a) b)
+        welldefined = Prealgebra.valid (prealgebra V)
+                      \<and> Semigroup.valid (semigroup V)
+                      \<and> Prealgebra.valid_map (neutral V)
+                      \<and> Prealgebra.cod (neutral V) = prealgebra V
+                      \<and> Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)
+                      \<and> Semigroup.poset (semigroup V) = gc (prealgebra V);
+        domain_law = \<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> d (comb V a b) = d a \<union> d b;
+        neutral_law_left = \<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems V \<longrightarrow> comb V (neut V (d a)) a = a;
+        neutral_law_right = \<forall>A a. A \<in> opens V \<and> a \<in> elems V \<longrightarrow> comb V a (neut V (d a)) = a;
+        comb_law_left = \<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow>
+             gres V (d a) (comb V a b) = comb V a (gres V (d a \<inter> d b) b);
+        comb_law_right = \<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow>
+             gres V (d b) (comb V a b) = comb V (gres V (d a \<inter> d b) a) b
     in
       welldefined \<and> domain_law \<and> neutral_law_left \<and> neutral_law_right \<and> comb_law_left \<and> comb_law_right"
 
@@ -103,89 +92,85 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
 
 lemma validI :
   fixes V :: "('A,'a) OVA"
-  defines "F \<equiv> prealgebra V"
-  defines "E \<equiv> neutral V"
-  defines "\<epsilon> \<equiv> neut V"
-  defines "T \<equiv> space V"
-  defines "S \<equiv> semigroup V"
-  defines "com \<equiv> comb V"
-  defines "elem \<equiv> elems V"
-  defines "pr \<equiv> gprj V"
-  assumes welldefined : "Prealgebra.valid F \<and> Semigroup.valid S \<and> Prealgebra.valid_map E \<and> T = Prealgebra.map_space E \<and>
-    Prealgebra.cod E = F \<and> Prealgebra.dom E = Prealgebra.terminal T \<and> Semigroup.poset S = gc F"
-  assumes domain_law : " \<forall> a b . a \<in> elem \<longrightarrow> b \<in> elem \<longrightarrow> d (com a b) = d a \<union> d b"
-  assumes neutral_law_left : "( \<forall> A a . A \<in> opens V \<longrightarrow> a \<in> elem \<longrightarrow> d a = A \<longrightarrow> com (\<epsilon> A) a = a)"
-  assumes neutral_law_right : "(\<forall> A a .A \<in> opens V \<and> a \<in> elem \<longrightarrow> d a = A \<longrightarrow> com a (\<epsilon> A) = a)"
-  assumes comb_law_left : "(\<forall> a b . a \<in> elem \<longrightarrow> b \<in> elem \<longrightarrow>
-             pr (d a) (com a b) = com a (pr (d a \<inter> d b) b))"
-  assumes comb_law_right : "(\<forall> a b . a \<in> elem \<longrightarrow> b \<in> elem \<longrightarrow>
-              pr (d b) (com a b) = com (pr (d a \<inter> d b) a) b)"
+  assumes welldefined : "Prealgebra.valid (prealgebra V)
+                      \<and> Semigroup.valid (semigroup V)
+                      \<and> Prealgebra.valid_map (neutral V)
+                      \<and> Prealgebra.cod (neutral V) = prealgebra V
+                      \<and> Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)
+                      \<and> Semigroup.poset (semigroup V) = gc (prealgebra V)"
+  assumes domain_law : "\<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> d (comb V a b) = d a \<union> d b"
+  assumes neutral_law_left : "\<forall>A a. A \<in> opens V \<longrightarrow> a \<in> elems V \<longrightarrow> comb V (neut V (d a)) a = a"
+  assumes neutral_law_right: "\<forall>A a. A \<in> opens V \<and> a \<in> elems V \<longrightarrow> comb V a (neut V (d a)) = a"
+  assumes comb_law_left : "\<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow>
+             gres V (d a) (comb V a b) = comb V a (gres V (d a \<inter> d b) b)"
+  assumes comb_law_right : "\<forall> a b. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow>
+             gres V (d b) (comb V a b) = comb V (gres V (d a \<inter> d b) a) b"
   shows "valid V"
   unfolding valid_def
   apply (simp_all add: Let_def)
   apply safe
-  using F_def welldefined apply blast
-  using S_def welldefined apply blast
-  using E_def welldefined apply blast
-  using E_def T_def welldefined apply fastforce
-  using E_def F_def welldefined apply blast
-  using E_def T_def welldefined apply fastforce
-  using S_def F_def welldefined apply fastforce
-  using com_def domain_law elem_def apply simp
-  using com_def domain_law elem_def apply simp
-  using com_def domain_law elem_def apply simp
-  using T_def \<epsilon>_def com_def elem_def neutral_law_left apply simp
-  using T_def \<epsilon>_def com_def elem_def neutral_law_right apply simp
-  using comb_law_left elem_def com_def pr_def apply simp
-  using comb_law_right elem_def com_def pr_def by simp
+  apply (simp add: welldefined)
+  using welldefined apply blast
+  using welldefined apply blast
+  using welldefined apply blast
+  using welldefined apply blast
+  using welldefined apply auto[1]
+  using welldefined apply auto[1]
+        apply (simp add: domain_law)
+  apply (simp add: domain_law)
+      apply (simp add: domain_law)
+  using neutral_law_left apply auto[1]
+  using neutral_law_right apply force
+  using comb_law_left apply auto[1]
+  using comb_law_right by auto
 
 lemma valid_welldefined  :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> let F = prealgebra V; E = neutral V;  T = space V; S = semigroup V in
-                        Prealgebra.valid F
-                      \<and> Semigroup.valid S
-                      \<and> Prealgebra.valid_map E
-                      \<and> T = Prealgebra.map_space E
-                      \<and> Prealgebra.cod E = F
-                      \<and> Prealgebra.dom E = Prealgebra.terminal T
-                      \<and> Semigroup.poset S = gc F" 
+  assumes V_valid : "valid V"
+  shows "Prealgebra.valid (prealgebra V)
+                      \<and> Semigroup.valid (semigroup V)
+                      \<and> Prealgebra.valid_map (neutral V)
+                      \<and> Prealgebra.cod (neutral V) = prealgebra V
+                      \<and> Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)
+                      \<and> Semigroup.poset (semigroup V) = gc (prealgebra V)" 
   unfolding valid_def
-  by meson
+  using OVA.valid_def assms by auto
 
 lemma valid_prealgebra :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> Prealgebra.valid (prealgebra V)"
-  by (simp add: valid_def Let_def)
+  assumes V_valid : "valid V"
+  shows "Prealgebra.valid (prealgebra V)"
+  by (simp add: OVA.valid_welldefined assms)
 
 lemma valid_semigroup :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> Semigroup.valid (semigroup V)"
-  by (simp add: valid_def Let_def)
+  assumes V_valid : "valid V"
+  shows "Semigroup.valid (semigroup V)"
+  using OVA.valid_welldefined assms by blast
 
 lemma valid_neutral :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> Prealgebra.valid_map (neutral V)"
-  by (simp add: valid_def Let_def)
-
-lemma valid_space :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> space V = Prealgebra.map_space (neutral V)"
-  by (meson OVA.valid_welldefined)
+  assumes V_valid : "valid V"
+  shows "Prealgebra.valid_map (neutral V)"
+  by (simp add: OVA.valid_welldefined assms)
 
 lemma valid_codomain :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> Prealgebra.cod (neutral V) = prealgebra V"
-  by (simp add: valid_def Let_def)
+  assumes V_valid : "valid V"
+  shows "Prealgebra.cod (neutral V) = prealgebra V"
+  using OVA.valid_welldefined assms by blast 
 
 lemma valid_domain :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)"
-  by (meson OVA.valid_welldefined)  
+  assumes V_valid : "valid V"
+  shows "Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)"
+  using OVA.valid_welldefined assms by blast
 
 lemma valid_gc_poset :
   fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> Semigroup.poset (semigroup V) = gc (prealgebra V)"
-  by (meson OVA.valid_welldefined)
+  assumes V_valid : "valid V"
+  shows "Semigroup.poset (semigroup V) = gc (prealgebra V)"
+  using OVA.valid_welldefined assms by blast
 
 lemma valid_gle :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
@@ -194,7 +179,7 @@ lemma valid_gle :
   assumes a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
   assumes a_dom : "d a = A" and b_dom : "d b = B"
   assumes a_le_b : "gle V a b"
-  shows "B \<subseteq> A \<and> local_le V B (gprj V B a) b"
+  shows "B \<subseteq> A \<and> local_le V B (gres V B a) b"
 proof standard
   show "B \<subseteq> A" using assms
     by (metis d_antitone valid_gc_poset valid_prealgebra)
@@ -227,98 +212,48 @@ next
     using psh_valid a_elem b_elem a_le_b FB_def ea_B_def pr_B_def
 i_def V_valid a_dom b_dom valid_gc_poset valid_gc_le_unwrap [where ?Aa = a and ?Bb = b and ?F = "prealgebra V"]
     by force   (* or use "apply (rule valid_gc_le_unwrap)" to apply the rule explicitly *)
-  show "local_le V B (gprj V B a) b"
-    by (metis B_le_A B_open FB_def \<open>le FB ea_B (e b)\<close> a_dom a_elem ea_B_def gprj_def i_def pr_B_def snd_eqD)
+  show "local_le V B (gres V B a) b"
+    by (metis B_le_A B_open FB_def \<open>le FB ea_B (e b)\<close> a_dom a_elem ea_B_def gres_def i_def pr_B_def snd_eqD)
 qed
 
-lemma valid_domain_law  :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d (comb V a b) = d a \<union> d b"
+lemma valid_domain_law : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d (comb V a b) = d a \<union> d b"
   unfolding valid_def
   by meson
 
-lemma valid_neutral_law_left  :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> comb V (neut V (d a)) a = a"
+lemma valid_neutral_law_left : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> comb V (neut V (d a)) a = a"
   unfolding valid_def
-  by (metis local_dom) 
+  by (metis local_dom)
 
-lemma valid_neutral_law_right  :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> comb V a (neut V (d a)) = a"
+lemma valid_neutral_law_right : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> comb V a (neut V (d a)) = a"
   unfolding valid_def
-  by (metis local_dom) 
+  by (metis local_dom)
 
-lemma valid_comb_law_left  :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
-      gprj V (d a) (comb V a b) = comb V a (gprj V (d a \<inter> d b) b)"
+lemma valid_comb_law_left : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
+      gres V (d a) (comb V a b) = comb V a (gres V (d a \<inter> d b) b)"
   unfolding valid_def
   by meson
 
-lemma valid_comb_law_right  :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
-      gprj V (d b) (comb V a b) = comb V (gprj V (d a \<inter> d b) a) b"
+lemma valid_comb_law_right : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>
+      gres V (d b) (comb V a b) = comb V (gres V (d a \<inter> d b) a) b"
   unfolding valid_def
   by meson
 
-lemma valid_comb_associative :
-  fixes V :: "('A,'a) OVA"
-  shows "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> c \<in> elems V \<Longrightarrow>
+lemma valid_comb_associative : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> c \<in> elems V \<Longrightarrow>
       comb V (comb V a b) c = comb V a (comb V b c)"
   unfolding valid_def
   by (meson valid_associative)
 
-(* Paper results *)
+lemma valid_comb_monotone : "valid V \<Longrightarrow>  a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> b1 \<in> elems V \<Longrightarrow> b2 \<in> elems V
+\<Longrightarrow> gle V a1 a2 \<Longrightarrow> gle V b1 b2
+\<Longrightarrow> gle V (comb V a1 b1) (comb V a2 b2)"
+  by (smt (verit) valid_monotone valid_semigroup)
 
-lemma neutral_is_element :
-fixes V :: "('A,'a) OVA" and A :: "'A Open"
-defines "\<epsilon>A \<equiv> neut V A"
-assumes "valid V" and "A \<in> opens V"
-shows "neut V A \<in> elems V"
-proof -
-   have "Poset.valid_map  (PrealgebraMap.nat (neutral V) \<cdot> A)"
-     by (metis OVA.valid_space assms(2) assms(3) valid_map_nat_welldefined valid_neutral) 
-    moreover have "Poset.cod (PrealgebraMap.nat (neutral V) \<cdot> A) = (Prealgebra.ob (prealgebra V)) \<cdot> A"
-      by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined assms(2) assms(3))
-  moreover have "Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)"
-    by (meson OVA.valid_welldefined assms(2))
-  moreover have "(Prealgebra.ob ( Prealgebra.terminal  (space V))) \<cdot> A = Poset.discrete"
-    using Prealgebra.valid_space assms(2) assms(3) const_ob valid_prealgebra by blast 
-  moreover have "Poset.dom  (PrealgebraMap.nat (neutral V) \<cdot> A) = Poset.discrete"
-    by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined assms(2) assms(3) calculation(4))
-  moreover have "(PrealgebraMap.nat (neutral V) \<cdot> A \<star> ()) \<in> Poset.el ((Prealgebra.ob (prealgebra V))
-    \<cdot> A)"
-    by (metis OVA.valid_space Prealgebra.valid_space UNIV_unit UNIV_witness assms(2) assms(3) calculation(3) singletonD terminal_value valid_codomain valid_map_image valid_neutral valid_prealgebra) 
-ultimately show ?thesis
-  by (metis OVA.valid_welldefined assms(2) assms(3) local_elem_gc)
-qed
+lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> e a \<in> el (ob (prealgebra V) \<cdot> d a)"
+  by (metis OVA.valid_welldefined gc_elem_local)
 
-lemma neutral_local_element :
-  fixes V :: "('A,'a) OVA" and A :: "'A Open"
-  defines "\<epsilon>A \<equiv> neut V A"
-  defines "\<epsilon> \<equiv> Prealgebra.nat (neutral V)"
-  defines "FA \<equiv> Prealgebra.ob (prealgebra V) \<cdot> A"
-  assumes V_valid : "valid V"
-  and domain : "A \<in> opens V"
-shows " e \<epsilon>A \<in> Poset.el FA"
-proof -
-  have "Poset.valid_map (\<epsilon> \<cdot> A)"
-    by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined \<epsilon>_def domain V_valid)
-  moreover have "Poset.cod (\<epsilon> \<cdot> A) = FA"
-    by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined FA_def \<epsilon>_def domain V_valid)
-  moreover have "e \<epsilon>A =  (\<epsilon> \<cdot> A) \<star> ()"
-    by (simp add: \<epsilon>A_def \<epsilon>_def)
-  moreover have "Poset.dom  (\<epsilon> \<cdot> A) = Prealgebra.ob (Prealgebra.terminal (space V)) \<cdot> A"
-    by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined \<epsilon>_def domain V_valid)
-  moreover have "(Poset.dom (\<epsilon> \<cdot> A)) =  Poset.discrete"
-    by (metis Prealgebra.valid_space V_valid calculation(4) domain terminal_ob valid_prealgebra)  
-  moreover have "() \<in> Poset.el (Poset.dom (\<epsilon> \<cdot> A))"
-    by (simp add: Poset.discrete_def calculation(5)) 
-    ultimately show ?thesis
-      by (metis Poset.fun_app2)
-  qed
+lemma global_inclusion_element : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> Poset.el ((Prealgebra.ob (prealgebra V)) \<cdot> A)
+\<Longrightarrow>  (A, a) \<in> elems V"
+  by (metis local_elem_gc valid_gc_poset valid_prealgebra) 
 
 lemma d_elem_is_open : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a \<in> opens V"
   by (metis local_dom valid_gc_poset valid_prealgebra)
@@ -329,60 +264,43 @@ lemma d_neut [simp] : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarro
 lemma d_comb [simp] : "valid V \<Longrightarrow>  a \<in> elems V \<Longrightarrow> b \<in> elems V  \<Longrightarrow> d (comb V a b) = d a \<union> d b"
 by (simp add: valid_domain_law)
 
-lemma d_gprj [simp] : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> B \<in> opens V \<Longrightarrow> B \<subseteq> d a \<Longrightarrow> d (gprj V B a) = B"
-  by (simp add: gprj_def)
+lemma d_gres [simp] : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> B \<in> opens V \<Longrightarrow> B \<subseteq> d a \<Longrightarrow> d (gres V B a) = B"
+  by (simp add: gres_def)
 
-lemma d_gext [simp] : "valid V \<Longrightarrow> b \<in> elems V \<Longrightarrow> A \<in> opens V \<Longrightarrow> d b \<subseteq> A \<Longrightarrow> d (gext V A b) = A"
-  unfolding gext_def
-  apply clarsimp
-  by (metis comp_apply fst_conv neutral_is_element sup.orderE valid_domain_law)
-
-
-text \<open>
-   This lemma states that if an OVA V is valid, and a and b are valuations in V, then their combination
-   (comb V a b) is an element of V.
-\<close>
 lemma comb_is_element :
 fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
 assumes V_valid : "valid V"
 and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
 shows "comb V a b \<in> elems V"
 proof -
-  have "Poset.cod (mult (semigroup V)) = poset V"
-    by (simp add: Semigroup.valid_cod V_valid valid_semigroup)
   define "ab" where "ab = comb V a b"
-  moreover have "ab \<equiv> (Semigroup.mult (semigroup V)) \<star> (a, b)"
-    by (simp add: calculation)
+  have "ab \<equiv> (Semigroup.mult (semigroup V)) \<star> (a, b)"
+    using ab_def by presburger 
   moreover have "Poset.valid_map (mult (semigroup V))"
-    using V_valid valid_map valid_semigroup by blast
+    by (simp add: V_valid valid_semigroup valid_welldefined_map) 
   moreover have "Poset.dom (mult (semigroup V)) = poset V \<times>\<times> poset V"
-    using Semigroup.valid_dom V_valid valid_semigroup by blast
+    by (simp add: V_valid valid_semigroup valid_welldefined_dom) 
   moreover have "(a,b) \<in> Poset.el (poset V \<times>\<times> poset V)"
-    by (simp add: Poset.product_def a_elem b_elem)
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.product_def SigmaI a_elem b_elem)
   ultimately show ?thesis
-    by (metis Poset.fun_app2 \<open>PosetMap.cod (mult (OVA.semigroup V)) = poset V\<close>)
+    using Poset.fun_app2 by fastforce 
 qed
 
-text \<open>
-   This lemma states that if an OVA V is valid, and B is an open set in V, and a is a valuation in V
-   with domain A, where B is a subset of A, then the projection of a onto B (gprj V B a) is an element
-   of V.
-\<close>
-lemma gprj_elem :
+lemma gres_elem :
 fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a :: "('A, 'a) Valuation"
-assumes "valid V"
+assumes V_valid : "valid V"
 and a_elem : "a \<in> elems V" and "d a = A"
 and "B \<subseteq> A" and "B \<in> opens V"
-defines "a_B \<equiv> gprj V B a"
+defines "a_B \<equiv> gres V B a"
 shows "a_B \<in> elems V"
-  unfolding a_B_def gprj_def
+  unfolding a_B_def gres_def
   apply standard
    apply auto
   using assms(5) apply auto[1]
-    apply (simp add: a_elem)
+  using a_elem apply fastforce
   using assms(3) assms(4) apply blast
 proof -
-  define "i" where "i = make_inclusion (Prealgebra.space (prealgebra V)) B (d a)"
+  define "i" where "i = make_inc B (d a)"
   define "f" where "f = ar (prealgebra V) \<cdot> i"
   define "FA" where "FA \<equiv> ((ob (prealgebra V)) \<cdot> A)"
   define "FB" where "FB \<equiv> ((ob (prealgebra V)) \<cdot> B)"
@@ -391,71 +309,76 @@ proof -
     by (simp add: assms(1) valid_prealgebra)
   moreover have "A \<in> opens V"
     using assms(1) assms(3) d_elem_is_open a_elem by blast
-  moreover have "Space.valid_inclusion i"
-    using Prealgebra.valid_space assms(3) assms(4) assms(5) calculation(1) calculation(2) i_def valid_make_inclusion by blast
+  moreover have "Space.valid_inc i"
+    by (simp add: assms(3) assms(4) i_def)
   moreover have  "i \<in> inclusions V"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) calculation(3) i_def inclusions_def make_inclusion_def mem_Collect_eq)
+    using assms(3) assms(5) calculation(2) calculation(3) i_def by auto 
   moreover have "f =  ar (prealgebra V) \<cdot> i"
     by (simp add: f_def)
   moreover have "Poset.valid_map f" using Prealgebra.valid_ar calculation
     by blast
   moreover have "d a_B = B"
-    using a_B_def assms(1) assms(3) assms(4) assms(5) calculation(2) d_gprj a_elem by blast
+    using a_B_def assms(1) assms(3) assms(4) assms(5) calculation(2) d_gres a_elem by blast
   moreover have "Poset.cod f = FB"
-    by (metis Inclusion.select_convs(2) FB_def calculation(1) calculation(4) res_cod f_def i_def make_inclusion_def)
+    using FB_def calculation(1) calculation(4) f_def i_def by auto
   moreover have "Poset.valid FB"
-    using Poset.valid_cod calculation(6) calculation(8) by blast
+    using Poset.valid_map_welldefined_cod calculation(6) calculation(8) by blast
   moreover have "e a \<in> Poset.el FA"
     by (metis OVA.valid_welldefined FA_def assms(1) assms(3) a_elem gc_elem_local)
-  moreover have "a_B \<equiv> gprj V B a"
+  moreover have "a_B \<equiv> gres V B a"
     by (simp add: a_B_def)
-  moreover have "e (gprj V B a) = f \<star> (e a)"
-    by (simp add: a_elem assms(3) assms(4) assms(5) f_def gprj_def i_def)
+  moreover have "e (gres V B a) = f \<star> (e a)"
+    by (metis a_elem assms(3) assms(4) assms(5) f_def gres_def i_def snd_conv)
   moreover have "f \<star> (e a) \<in> Poset.el FB"
-    by (metis Inclusion.simps(3) Poset.fun_app2 FA_def assms(3) calculation(1) calculation(10) calculation(4) calculation(6) calculation(8) res_dom f_def i_def make_inclusion_def)
+    by (metis (no_types, lifting) FA_def FB_def Inclusion.select_convs(1) Inclusion.select_convs(2) assms(3) calculation(1) calculation(10) calculation(4) f_def i_def image mem_Collect_eq)
   moreover have "f \<star> (e a) = e a_B"
     using a_B_def calculation(12) by force
   moreover have "e a_B \<in>  Poset.el FB"
     by (simp add: a_B_def calculation(12) calculation(13))
   moreover have "a_B \<in> el (poset V)"
     by (metis FB_def assms(1) assms(5) calculation(1) calculation(15) calculation(7) local_elem_gc prod.exhaust_sel valid_gc_poset)
-  ultimately show "(B, ar (prealgebra V) \<cdot> make_inclusion (Prealgebra.space (prealgebra V)) B (d a) \<star> e a) \<in> el (poset V)"
-    by (metis i_def prod.collapse)
+  ultimately show "(B, ar (prealgebra V) \<cdot> make_inc B (d a) \<star> e a) \<in> el (PosetMap.cod
+ (mult (OVA.semigroup V)))"
+    by (metis (no_types, lifting) comp_eq_dest_lhs i_def prod.exhaust_sel) 
   qed
 
-text \<open>
-   This lemma states that if a valuation `a` is an element of the elements of `V` and its domain
-   is `A`, and if `A` is an open set in `V`, then the local element corresponding to `a` is an
-   element of the object corresponding to `A` in the prealgebra of `V`.
-\<close>
-lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> ea = e a
-\<Longrightarrow> F = (prealgebra V) \<Longrightarrow> ob_A = ob F \<cdot> A
-\<Longrightarrow> ea \<in> el ob_A"
-  by (metis OVA.valid_welldefined gc_elem_local)
+lemma neutral_is_element :
+fixes V :: "('A,'a) OVA" and A :: "'A Open"
+assumes V_valid : "valid V" and "A \<in> opens V"
+shows "neut V A \<in> elems V"
+proof -
+   have "Function.valid_map (PrealgebraMap.nat (neutral V))" using valid_neutral [where ?V=V]
+    using V_valid valid_map_nat by blast 
+   moreover have "Poset.valid_map (PrealgebraMap.nat (neutral V) \<cdot> A)" using valid_neutral [where ?V=V]
+     by (simp add: OVA.valid_welldefined Prealgebra.const_def V_valid assms(2) valid_map_nat_welldefined)  
+   moreover have "Poset.cod (PrealgebraMap.nat (neutral V) \<cdot> A) = (Prealgebra.ob (prealgebra V)) \<cdot>
+     A" using Prealgebra.valid_map_def [where ?f="neutral V"]
+     by (metis (no_types, lifting) V_valid assms(2) valid_codomain valid_neutral) 
+  moreover have "Prealgebra.dom (neutral V) = Prealgebra.terminal (space V)"
+    using OVA.valid_welldefined V_valid by blast 
+  moreover have "(Prealgebra.ob ( Prealgebra.terminal  (space V))) \<cdot> A = Poset.discrete"
+    using Prealgebra.valid_space V_valid assms(2) const_ob valid_prealgebra by blast 
+  moreover have "Poset.dom  (PrealgebraMap.nat (neutral V) \<cdot> A) = Poset.discrete" 
+using Prealgebra.valid_map_def [where ?f="neutral V"]
+  by (metis (no_types, lifting) OVA.valid_welldefined V_valid assms(2) calculation(5))
+  moreover have "(PrealgebraMap.nat (neutral V) \<cdot> A \<star> ()) \<in> Poset.el ((Prealgebra.ob (prealgebra V))
+    \<cdot> A)"
+    by (metis Poset.fun_app2 UNIV_unit UNIV_witness V_valid assms(2) calculation(2) calculation(3) calculation(5) calculation(6) singletonD terminal_value valid_prealgebra valid_space) 
+ultimately show ?thesis
+  by (meson V_valid assms(2) global_inclusion_element) 
+qed
 
-text \<open>
-   This lemma states that if `V` is a valid OVA, `A` is an open set in `V`, and `@{term F}` is the
-   prealgebra of `V`, then for any object `a` in the poset `@{term F}A`, where `@{term F}A` is the object
-   corresponding to `A` in `@{term F}`, there exists an element `a` in the elements of `V` such that
-   its domain is `A`.
-\<close>
-lemma global_inclusion_element : "valid V \<Longrightarrow> A \<in> opens V
-\<Longrightarrow> F = prealgebra V \<Longrightarrow> FA =(Prealgebra.ob F) \<cdot> A \<Longrightarrow> a \<in> Poset.el FA
-\<Longrightarrow>  (A, a) \<in> elems V"
-  by (metis OVA.valid_welldefined local_elem_gc)
+lemma neutral_local_element :
+  fixes V :: "('A,'a) OVA" and A :: "'A Open"
+  assumes V_valid : "valid V"
+  and domain : "A \<in> opens V"
+shows " e (neut V A) \<in> Poset.el (Prealgebra.ob (prealgebra V) \<cdot> A)"
+    using V_valid assms(2) local_inclusion_element neutral_is_element by fastforce
 
-text \<open>
-   This lemma states that if `V` is a valid OVA, `a` is an element of the elements of `V`,
-   and `A` is the domain of `a`, then `A` is an open set in `V`.
-\<close>
-lemma local_inclusion_domain : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> A = d a \<Longrightarrow> A \<in> opens V"
-  by (metis OVA.valid_welldefined local_dom)
+lemma d_gext [simp] : "valid V \<Longrightarrow> b \<in> elems V \<Longrightarrow> A \<in> opens V \<Longrightarrow> d b \<subseteq> A \<Longrightarrow> d (gext V A b) = A" 
+  unfolding gext_def
+  by (smt (verit, best) d_neut neutral_is_element sup.orderE valid_domain_law)
 
-text \<open>
-   This lemma states that for a valid OVA `V`, and objects `A` and `B` in `V`, if `B` is a subset
-   of `A`, then the extension of the neutral element of `B` with respect to the operation in `V`
-   is equal to the combination of any valuation in `V` with the neutral element of `A` on the right.
-\<close>
 lemma symmetric_gext:
   fixes V :: "('A,'a) OVA" and A :: "'A Open" and b :: "('A,'a) Valuation"
   assumes V_valid: "valid V"
@@ -463,23 +386,16 @@ lemma symmetric_gext:
   and b_elem : "b \<in> elems V" 
   and B_le_A : "d b \<subseteq> A" 
 shows "gext V A b = comb V b (neut V A)"
-  by (smt (verit, ccfv_SIG) A_open B_le_A V_valid b_elem comb_is_element d_gext fst_conv gext_def local_inclusion_domain neutral_is_element subset_Un_eq valid_comb_associative valid_domain_law valid_neutral_law_left valid_neutral_law_right)
+  by (smt (verit, ccfv_SIG) A_open B_le_A V_valid b_elem comb_is_element d_gext fst_conv gext_def d_elem_is_open neutral_is_element subset_Un_eq valid_comb_associative valid_domain_law valid_neutral_law_left valid_neutral_law_right)
 
-text \<open>
-   [Remark 2, CVA].
-   This lemma states that for a valid OVA `V`, and objects `A`, `B`, and `C` in `V`, if `C` is
-   a subset of `B`, and `B` is a subset of `A`, then the gprj (generalized projection) function
-   is functorial, i.e., `gprj V C (gprj V B a)` is equal to `gprj V C a`.
-\<close>
-lemma gprj_functorial :
+lemma gres_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
   and "C \<subseteq> B" and "B \<subseteq> A"
   and "d a = A"
   and "a \<in> elems V"
-defines "pr \<equiv> gprj V"
-shows "pr C a = (pr C (pr B a))"
+shows "gres V C a = (gres V C (gres V B a))"
 proof -
   define "F1" where "F1 = Prealgebra.ar (prealgebra V)"
   define "i_BA" where "i_BA = Space.make_inc B A"
@@ -488,187 +404,166 @@ proof -
   define "f" where "f = F1 \<cdot> i_BA"
   define "g" where "g = F1 \<cdot> i_CB"
   define "h" where "h = F1 \<cdot> i_CA"
-  have "pr C a = (C, (F1 \<cdot> i_CA) \<star> (e a))"
-    by (smt (verit, ccfv_SIG) F1_def assms(4) assms(5) assms(6) assms(7) assms(8) gprj_def i_CA_def order.trans pr_def)
-  moreover have "pr B a = (B, f \<star> (e a))"
-    by (simp add: F1_def assms(3) assms(6) assms(7) assms(8) f_def gprj_def i_BA_def pr_def)
-  moreover have "pr C (pr B a) = (C, g  \<star> (f \<star> (e a)))"
-    by (metis V_valid F1_def assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(2) fst_conv g_def gprj_def gprj_elem i_CB_def pr_def snd_conv)
+  have "gres V C a = (C, (F1 \<cdot> i_CA) \<star> (e a))"
+    by (smt (verit, ccfv_SIG) F1_def assms(4) assms(5) assms(6) assms(7) assms(8) gres_def i_CA_def order.trans)
+  moreover have "gres V B a = (B, f \<star> (e a))"
+    by (metis F1_def assms(3) assms(6) assms(7) assms(8) f_def gres_def i_BA_def)
+  moreover have "gres V C (gres V B a) = (C, g  \<star> (f \<star> (e a)))"
+    by (metis (no_types, lifting) F1_def V_valid assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(2) fst_eqD g_def gres_def gres_elem i_CB_def snd_eqD) 
   moreover have "Prealgebra.valid (prealgebra V)"
     by (meson OVA.valid_welldefined V_valid)
-  moreover have "Space.valid_inclusion i_CB \<and> Space.space i_CB = space V"
-    by (metis Inclusion.select_convs(1) Prealgebra.valid_space assms(3) assms(4) assms(5) calculation(4) i_CB_def make_inclusion_def valid_make_inclusion)
+  moreover have "valid_inc i_CB"
+    by (simp add: assms(5) i_CB_def) 
   moreover have "i_CB \<in> inclusions V"
-    using calculation(5) inclusions_def by blast
-  moreover have "Space.valid_inclusion i_BA \<and> Space.space i_BA = space V"
-    by (metis Inclusion.select_convs(1) Prealgebra.valid_space assms(2) assms(3) assms(6) calculation(4) i_BA_def make_inclusion_def valid_make_inclusion)
+    using assms(3) assms(4) calculation(5) i_CB_def by force 
+  moreover have "valid_inc i_BA"
+    by (simp add: assms(6) i_BA_def) 
     moreover have "i_BA \<in> inclusions V"
-      using Space.inclusions_def calculation(7) by blast
-moreover have "Space.valid_inclusion i_CA \<and> Space.space i_CA = space V"
-  by (metis Inclusion.select_convs(1) Prealgebra.valid_space assms(2) assms(4) assms(5) assms(6) calculation(4) i_CA_def make_inclusion_def order.trans valid_make_inclusion)
-  moreover have "i_CA = Space.compose i_BA i_CB" using Space.compose_def
-    by (metis Inclusion.select_convs(2) Inclusion.select_convs(3) calculation(5) calculation(7) i_BA_def i_CA_def i_CB_def make_inclusion_def)
+      using assms(2) assms(3) calculation(7) i_BA_def by auto 
+moreover have "valid_inc i_CA"
+  using assms(5) assms(6) i_CA_def by auto 
+  moreover have "i_CA = i_BA \<propto> i_CB" using Space.compose_inc_def
+    by (simp add: i_BA_def i_CA_def i_CB_def) 
   moreover have "Poset.valid_map f \<and> Poset.valid_map g \<and> Poset.valid_map h"
-    by (smt (verit, best) F1_def calculation(4) calculation(6) calculation(8) calculation(9) f_def g_def h_def inclusions_def mem_Collect_eq valid_ar) 
+    by (metis (no_types, lifting) F1_def Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_welldefined assms(2) assms(3) assms(4) assms(5) assms(6) calculation(4) f_def g_def h_def i_BA_def i_CA_def i_CB_def mem_Collect_eq order.trans) 
   moreover have "Space.cod i_BA = A \<and> Space.dom i_BA = B "
-    by (simp add: i_BA_def make_inclusion_def)
+    by (simp add: i_BA_def) 
   moreover have "Space.cod i_CB = B \<and> Space.dom i_CB = C "
-    by (simp add: i_CB_def make_inclusion_def)
+    by (simp add: i_CB_def) 
   moreover have "Space.cod i_CA = A \<and> Space.dom i_CA = C "
-    by (simp add: i_CA_def make_inclusion_def)
+    by (simp add: i_CA_def) 
   moreover have "Poset.dom f = Prealgebra.ob (prealgebra V) \<cdot> A"
-    by (metis F1_def calculation(12) calculation(4) calculation(8) res_dom f_def)
-    moreover have "Poset.cod f  = Prealgebra.ob (prealgebra V) \<cdot> B \<and> Poset.dom g  = Prealgebra.ob (prealgebra V) \<cdot> B"
-      by (metis F1_def calculation(12) calculation(13) calculation(4) calculation(6) calculation(8) res_cod res_dom f_def g_def)
+    by (simp add: F1_def assms(2) assms(3) assms(6) calculation(12) calculation(4) f_def) 
+    moreover have "Poset.cod f  = Prealgebra.ob (prealgebra V) \<cdot> B \<and> Poset.dom g  = Prealgebra.ob
+      (prealgebra V) \<cdot> B"
+      by (simp add: F1_def assms(2) assms(3) assms(4) assms(5) assms(6) calculation(12) calculation(13) calculation(4) f_def g_def)  
     moreover have " (F1 \<cdot> i_CB) \<star> ((F1 \<cdot> i_BA) \<star> (e a)) =  (F1 \<cdot> i_CA) \<star> (e a)"  using Poset.compose_app_assoc
-      by (metis F1_def assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(15) calculation(16) calculation(4) calculation(6) calculation(8) f_def g_def local_inclusion_element V_valid valid_composition)
+      by (metis (no_types, lifting) F1_def V_valid assms(2) assms(3) assms(4) assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(4) calculation(5) calculation(7) f_def g_def local_inclusion_element mem_Collect_eq res_cod valid_composition valid_dom)
   ultimately show ?thesis
     by (metis f_def g_def)
 qed
 
-text \<open>
-   This lemma states that for a valid OVA `V`, if `a1`, `a2`, `b1`, and `b2` are elements of `V`
-   such that `a1` is less than or equal to `a2`, and `b1` is less than or equal to `b2`, then the
-   combination of `a1` and `b1` is less than or equal to the combination of `a2` and `b2`.
-\<close>
-lemma combine_monotone : "valid V \<Longrightarrow>  a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> b1 \<in> elems V \<Longrightarrow> b2 \<in> elems V
-\<Longrightarrow> gle V a1 a2 \<Longrightarrow> gle V b1 b2
-\<Longrightarrow> gle V (comb V a1 b1) (comb V a2 b2)"
-  by (smt (verit) valid_monotone valid_semigroup)
-
-text \<open>
-   Lemma `le\_imp\_gle` asserts that if two elements `a1` and `a2` of a locale `A` in a valid 
-   OVA `V` are such that `a1` is locally less than or equal to `a2`, then `a1` is globally 
-   less than or equal to `a2` in `V`.
-\<close>
 lemma le_imp_gle : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> local_elems V A
  \<Longrightarrow> a2 \<in> local_elems V A \<Longrightarrow> local_le V A (A,a1) (A,a2) \<Longrightarrow> gle V (A,a1) (A,a2)"
-  apply (frule valid_welldefined)
-  apply (simp_all add: Let_def)
+  unfolding valid_def
+  apply (simp add: Let_def)
   apply safe
-  apply auto
-  apply (simp add: gc_def)
-  apply (simp_all add: Let_def)
-  using valid_gc_1 valid_map_space valid_ob
-    apply fastforce
-   apply (metis local_elem_gc)
-  by (simp add: local_elem_gc)
+  apply meson
+  apply meson
+     apply meson
+    apply clarsimp
+    apply (simp add: gc_def)
+    apply (metis (no_types, lifting) Poset.ident_app Space.ident_def valid_identity valid_ob)
+  apply (meson local_elem_gc)
+  by (meson local_elem_gc)
 
-text \<open>
-   Lemma `gle\_eq\_local\_le` states that, given a valid OVA `V` and two elements `a1` and `a2` 
-   belonging to `V`, if they are defined over the same locale `A`, the global less than or equal 
-   operation on `a1` and `a2` is equivalent to their local less than or equal operation.
-\<close>
 lemma gle_eq_local_le : "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a1 \<in> elems V
  \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> d a1 = A \<Longrightarrow> d a2 = A \<Longrightarrow> gle V a1 a2 = local_le V A a1 a2"
   by (metis le_imp_gle local_inclusion_element local_le prod.exhaust_sel valid_gc_poset valid_prealgebra)
 
-text \<open>
-   Lemma `gprj\_monotone` guarantees the monotonicity of the projection operation `gprj`, given a 
-   valid OVA `V` and two elements `a1` and `a2` defined on the same open set `A` such that `a1` 
-   is less than or equal to `a2` in the global order. The lemma then shows that this order 
-   relation is preserved when these elements are projected onto a subset `B` of `A`.
-\<close>
 lemma gres_monotone :
-  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a2 :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and a1 a2 :: "('A, 'a) Valuation" and B :: "'A Open"
   assumes V_valid: "valid V"
-  and "B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
-  and "d a1 = A" and "d a2 = A"
+  and "B \<in> opens V"
+  and "B \<subseteq> d a1"
+  and "d a1 = d a2"
   and "a1 \<in> elems V" and "a2 \<in> elems V" and "gle V a1 a2"
-shows "gle V (gprj V B a1) (gprj V B a2)"
+shows "gle V (gres V B a1) (gres V B a2)"
 proof -
-  define "i" where "i = make_inclusion (OVA.space V) B (fst a1)"
+  define "A" where "A = d a1"
+  define "i" where "i = make_inc B A"
   define "Fi" where "Fi = (Prealgebra.ar (prealgebra V)) \<cdot> i"
   define "FA" where "FA = (Prealgebra.ob (prealgebra V)) \<cdot> A"
   define "FB" where "FB = (Prealgebra.ob (prealgebra V)) \<cdot> B"
   moreover have "gle V a1 a2 \<longrightarrow> Poset.le FA (e a1) (e a2)"
-    by (metis V_valid FA_def assms(5) assms(6) assms(7) assms(8) local_le valid_gc_poset valid_prealgebra)
+    by (metis A_def FA_def V_valid assms(4) assms(5) assms(6) local_le valid_gc_poset valid_prealgebra) 
   moreover have "local_le V A a1 a2" using assms
     using FA_def calculation(2) by fastforce
   moreover have "i \<in> inclusions V \<and> Space.dom i = B \<and> Space.cod i = A"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Prealgebra.valid_space V_valid assms(2) assms(3) assms(4) assms(5) i_def inclusions_def make_inclusion_def mem_Collect_eq valid_make_inclusion valid_prealgebra)
-    moreover have "local_le V B (gprj V B a1)  (gprj V B a1)"
-      by (metis V_valid assms(2) assms(3) assms(4) assms(5) assms(7) d_gprj gprj_elem local_inclusion_element valid_ob valid_prealgebra valid_reflexivity)
-    moreover have "d (gprj V B a1) = B"
-      using V_valid assms(2) assms(3) assms(4) assms(5) assms(7) d_gprj by blast
-    moreover have "d (gprj V B a2) = B"
-      by (metis V_valid assms(2) assms(3) assms(4) assms(6) assms(8) d_gprj)
-  ultimately show ?thesis using gle_eq_local_le [where ?V=V and ?A=B and ?a1.0="(gprj V B a1)" and
-        ?a2.0="(gprj V B a2)"]
-    by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) gprj_def gprj_elem i_def local_inclusion_element res_monotone snd_conv valid_prealgebra)
-qed
+    by (metis (no_types, lifting) A_def CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) V_valid assms(2) assms(3) assms(5) d_elem_is_open i_def)
+    moreover have "local_le V B (gres V B a1)  (gres V B a1)"
+      by (metis V_valid assms(2) assms(3) assms(5) d_gres gres_elem local_inclusion_element valid_ob valid_prealgebra valid_reflexivity) 
+    moreover have "d (gres V B a1) = B"
+      using V_valid assms(2) assms(3) assms(5) by auto
+    moreover have "d (gres V B a2) = B"
+      using V_valid assms(2) assms(3) assms(4) assms(6) by auto 
+    ultimately show ?thesis 
+      using gle_eq_local_le [where ?V=V and ?A=B and ?a1.0="gres V B a1" and
+        ?a2.0="gres V B a2"] assms
+        by (metis (no_types, lifting) A_def gres_def gres_elem i_def local_inclusion_element mem_Collect_eq res_monotone snd_conv valid_prealgebra) 
+    qed
 
-text \<open>
-   Lemma `stability` states that, given two open sets `A` and `B` in a valid OVA `V` where `B` is 
-   a subset of `A`, the projection of the neutral element of `A` onto `B` is equal to the 
-   neutral element of `B`.
-\<close>
 lemma stability:
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid: "valid V"
-  assumes "B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
+  assumes B_le_A : "B \<subseteq> A" and B_open : "B \<in> opens V" and A_open : "A \<in> opens V"
   defines \<epsilon>A_def: "\<epsilon>A \<equiv> neut V A"
   defines \<epsilon>B_def: "\<epsilon>B \<equiv> neut V B"
-  defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> gprj V B \<epsilon>A"
+  defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> gres V B \<epsilon>A"
   shows "\<epsilon>A_B = \<epsilon>B"
 proof -
   define i where "i \<equiv> Space.make_inc B A"
   define "f" where "f = nat (neutral V)"
   define "one" where "one \<equiv> dom (neutral V)"
-  moreover have "\<epsilon>A_B = gprj V B \<epsilon>A"
+  moreover have "\<epsilon>A_B = gres V B \<epsilon>A"
     by (simp add: \<epsilon>A_B_def)
   moreover have "Space.cod i = A \<and> Space.dom i = B"
-    by (simp add: i_def make_inclusion_def)
+    by (simp add: i_def)
   moreover have "i \<in> inclusions V"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) OVA.valid_welldefined Prealgebra.valid_welldefined assms(2) assms(3) assms(4) calculation(3) i_def inclusions_def make_inclusion_def mem_Collect_eq V_valid valid_inclusion_def)
-    moreover have v1: "Poset.valid_map  (Prealgebra.ar one \<cdot> i)"
-      by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined calculation(4) one_def terminal_def V_valid valid_ar)
-      moreover have v2: "Poset.valid_map (f \<cdot> B)"
-        by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined assms(3) f_def V_valid)
-    moreover have "Prealgebra.valid one"
+    using A_open B_le_A B_open calculation(3) by force
+  moreover have "valid_map (neutral V)"
+    using V_valid valid_neutral by blast 
+  moreover have "Prealgebra.valid one"
+    by (simp add: Prealgebra.valid_map_dom calculation(5) one_def)  
+  moreover have v1: "Poset.valid_map (Prealgebra.ar one \<cdot> i)" using calculation assms Prealgebra.valid_ar
+    [where ?F="prealgebra V" and ?i=i]
+    apply clarsimp
+     by (metis (no_types, lifting) OVA.valid_welldefined Poset.ident_valid Prealgebra.valid_welldefined Space.valid_def const_ar mem_Collect_eq terminal_ob)
+  moreover have v2: "Poset.valid_map (f \<cdot> B)"
+      by (smt (verit, best) B_open OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def Prealgebra.valid_map_welldefined V_valid f_def)
+  moreover have "Prealgebra.valid one"
       by (metis OVA.valid_welldefined Prealgebra.valid_map_welldefined one_def V_valid)
   moreover have "(Prealgebra.ar one \<cdot> i ) \<star> ()  = ()"
     by simp
-moreover have "() \<in> Poset.el (Poset.dom  (ar one \<cdot> i))" using Prealgebra.terminal_value
-  by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined UNIV_unit assms(4) calculation(3) calculation(4) iso_tuple_UNIV_I one_def terminal_def V_valid)
-moreover have "((f \<cdot> B) \<diamondop> (ar one \<cdot> i)) \<star> () = ((f \<cdot> B) \<star> ((ar one \<cdot> i)) \<star> ())"
-  by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined assms(3) calculation(3) calculation(4) calculation(9) res_cod compose_app_assoc f_def one_def terminal_def v1 V_valid)
+  moreover have "() \<in> Poset.el (Poset.dom  (ar one \<cdot> i))" using Prealgebra.terminal_value
+    using A_open B_le_A B_open V_valid calculation(3) one_def valid_domain valid_prealgebra valid_space by fastforce 
+  moreover have "((f \<cdot> B) \<diamondop> (ar one \<cdot> i)) \<star> () = (f \<cdot> B) \<star> ((ar one \<cdot> i)) \<star> ()"
+    using OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined
+    assms calculation res_cod compose_app_assoc f_def  
+    by (metis (no_types, lifting) Prealgebra.const_def mem_Collect_eq)  
   moreover have "((Prealgebra.ar (prealgebra V) \<cdot> i) \<diamondop> (f \<cdot> A)) \<star> ()=  e \<epsilon>B"
-    by (metis OVA.valid_welldefined \<epsilon>B_def calculation(10) calculation(3) calculation(4) calculation(8) f_def one_def snd_conv V_valid valid_map_naturality)
+    using  assms calculation f_def one_def snd_conv valid_map_naturality
+    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def mem_Collect_eq valid_codomain valid_domain) 
   moreover have "e \<epsilon>A=   (f \<cdot> A) \<star> ()"
     by (simp add: \<epsilon>A_def f_def)
   ultimately show ?thesis
-    by (metis (no_types, lifting) OVA.valid_space Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined V_valid \<epsilon>A_def \<epsilon>B_def assms(2) assms(3) assms(4) compose_app_assoc eq_fst_iff f_def gprj_def i_def neutral_is_element singletonI sndI terminal_value valid_codomain valid_domain valid_neutral)
-qed
+    using Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined 
+      assms compose_app_assoc eq_fst_iff f_def gres_def i_def neutral_is_element singletonI sndI terminal_value valid_codomain valid_domain
+    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def mem_Collect_eq) 
+  qed
 
-text \<open> [Remark 3, CVA].
-   Lemma `local\_mono\_eq\_global` claims that, in a valid OVA `V`, if four valuations `a1`, `a1'`, 
-   `a2`, `a2'` are all defined over the same open set `A`, the global order relation between the 
-   combinations of `a1` and `a1'` and `a2` and `a2'` is equivalent to the local order relation 
-   between the same combinations in `A`.
-\<close>
+(* [Remark 3, CVA]. *)
 lemma local_mono_eq_global :
-  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a1 a1' a2 a2' :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a1 a1' a2 a2' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and A_open "A \<in> opens V"
-  and  "a1 \<in> elems V" and "d a1 = A"
-  and  "a1' \<in> elems V" and "d a1' = A"
-  and  "a2 \<in> elems V" and "d a2 = A"
-  and  "a2' \<in> elems V" and "d a2' = A"
+  and A_open : "A \<in> opens V"
+  and a1_el : "a1 \<in> elems V" and a1_d : "d a1 = A"
+  and a1'_el : "a1' \<in> elems V" and a1'_d : "d a1' = A"
+  and a2_el : "a2 \<in> elems V" and a2_d : "d a2 = A"
+  and a2'_el : "a2' \<in> elems V" and a2'_d : "d a2' = A"
 shows "gle V (comb V a1 a1') (comb V a2 a2') = local_le V A (comb V a1 a1') (comb V a2 a2')"
+  using assms comb_is_element d_neut gle_eq_local_le gle_eq_local_le neutral_is_element V_valid
+    valid_domain_law valid_neutral_law_right 
+
   by (smt (verit, ccfv_threshold) assms(10) assms(11) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element d_neut gle_eq_local_le gle_eq_local_le neutral_is_element V_valid valid_domain_law valid_neutral_law_right)
 
-text \<open> [Remark 3 cont., CVA].
-   Lemma `id\_le\_gprj` shows that, for a given valuation `a` defined over an open set `A` in a 
-   valid OVA `V`, the global order between `a` and its projection onto a subset `B` of `A` is such 
-   that `a` is globally less than or equal to its projection onto `B`.
-\<close>
-lemma id_le_gprj :
+(* [Remark 3 cont., CVA]. *)
+lemma id_le_gres :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
-  assumes "valid V"
+  assumes V_valid : "valid V"
   and  "A \<in> opens V" and "B \<in> opens V"  and "B \<subseteq> A"
   and  "a \<in> elems V" and "d a = A"
-shows " gle V a (gprj V B a)"
+shows " gle V a (gres V B a)"
 proof -
   define "i" where "i = Space.make_inc B (d a)"
   define "Fi" where "Fi = Prealgebra.ar (prealgebra V) \<cdot> i"
@@ -676,9 +571,9 @@ proof -
   define "FB" where "FB = Prealgebra.ob (prealgebra V) \<cdot> B"
   define "a_B" where "a_B =  Fi \<star> (e a)"
   have "i \<in> inclusions V"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Prealgebra.valid_space assms(1) assms(2) assms(3) assms(4) assms(6) i_def inclusions_def make_inclusion_def mem_Collect_eq valid_make_inclusion valid_prealgebra)
-  moreover have "gprj V B a = (B, a_B)"
-    by (simp add: Fi_def a_B_def assms(3) assms(4) assms(5) assms(6) gprj_def i_def)
+    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Prealgebra.valid_space assms(1) assms(2) assms(3) assms(4) assms(6) i_def mem_Collect_eq valid_make_inc valid_prealgebra)
+  moreover have "gres V B a = (B, a_B)"
+    by (simp add: Fi_def a_B_def assms(3) assms(4) assms(5) assms(6) gres_def i_def)
     moreover have "Prealgebra.valid (prealgebra V)"
     by (meson OVA.valid_welldefined assms(1))
   moreover have "Poset.valid FB"
@@ -688,7 +583,7 @@ proof -
   moreover have "e a \<in> Poset.el FA"
     by (metis FA_def assms(1) assms(5) assms(6) local_inclusion_element)
   moreover have "Space.cod i = A \<and> Space.dom i = B \<and> i \<in> inclusions V"
-    by (metis Inclusion.select_convs(2) Inclusion.select_convs(3) assms(6) calculation(1) i_def make_inclusion_def)
+    by (metis Inclusion.select_convs(2) Inclusion.select_convs(3) assms(6) calculation(1) i_def)
   moreover have "a_B \<in> Poset.el FB"
     by (metis FA_def FB_def Fi_def a_B_def calculation(3) calculation(6) calculation(7) image)
     moreover have "Poset.le FB a_B a_B "
@@ -724,27 +619,27 @@ lemma elem_le_wrap :
   assumes V_valid : "valid V"
   and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
   and dom_A : "d a = A" and dom_B : "d b = B"
-  and b_subseteq_a : "B \<subseteq> A" and a_B_le_b : "local_le V B (gprj V B a) b"
+  and b_subseteq_a : "B \<subseteq> A" and a_B_le_b : "local_le V B (gres V B a) b"
 shows "gle V a b"
 proof -
   define "F" where "F = prealgebra V"
   define "FA" where "FA = (Prealgebra.ob F) \<cdot> A"
   define "FB" where "FB = (Prealgebra.ob F) \<cdot> B"
-  define "a_B" where "a_B = gprj V B a"
+  define "a_B" where "a_B = gres V B a"
 
   have "d a_B = d b"
-    by (metis a_B_def a_elem b_elem b_subseteq_a d_gprj dom_A dom_B local_inclusion_domain V_valid)
+    by (metis a_B_def a_elem b_elem b_subseteq_a d_gres dom_A dom_B d_elem_is_open V_valid)
 
   moreover have "a_B \<in> elems V"
-    by (metis a_B_def a_elem b_elem b_subseteq_a dom_A dom_B gprj_elem local_inclusion_domain V_valid)
+    by (metis a_B_def a_elem b_elem b_subseteq_a dom_A dom_B gres_elem d_elem_is_open V_valid)
   moreover have "b \<in> elems V"
     by (simp add: b_elem)
   moreover have a1: "Prealgebra.valid F"
     by (metis OVA.valid_welldefined F_def V_valid)
   moreover have a2: "A \<in> opens V"
-    using a_elem  dom_A dom_B local_inclusion_domain V_valid by blast
+    using a_elem  dom_A dom_B d_elem_is_open V_valid by blast
   moreover have a3: "B \<in> opens V"
-    using  b_elem dom_A dom_B local_inclusion_domain V_valid by blast
+    using  b_elem dom_A dom_B d_elem_is_open V_valid by blast
   moreover have a4: "e a \<in> Poset.el FA"
     by (metis FA_def F_def a_elem dom_A local_inclusion_element V_valid)
   moreover have a5: "e b \<in> Poset.el FB"
@@ -756,7 +651,7 @@ proof -
   moreover have "Prealgebra.space F = space V"
     by (simp add: F_def)
   ultimately show ?thesis using assms gle_eq_local_le [where ?V=V and ?A=B and ?a1.0=a_B and ?a2.0=b ]
-    by (smt (verit, best) a_B_def id_le_gprj valid_poset valid_semigroup valid_transitivity)
+    by (smt (verit, best) a_B_def id_le_gres valid_poset valid_semigroup valid_transitivity)
 qed
 
 text \<open>
@@ -765,7 +660,7 @@ text \<open>
 \<close>
 lemma gext_elem :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and b :: "('A, 'a) Valuation"
-  assumes "valid V"
+  assumes V_valid : "valid V"
   and  "b \<in> elems V" and "B \<in> opens V" and "A \<in> opens V"
   and  "B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V" and "d b = B"
 defines "ex \<equiv> gext V"
@@ -784,21 +679,21 @@ proof -
 qed
 
 text \<open>
-   Lemma `e\_gprj` ensures that the embedding of the projection of a valuation `a` defined over an 
+   Lemma `e\_gres` ensures that the embedding of the projection of a valuation `a` defined over an 
    open set `A` onto a subset `B` of `A` in a valid OVA `V` is an element of the poset associated 
    with `B`.
 \<close>
-lemma e_gprj :
+lemma e_gres :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
-  defines "pr \<equiv> gprj V"
+  defines "pr \<equiv> gres V"
   and "FB \<equiv> Prealgebra.ob (prealgebra V) \<cdot> B"
-  and "a_B \<equiv> gprj V B a"
-  assumes "valid V"
+  and "a_B \<equiv> gres V B a"
+  assumes V_valid : "valid V"
   and "B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
   and "d a = A"
   and "a \<in> elems V"
 shows " e (a_B) \<in> Poset.el FB"
-  by (metis FB_def a_B_def assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) d_gprj gc_elem_local gprj_elem valid_gc_poset valid_prealgebra)
+  by (metis FB_def a_B_def assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) d_gres gc_elem_local gres_elem valid_gc_poset valid_prealgebra)
 
 text \<open>
    Lemma `e\_gext` asserts that the embedding of the extension of a valuation `b` from an open 
@@ -809,7 +704,7 @@ lemma e_gext :
   defines "ex \<equiv> gext V"
   and "FA \<equiv> Prealgebra.ob (prealgebra V) \<cdot> A"
   and "b__A \<equiv> gext V A b"
-  assumes "valid V"
+  assumes V_valid : "valid V"
   and "B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
   and "d b = B"
   and "b \<in> elems V"
@@ -817,12 +712,12 @@ shows " e (b__A) \<in> Poset.el FA"
   by (metis FA_def assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) b__A_def d_gext gext_elem local_inclusion_element)
 
 text \<open>
-   Lemma `prj\_ext\_adjunction\_lhs\_imp\_rhs` indicates that if the projection of a valuation `a` onto 
+   Lemma `res\_ext\_adjunction\_lhs\_imp\_rhs` indicates that if the projection of a valuation `a` onto 
    a subset `B` of its defining open set `A` is locally less than or equal to another valuation `b` 
    defined over `B` in a valid OVA `V`, then `a` is locally less than or equal to the combination of 
    the neutral element of `A` and `b`.
 \<close>
-lemma prj_ext_adjunction_lhs_imp_rhs :
+lemma res_ext_adjunction_lhs_imp_rhs :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   defines "F \<equiv> prealgebra V"
   defines "F0 \<equiv> (\<lambda> A . (ob F) \<cdot> A)"
@@ -830,47 +725,47 @@ lemma prj_ext_adjunction_lhs_imp_rhs :
   assumes V_valid : "valid V"
   and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
   and a_dom : "d a = A" and b_dom : "d b = B" and "B \<subseteq> A"
-  and LHS: "local_le V B (gprj V B a) b"
+  and LHS: "local_le V B (gres V B a) b"
   shows "local_le V A a (comb V \<epsilon>A b)"
 proof -
-  define "a_B" where "a_B \<equiv> (gprj V B a)"
+  define "a_B" where "a_B \<equiv> (gres V B a)"
   define "ea_B" where "ea_B \<equiv> e a_B"
   define "eb" where "eb \<equiv> e b"
   define "A" where "A \<equiv> d a"
   define "B" where "B \<equiv> d b"
   moreover have "gle V a a_B"
-    by (metis a_B_def assms(9) a_dom b_dom a_elem b_elem id_le_gprj local_inclusion_domain V_valid)
+    by (metis a_B_def assms(9) a_dom b_dom a_elem b_elem id_le_gres d_elem_is_open V_valid)
   moreover have "a = comb V \<epsilon>A a"
-    by (smt (verit, best) V_valid \<epsilon>A_def a_dom a_elem local_inclusion_domain valid_neutral_law_left)
+    by (smt (verit, best) V_valid \<epsilon>A_def a_dom a_elem d_elem_is_open valid_neutral_law_left)
   moreover have a_B_le_b : "local_le V B (B,ea_B) (B,eb)"
     by (simp add: B_def LHS a_B_def b_dom ea_B_def eb_def)
   moreover have "Poset.valid (F0 A)"
-    by (metis A_def Prealgebra.valid_welldefined F0_def F_def a_elem local_inclusion_domain V_valid valid_prealgebra)
+    by (metis A_def Prealgebra.valid_welldefined F0_def F_def a_elem d_elem_is_open V_valid valid_prealgebra)
   moreover have "d \<epsilon>A = A"
     by (simp add: A_def \<epsilon>A_def a_dom)
   moreover have " e \<epsilon>A \<in> Poset.el (F0 A)"  using neutral_local_element
-    using A_def F0_def F_def \<epsilon>A_def a_dom a_elem local_inclusion_domain V_valid by blast
+    using A_def F0_def F_def \<epsilon>A_def a_dom a_elem d_elem_is_open V_valid by blast
   moreover have "local_le V A \<epsilon>A \<epsilon>A"
     using F0_def F_def calculation(5) calculation(6) calculation(7) valid_reflexivity by fastforce
     define "gc_poset" where "gc_poset = (Semigroup.poset (semigroup V))"
   moreover have "Poset.valid gc_poset"
     by (metis OVA.valid_welldefined Semigroup.valid_welldefined gc_poset_def V_valid)
   moreover have "\<epsilon>A \<in> Poset.el gc_poset" using gc_poset_def   \<epsilon>A_def
-    using a_dom a_elem local_inclusion_domain neutral_is_element V_valid by blast
+    using a_dom a_elem d_elem_is_open neutral_is_element V_valid by blast
   moreover have "gle V \<epsilon>A \<epsilon>A"
     by (metis calculation(10) calculation(9) gc_poset_def valid_reflexivity)
   moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
-    by (smt (verit) V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(11) calculation(2) combine_monotone gc_poset_def gprj_elem local_inclusion_domain)
+    by (smt (verit) V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(11) calculation(2) valid_comb_monotone gc_poset_def gres_elem d_elem_is_open)
   moreover have "d a_B = B \<and> d b = B"
-    by (metis B_def a_B_def assms(9) d_gprj a_dom b_dom a_elem b_elem local_inclusion_domain V_valid)
+    by (metis B_def a_B_def assms(9) d_gres a_dom b_dom a_elem b_elem d_elem_is_open V_valid)
   moreover have "a_B = (B, ea_B) \<and> b = (B, eb)"
     by (metis calculation(13) ea_B_def eb_def prod.collapse)
   moreover have "B \<in> opens V"
-    using B_def V_valid b_elem local_inclusion_domain by blast
+    using B_def V_valid b_elem d_elem_is_open by blast
   moreover have "gle V a_B b"  using  calculation a_B_le_b a_B_def gle_eq_local_le [where ?V=V and ?a1.0=a_B and ?a2.0=b and ?A=B]
-    by (metis V_valid a_dom a_elem assms(9) b_dom b_elem gprj_elem)
+    by (metis V_valid a_dom a_elem assms(9) b_dom b_elem gres_elem)
   moreover have "gle V (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)"
-    by (smt (verit, ccfv_threshold) B_def V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(11) calculation(15) calculation(16) combine_monotone gc_poset_def gprj_elem)
+    by (smt (verit, ccfv_threshold) B_def V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem calculation(10) calculation(11) calculation(15) calculation(16) valid_comb_monotone gc_poset_def gres_elem)
 moreover have "gle V (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
   using calculation(12) by auto
 moreover have "gle V a (comb V \<epsilon>A a_B)"
@@ -878,18 +773,18 @@ moreover have "gle V a (comb V \<epsilon>A a_B)"
   moreover have "A \<union> B = A"
     by (simp add: A_def B_def Un_absorb2 assms(9) a_dom b_dom)
   moreover have "d (comb V \<epsilon>A a_B) = A" using valid_domain_law
-    by (metis V_valid a_B_def a_dom a_elem assms(9) b_dom calculation(10) calculation(13) calculation(15) calculation(20) calculation(6) gc_poset_def gprj_elem)
+    by (metis V_valid a_B_def a_dom a_elem assms(9) b_dom calculation(10) calculation(13) calculation(15) calculation(20) calculation(6) gc_poset_def gres_elem)
   ultimately show ?thesis
-    by (smt (verit) A_def OVA.valid_welldefined V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem comb_is_element combine_monotone elem_le_wrap local_le valid_domain_law)
+    by (smt (verit) A_def OVA.valid_welldefined V_valid a_B_def a_dom a_elem assms(9) b_dom b_elem comb_is_element valid_comb_monotone elem_le_wrap local_le valid_domain_law)
 qed
 
 text \<open>
-   Lemma `prj\_ext\_adjunction\_rhs\_imp\_lhs` declares that, in a valid OVA `V`, if a valuation `a` 
+   Lemma `res\_ext\_adjunction\_rhs\_imp\_lhs` declares that, in a valid OVA `V`, if a valuation `a` 
    defined over an open set `A` is locally less than or equal to the combination of the neutral 
    element of `A` and a valuation `b` defined over a subset `B` of `A`, then the projection of `a` 
    onto `B` is locally less than or equal to `b`.
 \<close>
-lemma prj_ext_adjunction_rhs_imp_lhs :
+lemma res_ext_adjunction_rhs_imp_lhs :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   defines "F \<equiv> prealgebra V"
   defines "F0 \<equiv> (\<lambda> A . (ob F) \<cdot> A)"
@@ -900,24 +795,24 @@ lemma prj_ext_adjunction_rhs_imp_lhs :
   and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
   and a_dom : "d a = A" and b_dom : "d b = B"
   and RHS: "local_le V A a (comb V \<epsilon>A b)"
-shows "local_le V B (gprj V B a) b"
+shows "local_le V B (gres V B a) b"
 proof -
   have "gle V a (comb V \<epsilon>A b)" using assms gle_eq_local_le [where ?V=V and ?a1.0=a and ?A=A and
         ?a2.0="(comb V \<epsilon>A b)"]
     by (metis (no_types, lifting) comb_is_element fst_conv neutral_is_element sup.orderE valid_domain_law)
-    moreover have "gle V (gprj V B a) (gprj V B (comb V \<epsilon>A b))"
+    moreover have "gle V (gres V B a) (gres V B (comb V \<epsilon>A b))"
       by (metis (no_types, lifting) A_open B_le_A B_open V_valid \<epsilon>A_def a_dom a_elem b_dom b_elem calculation comb_is_element fst_conv gres_monotone neutral_is_element sup.orderE valid_domain_law)
-    moreover have "gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b"  using valid_comb_law_right
+    moreover have "gres V B (comb V \<epsilon>A b) = comb V (gres V (A \<inter> B) \<epsilon>A) b"  using valid_comb_law_right
       by (metis A_open \<epsilon>A_def b_dom b_elem fst_conv neutral_is_element V_valid)
     define "\<epsilon>B" where "\<epsilon>B \<equiv> neut V B"
-    moreover have "gprj V (A \<inter> B) \<epsilon>A = \<epsilon>B"
+    moreover have "gres V (A \<inter> B) \<epsilon>A = \<epsilon>B"
       by (simp add: A_open B_le_A B_open \<epsilon>A_def \<epsilon>B_def inf.absorb2 stability V_valid)
-    moreover have "comb V (gprj V (A \<inter> B) \<epsilon>A) b = b"
+    moreover have "comb V (gres V (A \<inter> B) \<epsilon>A) b = b"
       using B_open V_valid \<epsilon>B_def b_dom b_elem calculation(4) valid_neutral_law_left by fastforce
-    moreover have "gle V (gprj V B a) b"
-      using \<open>gprj V B (comb V \<epsilon>A b) = comb V (gprj V (A \<inter> B) \<epsilon>A) b\<close> calculation(2) calculation(5) by fastforce
+    moreover have "gle V (gres V B a) b"
+      using \<open>gres V B (comb V \<epsilon>A b) = comb V (gres V (A \<inter> B) \<epsilon>A) b\<close> calculation(2) calculation(5) by fastforce
     ultimately show ?thesis
-      by (metis (no_types, lifting) B_le_A V_valid a_dom a_elem b_dom b_elem d_gprj gprj_elem local_inclusion_domain local_le valid_gc_poset valid_prealgebra)
+      by (metis (no_types, lifting) B_le_A V_valid a_dom a_elem b_dom b_elem d_gres gres_elem d_elem_is_open local_le valid_gc_poset valid_prealgebra)
   qed
 
 text \<open> [Remark 3, CVA].
@@ -932,27 +827,27 @@ lemma laxity :
   and  A_open : "A \<in> opens V" and B_open :"B \<in> opens V"  and B_le_A : "B \<subseteq> A"
   and  a_elem : "a \<in> elems V" and a_dom : "d a = A"
   and a'_elem :  "a' \<in> elems V" and a_dom' : "d a' = A"
-shows "local_le V B (gprj V B (comb V a a')) (comb V (gprj V B a) (gprj V B a'))"
+shows "local_le V B (gres V B (comb V a a')) (comb V (gres V B a) (gres V B a'))"
 proof -
    define "m1" where "m1 = comb V a a'"
-   define "m2" where "m2 = comb V (gprj V B a) (gprj V B a')"
-   define "m1_B" where "m1_B = gprj V B m1"
-   have "gle V a (gprj V B a)"
-     using A_open B_le_A B_open a_elem a_dom  id_le_gprj  V_valid by blast
-   moreover have "gle V a' (gprj V B a')"
-     using A_open B_le_A B_open a'_elem a_dom' id_le_gprj V_valid by blast
+   define "m2" where "m2 = comb V (gres V B a) (gres V B a')"
+   define "m1_B" where "m1_B = gres V B m1"
+   have "gle V a (gres V B a)"
+     using A_open B_le_A B_open a_elem a_dom  id_le_gres  V_valid by blast
+   moreover have "gle V a' (gres V B a')"
+     using A_open B_le_A B_open a'_elem a_dom' id_le_gres V_valid by blast
    moreover have global_le : "gle V m1 m2"
-     by (smt (verit, del_insts) B_le_A B_open V_valid a'_elem a_dom a_dom' a_elem calculation(1) calculation(2) combine_monotone gprj_elem m1_def m2_def)
+     by (smt (verit, del_insts) B_le_A B_open V_valid a'_elem a_dom a_dom' a_elem calculation(1) calculation(2) valid_comb_monotone gres_elem m1_def m2_def)
    moreover have d_m1 : "d m1 = A"
      by (simp add: V_valid a'_elem a_elem a_dom a_dom' m1_def valid_domain_law)
    moreover have d_m1_B : "d m1_B = B"
-     by (metis m1_B_def B_le_A B_open a'_elem a_elem comb_is_element d_comb d_gprj a_dom a_dom' equalityE le_iff_sup local_inclusion_domain m1_def V_valid)
+     by (metis m1_B_def B_le_A B_open a'_elem a_elem comb_is_element d_comb d_gres a_dom a_dom' equalityE le_iff_sup d_elem_is_open m1_def V_valid)
    moreover have d_m2 : "d m2 = B"
-     by (metis A_open B_le_A B_open V_valid a'_elem a_dom a_dom' a_elem d_gprj dual_order.refl gprj_elem m2_def sup.order_iff valid_domain_law)
+     by (metis A_open B_le_A B_open V_valid a'_elem a_dom a_dom' a_elem d_gres dual_order.refl gres_elem m2_def sup.order_iff valid_domain_law)
    moreover have pm1_el : "m1_B \<in> elems V"
-     by (simp add: m1_B_def B_le_A B_open a'_elem a_elem comb_is_element a_dom a_dom' gprj_elem m1_def V_valid valid_domain_law)
+     by (simp add: m1_B_def B_le_A B_open a'_elem a_elem comb_is_element a_dom a_dom' gres_elem m1_def V_valid valid_domain_law)
    moreover have m2_el : "m2 \<in> elems V"
-     by (simp add: B_le_A B_open V_valid a'_elem a_dom a_dom' a_elem comb_is_element gprj_elem m2_def)
+     by (simp add: B_le_A B_open V_valid a'_elem a_dom a_dom' a_elem comb_is_element gres_elem m2_def)
    moreover have "valid V" by fact
    moreover have m1_el : "m1 \<in> elems V"
      by (simp add: V_valid a'_elem a_elem comb_is_element m1_def)
@@ -968,23 +863,23 @@ text \<open> [Theorem 1, CVA].
    of a valuation `a` onto a subset `B` of its defining open set `A` is locally less than or equal to another 
    valuation `b` defined over `B` if and only if `a` is locally less than or equal to the extension of `b` to `A`.
 \<close>
-theorem prj_ext_adjunction :
+theorem res_ext_adjunction :
   fixes V :: "('A,'a) OVA" and  a b :: "('A, 'a) Valuation" and A B :: "'A Open"
   assumes V_valid : "valid V"
   and A_open : "A \<in> opens V" and B_open : "B \<in> opens V"
   and B_le_A : "B \<subseteq> A"
   and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
   and a_dom : "d a = A" and b_dom : "d b = B"
-shows "local_le V B (gprj V B a) b = local_le V A a (gext V A b)" (* Isabelle likes equality more than \<longleftrightarrow> *)
+shows "local_le V B (gres V B a) b = local_le V A a (gext V A b)" (* Isabelle likes equality more than \<longleftrightarrow> *)
 proof (rule iffI)
-  assume "local_le V B (gprj V B a) b"                                                                 
+  assume "local_le V B (gres V B a) b"                                                                 
   show "local_le V A a (gext V A b)"  using V_valid a_elem b_elem a_dom b_dom B_le_A
       gext_def [where ?V = V and ?A = A  and ?b = b]
-      prj_ext_adjunction_lhs_imp_rhs [where ?V = V and ?A = A and ?B = B and ?a = a and ?b = b]
-    using A_open \<open>le (ob (prealgebra V) \<cdot> B) (e (gprj V B a)) (e b)\<close> by presburger
+      res_ext_adjunction_lhs_imp_rhs [where ?V = V and ?A = A and ?B = B and ?a = a and ?b = b]
+    using A_open \<open>le (ob (prealgebra V) \<cdot> B) (e (gres V B a)) (e b)\<close> by presburger
 next
   assume "local_le V A a (gext V A b)"
-  show "local_le V B (gprj V B a) b" using prj_ext_adjunction_rhs_imp_lhs [where ?V = V and ?A = A and ?B = B and ?a = a and ?b = b]
+  show "local_le V B (gres V B a) b" using res_ext_adjunction_rhs_imp_lhs [where ?V = V and ?A = A and ?B = B and ?a = a and ?b = b]
     using A_open B_le_A B_open V_valid
     by (metis \<open>le (ob (prealgebra V) \<cdot> A) (e a) (e (gext V A b))\<close> a_dom a_elem b_dom b_elem gext_def)
   qed
@@ -1018,11 +913,11 @@ shows "comb V identity a = a \<and> comb V a identity = a "
 proof standard
   define "\<epsilon>A" where "\<epsilon>A = neut V (d a)"
   have "a = comb V \<epsilon>A a "
-    by (smt (verit, best) V_valid \<epsilon>A_def a_elem local_inclusion_domain valid_neutral_law_left)
+    by (smt (verit, best) V_valid \<epsilon>A_def a_elem d_elem_is_open valid_neutral_law_left)
   moreover have "comb V identity a = comb V identity (comb V \<epsilon>A a)"
-    by (smt (verit, best) V_valid \<epsilon>A_def a_elem local_inclusion_domain valid_neutral_law_left)
+    by (smt (verit, best) V_valid \<epsilon>A_def a_elem d_elem_is_open valid_neutral_law_left)
   moreover have "... = comb V (comb V identity \<epsilon>A) a" using valid_comb_associative
-    by (metis OVA.valid_space Prealgebra.valid_map_welldefined Space.valid_def V_valid \<epsilon>A_def a_elem identity_def local_inclusion_domain neutral_is_element valid_neutral)
+    by (metis OVA.valid_space Prealgebra.valid_map_welldefined Space.valid_def V_valid \<epsilon>A_def a_elem identity_def d_elem_is_open neutral_is_element valid_neutral)
   moreover have "... = comb V \<epsilon>A a"
     by (simp add: \<epsilon>A_def identity_def strongly_neutral)
   moreover have "... = a"
@@ -1032,11 +927,11 @@ proof standard
 next
   define "\<epsilon>A" where "\<epsilon>A = neut V (d a)"
   have "a = comb V a \<epsilon>A "
-    by (smt (verit, best) V_valid \<epsilon>A_def a_elem local_inclusion_domain valid_neutral_law_right)
+    by (smt (verit, best) V_valid \<epsilon>A_def a_elem d_elem_is_open valid_neutral_law_right)
   moreover have "comb V a identity = comb V (comb V a \<epsilon>A) identity"
-    by (smt (verit, best) V_valid \<epsilon>A_def a_elem local_inclusion_domain valid_neutral_law_right)
+    by (smt (verit, best) V_valid \<epsilon>A_def a_elem d_elem_is_open valid_neutral_law_right)
   moreover have "... = comb V a (comb V \<epsilon>A identity)" using valid_comb_associative
-    by (metis OVA.valid_space Prealgebra.valid_map_welldefined Space.valid_def V_valid \<epsilon>A_def a_elem identity_def local_inclusion_domain neutral_is_element valid_neutral)
+    by (metis OVA.valid_space Prealgebra.valid_map_welldefined Space.valid_def V_valid \<epsilon>A_def a_elem identity_def d_elem_is_open neutral_is_element valid_neutral)
   moreover have "... = comb V a \<epsilon>A"
     by (simp add: \<epsilon>A_def identity_def strongly_neutral)
   moreover have "... = a"
@@ -1053,7 +948,7 @@ corollary galois_insertion :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "b \<in> elems V" and "d b = B"
   and " B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
-  defines "pr \<equiv> gprj V" and "ex \<equiv> gext V" and "com \<equiv> comb V"
+  defines "pr \<equiv> gres V" and "ex \<equiv> gext V" and "com \<equiv> comb V"
   shows "pr B (ex A b) = b"
 proof -
   define \<epsilon>A where "\<epsilon>A \<equiv> neut V A"
@@ -1077,18 +972,18 @@ corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "a \<in> elems V" and "d a = A"
   and " B \<subseteq> A" and "B \<in> opens V" and "A \<in> opens V"
-  shows "local_le V A a (gext V A (gprj V B a))"
+  shows "local_le V A a (gext V A (gres V B a))"
 proof -
   have "valid V" by fact
   moreover have "local_le V A a a"
     by (metis assms(2) assms(3) assms(6) calculation local_inclusion_element valid_ob valid_prealgebra valid_reflexivity)
-  moreover have "local_le V B (gprj V B a) (gprj V B a)"
-    by (metis V_valid assms(2) assms(3) assms(4) assms(5) assms(6) e_gprj valid_ob valid_prealgebra valid_reflexivity)
-  moreover have "gprj V B a \<in> elems V"
-    using V_valid assms(2) assms(3) assms(4) assms(5) gprj_elem by blast
-  moreover have "d (gprj V B a) = B"
-    using V_valid assms(2) assms(3) assms(4) assms(5) assms(6) d_gprj by blast
-  ultimately show ?thesis using assms prj_ext_adjunction [where ?V = V and ?A = A and ?B = B and ?a = a and ?b = "gprj V B a" ]
+  moreover have "local_le V B (gres V B a) (gres V B a)"
+    by (metis V_valid assms(2) assms(3) assms(4) assms(5) assms(6) e_gres valid_ob valid_prealgebra valid_reflexivity)
+  moreover have "gres V B a \<in> elems V"
+    using V_valid assms(2) assms(3) assms(4) assms(5) gres_elem by blast
+  moreover have "d (gres V B a) = B"
+    using V_valid assms(2) assms(3) assms(4) assms(5) assms(6) d_gres by blast
+  ultimately show ?thesis using assms res_ext_adjunction [where ?V = V and ?A = A and ?B = B and ?a = a and ?b = "gres V B a" ]
     by blast
 qed
 
@@ -1103,7 +998,7 @@ lemma ext_functorial_lhs_imp_rhs :
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
   and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
   defines "ex \<equiv> gext V"
-  and "pr \<equiv> gprj V"
+  and "pr \<equiv> gres V"
   shows "gle V (ex A c) (ex A (ex B c))"
 proof -
   have "local_le V C c c"
@@ -1111,15 +1006,15 @@ proof -
   moreover have "local_le V C (pr C (ex A c)) c"
     by (smt (verit, best) V_valid assms(2) assms(4) assms(5) assms(6) assms(7) assms(8) calculation dual_order.trans ex_def galois_insertion pr_def)
   moreover have "pr C (pr B (ex A c)) = pr C (ex A c)"
-    by (smt (verit, del_insts) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem gprj_functorial local_inclusion_domain pr_def V_valid)
+    by (smt (verit, del_insts) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem gres_functorial d_elem_is_open pr_def V_valid)
   moreover have "local_le V C  (pr C (pr B (ex A c))) c"
     by (simp add: calculation(2) calculation(3))
   moreover have "local_le V B (pr B (ex A c)) (ex B c)"
-    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(4) d_gext d_gprj ex_def gext_elem gprj_elem order_trans pr_def prj_ext_adjunction)
+    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(4) d_gext d_gres ex_def gext_elem gres_elem order_trans pr_def res_ext_adjunction)
   moreover have "local_le V A (ex A c) (ex A (ex B c))"
-    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(5) d_gext dual_order.trans ex_def gext_elem pr_def prj_ext_adjunction)
+    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(5) d_gext dual_order.trans ex_def gext_elem pr_def res_ext_adjunction)
     ultimately show ?thesis
-      by (smt (verit) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.refl dual_order.trans elem_le_wrap ex_def galois_insertion gext_elem gprj_functorial pr_def)
+      by (smt (verit) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.refl dual_order.trans elem_le_wrap ex_def galois_insertion gext_elem gres_functorial pr_def)
 qed
 
 text \<open>
@@ -1133,7 +1028,7 @@ lemma ext_functorial_rhs_imp_lhs :
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
   and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
   defines "ex \<equiv> gext V"
-  and "pr \<equiv> gprj V"
+  and "pr \<equiv> gres V"
   shows "gle V (ex A (ex B c)) (ex A c)"
 proof -
   have "local_le V A (ex A (ex B c)) (ex A (ex B c))"
@@ -1141,10 +1036,10 @@ proof -
   moreover have "local_le V B (pr B (ex A (ex B c))) (ex B c)"
     by (metis V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext e_gext ex_def galois_insertion gext_elem pr_def valid_ob valid_prealgebra valid_reflexivity)
     moreover have "local_le V C (pr C (pr B (ex A (ex B c)))) c"
-      by (metis (no_types, lifting) V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext ex_def galois_insertion gext_elem gle_eq_local_le local_inclusion_domain pr_def valid_poset valid_reflexivity valid_semigroup)
+      by (metis (no_types, lifting) V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_gext ex_def galois_insertion gext_elem gle_eq_local_le d_elem_is_open pr_def valid_poset valid_reflexivity valid_semigroup)
 moreover have "local_le V C (pr C (ex A (ex B c))) c"
-  by (metis (full_types) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) calculation(3) d_gext ex_def gext_elem gprj_functorial local_inclusion_domain pr_def V_valid)
-  moreover have "local_le V A (ex A (ex B c)) (ex A c)" using prj_ext_adjunction
+  by (metis (full_types) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) calculation(3) d_gext ex_def gext_elem gres_functorial d_elem_is_open pr_def V_valid)
+  moreover have "local_le V A (ex A (ex B c)) (ex A c)" using res_ext_adjunction
     by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(4) d_gext dual_order.trans ex_def gext_elem pr_def)
   ultimately show ?thesis
     by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_gext dual_order.trans ex_def gext_elem gle_eq_local_le)
@@ -1182,9 +1077,9 @@ corollary galois_closure_idempotent :
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
   and "C \<subseteq> B" and "B \<subseteq> A" and "d a = A" and "a \<in> elems V"
   defines "ex \<equiv> gext V"
-  and "pr \<equiv> gprj V"
+  and "pr \<equiv> gres V"
   shows "ex A (pr B (ex A (pr B a))) = ex A (pr B a)"
-  by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_gprj ex_def galois_insertion gprj_elem pr_def V_valid)
+  by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_gres ex_def galois_insertion gres_elem pr_def V_valid)
 
 text \<open>
    This lemma is a variant of the previous ones, which asserts that the projection of the extension of a valuation 
@@ -1197,7 +1092,7 @@ lemma up_and_down :
   and "A \<in> opens V" and "B \<in> opens V" and "C \<in> opens V"
   and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
   defines "ex \<equiv> gext V"
-  and "pr \<equiv> gprj V"
+  and "pr \<equiv> gres V"
 shows "pr B (ex A c) = ex B c"
 proof -
   have "ex A c = ex A (ex B c)" using ext_functorial
@@ -1220,19 +1115,19 @@ lemma intermediate_extension :
   and dom_A : "d a = A" and dom_c : "d c = C"
   and C_le_B : "C \<subseteq> B" and B_leq_A : "B \<subseteq> A"
   and B_open : "B \<in> opens V"
-  assumes le_a_C_c : "local_le V C (gprj V C a) c"
-  shows "local_le V B (gprj V B a) (gext V B c)"
+  assumes le_a_C_c : "local_le V C (gres V C a) c"
+  shows "local_le V B (gres V B a) (gext V B c)"
 proof -
   have "A \<in> opens V \<and> B \<in> opens V \<and> C \<in> opens V"
-    using B_open a_elem c_elem dom_A dom_c local_inclusion_domain V_valid by blast
-  moreover have "local_le V C (gprj V C a) c" by fact
-  moreover have "local_le V A a (gext V A c)" using prj_ext_adjunction
-    by (smt (z3) B_leq_A C_le_B a_elem c_elem dom_A dom_c dual_order.trans gext_def gext_elem le_a_C_c local_inclusion_domain V_valid)
+    using B_open a_elem c_elem dom_A dom_c d_elem_is_open V_valid by blast
+  moreover have "local_le V C (gres V C a) c" by fact
+  moreover have "local_le V A a (gext V A c)" using res_ext_adjunction
+    by (smt (z3) B_leq_A C_le_B a_elem c_elem dom_A dom_c dual_order.trans gext_def gext_elem le_a_C_c d_elem_is_open V_valid)
   moreover have "gext V A c = gext V A (gext V B c)" using ext_functorial
     by (metis B_leq_A C_le_B c_elem calculation(1) dom_c V_valid)
   moreover have "local_le V A a (gext V A (gext V B c))"
     using calculation(3) calculation(4) by auto
-  ultimately show ?thesis using prj_ext_adjunction le_a_C_c
+  ultimately show ?thesis using res_ext_adjunction le_a_C_c
     by (smt (verit, best) B_leq_A C_le_B V_valid a_elem c_elem d_gext dom_A dom_c gext_elem)
 qed
 
@@ -1243,7 +1138,7 @@ text \<open> [Corollary 3, CVA].
 corollary locally_complete_imp_complete :
   fixes V :: "('A,'a) OVA"
   defines "F A \<equiv> (Prealgebra.ob (prealgebra V)) \<cdot> A"
-  and "pr \<equiv> gprj V" and "ex \<equiv> gext V"
+  and "pr \<equiv> gres V" and "ex \<equiv> gext V"
   assumes V_valid: "valid V"
   assumes local_completeness: "\<And>A . A \<in> opens V \<Longrightarrow> Poset.is_complete (F A)"
   shows "Poset.is_complete (poset V)"
@@ -1266,9 +1161,9 @@ next
     define "some_e_U" where "some_e_U = Poset.inf (F (d_U)) ex_U"
 
     have "d_U \<in> opens V"
-      by (smt (verit, best) Prealgebra.valid_space U V_valid d_U_def image_subsetI local_inclusion_domain subsetD valid_prealgebra valid_union)
+      by (smt (verit, best) Prealgebra.valid_space U V_valid d_U_def image_subsetI d_elem_is_open subsetD valid_prealgebra valid_union)
     moreover have "ex_U \<subseteq> Poset.el (F (d_U))"
-      by (smt (verit) Sup_upper UN_subset_iff Union_least F_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_gext ex_U_def ex_def image_subsetI in_mono local_inclusion_domain V_valid)
+      by (smt (verit) Sup_upper UN_subset_iff Union_least F_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_gext ex_U_def ex_def image_subsetI in_mono d_elem_is_open V_valid)
 
     moreover have "some_e_U \<noteq> None" using Poset.complete_inf_not_none
       using calculation(1) calculation(2) local_completeness some_e_U_def by fastforce
@@ -1303,7 +1198,7 @@ next
         moreover have "local_le V (d_U) i (ex d_U u)"
           by (smt (verit, del_insts) F_def calculation(1) calculation(5) comp_apply ex_U_def i_def image_iff is_inf_def snd_conv)
         moreover have "local_le V (d u) (pr (d u) i) u"
-          by (smt (verit) U V_valid \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) calculation(2) calculation(6) d_gext d_gprj elem_le_wrap ex_def fst_eqD galois_insertion gext_elem gprj_elem gres_monotone i_def in_mono local_inclusion_domain local_le pr_def subset_Un_eq sup.cobounded2 up_and_down valid_gc_poset valid_prealgebra)
+          by (smt (verit) U V_valid \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) calculation(2) calculation(6) d_gext d_gres elem_le_wrap ex_def fst_eqD galois_insertion gext_elem gres_elem gres_monotone i_def in_mono d_elem_is_open local_le pr_def subset_Un_eq sup.cobounded2 up_and_down valid_gc_poset valid_prealgebra)
         moreover have i_is_lb: "gle V i u"
           by (smt (verit) U V_valid \<open>i \<in> el (poset V)\<close> calculation(1) calculation(2) calculation(7) elem_le_wrap fst_eqD i_def in_mono pr_def)
 
@@ -1321,17 +1216,17 @@ next
         moreover have lb2: "\<forall> v \<in> U . d v \<subseteq> d z"
           by (smt (verit) U V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation d_antitone in_mono valid_gc_poset valid_prealgebra)
         moreover have "d z \<in> opens V"
-          using V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> local_inclusion_domain by blast
+          using V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> d_elem_is_open by blast
          moreover have "\<forall> v \<in> U .d v \<in> opens V"
-           using U V_valid local_inclusion_domain by blast
+           using U V_valid d_elem_is_open by blast
          moreover have "\<forall> v \<in> U .v \<in> elems V"
-           using U V_valid local_inclusion_domain by blast
+           using U V_valid d_elem_is_open by blast
         moreover have "\<forall> v \<in> U . local_le V (d v) (pr (d v) z) v" using V_valid valid_gle [where ?V
               = V and ?A = "d z" and ?a = z]
-          using U \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) local_inclusion_domain pr_def by blast
+          using U \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) d_elem_is_open pr_def by blast
         moreover have "\<forall> v \<in> U . Poset.le (F (d v)) (e (pr (d v) z)) (e v)"
           using F_def calculation(6) by presburger
-        define "z_U" where "z_U = gprj V d_U z"
+        define "z_U" where "z_U = gres V d_U z"
         moreover have "\<forall> v \<in> U . pr d_U (ex (d z) v) = ex d_U v" using up_and_down
           by (smt (verit, ccfv_threshold) UN_subset_iff V_valid \<open>d_U \<in> Space.opens (Prealgebra.space (prealgebra V))\<close> calculation(3) calculation(4) calculation(5) d_U_def ex_def lb2 pr_def subset_eq)
         moreover have "Poset.valid (F d_U)"
@@ -1340,16 +1235,16 @@ next
           using \<open>d_U \<in> Space.opens (Prealgebra.space (prealgebra V))\<close> by blast
         moreover have "d_U \<subseteq> d z"
           by (simp add: UN_subset_iff d_U_def lb2)
-        moreover have "z_U \<in> elems V" using z_U_def gprj_elem [where ?V=V and ?B=d_U and ?a=z and
+        moreover have "z_U \<in> elems V" using z_U_def gres_elem [where ?V=V and ?B=d_U and ?a=z and
               ?A="d z"] calculation
           using V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> by fastforce
         moreover have "e z_U \<in> Poset.el (F d_U)"
-          by (metis V_valid F_def \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(10) calculation(11) calculation(3) e_gprj z_U_def)
+          by (metis V_valid F_def \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(10) calculation(11) calculation(3) e_gres z_U_def)
         moreover have "\<forall> v \<in> U . local_le V d_U z_U (ex d_U v)" using z_U_def calculation
          intermediate_extension [where ?V = V and ?B = d_U and ?a = z]
           by (metis V_valid \<open>\<forall>u\<in>U. le (poset V) i u\<close> \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> d_antitone ex_def fst_conv i_def pr_def valid_gc_poset valid_prealgebra)
             moreover have "\<forall> v \<in> U . local_le V (d z) z (gext V (d z) v)" using
-                prj_ext_adjunction [where ?V=V]
+                res_ext_adjunction [where ?V=V]
               by (metis V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(3) calculation(4) calculation(5) calculation(6) lb2 pr_def)
               moreover have "\<Union> (d ` U) \<subseteq> d z"
                 by (simp add: SUP_least lb2)
@@ -1357,21 +1252,21 @@ next
           by (simp add: calculation(11) i_def)
         define "i__Z" where "i__Z = gext V (d z) i"
 
-        moreover have "Poset.le (F d_U) (e ( gprj V d_U z)) e_U"  using inf_is_glb
+        moreover have "Poset.le (F d_U) (e ( gres V d_U z)) e_U"  using inf_is_glb
         proof -
           have "Poset.valid (F d_U)"
             by (simp add: \<open>d_U \<in> OVA.opens V\<close> local_completeness)
           moreover have "ex_U \<subseteq> el (F d_U)"
             by (simp add: \<open>ex_U \<subseteq> el (F d_U)\<close>)
-          moreover have "e (gprj V d_U z) \<in> el (F d_U)"
+          moreover have "e (gres V d_U z) \<in> el (F d_U)"
             using \<open>e z_U \<in> el (F d_U)\<close> z_U_def by auto
           moreover have "e_U \<in> el (F d_U)"
             by (simp add: \<open>e_U \<in> el (F d_U)\<close>)
           moreover have "is_inf (F d_U) ex_U e_U"
             using \<open>Poset.valid (F d_U)\<close> \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> \<open>some_e_U = Some e_U\<close> some_e_U_def some_inf_is_inf by fastforce
-          moreover have z_U_is_lb : "\<forall> v \<in> U . Poset.le (F d_U) (e (gprj V d_U z)) (e (ex d_U v))"
+          moreover have z_U_is_lb : "\<forall> v \<in> U . Poset.le (F d_U) (e (gres V d_U z)) (e (ex d_U v))"
             using F_def \<open>\<forall>v\<in>U. le (ob (prealgebra V) \<cdot> d_U) (e z_U) (e (ex d_U v))\<close> z_U_def by force
-          moreover have "\<forall> u \<in> ex_U. Poset.le (F d_U) (e (gprj V d_U z)) u"  using z_U_is_lb
+          moreover have "\<forall> u \<in> ex_U. Poset.le (F d_U) (e (gres V d_U z)) u"  using z_U_is_lb
             by (simp add: ex_U_def)
           moreover have "le_rel (F d_U) \<subseteq> le_rel (F d_U)"
             by simp

@@ -1,7 +1,7 @@
 section \<open> Prealgebra.thy \<close>
 
 theory Prealgebra
-imports Main Poset Space Function
+imports Main Function Space Poset
 begin
 
 (* Prealgebra type (poset-valued presheaf) *)
