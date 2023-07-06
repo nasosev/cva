@@ -53,13 +53,13 @@ abbreviation (input) inclusions :: "('A,'a) OVA \<Rightarrow> 'A Inclusion set" 
 abbreviation (input) local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> 'a set" where
 "local_elems V A \<equiv> Poset.el (Prealgebra.ob (prealgebra V) \<cdot> A)"
 
-definition "OVA_grpj_undefined_bad_args _ _ \<equiv> undefined"
+definition "OVA_res_undefined_bad_args _ _ \<equiv> undefined"
 
 definition res :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "res V B a \<equiv> let i = Space.make_inc B (d a) in
   if a \<in> elems V \<and> B \<in> opens V \<and> B \<subseteq> d a
   then (B, Prealgebra.ar (prealgebra V) \<cdot> i \<star> (e a))
-  else OVA_grpj_undefined_bad_args B a"
+  else OVA_res_undefined_bad_args B a"
 
 definition "OVA_ext_undefined_bad_args _ _ \<equiv> undefined"
 
@@ -210,7 +210,7 @@ next
     using a_le_b by blast
   moreover have "Poset.le FB ea_B (e b)" 
     using psh_valid a_el b_el a_le_b FB_def ea_B_def pr_B_def
-i_def V_valid a_dom b_dom valid_gc_poset valid_gc_le_unwrap [where ?Aa = a and ?Bb = b and ?F = "prealgebra V"]
+i_def V_valid a_dom b_dom valid_gc_poset valid_gc_le_unwrap [where ?Aa=a and ?Bb=b and ?F="prealgebra V"]
     by force   (* or use "apply (rule valid_gc_le_unwrap)" to apply the rule explicitly *)
   show "local_le V B (res V B a) b"
     by (metis B_le_A B_open FB_def \<open>Poset.le FB ea_B (e b)\<close> a_dom a_el ea_B_def res_def i_def pr_B_def snd_eqD)
@@ -1095,7 +1095,7 @@ next
         ultimately show "le V i u"
           by blast
       qed
-       moreover have " (\<forall>z\<in>el (poset V). (\<forall>u\<in>U. le V z u) \<longrightarrow> le V z i)"
+       moreover have "\<forall>z\<in>el (poset V). (\<forall>u\<in>U. le V z u) \<longrightarrow> le V z i"
        proof standard+ text \<open> Note that standard won't work here, it doesn't lift the second implication\<close>
         fix z
         assume "z \<in>  elems V"

@@ -8,7 +8,7 @@ begin
 
 record ('A, 'x) Presheaf =
   space :: "'A Space"
-  ob :: "('A Open, 'x set) Function "
+  ob :: "('A Open, 'x set) Function"
   ar :: "('A Inclusion, ('x, 'x) Function) Function"
 
 definition valid :: "('A, 'x) Presheaf \<Rightarrow> bool" where
@@ -32,9 +32,9 @@ definition valid :: "('A, 'x) Presheaf \<Rightarrow> bool" where
 (* PresheafMap type (natural transformation) *)
 
 record ('A, 'x, 'y) PresheafMap =
-  nat :: "('A Open, ('x, 'y) Function) Function"
   dom :: "('A, 'x) Presheaf"
   cod :: "('A, 'y) Presheaf"
+  nat :: "('A Open, ('x, 'y) Function) Function"
 
 abbreviation map_space :: "('A, 'x, 'y) PresheafMap \<Rightarrow> 'A Space" where
 "map_space f \<equiv> space (dom f)"

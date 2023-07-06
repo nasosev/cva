@@ -508,7 +508,7 @@ next
   proof -
     fix a a'
     assume "a \<in> el (PosetMap.dom (direct_image f))"
-    assume "a' \<in> el (PosetMap.dom (direct_image f))"
+    assume "a'\<in> el (PosetMap.dom (direct_image f))"
     assume "le (PosetMap.dom (direct_image f)) a a'"
 
     have "(direct_image f) \<star> a = {f \<cdot> x | x . x \<in> a}" using direct_image_def [where ?f=f] app_def
@@ -545,7 +545,7 @@ proof -
   moreover have "func (ident (powerset X)) = {(p, p) |p . p \<subseteq> X}"
     by (simp add: Poset.ident_def calculation powerset_def)
   moreover have "dom (direct_image (Function.ident X)) = powerset X"
-    by (metis Function.ident_def Function.ident_def Function.ident_valid Function.select_convs(2) Function.valid_map_def Id_on_iff  direct_image_dom subset_antisym subset_iff)
+    by (simp add: direct_image_dom)
   moreover have "cod (direct_image (Function.ident X)) = powerset X"
     by (simp add: Function.ident_def direct_image_cod)
 
@@ -555,7 +555,7 @@ proof -
   moreover have "func (direct_image (Function.ident X)) = {(p, p) |p . p \<subseteq> X}" using calculation
       direct_image_def
     [where ?f="Function.ident X"] Function.ident_app [where ?X=X]
-    by (smt (verit, ccfv_SIG) Collect_cong Poset.Poset.select_convs(1) PosetMap.select_convs(1) PosetMap.select_convs(3) Pow_iff powerset_def)
+    by force
    ultimately show "direct_image (Function.ident X) = ident (powerset X)"
      by (simp add: Poset.ident_def)
  qed

@@ -16,7 +16,7 @@ definition dom :: "('x, 'y) Function \<Rightarrow> 'x set" where
 definition valid_map :: "('x, 'y) Function \<Rightarrow> bool" where
 "valid_map f \<equiv>
   let
-      welldefined = (\<forall>x y. (x, y) \<in> func f \<longrightarrow> x \<in> dom f\<and> y \<in> cod f);
+      welldefined = (\<forall>x y. (x, y) \<in> func f \<longrightarrow> y \<in> cod f);
       deterministic = (\<forall>x y y'. (x, y) \<in> func f \<and> (x, y') \<in> func f \<longrightarrow> y = y');
       total = (\<forall>x. x \<in> dom f \<longrightarrow> (\<exists>y. (x, y) \<in> func f))
 
@@ -24,14 +24,12 @@ definition valid_map :: "('x, 'y) Function \<Rightarrow> bool" where
 
 (* Validity *)
 
-lemma valid_map_welldefined_dom : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> x \<in> dom f" 
-  by (simp add: valid_map_def) 
+lemma dom : "(x, y) \<in> func f \<Longrightarrow> x \<in> dom f" 
+  unfolding dom_def
+  by blast
 
-lemma valid_map_welldefined_cod : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> y \<in> cod f"
+lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> y \<in> cod f"
   by (simp add: valid_map_def) 
-
-lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> x \<in> dom f \<and> y \<in> cod f"
-  by (simp add: valid_map_welldefined_cod valid_map_welldefined_dom) 
 
 lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y'"
   by (simp add: valid_map_def) 
@@ -68,13 +66,13 @@ lemma fun_app3 [simp] : "x \<in> dom f \<Longrightarrow> f \<cdot> x = (THE y. (
   by (simp add: app_def)
 
 lemma fun_ext_raw : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> func f = func g"
-  by (metis valid_map_deterministic fun_app pred_equals_eq2 valid_map_welldefined)
+  by (metis dom fun_app pred_equals_eq2 valid_map_deterministic)
 
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> f = g"
   by (metis (full_types) equality fun_ext_raw old.unit.exhaust)
 
 lemma fun_app_iff : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> (f \<cdot> x) = y"
-  by (meson valid_map_deterministic fun_app valid_map_welldefined_dom) 
+  by (meson valid_map_deterministic fun_app dom) 
 
 (* Composition of functions *)
 
@@ -91,7 +89,7 @@ lemma compose_welldefined_cod : "valid_map g \<Longrightarrow> valid_map f \<Lon
   by (metis compose_def relcompEpair select_convs(2) valid_map_def)
 
 lemma compose_welldefined_dom : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> x \<in> dom f"
-  by (metis compose_def relcompEpair select_convs(2) valid_map_def)
+  by (metis compose_def dom relcomp.cases select_convs(2))
 
 lemma compose_welldefined : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> x \<in> dom f \<and> y \<in> cod g"
   by (simp add: compose_welldefined_cod compose_welldefined_dom)
@@ -103,13 +101,13 @@ lemma compose_total : "valid_map g \<Longrightarrow> valid_map f \<Longrightarro
   by (metis (no_types, opaque_lifting) compose_def relcomp.simps select_convs(2) valid_map_total valid_map_welldefined)
 
 lemma compose_valid : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<bullet> f)"
-  by (smt (verit) Function.dom_def compose_def compose_deterministic compose_welldefined_cod mem_Collect_eq select_convs(1) valid_map_def)
+  by (smt (verit) CollectD Function.dom_def compose_def compose_deterministic compose_welldefined_cod select_convs(1) valid_map_def)
 
 lemma cod_compose [simp] : "dom g = cod f \<Longrightarrow> cod (g \<bullet> f) = cod g"
   by (simp add: compose_def)
 
 lemma dom_compose [simp] : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<bullet> f) = dom f"
-  by (smt (verit) Collect_cong Function.dom_def compose_total compose_welldefined_dom valid_map_total valid_map_welldefined)
+  by (smt (verit) Collect_cong Function.dom_def compose_total compose_welldefined_dom mem_Collect_eq)
   
 lemma compose_assoc : "valid_map h \<Longrightarrow> valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom h = cod g \<Longrightarrow> dom g = cod f \<Longrightarrow> (h \<bullet> g) \<bullet> f = h \<bullet> (g \<bullet> f)"
   by (smt (verit, ccfv_SIG) O_assoc cod_compose cod_compose compose_def compose_def compose_def compose_def dom_compose select_convs(2) select_convs(2))

@@ -33,9 +33,9 @@ definition valid :: "('A, 'a) Prealgebra \<Rightarrow> bool" where
 (* PrealgebraMap type (natural transformation *)
 
 record ('A, 'a, 'b) PrealgebraMap =
-  nat :: "('A Open, ('a, 'b) PosetMap) Function"
   dom :: "('A, 'a) Prealgebra"
   cod :: "('A, 'b) Prealgebra"
+  nat :: "('A Open, ('a, 'b) PosetMap) Function"
 
 abbreviation map_space :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> 'A Space" where
 "map_space f \<equiv> space (dom f)"
