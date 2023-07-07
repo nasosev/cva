@@ -58,7 +58,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
    1. As assumptions to theorems/lemmas/constructions/etc. (inputs)
    2. As conclusions of theorems/lemmas/constructions/etc. (outputs)
 - In this way, all structures in the 'interior' of the formalisation can safely be assumed to be well-defined.
-- A cleaner approach may be to use subtypes with `typedef`, but we got stuck with this: see the 'new' subdirectory for details. If you can help with this please let us know!
+- A cleaner approach may be to use subtypes with `typedef`, but we got stuck with this: see the subdirectory [experiments/subtypes](experiments/subtypes) for details. If you can help with this please let us know!
 
 ## Notes
 
