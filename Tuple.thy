@@ -8,10 +8,10 @@ record ('A, 'x) TupleSystem =
 abbreviation space :: "('A, 'x) TupleSystem \<Rightarrow> 'A Space" where
 "space T \<equiv> Presheaf.space (presheaf T)"
 
-abbreviation  ob :: "('A,'x) TupleSystem \<Rightarrow> ('A Open, 'x set) Function" where
+abbreviation ob :: "('A,'x) TupleSystem \<Rightarrow> ('A Open, 'x set) Function" where
 "ob T \<equiv> Presheaf.ob (presheaf T)"
 
-abbreviation  ar :: "('A,'x) TupleSystem \<Rightarrow> ('A Inclusion, ('x, 'x) Function) Function" where
+abbreviation ar :: "('A,'x) TupleSystem \<Rightarrow> ('A Inclusion, ('x, 'x) Function) Function" where
 "ar T \<equiv> Presheaf.ar (presheaf T)"
 
 definition valid :: "('A, 'x) TupleSystem \<Rightarrow> bool" where
@@ -30,6 +30,8 @@ definition valid :: "('A, 'x) TupleSystem \<Rightarrow> bool" where
         \<longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> j_A) \<cdot> c = a \<and> (ar T \<cdot> j_B) \<cdot> c = b))
     in
     welldefined \<and> flasque \<and> binary_gluing"
+
+(* Relational OVA generated from a tuple system *)
 
 definition rel_prealg :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x set) Prealgebra" where
   "rel_prealg T \<equiv>
@@ -51,13 +53,18 @@ definition rel_neutral :: "('A, 'x) TupleSystem \<Rightarrow> ('A, unit, 'x set)
     in
       \<lparr> dom = dom, cod = cod, nat = nat \<rparr>"
 
-definition relation_comb :: "('A, 'x) TupleSystem \<Rightarrow> (('A, 'x set) Valuation) Semigroup" where
-  "relation_comb T \<equiv> 
+definition rel_comb :: "('A, 'x) TupleSystem \<Rightarrow> (('A, 'x set) Valuation) Semigroup" where
+  "rel_comb T \<equiv> 
     let
+      R = rel_prealg T;
       mult = \<lparr> 
-              PosetMap.dom = undefined, 
-              cod = undefined, 
-              func = undefined 
+              PosetMap.dom = gc R \<times>\<times> gc R, 
+              cod = gc R, 
+              func = { ((a, b), c) | a b c . 
+                        d c = d a \<union> d b 
+                        \<and> (Prealgebra.ar R \<cdot> (Space.make_inc (d a) (d c))) \<star> (e c) = e a
+                        \<and> (Prealgebra.ar R \<cdot> (Space.make_inc (d b) (d c))) \<star> (e c) = e b
+                       }
              \<rparr>
     in
       \<lparr> Semigroup.mult = mult \<rparr>"
@@ -70,7 +77,7 @@ definition rel_alg :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x set) OVA" wher
   in
   undefined"
 
-(* Validity *)
+(* Validity of prealgebra *)
 
 lemma valid_welldefined :  "valid T \<Longrightarrow> Presheaf.valid (presheaf T)" unfolding valid_def
   by (simp add: Let_def)
@@ -172,6 +179,8 @@ next
   then show ?case
     using R_def assms(1) relation_ar_trans valid_relation_space by fastforce 
 qed
+
+(* Validity of neutral *)
 
 lemma rel_neutral_nat_valid : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
@@ -360,5 +369,24 @@ next
   then show ?case using rel_neutral_natural [where ?T=T and ?i=i]
     by (smt (verit) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def PrealgebraMap.select_convs(1) assms mem_Collect_eq rel_neutral_def)
 qed
+
+
+(* Validity of combination *)
+
+lemma valid_rel_comb :
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  shows "Semigroup.valid (rel_comb T)"
+proof (intro Semigroup.validI, clarsimp, safe, goal_cases)
+  case 1
+  then show ?case sorry
+next
+  case 2
+  then show ?case sorry
+next
+  case (3 a b a b a b)
+  then show ?case sorry
+qed
+  oops
 
 end
