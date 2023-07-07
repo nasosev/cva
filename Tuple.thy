@@ -102,6 +102,9 @@ lemma valid_binary_gluing : "valid T \<Longrightarrow> A \<in> Space.opens (spac
   unfolding valid_def
   by (simp add: Let_def)
 
+lemma valid_space : "valid T \<Longrightarrow> Space.valid (space T)"
+  using Presheaf.valid_space Tuple.valid_welldefined by blast
+
 lemma valid_relation_space : "valid T \<Longrightarrow> Prealgebra.space (rel_prealg T) = space T"
   unfolding rel_prealg_def
   by (meson Prealgebra.Prealgebra.select_convs(1))
@@ -123,6 +126,9 @@ lemma relation_ob_value : "valid T \<Longrightarrow> A \<in> Space.opens (space 
 lemma relation_ob_value_valid : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow> Poset.valid (Prealgebra.ob (rel_prealg T) \<cdot> A)"
   using relation_ob_value [where ?T=T]
   by (simp add: powerset_valid)
+
+lemma relation_as_value : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow> a \<subseteq> (ob T \<cdot> A) \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
+  by (simp add: powerset_def relation_ob_value)
 
 lemma relation_ar_value : "valid T \<Longrightarrow> i \<in> Space.inclusions (space T) 
 \<Longrightarrow> Prealgebra.ar (rel_prealg T) \<cdot> i = Poset.direct_image (ar T \<cdot> i)"
@@ -394,7 +400,7 @@ lemma rel_comb_cod:
 using rel_comb_def [where ?T=T]
   by (smt (verit, ccfv_SIG) PosetMap.select_convs(2) R_def Semigroup.select_convs(1)) 
 
-lemma rel_comb_valid_mult_func_dom :  
+lemma rel_comb_mult_welldefined_dom :  
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x set) Valuation"
   assumes T_valid : "valid T" and abc_el : "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
   shows "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))"
@@ -410,7 +416,7 @@ proof -
     by (simp add: Poset.product_def)
 qed
 
-lemma rel_comb_valid_mult_val :  
+lemma rel_comb_mult_val :  
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
   defines "R \<equiv> rel_prealg T"
   defines "dc \<equiv> d a \<union> d b"
@@ -434,7 +440,7 @@ proof -
     by (smt (z3) Pair_inject PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq the_equality) 
 qed
 
-lemma rel_comb_valid_mult_func_cod :  
+lemma rel_comb_mult_welldefined_cod :  
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x set) Valuation"
   assumes T_valid : "valid T" and abc_el : "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
   shows "c \<in> el (PosetMap.cod (mult (rel_comb T)))"
@@ -443,39 +449,76 @@ proof -
   have "PosetMap.cod (mult (rel_comb T)) = gc R" using rel_comb_def [where ?T=T]
     by (smt (verit, best) PosetMap.select_convs(2) R_def Semigroup.select_convs(1))
   moreover have "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))"
-    using T_valid abc_el rel_comb_valid_mult_func_dom by blast
-  moreover have "mul (rel_comb T) a b = c" using rel_comb_def [where ?T=T] rel_comb_valid_mult_val [where ?T=T and ?a=a and ?b=b]
+    using T_valid abc_el rel_comb_mult_welldefined_dom by blast
+  moreover have "mul (rel_comb T) a b = c" using rel_comb_def [where ?T=T] rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
     by (smt (verit) CollectD Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) T_valid abc_el fst_conv local_elem_gc snd_conv valid_rel_prealg valid_relation_space)
-  moreover have "d c = d a \<union> d b"  using rel_comb_def [where ?T=T]
+  moreover have dc : "d c = d a \<union> d b"  using rel_comb_def [where ?T=T]
     by (smt (verit) CollectD PosetMap.select_convs(3) Semigroup.select_convs(1) abc_el fst_conv snd_conv)
-  moreover have "e c \<in> el (Prealgebra.ob R \<cdot> (d c))"  
-  moreover have "c \<in> el (PosetMap.cod (mult (rel_comb T)))"
+  moreover have "e c \<subseteq> ob T \<cdot> (d c)" using rel_comb_def [where ?T=T] assms calculation
+    by (smt (verit, del_insts) CollectD PosetMap.select_convs(3) Semigroup.select_convs(1) fst_conv snd_conv subsetI)
+    moreover have da: "d a \<in> Space.opens (space T)"
+      by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_comb_dom valid_rel_prealg valid_relation_space) 
+    moreover have db: "d b \<in> Space.opens (space T)"
+      by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_comb_dom valid_rel_prealg valid_relation_space) 
+  moreover have "d c \<in> Space.opens (space T)" using da db dc Space.valid_union2 [where ?T="space T" and ?A=da and ?B=db]
+      valid_space [where ?T=T]
+    by (simp add: T_valid valid_union2) 
+  moreover have "e c \<in> el (Prealgebra.ob R \<cdot> (d c))" using assms R_def rel_prealg_def [where ?T=T]
+      relation_as_value [where ?T=T and ?A="d c" and ?a="e c"]
+    using calculation(5) calculation(8) by fastforce 
   ultimately show ?thesis
+    by (metis R_def T_valid local_elem_gc prod.collapse valid_rel_prealg valid_relation_space) 
 qed
 
-lemma rel_comb_valid_mult :
+lemma rel_comb_mult_deterministic : 
+  fixes T :: "('A, 'x) TupleSystem" and a b c c' :: "('A, 'x set) Valuation"
+  assumes T_valid : "valid T" 
+  and "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))" and "((a,b), c') \<in> PosetMap.func (mult (rel_comb T))" 
+shows "c = c'"
+using rel_comb_def [where ?T=T]
+  by (smt (z3) CollectD Pair_inject PosetMap.select_convs(3) Semigroup.select_convs(1) assms(2) assms(3))
+
+lemma rel_comb_mult_total : 
+  fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x set) Valuation"
+  assumes T_valid : "valid T" 
+  and "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))" 
+  shows "\<exists>c. ((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
+proof -
+  define "dc" where "dc = d a \<union> d b"
+  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
+                                         \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
+  define "c" where "c = (dc, ec)"
+  have "d a \<in> Space.opens (space T)"  using rel_comb_def [where ?T=T] 
+  have "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))" using rel_comb_def [where ?T=T] dc_def
+      ec_def c_def
+
+
+  
+
+lemma rel_comb_mult_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes T_valid : "valid T"
   shows "Poset.valid_map (mult (rel_comb T))"
 proof (intro Poset.valid_mapI, goal_cases)
   case 1
   then show ?case
-    by (smt (verit, del_insts) PosetMap.select_convs(1) Semigroup.select_convs(1) assms product_valid rel_comb_def valid_gc valid_rel_prealg) 
+    by (simp add: assms product_valid rel_comb_dom valid_gc valid_rel_prealg)
 next
   case 2
   then show ?case
-    by (smt (verit) PosetMap.select_convs(2) Semigroup.select_convs(1) assms rel_comb_def valid_gc valid_rel_prealg) 
+    by (simp add: assms rel_comb_cod valid_gc valid_rel_prealg)
 next
-  case (3 a b)
-  then show ?case using rel_comb_valid_mult_func_dom [where ?T=T] rel_comb_valid_mult_func_cod
-      [where ?T=T]
+  case (3 ab c)
+  then show ?case using rel_comb_mult_welldefined_dom [where ?T=T] rel_comb_mult_welldefined_cod
+      [where ?T=T] 
     by (metis assms surj_pair)
 next
-  case (4 a b b')
-  then show ?case 
+  case (4 ab c c')
+  then show ?case
+    by (metis assms prod.collapse rel_comb_mult_deterministic)     
 next
   case (5 a)
-  then show ?case sorry
+  then show ?case 
 next
   case (6 a a')
   then show ?case sorry

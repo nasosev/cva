@@ -49,6 +49,10 @@ lemma valid_universe : "valid T \<Longrightarrow> universe T \<in> opens T"
 lemma valid_union : "valid T \<Longrightarrow> U \<subseteq> opens T \<Longrightarrow> \<Union>U \<in> opens T"
   using valid_def by blast
 
+lemma valid_union2 : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> A \<union> B \<in> opens T"
+  using valid_union [where ?T=T and ?U="{A,B}"]
+  by force
+
 lemma valid_inter : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> A \<inter> B \<in> opens T"
   using valid_def by blast
 
