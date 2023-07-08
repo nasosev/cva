@@ -388,7 +388,7 @@ lemma rel_comb_dom :
   fixes T :: "('A, 'x) TupleSystem" and R:: "('A, 'x set) Prealgebra"
   assumes T_valid : "valid T"
   defines "R \<equiv> rel_prealg T"
-  shows " PosetMap.dom (mult (rel_comb T)) = gc R \<times>\<times> gc R"
+  shows "PosetMap.dom (mult (rel_comb T)) = gc R \<times>\<times> gc R"
 using rel_comb_def [where ?T=T]
   by (smt (verit, best) PosetMap.select_convs(1) R_def Semigroup.select_convs(1))
 
@@ -481,17 +481,29 @@ using rel_comb_def [where ?T=T]
 lemma rel_comb_mult_total : 
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x set) Valuation"
   assumes T_valid : "valid T" 
-  and "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))" 
+  and ab_el : "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))" 
   shows "\<exists>c. ((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
 proof -
   define "dc" where "dc = d a \<union> d b"
   define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
   define "c" where "c = (dc, ec)"
-  have "d a \<in> Space.opens (space T)"  using rel_comb_def [where ?T=T] 
-  have "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))" using rel_comb_def [where ?T=T] dc_def
-      ec_def c_def
 
+
+  have "d a \<in> Space.opens (space T)"  using rel_comb_def [where ?T=T]
+    by (metis (no_types, opaque_lifting) T_valid ab_el local_dom product_el_1 rel_comb_dom valid_rel_prealg valid_relation_space) 
+  moreover have "d b \<in> Space.opens (space T)" using rel_comb_def [where ?T=T]
+    by (metis (no_types, opaque_lifting) T_valid ab_el local_dom product_el_2 rel_comb_dom valid_rel_prealg valid_relation_space) 
+  moreover have "e a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> (d a))"
+    by (metis T_valid ab_el gc_elem_local product_el_1 rel_comb_dom valid_rel_prealg)
+  moreover have "e b \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> (d b))"
+    by (metis T_valid ab_el gc_elem_local product_el_2 rel_comb_dom valid_rel_prealg) 
+  moreover have "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))" using assms calculation rel_comb_def [where ?T=T] dc_def
+      ec_def c_def
+    moreover have "\<forall> t. t \<in> c \<longrightarrow> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a"
+      by (smt (verit) Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq prod.collapse)
+    by (smt (verit) Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq prod.collapse)
+    by (smt (verit) CollectI Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) prod.collapse) 
 
   
 

@@ -357,6 +357,18 @@ lemma product_valid : "valid P \<Longrightarrow> valid Q \<Longrightarrow> valid
   unfolding valid_def product_def
   by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD SigmaE SigmaI case_prodI fst_conv mem_Collect_eq prod.collapse snd_conv)
 
+lemma product_el_1 : "(a,b) \<in> el (P \<times>\<times> Q) \<Longrightarrow> a \<in> el P"
+  by (simp add: Poset.product_def)
+
+lemma product_el_2 : "(a,b) \<in> el (P \<times>\<times> Q) \<Longrightarrow> b \<in> el Q"
+  by (simp add: Poset.product_def)
+
+lemma product_le_1 : "valid P \<Longrightarrow> valid Q \<Longrightarrow> ((a, b),(a', b')) \<in> le_rel (P \<times>\<times> Q) \<Longrightarrow> (a,a') \<in> le_rel P"
+  by (simp add: Poset.product_def) 
+                                               
+lemma product_le_2 : "valid P \<Longrightarrow> valid Q \<Longrightarrow> ((a, b),(a', b')) \<in> le_rel (P \<times>\<times> Q) \<Longrightarrow> (b,b') \<in> le_rel Q"
+  by (simp add: Poset.product_def) 
+
 (* Discrete poset *)
 
 definition discrete :: "'a Poset" where
