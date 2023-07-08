@@ -392,7 +392,7 @@ lemma rel_comb_dom :
 using rel_comb_def [where ?T=T]
   by (smt (verit, best) PosetMap.select_convs(1) R_def Semigroup.select_convs(1))
 
-lemma rel_comb_cod:  
+lemma rel_comb_cod :  
   fixes T :: "('A, 'x) TupleSystem" and R:: "('A, 'x set) Prealgebra"
   assumes T_valid : "valid T"
   defines "R \<equiv> rel_prealg T"
@@ -426,12 +426,10 @@ lemma rel_comb_mult_val :
   assumes T_valid : "valid T" and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)"
   shows "mul (rel_comb T) a b = c" 
 proof -
-  have "PosetMap.dom (mult (rel_comb T)) = gc R \<times>\<times> gc R"
-    by (simp add: R_def T_valid rel_comb_dom)
-  moreover have "(a,b) \<in> el (gc R \<times>\<times> gc R)"
+  have "(a,b) \<in> el (gc R \<times>\<times> gc R)"
     by (simp add: Poset.product_def a_el b_el) 
   moreover have "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))"
-    using calculation(1) calculation(2) by presburger 
+    using R_def T_valid calculation rel_comb_dom by fastforce
   moreover have "((a,b),c) \<in> PosetMap.func (mult (rel_comb T))" using rel_comb_def [where ?T=T]
     apply (simp add: Let_def)
     by (smt (verit) Collect_cong R_def T_valid a_el b_el c_def dc_def ec_def gc_elem_local local_dom prod.collapse valid_rel_prealg valid_relation_space)
@@ -439,6 +437,60 @@ proof -
  (rel_comb T)" and ?a="(a,b)"]
     by (smt (z3) Pair_inject PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq the_equality) 
 qed
+
+lemma rel_comb_mult_dom : 
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
+  defines "join \<equiv> mult (rel_comb T)"
+  and "R \<equiv> rel_prealg T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
+shows "d (join \<star> (a, b)) = d a \<union> d b"
+  using rel_comb_def [where ?T=T] assms rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
+  by simp 
+
+lemma rel_comb_mult_local_subset : 
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
+  defines "join \<equiv> mult (rel_comb T)"
+  and "R \<equiv> rel_prealg T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
+shows "e (join \<star> (a, b)) \<subseteq> ob T \<cdot> (d a \<union> d b)" 
+  using rel_comb_def [where ?T=T] assms rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
+  by simp 
+
+lemma rel_comb_mult_local_el : 
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
+  defines "join \<equiv> mult (rel_comb T)"
+  and "R \<equiv> rel_prealg T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
+shows "e (join \<star> (a, b)) \<in> el (Prealgebra.ob R \<cdot> (d a \<union> d b))"
+  using rel_comb_def [where ?T=T] assms rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
+  by (metis (no_types, lifting) Tuple.valid_space local_dom rel_comb_mult_local_subset relation_as_value valid_rel_prealg valid_relation_space valid_union2) 
+
+lemma rel_comb_mult_el : 
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
+  defines "join \<equiv> mult (rel_comb T)"
+  and "R \<equiv> rel_prealg T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
+shows "join \<star> (a, b) \<in> el (gc R)"
+proof - 
+  define "dc" where "dc = d a \<union> d b"
+  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
+                                        \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
+  define "c" where "c = (dc, ec)"
+  have "(a,b) \<in> el (PosetMap.dom join)" using assms  Poset.product_def
+    by (smt (verit) Poset.Poset.select_convs(1) SigmaI rel_comb_dom)
+  moreover have "join \<star> (a, b) = c" using assms calculation rel_comb_def [where ?T=T] Poset.app_def
+      [where ?f=join and ?a="(a,b)"] rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
+    using c_def dc_def ec_def by fastforce 
+  moreover have "ec \<subseteq> ob T \<cdot> dc"
+    using ec_def by blast 
+  ultimately show ?thesis
+    by (metis R_def T_valid Tuple.valid_space a_el b_el c_def dc_def local_dom local_elem_gc relation_as_value valid_rel_prealg valid_relation_space valid_union2)
+qed
+
 
 lemma rel_comb_mult_welldefined_cod :  
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x set) Valuation"
@@ -482,14 +534,12 @@ lemma rel_comb_mult_total :
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x set) Valuation"
   assumes T_valid : "valid T" 
   and ab_el : "(a,b) \<in> el (PosetMap.dom (mult (rel_comb T)))" 
-  shows "\<exists>c. ((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
+shows "\<exists>c. ((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
 proof -
   define "dc" where "dc = d a \<union> d b"
   define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
   define "c" where "c = (dc, ec)"
-
-
   have "d a \<in> Space.opens (space T)"  using rel_comb_def [where ?T=T]
     by (metis (no_types, opaque_lifting) T_valid ab_el local_dom product_el_1 rel_comb_dom valid_rel_prealg valid_relation_space) 
   moreover have "d b \<in> Space.opens (space T)" using rel_comb_def [where ?T=T]
@@ -499,14 +549,63 @@ proof -
   moreover have "e b \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> (d b))"
     by (metis T_valid ab_el gc_elem_local product_el_2 rel_comb_dom valid_rel_prealg) 
   moreover have "((a,b), c) \<in> PosetMap.func (mult (rel_comb T))" using assms calculation rel_comb_def [where ?T=T] dc_def
-      ec_def c_def
-    moreover have "\<forall> t. t \<in> c \<longrightarrow> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a"
-      by (smt (verit) Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq prod.collapse)
-    by (smt (verit) Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq prod.collapse)
-    by (smt (verit) CollectI Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) prod.collapse) 
+      ec_def c_def 
+    apply (simp add :Let_def)
+    using prod.exhaust_sel by blast
+  ultimately show ?thesis
+    by blast
+qed
 
+(* Todo: trim this *)
+lemma rel_comb_mult_monotone : 
+  fixes T :: "('A, 'x) TupleSystem" and a b a' b' :: "('A, 'x set) Valuation"
+  defines "join \<equiv> mult (rel_comb T)"
+  assumes T_valid : "valid T" 
+  and ab_el : "(a,b) \<in> el (PosetMap.dom join)" 
+  and a'b'_el : "(a',b') \<in> el (PosetMap.dom join)" 
+  and "Poset.le (PosetMap.dom join) (a,b) (a',b')"
+shows "Poset.le (PosetMap.cod join) (join \<star> (a, b)) (join \<star> (a', b'))"
+proof -
+  define "PP" where "PP = PosetMap.dom join"
+  define "P" where "P = PosetMap.cod join"
+  define "ab" where "ab = join \<star> (a, b)"
+  define "a'b'" where "a'b' = join \<star> (a', b')"
+  have "Poset.le P a a'" using rel_comb_def [where ?T=T]
+    by (metis (no_types, lifting) P_def T_valid a'b'_el ab_el assms(5) join_def product_el_1 product_le_1 rel_comb_cod rel_comb_dom valid_gc valid_rel_prealg)
+  moreover have "Poset.le P b b'" using rel_comb_def [where ?T=T]
+    by (metis (no_types, lifting) T_valid a'b'_el ab_el assms(5) P_def join_def product_el_2 product_le_2 rel_comb_cod rel_comb_dom valid_gc valid_rel_prealg)      
+  moreover have "a \<in> el P"
+    by (metis P_def T_valid ab_el join_def product_el_1 rel_comb_cod rel_comb_dom) 
+  moreover have "a' \<in> el P"
+    by (metis P_def T_valid a'b'_el join_def product_el_1 rel_comb_cod rel_comb_dom)
+  moreover have "d a' \<subseteq> d a"
+    by (metis P_def T_valid calculation(1) calculation(3) calculation(4) d_antitone join_def rel_comb_cod valid_rel_prealg) 
+  moreover have "b \<in> el P"
+    by (metis P_def T_valid ab_el join_def product_el_2 rel_comb_cod rel_comb_dom) 
+  moreover have "b' \<in> el P"
+    by (metis P_def T_valid a'b'_el join_def product_el_2 rel_comb_cod rel_comb_dom) 
+  moreover have "d b' \<subseteq> d b"
+    by (metis P_def T_valid calculation(2) calculation(6) calculation(7) d_antitone join_def rel_comb_cod valid_rel_prealg) 
+  moreover have "d b' \<subseteq> d b"
+    using calculation(8) by force
+  moreover have "(a,b) \<in> el PP"
+    using PP_def ab_el by blast 
+  moreover have "(a',b') \<in> el PP"
+    using PP_def a'b'_el by blast 
+  moreover have "ab \<in> el P" using ab_def join_def rel_comb_def [where ?T=T]
+    by (metis (no_types, lifting) P_def T_valid calculation(3) calculation(6) rel_comb_cod rel_comb_mult_el)
+  moreover have "a'b' \<in> el P" using ab_def join_def rel_comb_def [where ?T=T]
+    by (metis (no_types, lifting) P_def T_valid a'b'_def calculation(4) calculation(7) rel_comb_cod rel_comb_mult_el)
+  moreover have "d a'b' \<subseteq> d ab"
+    by (metis P_def T_valid Un_mono a'b'_def ab_def calculation(3) calculation(4) calculation(5) calculation(6) calculation(7) calculation(8) join_def rel_comb_cod rel_comb_mult_dom) 
+  define "i" where "i = Space.make (d a'b') (d ab)"
   
-
+  moreover have "(Prealgebra.ar (rel_prealg T) \<cdot> i) \<star> (e ab) \<subseteq> e a'b'" using assms calculation rel_comb_def [where ?T=T]
+    
+  
+  ultimately show ?thesis
+  
+  
 lemma rel_comb_mult_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes T_valid : "valid T"
@@ -530,7 +629,8 @@ next
     by (metis assms prod.collapse rel_comb_mult_deterministic)     
 next
   case (5 a)
-  then show ?case 
+  then show ?case
+    by (metis assms prod.collapse rel_comb_mult_total) 
 next
   case (6 a a')
   then show ?case sorry

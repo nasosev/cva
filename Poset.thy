@@ -464,6 +464,9 @@ definition direct_image :: "('a, 'b) Function \<Rightarrow> ('a set, 'b set) Pos
 lemma powerset_valid : "valid (powerset A)"
   by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD case_prodI dual_order.refl fst_conv mem_Collect_eq order_trans powerset_def snd_conv subset_antisym valid_def)
 
+lemma powerset_le : "a \<in> el (powerset A) \<Longrightarrow> a' \<in> el (powerset A) \<Longrightarrow> le (powerset A) a a' = (a \<subseteq> a')"
+  by (simp add: powerset_def)
+
 lemma direct_image_dom : "dom (direct_image f) = powerset (Function.dom f)"
   by (simp add: direct_image_def)
 
