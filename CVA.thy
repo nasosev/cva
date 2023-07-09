@@ -15,8 +15,8 @@ abbreviation prealgebra :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Prealgebra" where
 abbreviation elems :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems V \<equiv> OVA.elems (par_algebra V)"
 
-abbreviation opens :: "('A,'a) CVA \<Rightarrow> 'A Open set" where
-"opens V \<equiv> OVA.opens (par_algebra V)"
+abbreviation (input) space :: "('A,'a) CVA \<Rightarrow> 'A Space" where
+"space V \<equiv> OVA.space (par_algebra V)"
 
 abbreviation par :: "('A,'a) CVA \<Rightarrow>  ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "par V \<equiv> OVA.comb (par_algebra V)"
@@ -62,9 +62,9 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
         weak_exchange = \<forall> a b c d. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> c \<in> elems V \<longrightarrow> d \<in> elems V \<longrightarrow>
                          le (seq (par a b) (par c d)) (par (seq a c) (seq b d)) ;
 
-        neutral_law_par = (\<forall>A . A \<in> opens V \<longrightarrow> le (seq (\<delta> A) (\<delta> A)) (\<delta> A));
+        neutral_law_par = (\<forall>A . A \<in> opens (space V) \<longrightarrow> le (seq (\<delta> A) (\<delta> A)) (\<delta> A));
 
-        neutral_law_seq = (\<forall>A . A \<in> opens V \<longrightarrow> le (\<epsilon> A) (par (\<epsilon> A) (\<epsilon> A)))
+        neutral_law_seq = (\<forall>A . A \<in> opens (space V) \<longrightarrow> le (\<epsilon> A) (par (\<epsilon> A) (\<epsilon> A)))
     in
       welldefined \<and> commutativity \<and> weak_exchange \<and> neutral_law_par \<and> neutral_law_seq"
 
@@ -104,24 +104,24 @@ lemma valid_weak_exchange: "valid V \<Longrightarrow> a1 \<in> elems V \<Longrig
   unfolding valid_def
   by presburger
 
-lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow>  \<delta>A = (neut_par V A)
+lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow>  \<delta>A = (neut_par V A)
   \<Longrightarrow> le V (seq V \<delta>A \<delta>A) \<delta>A"
   unfolding valid_def
   by meson
 
-lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens V \<Longrightarrow> \<epsilon>A = (neut_seq V A)
+lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens (space V) \<Longrightarrow> \<epsilon>A = (neut_seq V A)
   \<Longrightarrow> le V \<epsilon>A (par V \<epsilon>A \<epsilon>A)"
   unfolding valid_def
   by meson
 
-lemma valid_res: "valid V \<Longrightarrow> A \<in> opens V \<Longrightarrow> a \<in> elems V \<Longrightarrow> res V A a = OVA.res (seq_algebra V) A a"
+lemma valid_res: "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> a \<in> elems V \<Longrightarrow> res V A a = OVA.res (seq_algebra V) A a"
   unfolding valid_def
   by (metis res_def valid_gc_poset)
 
 lemma valid_ext: 
   fixes V :: "('A, 'a) CVA" and A :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" 
-  and A_open : "A \<in> opens V" 
+  and A_open : "A \<in> opens (space V)" 
   and b_elem : "b \<in> elems V" 
   and B_leq_A : "d b \<subseteq> A"
   defines "ex \<equiv> ext V" and "ex' \<equiv> OVA.ext (seq_algebra V)"
@@ -132,14 +132,14 @@ proof -
     fix b
     assume "b \<in> elems V" 
     fix A
-    assume "A \<in> opens V"
+    assume "A \<in> opens (space V)"
     assume "B \<subseteq> A" 
 *)
     define "B" where "B = d b"
     define "pr" where "pr = res V"
     have "local_le V B (pr B (ex A b)) b"
       by (metis A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le OVA.valid_welldefined V_valid b_elem ex_def galois_insertion pr_def valid_poset valid_reflexivity)
-     moreover have "A \<in> opens V \<and> B \<in> opens V"
+     moreover have "A \<in> opens (space V) \<and> B \<in> opens (space V)"
        using A_open B_def CVA.valid_welldefined V_valid b_elem d_elem_is_open by blast 
     moreover have lhs:"local_le V A (ex A b) (ex' A b)" using valid_res [where ?V=V] OVA.res_ext_adjunction [where
    ?V="seq_algebra V" and ?A=A and ?B=B and ?a="(ex A b)" and ?b=b]
@@ -167,7 +167,7 @@ lemma valid_ext_funext:
 (* [Proposition 1, CVA] *)
 proposition epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
-  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
   defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
   shows "le V \<epsilon>A \<delta>A"
 proof -
@@ -197,7 +197,7 @@ qed
 
 lemma epsilon_par_epsilon_le_epsilon :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
-  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
   defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
   shows "le V (par V \<epsilon>A \<epsilon>A) \<epsilon>A" 
 proof -
@@ -211,7 +211,7 @@ qed
 
 lemma delta_le_delta_seq_delta :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
-  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
   defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
   shows "le V \<delta>A (seq V \<delta>A \<delta>A)"
 proof -
@@ -227,7 +227,7 @@ qed
 (* [Proposition 1 cont., CVA] *)
 proposition delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
-  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
   defines "\<delta>A \<equiv> neut_par V A"
   shows "(seq V \<delta>A \<delta>A) = \<delta>A"
 proof -
@@ -242,7 +242,7 @@ qed
 (* [Proposition 1 cont., CVA] *)
 proposition epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
-  assumes V_valid : "valid V" and A_open : "A \<in> opens V"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
   defines "\<epsilon>A \<equiv> neut_seq V A"
   shows "(par V \<epsilon>A \<epsilon>A) = \<epsilon>A"
 proof -
@@ -268,7 +268,7 @@ proof -
   define "pc" where "pc = par V"
   define "sc" where "sc = seq V"
   define "\<gamma>" where "\<gamma> = neut_par V"
-  have "A \<union> B \<in> opens V"
+  have "A \<union> B \<in> opens (space V)"
     by (metis A_def B_def CVA.valid_welldefined V_valid a_elem b_elem comb_is_element d_elem_is_open fst_conv neutral_is_element strongly_neutral_seq) 
   moreover have "a = pc a (\<gamma> A)" 
     by (metis pc_def A_def CVA.valid_welldefined V_valid \<gamma>_def a_elem valid_neutral_law_right)
@@ -318,14 +318,14 @@ qed
 lemma neutral_collapse_strongly_neutral :
   fixes V :: "('A, 'a) CVA" and A B :: "'A Open"
   defines "\<gamma> \<equiv> neut_par V"
-  assumes V_valid : "valid V" and A_open : "A \<in> opens V" and B_open : "B \<in> opens V"
+  assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)"
   and neutral_collapse : "neut_par V = neut_seq V"
 shows "seq V (\<gamma> A) (\<gamma> B) = \<gamma> (A \<union> B) \<longleftrightarrow> par V (\<gamma> A) (\<gamma> B) = \<gamma> (A \<union> B)"
 proof standard
   assume "seq V (\<gamma> A) (\<gamma> B) = \<gamma> (A \<union> B)"
   define "pc" where "pc = par V"
   define "sc" where "sc = seq V"
-  have "A \<union> B \<in> opens V"
+  have "A \<union> B \<in> opens (space V)"
     by (metis A_open B_open CVA.valid_welldefined V_valid comb_is_element d_elem_is_open d_neut neutral_is_element valid_domain_law) 
   moreover have "d (pc (\<gamma> A) (\<gamma> B)) = A \<union> B"
     by (metis A_open B_open CVA.valid_welldefined V_valid \<gamma>_def d_neut neutral_is_element pc_def valid_domain_law) 
@@ -351,7 +351,7 @@ next
   assume "par V (\<gamma> A) (\<gamma> B) = \<gamma> (A \<union> B)"
   define "sc" where "sc = seq V"
   define "pc" where "pc = par V"
-  have "A \<union> B \<in> opens V"
+  have "A \<union> B \<in> opens (space V)"
     by (metis A_open B_open CVA.valid_welldefined V_valid comb_is_element d_elem_is_open d_neut neutral_is_element valid_domain_law)
   moreover have "d (sc (\<gamma> A) (\<gamma> B)) = A \<union> B"
     using A_open B_open CVA.valid_welldefined V_valid \<gamma>_def neutral_is_element sc_def valid_elems by fastforce

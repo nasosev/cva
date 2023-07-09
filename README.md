@@ -67,7 +67,6 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 ```
 isabelle build -v -b -d . CVA
 isabelle jedit -d . -l CVA
-
 ```
 
 ## Notes

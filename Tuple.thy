@@ -18,14 +18,14 @@ definition valid :: "('A, 'x) TupleSystem \<Rightarrow> bool" where
   "valid T \<equiv>
     let
       welldefined = Presheaf.valid (presheaf T);
-      flasque = \<forall>i. i \<in> Space.inclusions (space T) \<longrightarrow> Function.is_surjective (ar T \<cdot> i);
-      binary_gluing = (\<forall> A B a b i_A j_A i_B j_B . A \<in> Space.opens (space T) \<longrightarrow> B \<in> Space.opens (space T) 
+      flasque = \<forall>i. i \<in> inclusions (space T) \<longrightarrow> Function.is_surjective (ar T \<cdot> i);
+      binary_gluing = (\<forall> A B a b i_A j_A i_B j_B . A \<in> opens (space T) \<longrightarrow> B \<in> opens (space T) 
         \<longrightarrow> a \<in> ob T \<cdot> A
         \<longrightarrow> b \<in> ob T \<cdot> B
-        \<longrightarrow> i_A = Space.make_inc (A \<inter> B) A
-        \<longrightarrow> j_A = Space.make_inc A (A \<union> B)
-        \<longrightarrow> i_B = Space.make_inc (A \<inter> B) B
-        \<longrightarrow> j_B = Space.make_inc B (A \<union> B)
+        \<longrightarrow> i_A = make_inc (A \<inter> B) A
+        \<longrightarrow> j_A = make_inc A (A \<union> B)
+        \<longrightarrow> i_B = make_inc (A \<inter> B) B
+        \<longrightarrow> j_B = make_inc B (A \<union> B)
         \<longrightarrow> (ar T \<cdot> i_A) \<cdot> a = (ar T \<cdot> i_B) \<cdot> b
         \<longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> j_A) \<cdot> c = a \<and> (ar T \<cdot> j_B) \<cdot> c = b))
     in
@@ -36,8 +36,8 @@ definition valid :: "('A, 'x) TupleSystem \<Rightarrow> bool" where
 definition rel_prealg :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x set) Prealgebra" where
   "rel_prealg T \<equiv>
     let
-      R0 = \<lparr> Function.cod = UNIV, func = { (A, Poset.powerset (ob T \<cdot> A)) | A . A \<in> Space.opens (space T) } \<rparr>;
-      R1 = \<lparr> Function.cod = UNIV, func = { (i, Poset.direct_image (ar T \<cdot> i)) | i . i \<in> Space.inclusions (space T) } \<rparr>
+      R0 = \<lparr> Function.cod = UNIV, func = { (A, Poset.powerset (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>;
+      R1 = \<lparr> Function.cod = UNIV, func = { (i, Poset.direct_image (ar T \<cdot> i)) | i . i \<in> inclusions (space T) } \<rparr>
     in
     \<lparr> Prealgebra.space = space T, Prealgebra.ob = R0, Prealgebra.ar = R1 \<rparr>"
 
@@ -48,7 +48,7 @@ definition rel_neutral :: "('A, 'x) TupleSystem \<Rightarrow> ('A, unit, 'x set)
       cod = rel_prealg T;
       nat = \<lparr> 
               Function.cod = UNIV , 
-              func = {(A, Poset.const (Prealgebra.ob dom \<cdot> A) (Prealgebra.ob cod \<cdot> A)  (ob T \<cdot> A)) | A . A \<in> Space.opens (space T)} 
+              func = {(A, Poset.const (Prealgebra.ob dom \<cdot> A) (Prealgebra.ob cod \<cdot> A)  (ob T \<cdot> A)) | A . A \<in> opens (space T)} 
             \<rparr>
     in
       \<lparr> dom = dom, cod = cod, nat = nat \<rparr>"
@@ -61,14 +61,14 @@ definition rel_comb :: "('A, 'x) TupleSystem \<Rightarrow> (('A, 'x set) Valuati
               PosetMap.dom = gc R \<times>\<times> gc R, 
               cod = gc R, 
               func = { (((A,a), (B,b)), (C, c)) | A a B b C c .
-                          A \<in> Space.opens (space T)
-                        \<and> B \<in> Space.opens (space T)  
+                          A \<in> opens (space T)
+                        \<and> B \<in> opens (space T)  
                         \<and> C = A \<union> B
                         \<and> a \<in> el (Prealgebra.ob R \<cdot> A)
                         \<and> b \<in> el (Prealgebra.ob R \<cdot> B)
                         \<and> c = { t | t . t \<in> ob T \<cdot> C
-                                        \<and> (ar T \<cdot> (Space.make_inc A C)) \<cdot> t \<in> a     
-                                        \<and> (ar T \<cdot> (Space.make_inc B C)) \<cdot> t \<in> b    }
+                                        \<and> (ar T \<cdot> (make_inc A C)) \<cdot> t \<in> a     
+                                        \<and> (ar T \<cdot> (make_inc B C)) \<cdot> t \<in> b    }
                        }
              \<rparr>
     in
@@ -87,16 +87,16 @@ definition rel_alg :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x set) OVA" wher
 lemma valid_welldefined :  "valid T \<Longrightarrow> Presheaf.valid (presheaf T)" unfolding valid_def
   by (simp add: Let_def)
 
-lemma valid_flasque : "valid T \<Longrightarrow> i \<in> Space.inclusions (space T) \<Longrightarrow> Function.is_surjective (ar T \<cdot> i)"
+lemma valid_flasque : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Function.is_surjective (ar T \<cdot> i)"
   unfolding valid_def
   by (simp add: Let_def)
 
-lemma valid_binary_gluing : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow> B \<in> Space.opens (space T) \<Longrightarrow> a \<in> ob T \<cdot> A
+lemma valid_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> a \<in> ob T \<cdot> A
         \<Longrightarrow> b \<in> ob T \<cdot> B
-         \<Longrightarrow> i_A = Space.make_inc (A \<inter> B) A
-           \<Longrightarrow> j_A = Space.make_inc A (A \<union> B)
-         \<Longrightarrow> i_B = Space.make_inc (A \<inter> B) B
-           \<Longrightarrow> j_B = Space.make_inc B (A \<union> B)
+         \<Longrightarrow> i_A = make_inc (A \<inter> B) A
+           \<Longrightarrow> j_A = make_inc A (A \<union> B)
+         \<Longrightarrow> i_B = make_inc (A \<inter> B) B
+           \<Longrightarrow> j_B = make_inc B (A \<union> B)
             \<Longrightarrow> (ar T \<cdot> i_A) \<cdot> a = (ar T \<cdot> i_B) \<cdot> b
             \<Longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> j_A) \<cdot> c = a \<and> (ar T \<cdot> j_B) \<cdot> c = b)"
   unfolding valid_def
@@ -109,42 +109,42 @@ lemma valid_relation_space : "valid T \<Longrightarrow> Prealgebra.space (rel_pr
   unfolding rel_prealg_def
   by (meson Prealgebra.Prealgebra.select_convs(1))
 
-lemma relation_ob_valid : "valid T \<Longrightarrow> Function.valid_map (Prealgebra.ob (rel_prealg T))"
+lemma relation_ob_valid : "Function.valid_map (Prealgebra.ob (rel_prealg T))"
   unfolding rel_prealg_def
     apply (simp_all add : Let_def)
     by (simp add: Function.dom_def Function.valid_map_def)
 
-lemma relation_ar_valid : "valid T \<Longrightarrow> Function.valid_map (Prealgebra.ar (rel_prealg T))"
+lemma relation_ar_valid : "Function.valid_map (Prealgebra.ar (rel_prealg T))"
   unfolding rel_prealg_def
     apply (simp_all add : Let_def)
     by (simp add: Function.dom_def Function.valid_map_def)
 
-lemma relation_ob_value : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow> (Prealgebra.ob (rel_prealg T)) \<cdot> A = Poset.powerset (ob T \<cdot> A )"
+lemma relation_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Prealgebra.ob (rel_prealg T)) \<cdot> A = Poset.powerset (ob T \<cdot> A )"
   unfolding rel_prealg_def
   by (simp add: Function.dom_def)
 
-lemma relation_ob_value_valid : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow> Poset.valid (Prealgebra.ob (rel_prealg T) \<cdot> A)"
+lemma relation_ob_value_valid : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> Poset.valid (Prealgebra.ob (rel_prealg T) \<cdot> A)"
   using relation_ob_value [where ?T=T]
   by (simp add: powerset_valid)
 
-lemma relation_as_value : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow> a \<subseteq> (ob T \<cdot> A) \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
+lemma relation_as_value : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> a \<subseteq> (ob T \<cdot> A) \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
   by (simp add: powerset_def relation_ob_value)
 
-lemma relation_ar_value : "valid T \<Longrightarrow> i \<in> Space.inclusions (space T) 
+lemma relation_ar_value : "i \<in> inclusions (space T) 
 \<Longrightarrow> Prealgebra.ar (rel_prealg T) \<cdot> i = Poset.direct_image (ar T \<cdot> i)"
   unfolding rel_prealg_def [where ?T=T]
   by (simp add: Function.dom_def)
 
-lemma relation_ar_value_valid : "valid T \<Longrightarrow> i \<in> Space.inclusions (space T) \<Longrightarrow> Poset.valid_map (Prealgebra.ar (rel_prealg T) \<cdot> i)"
+lemma relation_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Poset.valid_map (Prealgebra.ar (rel_prealg T) \<cdot> i)"
   using Presheaf.valid_ar Tuple.valid_welldefined direct_image_valid relation_ar_value by fastforce
 
-lemma relation_ar_dom : "valid T \<Longrightarrow> i \<in> Space.inclusions (space T)
+lemma relation_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.dom (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.cod i"
   unfolding rel_prealg_def
   apply (simp_all add : Let_def)
   by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_dom Tuple.valid_welldefined UNIV_I direct_image_dom fst_conv mem_Collect_eq snd_conv)
 
-lemma relation_ar_cod : "valid T \<Longrightarrow> i \<in> Space.inclusions (space T)
+lemma relation_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.cod (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.dom i"
   unfolding rel_prealg_def
   apply (simp_all add : Let_def)
@@ -154,7 +154,7 @@ lemma relation_ar_ident :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
   defines "R \<equiv> rel_prealg T"
   assumes "valid T"
-  assumes "A \<in> Space.opens (space T)"
+  assumes "A \<in> opens (space T)"
   shows "Prealgebra.ar R \<cdot> Space.ident A = Poset.ident (Prealgebra.ob R \<cdot> A)"
   using Presheaf.valid_identity R_def Tuple.valid_welldefined assms(2) assms(3) direct_image_ident relation_ar_value relation_ob_value valid_ident_inc by fastforce
 
@@ -162,8 +162,8 @@ lemma relation_ar_trans :
   fixes T :: "('A, 'x) TupleSystem" and i j :: "'A Inclusion"
   defines "R \<equiv> rel_prealg T"
   assumes T_valid: "valid T"
-  and i_inc : "i \<in> Space.inclusions (space T)"
-  and j_inc :"j \<in> Space.inclusions (space T)"
+  and i_inc : "i \<in> inclusions (space T)"
+  and j_inc :"j \<in> inclusions (space T)"
   and endpoints : "Space.dom j = Space.cod i"
 shows "Prealgebra.ar R \<cdot> (j \<propto> i) = Prealgebra.ar R \<cdot> i \<diamondop> Prealgebra.ar R \<cdot> j"
   by (smt (verit, ccfv_threshold) Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom R_def T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid direct_image_trans dom_compose_inc endpoints i_inc j_inc mem_Collect_eq relation_ar_value)
@@ -195,7 +195,7 @@ qed
 
 lemma rel_neutral_nat_valid : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
-  assumes T_valid: "valid T" and A_open: "A \<in> Space.opens (space T)"
+  assumes T_valid: "valid T" and A_open: "A \<in> opens (space T)"
   defines "\<epsilon> \<equiv> rel_neutral T"
   shows "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> A)"
 proof -
@@ -203,17 +203,17 @@ proof -
   define "cod" where "cod = rel_prealg T"
   have "(PrealgebraMap.nat (rel_neutral T)) \<cdot> A = Poset.const ((Prealgebra.ob dom) \<cdot> A) ((Prealgebra.ob cod) \<cdot> A) ((ob T) \<cdot> A)" 
     using rel_neutral_def [where ?T=T]
-    by (smt (verit) Function.dom_def Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def PrealgebraMap.select_convs(3) UNIV_I \<open>A \<in> Space.opens (Tuple.space T)\<close> fst_conv local.cod_def local.dom_def mem_Collect_eq snd_conv)
+    by (smt (verit) Function.dom_def Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def PrealgebraMap.select_convs(3) UNIV_I \<open>A \<in> opens (Tuple.space T)\<close> fst_conv local.cod_def local.dom_def mem_Collect_eq snd_conv)
   moreover have "Poset.valid (Prealgebra.ob dom \<cdot> A)"
-    by (metis Presheaf.valid_space Tuple.valid_welldefined \<open>A \<in> Space.opens (Tuple.space T)\<close> \<open>Tuple.valid T\<close> discrete_valid local.dom_def terminal_ob)
+    by (metis Presheaf.valid_space Tuple.valid_welldefined \<open>A \<in> opens (Tuple.space T)\<close> \<open>Tuple.valid T\<close> discrete_valid local.dom_def terminal_ob)
   moreover have "Poset.valid (Prealgebra.ob cod \<cdot> A)"  using valid_rel_prealg [where ?T=T]
-    by (simp add: \<open>A \<in> Space.opens (Tuple.space T)\<close> \<open>Tuple.valid T\<close> local.cod_def relation_ob_value_valid)
+    by (simp add: \<open>A \<in> opens (Tuple.space T)\<close> \<open>Tuple.valid T\<close> local.cod_def relation_ob_value_valid)
   ultimately show "Poset.valid_map (PrealgebraMap.nat \<epsilon> \<cdot> A)" using Poset.const_valid
      cod_def dom_def powerset_def  relation_ob_value
     by (smt (verit) A_open Poset.Poset.select_convs(1) Pow_top T_valid \<epsilon>_def)
 qed
 
-lemma rel_neutral_nat_value : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Longrightarrow>
+lemma rel_neutral_nat_value : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow>
  PrealgebraMap.nat (rel_neutral T) \<cdot> A =  Poset.const Poset.discrete (Prealgebra.ob (rel_prealg T) \<cdot> A) (ob T \<cdot> A)"
   unfolding rel_neutral_def
   apply (simp_all add : Let_def)
@@ -222,7 +222,7 @@ lemma rel_neutral_nat_value : "valid T \<Longrightarrow> A \<in> Space.opens (sp
 lemma rel_neutral_is_element :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
   assumes T_valid: "valid T" 
-  and A_open: "A \<in> Space.opens (space T)" 
+  and A_open: "A \<in> opens (space T)" 
   defines "R \<equiv> rel_prealg T"
   and "\<epsilon>A \<equiv> (PrealgebraMap.nat (rel_neutral T) \<cdot> A) \<star> ()"
 shows "\<epsilon>A \<in> el (Prealgebra.ob R \<cdot> A)"
@@ -231,28 +231,28 @@ shows "\<epsilon>A \<in> el (Prealgebra.ob R \<cdot> A)"
 lemma rel_neutral_nat_value_app :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and x :: "unit"
   assumes T_valid: "valid T" 
-  and A_open: "A \<in> Space.opens (space T)" 
+  and A_open: "A \<in> opens (space T)" 
   and x_el : "x \<in> el (Poset.dom (PrealgebraMap.nat (rel_neutral T) \<cdot> A ))"
 shows "(PrealgebraMap.nat (rel_neutral T) \<cdot> A) \<star> x =  ob T \<cdot> A"
   by (smt (verit, ccfv_SIG) A_open Poset.Poset.select_convs(1) Poset.const_app Poset.discrete_def Pow_top T_valid UNIV_I discrete_valid powerset_def rel_neutral_nat_value relation_ob_value relation_ob_value_valid)
 
 lemma rel_neutral_dom : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
-  assumes T_valid: "valid T" and A_open: "A \<in> Space.opens (space T)"
+  assumes T_valid: "valid T" and A_open: "A \<in> opens (space T)"
   defines "\<epsilon> \<equiv> rel_neutral T"
   shows "PosetMap.dom (PrealgebraMap.nat \<epsilon> \<cdot> A) = Prealgebra.ob (PrealgebraMap.dom \<epsilon>) \<cdot> A"
   by (smt (verit, ccfv_SIG) A_open Poset.Poset.select_convs(1) Poset.const_dom Pow_top PrealgebraMap.select_convs(1) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def powerset_def rel_neutral_def rel_neutral_nat_value relation_ob_value terminal_ob)
 
 lemma rel_neutral_cod : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
-  assumes T_valid: "valid T" and A_open: "A \<in> Space.opens (space T)"
+  assumes T_valid: "valid T" and A_open: "A \<in> opens (space T)"
   defines "\<epsilon> \<equiv> rel_neutral T"
   shows "PosetMap.cod (PrealgebraMap.nat \<epsilon> \<cdot> A) = Prealgebra.ob (PrealgebraMap.cod \<epsilon>) \<cdot> A"
   by (smt (verit, ccfv_SIG) A_open Poset.Poset.select_convs(1) Poset.const_cod Poset.discrete_def PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_witness \<epsilon>_def old.unit.exhaust rel_neutral_def rel_neutral_dom rel_neutral_is_element rel_neutral_nat_value rel_neutral_nat_value_app terminal_ob)
 
 lemma rel_neutral_top : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
-  assumes T_valid: "valid T" and A_open: "A \<in> Space.opens (space T)"
+  assumes T_valid: "valid T" and A_open: "A \<in> opens (space T)"
   defines "R \<equiv> rel_prealg T"
     and "RA \<equiv> (PrealgebraMap.nat (rel_neutral T) \<cdot> A) \<star> ()"
   and "\<epsilon>A \<equiv> (PrealgebraMap.nat (rel_neutral T) \<cdot> A) \<star> ()"
@@ -283,7 +283,7 @@ qed
 
 lemma rel_neutral_stable : 
   fixes T :: "('A, 'x) TupleSystem" and i :: "'A Inclusion"
-  assumes T_valid: "valid T" and i_inc: "i \<in> Space.inclusions (space T)"
+  assumes T_valid: "valid T" and i_inc: "i \<in> inclusions (space T)"
   defines "R \<equiv> rel_prealg T"
   and "\<epsilon>A \<equiv> (PrealgebraMap.nat (rel_neutral T) \<cdot> Space.cod i) \<star> ()"
   and "\<epsilon>B \<equiv> (PrealgebraMap.nat (rel_neutral T) \<cdot> Space.dom i) \<star> ()"
@@ -313,7 +313,7 @@ qed
 
 lemma rel_neutral_natural : 
   fixes T :: "('A, 'x) TupleSystem" and i :: "'A Inclusion"
-  assumes T_valid: "valid T" and i_inc: "i \<in> Space.inclusions (space T)"
+  assumes T_valid: "valid T" and i_inc: "i \<in> inclusions (space T)"
   defines "\<epsilon> \<equiv> rel_neutral T "
   shows "PrealgebraMap.nat \<epsilon> \<cdot> Space.dom i \<diamondop> Prealgebra.ar (PrealgebraMap.dom \<epsilon>) \<cdot> i =
          Prealgebra.ar (PrealgebraMap.cod \<epsilon>) \<cdot> i \<diamondop> PrealgebraMap.nat \<epsilon> \<cdot> Space.cod i"
@@ -420,8 +420,8 @@ lemma rel_comb_mult_val :
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
   defines "R \<equiv> rel_prealg T"
   defines "dc \<equiv> d a \<union> d b"
-  defines "ec \<equiv>  { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
-                                         \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
+  defines "ec \<equiv>  { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
+                                         \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
   defines "c \<equiv> (dc, ec)"
   assumes T_valid : "valid T" and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)"
   shows "mul (rel_comb T) a b = c" 
@@ -441,7 +441,7 @@ qed
 lemma rel_comb_mult_tup_proj_el1 : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
   defines "join \<equiv> mult (rel_comb T)"
-  defines "i_A \<equiv> Space.make_inc (d a) (d a \<union> d b)"
+  defines "i_A \<equiv> make_inc (d a) (d a \<union> d b)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
@@ -451,8 +451,8 @@ proof -
   assume "t \<in> e (join \<star> (a, b))"
   have "(a,b) \<in> el (Poset.dom join)"
     by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el join_def rel_comb_dom)
-  moreover have "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (Space.make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
-                                         \<and> (ar T \<cdot> (Space.make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
+  moreover have "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+                                         \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
   ultimately show "(ar T \<cdot> i_A) \<cdot> t \<in> e a" using  assms
@@ -462,7 +462,7 @@ qed
 lemma rel_comb_mult_tup_proj_el2 : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
   defines "join \<equiv> mult (rel_comb T)"
-  defines "i_B \<equiv> Space.make_inc (d b) (d a \<union> d b)"
+  defines "i_B \<equiv> make_inc (d b) (d a \<union> d b)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
@@ -472,8 +472,8 @@ proof -
   assume "t \<in> e (join \<star> (a, b))"
   have "(a,b) \<in> el (Poset.dom join)"
     by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el join_def rel_comb_dom)
-  moreover have "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (Space.make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
-                                         \<and> (ar T \<cdot> (Space.make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
+  moreover have "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+                                         \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
   ultimately show "(ar T \<cdot> i_B) \<cdot> t \<in> e b" using  assms
@@ -496,8 +496,9 @@ lemma rel_comb_mult_e [simp] :
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (Space.make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
-                                         \<and> (ar T \<cdot> (Space.make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
+shows "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+                                     \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+                                     \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
   using rel_comb_def [where ?T=T] assms rel_comb_mult_val [where ?T=T and ?a=a and ?b=b]
   by simp 
 
@@ -530,8 +531,8 @@ lemma rel_comb_mult_el :
 shows "join \<star> (a, b) \<in> el (gc R)"
 proof - 
   define "dc" where "dc = d a \<union> d b"
-  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
-                                        \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
+  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
+                                        \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
   define "c" where "c = (dc, ec)"
   have "(a,b) \<in> el (PosetMap.dom join)" using assms  Poset.product_def
     by (smt (verit) Poset.Poset.select_convs(1) SigmaI rel_comb_dom)
@@ -560,11 +561,11 @@ proof -
     by (smt (verit) CollectD PosetMap.select_convs(3) Semigroup.select_convs(1) abc_el fst_conv snd_conv)
   moreover have "e c \<subseteq> ob T \<cdot> (d c)" using rel_comb_def [where ?T=T] assms calculation
     by (smt (verit, del_insts) CollectD PosetMap.select_convs(3) Semigroup.select_convs(1) fst_conv snd_conv subsetI)
-    moreover have da: "d a \<in> Space.opens (space T)"
+    moreover have da: "d a \<in> opens (space T)"
       by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_comb_dom valid_rel_prealg valid_relation_space) 
-    moreover have db: "d b \<in> Space.opens (space T)"
+    moreover have db: "d b \<in> opens (space T)"
       by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_comb_dom valid_rel_prealg valid_relation_space) 
-  moreover have "d c \<in> Space.opens (space T)" using da db dc Space.valid_union2 [where ?T="space T" and ?A=da and ?B=db]
+  moreover have "d c \<in> opens (space T)" using da db dc Space.valid_union2 [where ?T="space T" and ?A=da and ?B=db]
       valid_space [where ?T=T]
     by (simp add: T_valid valid_union2) 
   moreover have "e c \<in> el (Prealgebra.ob R \<cdot> (d c))" using assms R_def rel_prealg_def [where ?T=T]
@@ -589,12 +590,12 @@ lemma rel_comb_mult_total :
 shows "\<exists>c. ((a,b), c) \<in> PosetMap.func (mult (rel_comb T))"
 proof -
   define "dc" where "dc = d a \<union> d b"
-  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (Space.make_inc (d a) dc)) \<cdot> t \<in> e a     
-                                         \<and> (ar T \<cdot> (Space.make_inc (d b) dc)) \<cdot> t \<in> e b }"
+  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
+                                         \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
   define "c" where "c = (dc, ec)"
-  have "d a \<in> Space.opens (space T)"  using rel_comb_def [where ?T=T]
+  have "d a \<in> opens (space T)"  using rel_comb_def [where ?T=T]
     by (metis (no_types, opaque_lifting) T_valid ab_el local_dom product_el_1 rel_comb_dom valid_rel_prealg valid_relation_space) 
-  moreover have "d b \<in> Space.opens (space T)" using rel_comb_def [where ?T=T]
+  moreover have "d b \<in> opens (space T)" using rel_comb_def [where ?T=T]
     by (metis (no_types, opaque_lifting) T_valid ab_el local_dom product_el_2 rel_comb_dom valid_rel_prealg valid_relation_space) 
   moreover have "e a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> (d a))"
     by (metis T_valid ab_el gc_elem_local product_el_1 rel_comb_dom valid_rel_prealg)
@@ -607,6 +608,50 @@ proof -
   ultimately show ?thesis
     by blast
 qed
+
+lemma relation_le_is_subseteq :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x set) Valuation"
+  defines "R \<equiv> rel_prealg T"
+  and "i \<equiv> make_inc (d b) (d a)"
+  assumes T_valid : "valid T" and "a \<in> el (gc R)" and "b \<in> el (gc R)"
+  and "Poset.le (gc R) a b"
+shows "(Prealgebra.ar R \<cdot> i) \<star> e a \<subseteq> e b"
+proof -          
+  define "ea_B" where "ea_B = Prealgebra.ar R \<cdot> i \<star> e a"
+  have "d b \<subseteq> d a"
+    using R_def T_valid assms(3) assms(4) assms(5) d_antitone valid_rel_prealg
+    using assms(6) by blast 
+  moreover have "valid_inc i"
+    by (simp add: calculation i_def)
+  moreover have "Poset.le (Prealgebra.ob R \<cdot> d b) ea_B (e b)"
+    using assms gc_le_eq [where ?F=R] ea_B_def i_def
+    by blast 
+  moreover have "Prealgebra.ob R \<cdot> d b = powerset (ob T \<cdot> d b)"
+    by (metis R_def T_valid assms(5) local_dom relation_ob_value valid_rel_prealg valid_relation_space) 
+  moreover have "ea_B \<in> el (Prealgebra.ob R \<cdot> d b)" using assms calculation Prealgebra.valid_ar
+      [where ?i=i]
+    by (smt (verit) Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.image ea_B_def gc_elem_local local_dom mem_Collect_eq valid_rel_prealg)
+  moreover have "ea_B \<subseteq> e b" using powerset_le
+      [where ?A="ob T \<cdot> d b" and ?a="ea_B" and ?a'="e b"]
+    by (metis R_def T_valid assms(5) calculation(3) calculation(4) calculation(5) gc_elem_local valid_rel_prealg) 
+  ultimately show ?thesis using relation_ob_value [where ?A="d b" and ?T=T] assms powerset_le
+      [where ?A="ob T \<cdot> d b" and ?a="ea_B" and ?a'="e b"]
+    using ea_B_def by force
+qed
+
+lemma relation_res_tup :
+  fixes T :: "('A, 'x) TupleSystem" and ea :: "'x set" and t :: "'x" and A B :: "'A
+ Open"
+  defines "R \<equiv> rel_prealg T"
+  and "i \<equiv> make_inc B A"
+  assumes T_valid : "valid T" 
+  and A_open : "A \<in> opens (space T)" 
+  and B_open : "B \<in> opens (space T)" 
+  and a_el : "ea \<in> el (Prealgebra.ob R \<cdot> A)"
+  and B_le_A : "B \<subseteq> A"
+  and t_el_a : "t \<in> ea"
+shows "(ar T \<cdot> i) \<cdot> t \<in> (Prealgebra.ar R \<cdot> i) \<star> ea"
+  by (smt (z3) A_open B_le_A B_open CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.Poset.select_convs(1) Pow_iff Presheaf.valid_welldefined R_def T_valid Tuple.valid_welldefined a_el direct_image_app i_def powerset_def relation_ar_value relation_ob_value t_el_a)
 
 lemma rel_comb_mult_monotone : 
   fixes T :: "('A, 'x) TupleSystem" and a b a' b' :: "('A, 'x set) Valuation"
@@ -635,7 +680,7 @@ next
   proof - 
     have "a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)"
       by (metis R_def T_valid a'b'_el ab_el join_def product_el_1 product_el_2 rel_comb_dom) 
-    moreover have "d a \<union> d b \<in> Space.opens (space T)"
+    moreover have "d a \<union> d b \<in> opens (space T)"
       by (metis T_valid Tuple.valid_space ab_el join_def local_dom product_el_1 product_el_2 rel_comb_dom valid_rel_prealg valid_relation_space valid_union2) 
     moreover have "d (mul (rel_comb T) a b) = d a \<union> d b" using calculation assms rel_comb_mult_d [where ?T=T and ?a=a
           and ?b=b]
@@ -643,15 +688,102 @@ next
     moreover have "Prealgebra.ob R \<cdot> d (join \<star> (a, b)) = powerset (ob T \<cdot> (d a \<union> d b))" using
         assms calculation  relation_ob_value [where ?T=T and ?A="d a \<union> d b"]
       by presburger
-    define "i" where "i = Space.make_inc (d a' \<union> d b') (d a \<union> d b)"
+    define "i" where "i = make_inc (d a' \<union> d b') (d a \<union> d b)"
 
     moreover have "(Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))) \<subseteq> (e (join \<star> (a', b')))"
     proof standard
       fix t
       assume "t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))"
-      show "t \<in> e (join \<star> (a', b'))" sorry
-    qed
 
+      define "eab" where "eab = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+                                     \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+                                     \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
+
+      have "e (join \<star> (a, b)) = eab"
+        using R_def T_valid calculation(1) join_def eab_def by fastforce 
+      moreover have "d a' \<union> d b' \<in> opens (space T)"
+        by (metis Presheaf.valid_space R_def T_valid Tuple.valid_welldefined \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> local_dom valid_rel_prealg valid_relation_space valid_union2)  
+      moreover have "d a' \<union> d b' \<subseteq> d a \<union> d b"
+        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) d_antitone join_def product_le_1 product_le_2 rel_comb_dom sup.mono valid_gc valid_rel_prealg) 
+      moreover have "i \<in> inclusions (space T)"
+        using \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> calculation(2) calculation(3) i_def by auto
+      moreover have "t \<in> Prealgebra.ar R \<cdot> i \<star> eab"
+        using \<open>t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))\<close> calculation(1) by auto
+      moreover have "\<exists> t' . t' \<in> eab \<and> (ar T \<cdot> i) \<cdot> t' = t" using calculation assms relation_ar_value
+          [where ?T=T and ?i=i] fibre_from_image [where ?f="ar T \<cdot> i" and ?a=eab]
+        by (smt (verit, del_insts) Inclusion.select_convs(2) Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> i_def mem_Collect_eq rel_comb_mult_local_subset) 
+      then obtain "t'" where "t' \<in> eab \<and> (ar T \<cdot> i) \<cdot> t' = t"
+        by blast 
+
+      define "t'_A" where "t'_A = (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t'" 
+      define "t'_B" where "t'_B = (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t'" 
+
+      moreover have t'_A : "t'_A \<in> e a"
+        using R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> calculation(1) join_def t'_A_def by auto  
+      moreover have "t'_B \<in> e b"
+        using R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> calculation(1) join_def t'_B_def by auto 
+
+      moreover have "Poset.le (gc R) a a'"
+        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) join_def product_le_1 rel_comb_dom valid_gc valid_rel_prealg) 
+      moreover have "Poset.le (gc R) b b'"
+        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) join_def product_le_2 rel_comb_dom valid_gc valid_rel_prealg)
+
+      define "i_A'_A" where "i_A'_A = make_inc (d a') (d a)"
+      define "i_B'_B" where "i_B'_B = make_inc (d b') (d b)"
+
+      moreover have "i_A'_A \<in> inclusions (space T)"
+        by (metis (no_types, lifting) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> calculation(9) d_antitone i_A'_A_def local_dom valid_rel_prealg valid_relation_space) 
+      moreover have "i_B'_B \<in> inclusions (space T)"
+        by (metis (no_types, lifting) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) R_def T_valid \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> calculation(10) d_antitone local_dom valid_rel_prealg valid_relation_space)
+      
+      define "t'_A'" where "t'_A' = (ar T \<cdot> i_A'_A) \<cdot> t'_A"
+      define "t'_B'" where "t'_B' = (ar T \<cdot> i_B'_B) \<cdot> t'_B" 
+
+      moreover have "t'_A' \<in> (Prealgebra.ar R \<cdot> i_A'_A) \<star> e a" using assms calculation relation_res_tup
+        by (metis (no_types, lifting) \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> d_antitone gc_elem_local i_A'_A_def local_dom t'_A'_def valid_rel_prealg valid_relation_space)
+
+      moreover have "(Prealgebra.ar R \<cdot> i_A'_A) \<star> e a \<subseteq> e a'" using assms calculation
+          relation_le_is_subseteq [where ?T=T]
+        using \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> i_A'_A_def by presburger 
+      
+      moreover have "t'_A' \<in> e a'"
+        using calculation(13) calculation(14) by blast 
+
+      moreover have "t'_B' \<in> (Prealgebra.ar R \<cdot> i_B'_B) \<star> e b" using assms calculation relation_res_tup
+        by (metis (no_types, lifting) \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> d_antitone gc_elem_local local_dom valid_rel_prealg valid_relation_space)
+
+      moreover have "(Prealgebra.ar R \<cdot> i_B'_B) \<star> e b \<subseteq> e b'" using assms calculation
+          relation_le_is_subseteq [where ?T=T]
+        using \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> by presburger
+      
+      moreover have "t'_B' \<in> e b'"
+        using calculation(16) calculation(17) by blast
+
+      define "j_A'" where "j_A' = make_inc (d a') (d a' \<union> d b')"
+      define "j_B'" where "j_B' = make_inc (d b') (d a' \<union> d b')"
+
+      define "s_A'" where "s_A' = (ar T \<cdot> j_A') \<cdot> t"
+      define "s_B'" where "s_B' = (ar T \<cdot> j_B') \<cdot> t" 
+
+      moreover have "s_A' = t'_A'" using assms calculation Presheaf.diamond_rule
+        by (metis (no_types, lifting) CollectD Tuple.valid_welldefined \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> d_antitone eab_def i_A'_A_def i_def j_A'_def local_dom s_A'_def sup_ge1 t'_A'_def t'_A_def valid_rel_prealg valid_relation_space)
+      moreover have "s_B' = t'_B'" using assms calculation Presheaf.diamond_rule
+        by (metis (no_types, lifting) CollectD Tuple.valid_welldefined \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> d_antitone eab_def i_def j_B'_def local_dom sup.cobounded2 valid_rel_prealg valid_relation_space)
+
+      define "ea'b'" where "ea'b' = { t | t . t \<in> ob T \<cdot> (d a' \<union> d b') 
+                                     \<and> (ar T \<cdot> (make_inc (d a') (d a' \<union> d b'))) \<cdot> t \<in> e a'     
+                                     \<and> (ar T \<cdot> (make_inc (d b') (d a' \<union> d b'))) \<cdot> t \<in> e b' }"
+
+      moreover have "t \<in> ea'b'"
+        by (smt (verit, ccfv_SIG) CollectD CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Presheaf.image T_valid Tuple.valid_welldefined \<open>s_B' = t'_B'\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> \<open>t'_B' \<in> e b'\<close> calculation(15) calculation(19) calculation(4) ea'b'_def eab_def i_def j_A'_def j_B'_def s_A'_def s_B'_def) 
+
+      moreover have "e (join \<star> (a', b')) = ea'b'" using rel_comb_mult_e [where ?T=T and ?a=a' and ?b=b' ]
+          join_def ea'b'_def assms calculation
+        using \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> by presburger 
+
+      ultimately show "t \<in> e (join \<star> (a', b'))"
+        by fastforce 
+    qed
     ultimately show ?thesis
       by (smt (verit, best) R_def T_valid join_def local_dom powerset_le rel_comb_mult_d rel_comb_mult_el rel_comb_mult_local_subset relation_as_value relation_ob_value subset_trans valid_rel_prealg valid_relation_space) 
   qed
@@ -687,7 +819,7 @@ next
   then show ?case
     by (metis assms prod.collapse rel_comb_cod rel_comb_mult_monotone) 
 qed
-
+ 
 lemma valid_rel_comb :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -702,8 +834,8 @@ next
     by (simp add: assms rel_comb_cod rel_comb_dom) 
 next
   case (3 a b a b a b)
-  then show ?case sorry
-qed
-  oops
+  then show ?case oops
+
+  
 
 end

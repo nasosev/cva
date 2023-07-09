@@ -20,11 +20,11 @@ definition valid :: "('A, 'a) Prealgebra \<Rightarrow> bool" where
 
       welldefined = Space.valid T
                     \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
                     \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
                            \<and>  Poset.dom (F1 \<cdot> i) = F0 \<cdot> Space.cod i
                            \<and>  Poset.cod (F1 \<cdot> i) = F0 \<cdot> Space.dom i );
-      identity = (\<forall>A. A \<in> Space.opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Poset.ident (F0 \<cdot> A));
+      identity = (\<forall>A. A \<in> opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Poset.ident (F0 \<cdot> A));
       composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i
         \<longrightarrow>  F1 \<cdot> (j \<propto> i) = (F1 \<cdot> i) \<diamondop> (F1 \<cdot> j))
     in
@@ -49,9 +49,9 @@ definition valid_map :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> bool" where
                     \<and> T = space (cod f)
                     \<and> valid (dom f) \<and> valid (cod f)
                     \<and> (Function.valid_map (nat f))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A));
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A));
       naturality = (\<forall>i. i \<in> inclusions T \<longrightarrow>
           (nat f \<cdot> Space.dom i) \<diamondop> (ar (dom f) \<cdot> i) = (ar (cod f) \<cdot> i) \<diamondop> (nat f \<cdot> Space.cod i))
     in
@@ -66,11 +66,11 @@ lemma validI :
   defines "F1 \<equiv> ar F"
   assumes welldefined : "(Space.valid T)
                     \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
                     \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
                            \<and>  Poset.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
                            \<and>  Poset.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i) )"
-  assumes identity : "(\<forall>A. A \<in> Space.opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Poset.ident (F0 \<cdot> A))"
+  assumes identity : "(\<forall>A. A \<in> opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Poset.ident (F0 \<cdot> A))"
   assumes composition :" (\<forall> i j. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
         Space.dom j = Space.cod i \<longrightarrow> (F1 \<cdot> (j \<propto> i )) = (F1 \<cdot> i) \<diamondop> (F1 \<cdot> j))"
   shows "valid F"
@@ -89,8 +89,8 @@ lemma validI :
 
 lemma valid_welldefined  : "valid F \<Longrightarrow> let T = space F; F0 = ob F; F1 = ar F in (Space.valid T)
                     \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
-                    \<and> (\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid (F0 \<cdot> A))
+                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i)
                            \<and>  Poset.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
                            \<and>  Poset.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i) )"
   unfolding valid_def by (simp add: Let_def)
@@ -98,26 +98,25 @@ lemma valid_welldefined  : "valid F \<Longrightarrow> let T = space F; F0 = ob F
 lemma valid_space  : "valid F \<Longrightarrow> T = space F \<Longrightarrow> (Space.valid T)"
   by (meson Prealgebra.valid_welldefined)
 
-lemma valid_ob  : "valid F \<Longrightarrow> A \<in> Space.opens (space F) \<Longrightarrow> obA = ob F \<cdot> A \<Longrightarrow> Poset.valid obA"
+lemma valid_ob  : "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> obA = ob F \<cdot> A \<Longrightarrow> Poset.valid obA"
   unfolding valid_def by (simp add: Let_def)
 
 lemma valid_ar  :
-  fixes F :: "('A, 'a) Prealgebra" and i :: "'A Inclusion" and f ::  "('a,'a) PosetMap"
+  fixes F :: "('A, 'a) Prealgebra" and i :: "'A Inclusion"
   assumes "valid F"
-  and "i \<in> Space.inclusions (space F)"
-  and "f  \<equiv> ar F \<cdot> i" 
-  shows "Poset.valid_map f"
+  and "i \<in> inclusions (space F)"
+  shows "Poset.valid_map (ar F \<cdot> i)"
 proof -
   define "F1" where "F1 = Prealgebra.ar F" 
   define "T" where "T = Prealgebra.space F" 
-  have "(\<forall>i. i \<in> Space.inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i))"  using valid_welldefined
+  have "(\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i))"  using valid_welldefined
     by (metis (mono_tags, lifting) CollectD CollectI F1_def T_def assms(1)) 
-    moreover have "i \<in> Space.inclusions T"
+    moreover have "i \<in> inclusions T"
       using T_def assms(2) by fastforce 
     moreover have "Poset.valid_map (F1 \<cdot> i)"
       using calculation(1) calculation(2) by auto
     ultimately show ?thesis
-      using F1_def assms(3) by blast 
+      using F1_def by force 
   qed
 
 lemma valid_dom  : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> Space.cod i"
@@ -128,7 +127,7 @@ lemma valid_cod  : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Lon
   unfolding valid_def
   by (simp add: Let_def)
 
-lemma valid_identity  : "valid F \<Longrightarrow> A \<in> Space.opens (space F) \<Longrightarrow> ar F \<cdot> (Space.ident A) = Poset.ident (ob F \<cdot> A)"
+lemma valid_identity  : "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> ar F \<cdot> (Space.ident A) = Poset.ident (ob F \<cdot> A)"
   unfolding valid_def by (simp add: Let_def)
 
 lemma valid_composition :
@@ -146,9 +145,9 @@ lemma valid_mapI :
                     \<and> T = space (cod f)
                     \<and> (Function.valid_map (nat f))
                     \<and> valid F \<and> valid F'
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob F \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob F \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
   assumes naturality : "(\<forall>i. i \<in> inclusions T \<longrightarrow>
           (nat f \<cdot> Space.dom i) \<diamondop> (ar F \<cdot> i) = (ar F' \<cdot> i) \<diamondop> (nat f \<cdot> Space.cod i))"
   shows "valid_map f"
@@ -169,9 +168,9 @@ lemma valid_map_welldefined :
   "valid_map f \<Longrightarrow> let F = dom f; F' = cod f; T = map_space f in (Space.valid T)
                     \<and> (Function.valid_map (nat f))
                     \<and> valid F \<and> valid F'
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob F \<cdot> A))
-                    \<and> (\<forall>A. A \<in> Space.opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.dom (nat f \<cdot> A) = (ob F \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Poset.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
   by (meson Prealgebra.valid_map_def)
 
 lemma valid_map_space : "valid_map f \<Longrightarrow> Space.valid (map_space f)"
@@ -187,13 +186,13 @@ lemma valid_map_nat : "valid_map f \<Longrightarrow> Function.valid_map (nat f)"
   unfolding valid_map_def by (simp add: Let_def)
 
 lemma valid_map_nat_welldefined :
-  "valid_map f \<Longrightarrow> A \<in> Space.opens (map_space f) \<Longrightarrow> Poset.valid_map (nat f \<cdot> A)"
+  "valid_map f \<Longrightarrow> A \<in> opens (map_space f) \<Longrightarrow> Poset.valid_map (nat f \<cdot> A)"
   unfolding valid_map_def by (simp add: Let_def)
 
-lemma valid_map_nat_dom : "valid_map f \<Longrightarrow> A \<in> Space.opens (map_space f) \<Longrightarrow> Poset.dom ((nat f) \<cdot> A) = ob (dom f) \<cdot> A"
+lemma valid_map_nat_dom : "valid_map f \<Longrightarrow> A \<in> opens (map_space f) \<Longrightarrow> Poset.dom ((nat f) \<cdot> A) = ob (dom f) \<cdot> A"
   by (meson Prealgebra.valid_map_welldefined)
 
-lemma valid_map_nat_cod : "valid_map f \<Longrightarrow> A \<in> Space.opens (map_space f) \<Longrightarrow> Poset.cod ((nat f) \<cdot> A) = ob (cod f) \<cdot> A"
+lemma valid_map_nat_cod : "valid_map f \<Longrightarrow> A \<in> opens (map_space f) \<Longrightarrow> Poset.cod ((nat f) \<cdot> A) = ob (cod f) \<cdot> A"
   by (meson Prealgebra.valid_map_welldefined)
 
 lemma valid_map_naturality :
@@ -207,13 +206,13 @@ lemma valid_map_image :
   defines "F'A \<equiv> Prealgebra.ob (cod f) \<cdot> A"
   defines "fA \<equiv> (nat f) \<cdot> A"
   assumes f_valid :"valid_map f"
-  and A_open : "A \<in> Space.opens (map_space f)"
+  and A_open : "A \<in> opens (map_space f)"
   and a_dom : "a \<in> Poset.el FA"
 shows "fA \<star> a \<in> Poset.el F'A"
 proof -
   have "valid_map f"
     using f_valid by force
-  moreover have "A \<in> Space.opens (map_space f)"
+  moreover have "A \<in> opens (map_space f)"
     using A_open by blast
   moreover have "a \<in> Poset.el FA"
     using a_dom by blast
@@ -230,21 +229,21 @@ qed
 (* Application *)
 
 lemma ident_app [simp] :
- "valid F \<Longrightarrow> A \<in> Space.opens (space F) \<Longrightarrow> a \<in> el obA \<Longrightarrow>
+ "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> a \<in> el obA \<Longrightarrow>
   ar F \<cdot> (Space.ident A) \<star> a = Poset.ident (ob F \<cdot> A) \<star> a"
   by (simp add: valid_identity)
 
-lemma image : "valid F \<Longrightarrow> i \<in> Space.inclusions (space F) \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> (Space.cod i)) \<Longrightarrow>
+lemma image : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> (Space.cod i)) \<Longrightarrow>
     ((ar F \<cdot> i) \<star> a) \<in> Poset.el (ob F \<cdot> (Space.dom i)) "
   using Poset.fun_app2 valid_ar
   using valid_cod valid_dom by fastforce 
 
 (* Restriction *)
 
-lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> Space.inclusions (space F) \<Longrightarrow> B = Space.cod i \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> B"
+lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> B = Space.cod i \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> B"
   using valid_dom by blast
 
-lemma res_cod [simp] : "valid F \<Longrightarrow> i \<in> Space.inclusions (space F) \<Longrightarrow> A = Space.dom i \<Longrightarrow> Poset.cod (ar F \<cdot> i) = ob F \<cdot> A"
+lemma res_cod [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> A = Space.dom i \<Longrightarrow> Poset.cod (ar F \<cdot> i) = ob F \<cdot> A"
   using valid_cod by blast
 
 lemma res_monotone : 
@@ -253,7 +252,7 @@ lemma res_monotone :
   defines "FB \<equiv> Prealgebra.ob F \<cdot> B"
   defines "Fi \<equiv> Prealgebra.ar F \<cdot> i"
   assumes F_valid : "valid F"
-  and i_inc : "i \<in> Space.inclusions (space F)" 
+  and i_inc : "i \<in> inclusions (space F)" 
   and A_open : "A = Space.cod i" and B_open : "B = Space.dom i"
   and a_elem : "a \<in> Poset.el FA" and a'_elem : "a' \<in> Poset.el FA" 
   and a_le_a' : "Poset.le FA a a'"
@@ -274,6 +273,37 @@ moreover have "FB = Poset.cod Fi"
     by fastforce 
 qed
 
+lemma diamond_rule :
+  fixes F :: "('A, 'a) Prealgebra" and A B C D :: "'A Open" and a :: "'a"
+  assumes F_valid :"valid F"
+  and A_open : "A \<in> opens (space F)" and B_open : "B \<in> opens (space F)" 
+  and C_open : "C \<in> opens (space F)" and D_open : "D \<in> opens (space F)" 
+  and B_le_A : "B \<subseteq> A" and C_le_A : "C \<subseteq> A" 
+  and D_le_B : "D \<subseteq> B" and D_le_C : "D \<subseteq> C" 
+  and a_el : "a \<in> el (ob F \<cdot> A)"
+  defines "i_BA \<equiv> make_inc B A"
+  and "i_CA \<equiv> make_inc C A"
+  and "i_DB \<equiv> make_inc D B"
+  and "i_DC \<equiv> make_inc D C"
+shows "(ar F \<cdot> i_DB) \<star> ((ar F \<cdot> i_BA) \<star> a) = (ar F \<cdot> i_DC) \<star> ((ar F \<cdot> i_CA) \<star> a)"
+proof -
+  define "i" where "i \<equiv> make_inc D A"
+  have "i \<in> inclusions (space F)"
+    using A_open B_le_A D_le_B D_open i_def by auto
+   moreover have "i_BA \<in> inclusions (space F) \<and> i_CA \<in> inclusions (space F) \<and> i_DB \<in> inclusions (space F) \<and> i_DC \<in> inclusions (space F)"
+     by (simp add: A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open i_BA_def i_CA_def i_DB_def i_DC_def)
+  moreover have "i = i_BA \<propto> i_DB"
+    by (simp add: i_BA_def i_DB_def i_def) 
+  moreover have "i = i_CA \<propto> i_DC"
+    by (simp add: i_CA_def i_DC_def i_def)
+  moreover have "(ar F \<cdot> i_DB) \<star> ((ar F \<cdot> i_BA) \<star>  a) = (ar F \<cdot> i) \<star> a"
+    by (simp add: A_open B_le_A B_open D_le_B D_open F_valid Poset.compose_app_assoc a_el calculation(3) i_BA_def i_DB_def valid_ar valid_composition) 
+  moreover have "(ar F \<cdot> i_DC) \<star> ((ar F \<cdot> i_CA) \<star>  a) = (ar F \<cdot> i) \<star> a"
+    by (simp add: A_open C_le_A C_open D_le_C D_open F_valid Poset.compose_app_assoc a_el calculation(4) i_CA_def i_DC_def valid_ar valid_composition) 
+  ultimately show ?thesis
+    by presburger 
+qed
+
 (* Examples *)
 
 definition const ::  "'A Space \<Rightarrow> ('A, 'a) Prealgebra" where
@@ -290,7 +320,7 @@ lemma const_ob [simp] : "Space.valid T \<Longrightarrow> A \<in> opens T \<Longr
 lemma const_ar [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> ar (const T) \<cdot> i = Poset.ident Poset.discrete"
   by (metis (no_types, lifting) CollectD CollectI Function.const_app Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def UNIV_I) 
 
-lemma const_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> Space.inclusions T \<Longrightarrow> a \<in> el (ob (const T) \<cdot> (Space.cod i)) 
+lemma const_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> a \<in> el (ob (const T) \<cdot> (Space.cod i)) 
 \<Longrightarrow> (ar (const T) \<cdot> i) \<star> a = a"
   by (simp add: discrete_valid) 
 
@@ -342,10 +372,10 @@ lemma terminal_ob [simp] : "Space.valid T \<Longrightarrow> A \<in> opens T \<Lo
 lemma terminal_ar [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> ar (terminal T) \<cdot> i = Poset.ident Poset.discrete"
   by simp 
 
-lemma terminal_value [simp] : "Space.valid T \<Longrightarrow> A \<in> Space.opens T \<Longrightarrow> Poset.el (ob (terminal T) \<cdot> A) = {()}"
+lemma terminal_value [simp] : "Space.valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow> Poset.el (ob (terminal T) \<cdot> A) = {()}"
   by (simp add: Poset.discrete_def UNIV_unit) 
 
-lemma terminal_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> Space.inclusions T \<Longrightarrow> (ar (terminal T) \<cdot> i) \<star> a = ()"
+lemma terminal_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> (ar (terminal T) \<cdot> i) \<star> a = ()"
   by simp
 
 lemma terminal_valid : "Space.valid T \<Longrightarrow> valid (terminal T)"

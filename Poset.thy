@@ -655,6 +655,14 @@ proof auto
     by (metis Setcompr_eq_image X_def \<open>(\<cdot>) f ` a = b\<close> calculation(5) calculation(6) direct_image_app f_valid)
   qed
 
+lemma fibre_from_image :
+  fixes f :: "('a, 'b) Function" and a :: "'a set"
+  assumes f_valid : "Function.valid_map f"
+  and a_el : "a \<subseteq> Function.dom f"
+  and t_el : "t \<in> (direct_image f) \<star> a"
+  shows "\<exists> t' . t' \<in> a \<and> f \<cdot> t' = t"
+  using a_el direct_image_app f_valid t_el by fastforce
+
 (* Examples *)
 
 definition naturals :: "nat Poset" where

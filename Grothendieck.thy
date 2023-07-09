@@ -12,13 +12,13 @@ abbreviation e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
 
 definition gc :: "('A, 'a) Prealgebra \<Rightarrow> ('A set \<times> 'a) Poset" where
   "gc F \<equiv>
-    \<lparr> Poset.el = { (A, a) . A \<in> Space.opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)},
+    \<lparr> Poset.el = { (A, a) . A \<in> opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)},
       Poset.le_rel = { ((A, a), (B, b)) . 
-                     A \<in> Space.opens (space F) \<and> B \<in> Space.opens (space F) 
+                     A \<in> opens (space F) \<and> B \<in> opens (space F) 
                      \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
                      \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (Space.make_inc B A) \<star> a) b } \<rparr>"
 
-lemma gc_leI_raw : "A \<in> Space.opens (space F) \<Longrightarrow> B \<in> Space.opens (space F) \<Longrightarrow> B \<subseteq> A
+lemma gc_leI_raw : "A \<in> opens (space F) \<Longrightarrow> B \<in> opens (space F) \<Longrightarrow> B \<subseteq> A
 \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) \<Longrightarrow> b \<in> Poset.el (ob F \<cdot> B)
 \<Longrightarrow> Poset.le (ob F \<cdot> B) ((ar F \<cdot> (Space.make_inc B A)) \<star> a) b \<Longrightarrow> Poset.le (gc F) (A,a) (B,b)"
   unfolding gc_def
@@ -30,12 +30,22 @@ lemma gc_leI : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrigh
   apply clarsimp
   by force
 
-lemma gc_el : "el (gc F) = { (A, a) . A \<in> Space.opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)}"
+lemma gc_leE: "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
+\<Longrightarrow> d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b)" 
+  unfolding gc_def 
+  by force
+
+lemma gc_le_eq : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
+= (d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b))"
+  unfolding gc_def
+  by fastforce
+
+lemma gc_el : "el (gc F) = { (A, a) . A \<in> opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)}"
   unfolding gc_def 
   by simp
 
 lemma gc_le_rel : "le_rel (gc F) = { ((A, a), (B, b)) .
- A \<in> Space.opens (space F) \<and> B \<in> Space.opens (space F) 
+ A \<in> opens (space F) \<and> B \<in> opens (space F) 
  \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
  \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (Space.make_inc B A) \<star> a) b }" 
   unfolding gc_def 
@@ -74,7 +84,7 @@ lemma valid_gc_transitive :
   defines "prj_BC \<equiv> ar F \<cdot> i_CB"
   defines "prj_AC \<equiv> ar F \<cdot> i_CA"
   assumes F_valid : "valid F" and C_le_B : "C \<subseteq> B" and B_le_A : "B \<subseteq> A"
-  and A_open : "A \<in> Space.opens T" and B_open : "B \<in> Space.opens T" and C_open "C \<in> Space.opens T"
+  and A_open : "A \<in> opens T" and B_open : "B \<in> opens T" and C_open "C \<in> opens T"
   and A_el : "a \<in> el (ob F \<cdot> A)" and b_el : "b \<in> el (ob F \<cdot> B)" and c_el : "c \<in> el (ob F \<cdot> C)"
   and le_prj_a_b : "le (ob F \<cdot> B) (prj_AB \<star> a) b"
   and le_prj_b_c : "le (ob F \<cdot> C) (prj_BC \<star> b) c"
@@ -160,8 +170,8 @@ lemma valid_gc_le_wrap :
   defines "FB \<equiv>  ob F \<cdot> (d Bb)"
 
   assumes  "valid F"
-  assumes "d Aa \<in> Space.opens (space F)"
-  assumes "d Bb \<in> Space.opens (space F)"
+  assumes "d Aa \<in> opens (space F)"
+  assumes "d Bb \<in> opens (space F)"
   assumes "e Aa \<in> Poset.el FA"
   assumes "e Bb \<in> Poset.el FB"
   assumes "d Bb \<subseteq> d Aa"

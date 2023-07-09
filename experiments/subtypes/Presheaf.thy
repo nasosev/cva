@@ -19,7 +19,7 @@ definition valid :: "('A, 'x) RawPresheaf \<Rightarrow> bool" where
       welldefined =  (\<forall>i. i \<in> inclusions T \<longrightarrow>
                      Function.dom (F1 \<cdot> i) = F0 \<cdot> (Space.cod i)
                    \<and> Function.cod (F1 \<cdot> i) = F0 \<cdot> (Space.dom i));
-      identity = (\<forall>A. A \<in> Space.opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Function.ident (F0 \<cdot> A));
+      identity = (\<forall>A. A \<in> opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Function.ident (F0 \<cdot> A));
       composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow> Space.dom j = Space.cod i
         \<longrightarrow>  F1 \<cdot> (j \<propto> i) = (F1 \<cdot> i) \<bullet> (F1 \<cdot> j))
     in
@@ -30,8 +30,8 @@ typedef ('A, 'x) Presheaf = "{ rF :: ('A, 'x) RawPresheaf . valid rF}"
 proof
   define "empty_presheaf" where "empty_presheaf =  
     \<lparr> prim_space = Space.discrete,
-      prim_ob = Function.const (Space.opens Space.discrete) UNIV {},
-      prim_ar = Function.const (Space.inclusions Space.discrete) UNIV (Function.ident {})
+      prim_ob = Function.const (opens Space.discrete) UNIV {},
+      prim_ar = Function.const (inclusions Space.discrete) UNIV (Function.ident {})
    \<rparr>"
   have "valid empty_presheaf"  
     unfolding valid_def empty_presheaf_def 
@@ -59,6 +59,6 @@ lemma welldefined_dom :
   fixes F :: "('A, 'x) Presheaf" and i :: "'A Inclusion"
   assumes "i \<in> inclusions (space F)" 
   shows "Function.dom (ar F \<cdot> i) = ob F \<cdot> (Space.cod i)"
-  apply transfer'
   apply transfer
+  oops
 end
