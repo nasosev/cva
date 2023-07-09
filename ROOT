@@ -1,15 +1,15 @@
-session cva = HOL +
+session CVA = HOL +
   options [document = pdf, document_output = "output"]
 (*  theories [document = false] *)
   theories
     CVA
-    Tuple
     OVA
     Semigroup
     Grothendieck
     Prealgebra
-    Space
+    Presheaf
     Poset
+    Space
     Function
   document_files
     "root.tex"
