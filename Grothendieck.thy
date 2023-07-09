@@ -12,13 +12,25 @@ abbreviation e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
 
 definition gc :: "('A, 'a) Prealgebra \<Rightarrow> ('A set \<times> 'a) Poset" where
   "gc F \<equiv>
-    \<lparr>  Poset.el = { (A, a) . A \<in> Space.opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)},
+    \<lparr> Poset.el = { (A, a) . A \<in> Space.opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)},
       Poset.le_rel = { ((A, a), (B, b)) . 
                      A \<in> Space.opens (space F) \<and> B \<in> Space.opens (space F) 
                      \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
                      \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (Space.make_inc B A) \<star> a) b } \<rparr>"
 
-lemma gc_el : "el (gc F) = { (A, a) . A \<in> Space.opens (space F) \<and> a \<in> Poset.el ((ob F) \<cdot> A)}"
+lemma gc_leI_raw : "A \<in> Space.opens (space F) \<Longrightarrow> B \<in> Space.opens (space F) \<Longrightarrow> B \<subseteq> A
+\<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) \<Longrightarrow> b \<in> Poset.el (ob F \<cdot> B)
+\<Longrightarrow> Poset.le (ob F \<cdot> B) ((ar F \<cdot> (Space.make_inc B A)) \<star> a) b \<Longrightarrow> Poset.le (gc F) (A,a) (B,b)"
+  unfolding gc_def
+  by simp
+
+lemma gc_leI : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> d
+ b \<subseteq> d a \<Longrightarrow> Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> Poset.le (gc F) a b" 
+  unfolding gc_def
+  apply clarsimp
+  by force
+
+lemma gc_el : "el (gc F) = { (A, a) . A \<in> Space.opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)}"
   unfolding gc_def 
   by simp
 
@@ -107,9 +119,9 @@ next
   moreover have "d x \<in> opens (space F)"
     using \<open>x \<in> el (gc F)\<close> local_dom valid_F by blast 
 
-  moreover have "e x \<in> Poset.el ((ob F) \<cdot> (d x))"
+  moreover have "e x \<in> Poset.el (ob F \<cdot> (d x))"
     by (meson \<open>x \<in> el (gc F)\<close> gc_elem_local valid_F) 
-  moreover have "Poset.le ((ob F) \<cdot> (d x)) (((ar F) \<cdot> i) \<star> (e x)) (e x)"
+  moreover have "Poset.le (ob F \<cdot> (d x)) (((ar F) \<cdot> i) \<star> (e x)) (e x)"
     by (metis calculation(1) calculation(2) calculation(3) valid_F valid_ob valid_reflexivity) 
 
   moreover have "(x,x) \<in> le_rel (gc F)"  using  calculation i_def T_def gc_def [where ?F = F]
@@ -144,8 +156,8 @@ lemma valid_gc_le_wrap :
 
   defines "i \<equiv> Space.make_inc (d Bb) (d Aa)"
   defines "pr \<equiv>  (ar F) \<cdot> i"
-  defines "FA \<equiv>  (ob F) \<cdot> (d Aa)"
-  defines "FB \<equiv>  (ob F) \<cdot> (d Bb)"
+  defines "FA \<equiv>  ob F \<cdot> (d Aa)"
+  defines "FB \<equiv>  ob F \<cdot> (d Bb)"
 
   assumes  "valid F"
   assumes "d Aa \<in> Space.opens (space F)"
