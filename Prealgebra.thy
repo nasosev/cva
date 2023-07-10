@@ -57,7 +57,7 @@ definition valid_map :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> bool" where
     in
     (welldefined \<and> naturality)"
 
-(* Validity *)
+(* Presheaf validity *)
 
 lemma validI [intro] :
   fixes F :: "('A,'a) Prealgebra"
@@ -135,6 +135,8 @@ lemma valid_composition :
     ar F \<cdot> (j \<propto> i) = (ar F \<cdot> i) \<diamondop> (ar F \<cdot> j)" 
   unfolding valid_def
   by meson 
+
+(* PresheafMap validity *)
 
 lemma valid_mapI [intro] :
   fixes f :: "('A,'a,'b) PrealgebraMap"
@@ -237,6 +239,17 @@ lemma image : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrigh
     ((ar F \<cdot> i) \<star> a) \<in> Poset.el (ob F \<cdot> (Space.dom i)) "
   using Poset.fun_app2 valid_ar
   using valid_cod valid_dom by fastforce 
+
+lemma restricted_element :
+  fixes F :: "('A, 'a) Prealgebra" and A B :: "'A Open" and a :: "'a"
+  assumes F_valid :"valid F"
+  and A_open : "A \<in> opens (space F)" and B_open : "B \<in> opens (space F)" 
+  and B_le_A : "B \<subseteq> A"
+  and x_el : "a \<in> el (ob F \<cdot> A)"
+defines "i \<equiv> make_inc B A"
+shows "(ar F \<cdot> i) \<star> a \<in> el (ob F \<cdot> B)"
+  using valid_ar [where ?F=F and ?i=i]
+  by (metis (no_types, lifting) A_open B_le_A B_open CollectI F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) i_def image x_el)
 
 (* Restriction *)
 

@@ -287,55 +287,53 @@ and a_el : "a \<in> elems V" and "d a = A"
 and "B \<subseteq> A" and "B \<in> opens (space V)"
 defines "a_B \<equiv> res V B a"
 shows "a_B \<in> elems V"
-  unfolding a_B_def res_def
-  apply standard
-   apply auto
-  using assms(5) apply auto[1]
-  using a_el apply fastforce
-  using assms(3) assms(4) apply blast
 proof -
-  define "i" where "i = make_inc B (d a)"
-  define "f" where "f = ar (prealgebra V) \<cdot> i"
-  define "FA" where "FA \<equiv> ((ob (prealgebra V)) \<cdot> A)"
-  define "FB" where "FB \<equiv> ((ob (prealgebra V)) \<cdot> B)"
-
-  have "Prealgebra.valid (prealgebra V)"
-    by (simp add: assms(1) valid_prealgebra)
-  moreover have "A \<in> opens (space V)"
-    using assms(1) assms(3) d_elem_is_open a_el by blast
-  moreover have "Space.valid_inc i"
-    by (simp add: assms(3) assms(4) i_def)
-  moreover have  "i \<in> inclusions (space V)"
-    using assms(3) assms(5) calculation(2) calculation(3) i_def by auto 
-  moreover have "f =  ar (prealgebra V) \<cdot> i"
-    by (simp add: f_def)
-  moreover have "Poset.valid_map f" using Prealgebra.valid_ar calculation
-    by blast
-  moreover have "d a_B = B"
-    using a_B_def assms(1) assms(3) assms(4) assms(5) calculation(2) d_res a_el by blast
-  moreover have "Poset.cod f = FB"
-    using FB_def calculation(1) calculation(4) f_def i_def by auto
-  moreover have "Poset.valid FB"
-    using Poset.valid_map_welldefined_cod calculation(6) calculation(8) by blast
-  moreover have "e a \<in> Poset.el FA"
-    by (metis OVA.valid_welldefined FA_def assms(1) assms(3) a_el gc_elem_local)
-  moreover have "a_B \<equiv> res V B a"
-    by (simp add: a_B_def)
-  moreover have "e (res V B a) = f \<star> (e a)"
-    by (metis a_el assms(3) assms(4) assms(5) f_def res_def i_def snd_conv)
-  moreover have "f \<star> (e a) \<in> Poset.el FB"
-    by (metis (no_types, lifting) FA_def FB_def Inclusion.select_convs(1) Inclusion.select_convs(2) assms(3) calculation(1) calculation(10) calculation(4) f_def i_def image mem_Collect_eq)
-  moreover have "f \<star> (e a) = e a_B"
-    using a_B_def calculation(12) by force
-  moreover have "e a_B \<in>  Poset.el FB"
-    by (simp add: a_B_def calculation(12) calculation(13))
-  moreover have "a_B \<in> el (poset V)"
-    by (metis FB_def assms(1) assms(5) calculation(1) calculation(15) calculation(7) local_elem_gc prod.exhaust_sel valid_gc_poset)
-  ultimately show "(B, ar (prealgebra V) \<cdot> make_inc B (d a) \<star> e a) \<in> el (PosetMap.cod
- (mult (OVA.semigroup V)))"
-    by (metis (no_types, lifting) comp_eq_dest_lhs i_def prod.exhaust_sel) 
+  have "(B, ar (prealgebra V) \<cdot> \<lparr>Inclusion.dom = B, cod = d a\<rparr> \<star> e a) \<in> el (PosetMap.cod (mult (OVA.semigroup V))) "
+  proof -
+    define "i" where "i = make_inc B (d a)"
+    define "f" where "f = ar (prealgebra V) \<cdot> i"
+    define "FA" where "FA \<equiv> ((ob (prealgebra V)) \<cdot> A)"
+    define "FB" where "FB \<equiv> ((ob (prealgebra V)) \<cdot> B)"
+  
+    have "Prealgebra.valid (prealgebra V)"
+      by (simp add: assms(1) valid_prealgebra)
+    moreover have "A \<in> opens (space V)"
+      using assms(1) assms(3) d_elem_is_open a_el by blast
+    moreover have "Space.valid_inc i"
+      by (simp add: assms(3) assms(4) i_def)
+    moreover have  "i \<in> inclusions (space V)"
+      using assms(3) assms(5) calculation(2) calculation(3) i_def by auto 
+    moreover have "f =  ar (prealgebra V) \<cdot> i"
+      by (simp add: f_def)
+    moreover have "Poset.valid_map f" using Prealgebra.valid_ar calculation
+      by blast
+    moreover have "d a_B = B"
+      using a_B_def assms(1) assms(3) assms(4) assms(5) calculation(2) d_res a_el by blast
+    moreover have "Poset.cod f = FB"
+      using FB_def calculation(1) calculation(4) f_def i_def by auto
+    moreover have "Poset.valid FB"
+      using Poset.valid_map_welldefined_cod calculation(6) calculation(8) by blast
+    moreover have "e a \<in> Poset.el FA"
+      by (metis OVA.valid_welldefined FA_def assms(1) assms(3) a_el gc_elem_local)
+    moreover have "a_B \<equiv> res V B a"
+      by (simp add: a_B_def)
+    moreover have "e (res V B a) = f \<star> (e a)"
+      by (metis a_el assms(3) assms(4) assms(5) f_def res_def i_def snd_conv)
+    moreover have "f \<star> (e a) \<in> Poset.el FB"
+      by (metis (no_types, lifting) FA_def FB_def Inclusion.select_convs(1) Inclusion.select_convs(2) assms(3) calculation(1) calculation(10) calculation(4) f_def i_def image mem_Collect_eq)
+    moreover have "f \<star> (e a) = e a_B"
+      using a_B_def calculation(12) by force
+    moreover have "e a_B \<in>  Poset.el FB"
+      by (simp add: a_B_def calculation(12) calculation(13))
+    moreover have "a_B \<in> el (poset V)"
+      by (metis FB_def assms(1) assms(5) calculation(1) calculation(15) calculation(7) local_elem_gc prod.exhaust_sel valid_gc_poset)
+    ultimately show "(B, ar (prealgebra V) \<cdot> make_inc B (d a) \<star> e a) \<in> el (PosetMap.cod
+   (mult (OVA.semigroup V)))"
+      by (metis (no_types, lifting) comp_eq_dest_lhs i_def prod.exhaust_sel) 
   qed
-
+  show ?thesis
+    by (metis (no_types, lifting) \<open>(B, ar (prealgebra V) \<cdot> \<lparr>Inclusion.dom = B, cod = d a\<rparr> \<star> e a) \<in> el (PosetMap.cod (mult (OVA.semigroup V)))\<close> a_B_def a_el assms(3) assms(4) assms(5) comp_apply res_def)
+qed
 
 lemma neutral_is_element :
 fixes V :: "('A,'a) OVA" and A :: "'A Open"
@@ -635,11 +633,13 @@ proof -
   ultimately show ?thesis using assms 
     apply clarsimp
     apply (frule valid_welldefined)
-    apply (simp_all add: Let_def gc_def)
-    apply auto
-    apply (metis (no_types, opaque_lifting) FB_def Fi_def a_B_def eq_fst_iff i_def snd_conv)
+    apply (simp_all add: Let_def gc_def) 
+    apply safe
+    apply (metis fst_conv subsetD)
+    apply (metis (no_types, lifting) FB_def Fi_def a_B_def fst_conv i_def snd_conv)
+    apply auto[1]
     using Fi_def a_B_def i_def apply fastforce
-    using FB_def by fastforce 
+    using FB_def by force
 qed
 
 lemma elem_le_wrap :

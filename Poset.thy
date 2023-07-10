@@ -128,9 +128,6 @@ lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Long
 
 lemma valid_map_monotone : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f \<star> a) (f \<star> a')"
 unfolding valid_map_def
-  apply auto
-  apply meson
-   apply metis
   by metis
 
 lemma valid_map_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('a, 'b) PosetMap) = g"
@@ -625,7 +622,7 @@ lemma surj_imp_direct_image_surj :
   assumes f_valid : "Function.valid_map f"
   and f_surj : "Function.is_surjective f"
   shows "Poset.is_surjective (direct_image f)"
-proof auto
+proof safe
   fix b
   define "X" where "X = Function.dom f"
   define "Y" where "Y = Function.cod f"

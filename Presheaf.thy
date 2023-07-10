@@ -56,7 +56,7 @@ definition valid_map :: "('A, 'x, 'y) PresheafMap \<Rightarrow> bool" where
     in
     (welldefined \<and> naturality)"
 
-(* Validity *)
+(* Presheaf validity *)
 
 lemma validI [intro] :
   fixes F :: "('A,'x) Presheaf"
@@ -120,6 +120,8 @@ lemma valid_composition :
   unfolding valid_def
   by meson 
 
+(* Application *)
+
 lemma diamond_rule :
   fixes F :: "('A, 'x) Presheaf" and A B C D :: "'A Open" and x :: "'x"
   assumes F_valid :"valid F"
@@ -134,6 +136,19 @@ lemma diamond_rule :
   and "i_DC \<equiv> make_inc D C"
 shows "(ar F \<cdot> i_DB) \<cdot> ((ar F \<cdot> i_BA) \<cdot>  x) = (ar F \<cdot> i_DC) \<cdot> ((ar F \<cdot> i_CA) \<cdot>  x)"
   by (smt (z3) A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) compose_app_assoc compose_inc_def i_BA_def i_CA_def i_DB_def i_DC_def mem_Collect_eq valid_ar valid_cod valid_composition valid_dom x_el)
+
+lemma restricted_element :
+  fixes F :: "('A, 'x) Presheaf" and A B :: "'A Open" and x :: "'x"
+  assumes F_valid :"valid F"
+  and A_open : "A \<in> opens (space F)" and B_open : "B \<in> opens (space F)" 
+  and B_le_A : "B \<subseteq> A"
+  and x_el : "x \<in> ob F \<cdot> A"
+defines "i \<equiv> make_inc B A"
+shows "(ar F \<cdot> i) \<cdot> x \<in> ob F \<cdot> B"
+  using valid_ar [where ?F=F and ?i=i]
+  using A_open B_le_A B_open F_valid fun_app2 i_def valid_cod valid_dom x_el by fastforce
+
+(* PresheafMap validity *)
 
 lemma valid_mapI [intro] :
   fixes f :: "('A,'x,'y) PresheafMap"
