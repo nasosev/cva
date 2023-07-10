@@ -814,11 +814,9 @@ next
                                      \<and> (ar T \<cdot> (make_inc (d b) U)) \<cdot> t \<in> e b  
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }"
 
-    have t1: "\<forall> t . t \<in> ob T \<cdot> U \<longrightarrow> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) = (ar T \<cdot> (make_inc (d a) U)) \<cdot> t"
-      by (smt (verit, ccfv_SIG) Function.ident_app Presheaf.diamond_rule Presheaf.valid_identity R_def Space.ident_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el local_dom rel_comb_mult_d rel_comb_mult_el sup.cobounded1 sup.idem sup.orderI sup_assoc valid_rel_prealg valid_relation_space) 
-
-    moreover have t2: "\<forall> t . t \<in> ob T \<cdot> U \<longrightarrow> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) = (ar T \<cdot> (make_inc (d b) U)) \<cdot> t"
-      by (smt (verit, ccfv_threshold) Function.ident_app Presheaf.diamond_rule Presheaf.valid_identity R_def Space.ident_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el le_sup_iff local_dom rel_comb_mult_d rel_comb_mult_el sup.cobounded1 sup_commute sup_ge2 valid_rel_prealg valid_relation_space)
+    have trans: "\<forall> A B t . A \<in> opens (space T) \<longrightarrow> B \<in> opens (space T) \<longrightarrow> B \<subseteq> A \<longrightarrow> A \<subseteq> U \<longrightarrow> t \<in> ob T \<cdot> U 
+  \<longrightarrow> (ar T \<cdot> (make_inc B A)) \<cdot> ((ar T \<cdot> (make_inc A  U)) \<cdot> t) = (ar T \<cdot> (make_inc B U)) \<cdot> t"
+      by (smt (verit, del_insts) Function.ident_app Presheaf.diamond_rule Presheaf.valid_identity Presheaf.valid_space R_def Space.ident_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el dual_order.refl dual_order.trans local_dom valid_rel_prealg valid_relation_space valid_union2)
 
     moreover have "lhs = { t | t . t \<in> ob T \<cdot> U
                                      \<and> (ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t \<in> e (mul S a b)  
@@ -840,7 +838,6 @@ next
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }"
        by blast 
 
-
      moreover have "... = { t | t . t \<in> ob T \<cdot> U 
                                      \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> e b  
@@ -849,10 +846,49 @@ next
        by (metis (no_types, lifting) Presheaf.valid_space R_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el local_dom sup.cobounded1 valid_rel_prealg valid_relation_space valid_union2) 
 
 
-    moreover have "... = mhs" using  assms calculation mhs_def using t1 t2
-      by (smt (verit, best) Collect_cong)
+     moreover have "... = mhs" using  assms  mhs_def trans
+       by (smt (verit) Collect_cong U_def local_dom rel_comb_mult_d rel_comb_mult_el sup.cobounded1 sup.cobounded2 valid_rel_prealg valid_relation_space) 
+
+     ultimately have lhs: "lhs = mhs"
+       by presburger 
+
+    have "rhs = { t | t . t \<in> ob T \<cdot> U
+                                     \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a     
+                                     \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> e (mul S b c)  }" using rel_comb_mult_e [where ?T=T and ?a=a and ?b="mul S b c"]
+      by (smt (verit, ccfv_SIG) Collect_cong R_def S_def T_valid U_def a_el b_el c_el rel_comb_mult_d rel_comb_mult_el rhs_def sup_assoc)
+
+    moreover have "... = { t | t . t \<in> ob T \<cdot> U
+                                     \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a     
+                                     \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> { t | t . t \<in> ob T \<cdot> (d b \<union> d c) 
+                                     \<and> (ar T \<cdot> (make_inc (d b) (d b \<union> d c))) \<cdot> t \<in> e b     
+                                     \<and> (ar T \<cdot> (make_inc (d c) (d b \<union> d c))) \<cdot> t \<in> e c }  }" 
+      using rel_comb_mult_e [where ?T=T and ?a=b and ?b=c]
+      using R_def S_def T_valid b_el c_el by presburger 
+
+    moreover have "... = { t | t . t \<in> ob T \<cdot> U
+                                     \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a     
+                                     \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> ob T \<cdot> (d b \<union> d c) 
+                                     \<and> ((ar T \<cdot> (make_inc (d b) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e b     
+                                     \<and> ((ar T \<cdot> (make_inc (d c) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e c }"
+      by blast 
+
+    moreover have "... = { t | t . t \<in> ob T \<cdot> U   
+                                     \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a    
+                                     \<and> ((ar T \<cdot> (make_inc (d b) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e b     
+                                     \<and> ((ar T \<cdot> (make_inc (d c) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e c }"
+      using Presheaf.restricted_element [where ?F="presheaf T" and ?A=U and ?B="d b \<union> d c"]
+      by (metis (no_types, lifting) Presheaf.valid_space R_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el local_dom sup.cobounded2 sup_assoc valid_rel_prealg valid_relation_space valid_union2)
+
+    moreover have "... = mhs"
+      by (smt (verit, del_insts) Collect_cong R_def S_def T_valid Tuple.valid_welldefined U_def \<open>{t |t. t \<in> Tuple.ob T \<cdot> U \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a, cod = d a \<union> d b\<rparr>) \<cdot> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a \<union> d b, cod = U\<rparr>) \<cdot> t \<in> e a \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d b, cod = d a \<union> d b\<rparr>) \<cdot> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a \<union> d b, cod = U\<rparr>) \<cdot> t \<in> e b \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d c, cod = U\<rparr>) \<cdot> t \<in> e c} = mhs\<close> a_el b_el c_el local.trans local_dom rel_comb_mult_d rel_comb_mult_el sup.cobounded1 sup.cobounded2 sup_assoc valid_rel_prealg valid_relation_space) 
+
+    ultimately have rhs : "rhs = mhs"
+      by presburger 
+    show ?thesis using lhs rhs
+      using lhs_def rhs_def by fastforce
+  qed
 qed
-  
+
 lemma rel_comb_mult_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes T_valid : "valid T"
