@@ -1,3 +1,5 @@
+section \<open> Tuple.thy \<close>
+
 theory Tuple
   imports Main Presheaf Prealgebra OVA
 begin
@@ -953,9 +955,9 @@ abbreviation rel_ova :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x set) OVA" wh
 lemma rel_neutral_law_left : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and a :: "('A, 'x) Relation"
   defines "V \<equiv> rel_ova T"
-  assumes "valid T"
-  and "A \<in> opens (space T)"
-  and "a \<in> elems V"
+  assumes T_valid : "valid T"
+  and A_open : "A \<in> opens (space T)"
+  and a_el : "a \<in> elems V"
 shows "comb V (neut V (d a)) a = a"
 proof -
   define "ea" where "ea = { t | t . t \<in> ob T \<cdot> d a \<and> (ar T \<cdot> (make_inc (d a) (d a))) \<cdot> t \<in> e (neut V (d a))    
@@ -965,10 +967,10 @@ proof -
   moreover have "e (comb V (neut V (d a)) a) = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e (neut V (d a)) \<and> t \<in> e a }" 
     using rel_semigroup_mult_e [where ?T=T and ?a="neut V (d a)" and ?b=a] Presheaf.valid_identity
       [where ?F="presheaf T"] Function.ident_app
-    by (smt (verit) Collect_cong OVA.select_convs(2) OVA.select_convs(3) Space.ident_def Tuple.valid_welldefined Un_absorb V_def assms(2) assms(4) calculation comp_apply local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod valid_rel_prealg valid_relation_space)
+    by (smt (verit, del_insts) Collect_cong OVA.select_convs(2) OVA.select_convs(3) Space.ident_def T_valid Tuple.valid_welldefined V_def a_el comp_apply d local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod sup.idem valid_rel_prealg valid_relation_space)
   moreover have "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a }" using calculation
       rel_neutral_nat_value_app [where ?T=T and ?A="d a"]
-    by (smt (verit) Collect_cong OVA.select_convs(2) OVA.select_convs(3) Poset.Poset.select_convs(1) Poset.const_dom Poset.discrete_def UNIV_witness V_def assms(2) assms(4) comp_apply local_dom old.unit.exhaust rel_neutral_nat_value rel_semigroup_cod relation_as_value snd_conv subsetI valid_rel_prealg valid_relation_space) 
+    by (smt (verit) Collect_cong OVA.select_convs(2) OVA.select_convs(3) Poset.Poset.select_convs(1) Poset.const_dom Poset.discrete_def T_valid UNIV_witness V_def assms(4) comp_apply local_dom old.unit.exhaust rel_neutral_nat_value rel_semigroup_cod relation_as_value snd_conv subsetI valid_rel_prealg valid_relation_space)
   moreover have "... = e a" using calculation relation_ob_value [where ?T=T and ?A="d a"] powerset_el [where ?A="ob T \<cdot> A" and ?a="e a"] assms
     by (smt (verit) Collect_cong Collect_mem_eq OVA.select_convs(3) comp_apply gc_elem_local local_dom powerset_el rel_semigroup_cod subsetD valid_rel_prealg valid_relation_space) 
   ultimately have e: "e (comb V (neut V (d a)) a) = e a"
@@ -976,12 +978,43 @@ proof -
   have "a = (d a, e a)"  
     by simp 
   moreover have "comb V (neut V (d a)) a \<in> elems V"
-    by (metis (mono_tags, lifting) OVA.select_convs(2) OVA.select_convs(3) V_def assms(2) assms(4) comp_apply local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod rel_semigroup_mult_el valid_rel_prealg valid_relation_space) 
+    by (metis OVA.select_convs(2) OVA.select_convs(3) T_valid V_def a_el comp_apply local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod rel_semigroup_mult_el valid_rel_prealg valid_relation_space)
   moreover have "(comb V (neut V (d a)) a)  = (d a, e a)" using gc_elD [where ?a="(comb V (neut V (d
         a)) a)"] d e calculation
-    by (smt (verit) OVA.select_convs(2) OVA.select_convs(3) Un_absorb V_def assms(2) assms(4) comp_apply local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod rel_semigroup_mult_d valid_rel_prealg valid_relation_space) 
+    by (metis (mono_tags, lifting) OVA.select_convs(2) OVA.select_convs(3) T_valid Un_absorb V_def a_el comp_apply local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod rel_semigroup_mult_d valid_rel_prealg valid_relation_space) 
   ultimately show ?thesis
     by presburger
+qed
+
+lemma comb_law_left : 
+  fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and a b :: "('A, 'x) Relation"
+  defines "V \<equiv> rel_ova T"
+  assumes T_valid : "valid T"
+  and A_open : "A \<in> opens (space T)"
+  and a_el : "a \<in> elems V"
+  and b_el : "b \<in> elems V"
+shows "res (rel_ova T) (d a) (comb (rel_ova T) a b) = comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)"
+proof (standard, goal_cases)
+  case 1
+  then show ?case
+  proof -
+    have "d (comb (rel_ova T) a b) = d a \<union> d b"
+      using T_valid V_def a_el b_el rel_semigroup_cod by fastforce 
+    moreover have "d (res (rel_ova T) (d a) (comb (rel_ova T) a b)) = d a" using d_res [where ?V=V and ?B="d a"]
+      by (metis (mono_tags, lifting) OVA.select_convs(1) OVA.select_convs(3) T_valid V_def \<open>d (comb (rel_ova T) a b) = d a \<union> d b\<close> a_el b_el comp_eq_dest_lhs local_dom rel_semigroup_cod rel_semigroup_mult_el sup.cobounded1 valid_rel_prealg)
+    moreover have "d (res (rel_ova T) (d a \<inter> d b) b) = d a \<inter> d b"
+      by (smt (verit, best) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Space.valid_def T_valid Tuple.valid_space V_def a_el b_el comp_apply d_res local_dom rel_semigroup_cod valid_rel_prealg valid_relation_space) 
+    moreover have "(res (rel_ova T) (d a \<inter> d b) b) \<in> elems V" using rel_semigroup_def [where ?T=T]
+      by (smt (verit) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Prealgebra.restricted_element Space.valid_def T_valid Tuple.valid_space V_def a_el b_el comp_apply gc_elem_local local_dom local_elem_gc rel_semigroup_cod res_def valid_rel_prealg valid_relation_space)
+    moreover have "d (comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)) = d a" using
+        rel_semigroup_mult_d [where ?T=T and ?a=a and ?b="(res (rel_ova T) (d a \<inter> d b) b)"]
+      using T_valid V_def a_el calculation(3) calculation(4) rel_semigroup_cod by force 
+    ultimately show ?thesis
+      by blast
+  qed
+  next
+  case 2
+  then show ?case sorry
 qed
 
 (* [Theorem 2 (2/4), CVA] *)

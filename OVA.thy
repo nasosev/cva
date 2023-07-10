@@ -50,9 +50,9 @@ abbreviation (input) local_elems :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightar
 definition "OVA_res_undefined_bad_args _ _ \<equiv> undefined"
 
 definition res :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"res V B a \<equiv> let i = Space.make_inc B (d a) in
+"res V B a \<equiv>
   if a \<in> elems V \<and> B \<in> opens (space V) \<and> B \<subseteq> d a
-  then (B, Prealgebra.ar (prealgebra V) \<cdot> i \<star> (e a))
+  then (B, Prealgebra.ar (prealgebra V) \<cdot> (Space.make_inc B (d a)) \<star> (e a))
   else OVA_res_undefined_bad_args B a"
 
 definition "OVA_ext_undefined_bad_args _ _ \<equiv> undefined"
@@ -237,7 +237,7 @@ lemma valid_comb_associative : "valid V \<Longrightarrow> a \<in> elems V \<Long
   unfolding valid_def
   by (meson valid_associative)
 
-lemma valid_comb_monotone : "valid V \<Longrightarrow>  a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> b1 \<in> elems V \<Longrightarrow> b2 \<in> elems V
+lemma valid_comb_monotone : "valid V \<Longrightarrow> a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> b1 \<in> elems V \<Longrightarrow> b2 \<in> elems V
 \<Longrightarrow> le V a1 a2 \<Longrightarrow> le V b1 b2
 \<Longrightarrow> le V (comb V a1 b1) (comb V a2 b2)"
   by (smt (verit) valid_monotone valid_semigroup)
@@ -252,13 +252,13 @@ lemma global_inclusion_element : "valid V \<Longrightarrow> A \<in> opens (space
 lemma d_elem_is_open : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a \<in> opens (space V)"
   by (metis local_dom valid_gc_poset valid_prealgebra)
 
-lemma d_neut [simp] : "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> d (neut V A) = A"
+lemma d_neut [simp] : "A \<in> opens (space V) \<Longrightarrow> d (neut V A) = A"
   by simp
 
 lemma d_comb [simp] : "valid V \<Longrightarrow>  a \<in> elems V \<Longrightarrow> b \<in> elems V  \<Longrightarrow> d (comb V a b) = d a \<union> d b"
 by (simp add: valid_domain_law)
 
-lemma d_res [simp] : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> B \<in> opens (space V) \<Longrightarrow> B \<subseteq> d a \<Longrightarrow> d (res V B a) = B"
+lemma d_res [simp] : "a \<in> elems V \<Longrightarrow> B \<in> opens (space V) \<Longrightarrow> B \<subseteq> d a \<Longrightarrow> d (res V B a) = B"
   by (simp add: res_def)
 
 lemma comb_is_element :
@@ -283,7 +283,7 @@ qed
 lemma res_elem :
 fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a :: "('A, 'a) Valuation"
 assumes V_valid : "valid V"
-and a_el : "a \<in> elems V" and "d a = A"
+assumes a_el : "a \<in> elems V" and "d a = A"
 and "B \<subseteq> A" and "B \<in> opens (space V)"
 defines "a_B \<equiv> res V B a"
 shows "a_B \<in> elems V"

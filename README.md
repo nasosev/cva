@@ -50,6 +50,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 ## To-do
 
 - Sections 3-6...
+- Remove unnecessary `valid` assumptions from theorems/lemmas/etc. (see [Design principles](#design-principles))
 
 ## Design principles
 
