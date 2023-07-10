@@ -39,7 +39,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ### Section 3 - Tuple systems: Tuple.thy
 
-- [ ] Theorem 2 ()
+- [ ] Theorem 2 (rel_semigroup_mult_comm, rel_ova_valid, rel_ova_strongly_neutral, rel_tuple_system)
 - [ ] Lemma 1 ()
 - [ ] Proposition 4 ()
 - [ ] Proposition 5 ()

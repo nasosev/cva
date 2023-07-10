@@ -18,6 +18,9 @@ definition gc :: "('A, 'a) Prealgebra \<Rightarrow> ('A set \<times> 'a) Poset" 
                      \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
                      \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (Space.make_inc B A) \<star> a) b } \<rparr>"
 
+lemma gc_elD [dest] : "a \<in> el (gc F) \<Longrightarrow> a = (d a, e a)"
+  by simp 
+
 lemma gc_leI_raw : "A \<in> opens (space F) \<Longrightarrow> B \<in> opens (space F) \<Longrightarrow> B \<subseteq> A
 \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) \<Longrightarrow> b \<in> Poset.el (ob F \<cdot> B)
 \<Longrightarrow> Poset.le (ob F \<cdot> B) ((ar F \<cdot> (Space.make_inc B A)) \<star> a) b \<Longrightarrow> Poset.le (gc F) (A,a) (B,b)"

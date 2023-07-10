@@ -155,7 +155,7 @@ proof -
       by presburger 
   qed
 
-text \<open>  To-do: can we actually prove ex = ex' with fun ext? \<close>
+(* To-do: can we actually prove ex = ex' with fun ext? *)
 lemma valid_ext_funext: 
   fixes V :: "('A, 'a) CVA"
   defines "ex \<equiv> ext V" and "ex' \<equiv> OVA.ext (seq_algebra V)"
@@ -164,7 +164,7 @@ lemma valid_ext_funext:
 
 (* Paper results *)
 
-(* [Proposition 1, CVA] *)
+(* [Proposition 1 (1/3), CVA] *)
 proposition epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
@@ -224,7 +224,7 @@ proof -
     by metis
 qed
 
-(* [Proposition 1 cont., CVA] *)
+(* [Proposition 1 (2/3), CVA] *)
 proposition delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
@@ -239,7 +239,7 @@ proof -
     by (metis A_open CVA.valid_welldefined V_valid \<delta>A_def comb_is_element neutral_is_element valid_antisymmetry valid_elems valid_poset valid_semigroup)
 qed
 
-(* [Proposition 1 cont., CVA] *)
+(* [Proposition 1 (3/3), CVA] *)
 proposition epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"

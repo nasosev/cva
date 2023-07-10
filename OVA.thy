@@ -470,7 +470,7 @@ shows " e (ext V A b) \<in> Poset.el FA"
 
 (* Paper results *)
 
-(* [Remark 2, CVA] *)
+(* [Remark 2 (1/2), CVA] *)
 lemma res_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -526,7 +526,7 @@ moreover have "valid_inc i_CA"
     by (metis f_def g_def)
 qed
 
-(* [Remark 2 cont., CVA] *)
+(* [Remark 2 (2/2), CVA] *)
 lemma stability:
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid: "valid V"
@@ -576,7 +576,7 @@ proof -
     by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def mem_Collect_eq) 
 qed
 
-(* [Remark 3, CVA] *)
+(* [Remark 3 (1/3), CVA] *)
 lemma local_mono_eq_global :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a1 a1' a2 a2' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -597,7 +597,7 @@ proof -
     by (metis (full_types) V_valid a1'_d a1'_el a1_d a1_el a2'_d a2'_el a2_d a2_el b1_def b2_def d_elem_is_open d_neut neutral_is_element valid_domain_law valid_neutral_law_right)
 qed
 
-(* [Remark 3 cont., CVA] *)
+(* [Remark 3 (2/3), CVA] *)
 lemma id_le_res :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -733,12 +733,6 @@ proof -
     by (smt (verit) A_def V_valid a_B_def a_dom a_el assms(9) b_dom b_el comb_is_element res_elem local_le valid_domain_law valid_gc_poset valid_prealgebra valid_transitivity) 
 qed
 
-text \<open>
-   Lemma `res\_ext\_adjunction\_rhs\_imp\_lhs` declares that, in a valid OVA `V`, if a valuation `a` 
-   defined over an open set `A` is locally less than or equal to the combination of the neutral 
-   element of `A` and a valuation `b` defined over a subset `B` of `A`, then the projection of `a` 
-   onto `B` is locally less than or equal to `b`.
-\<close>
 lemma res_ext_adjunction_rhs_imp_lhs :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   defines "F \<equiv> prealgebra V"
@@ -770,7 +764,7 @@ proof -
       by (metis B_le_A B_open V_valid a_dom a_el b_dom b_el d_res res_elem local_le valid_gc_poset valid_prealgebra)
   qed
 
-(* [Remark 3 cont., CVA] *)
+(* [Remark 3 (3/3), CVA] *)
 lemma laxity :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a a' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -808,7 +802,7 @@ proof -
     using m1_B_def m1_def m2_def by auto
 qed
 
-(* [Theorem 1, CVA] *)
+(* [Theorem 1 (1/2), CVA] *)
 theorem res_ext_adjunction :
   fixes V :: "('A,'a) OVA" and  a b :: "('A, 'a) Valuation" and A B :: "'A Open"
   assumes V_valid : "valid V"
@@ -830,7 +824,7 @@ next
     by (metis \<open>Poset.le (ob (prealgebra V) \<cdot> A) (e a) (e (ext V A b))\<close> a_dom a_el b_dom b_el ext_def)
   qed
 
-(* [Corollary 1, CVA] *)
+(* [Corollary 1 (1/2), CVA] *)
 corollary strongly_neutral_covariance :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid : "valid V"
@@ -840,7 +834,7 @@ defines "ex \<equiv> ext V"
 shows "ex A (neut V B) = neut V A "
   by (metis (no_types, lifting) V_valid assms(3) assms(4) assms(5) ex_def fst_eqD ext_def neutral_is_element strongly_neutral sup.absorb_iff1)
 
-(* [Corollary 1 cont., CVA] *)
+(* [Corollary 1 (2/2), CVA] *)
 corollary strongly_neutral_monoid :
   fixes V :: "('A,'a) OVA" and a :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -878,7 +872,7 @@ next
     by presburger
 qed
 
-(* [Corollary 2, CVA] *)
+(* [Corollary 2 (1/3), CVA] *)
 corollary galois_insertion :
   fixes V :: "('A,'a) OVA" and A :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and b_el : "b \<in> elems V"
@@ -899,7 +893,7 @@ proof -
     by (metis B_def V_valid \<epsilon>B_def b_el valid_neutral_law_left) 
 qed
 
-(* [Corollary 2 cont., CVA] *)
+(* [Corollary 2 (2/3), CVA] *)
 corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "a \<in> elems V" and "d a = A"
@@ -967,7 +961,7 @@ moreover have "local_le V C (pr C (ex A (ex B c))) c"
     by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_ext dual_order.trans ex_def ext_elem le_eq_local_le)
 qed
 
-(* [Theorem 1 cont., CVA] *)
+(* [Theorem 1 (2/2), CVA] *)
 theorem ext_functorial :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -984,7 +978,7 @@ proof -
     by (smt (z3) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_ext dual_order.trans ex_def ext_elem valid_antisymmetry valid_poset valid_semigroup)
 qed
 
-(* [Corollary 2 cont., CVA] *)
+(* [Corollary 2 (3/3), CVA] *)
 corollary galois_closure_idempotent :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"

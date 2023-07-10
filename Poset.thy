@@ -464,6 +464,9 @@ lemma powerset_valid : "valid (powerset A)"
 lemma powerset_le : "a \<in> el (powerset A) \<Longrightarrow> a' \<in> el (powerset A) \<Longrightarrow> le (powerset A) a a' = (a \<subseteq> a')"
   by (simp add: powerset_def)
 
+lemma powerset_el : "(a \<in> el (powerset A)) = (a \<subseteq> A)"
+  by (simp add: powerset_def)
+
 lemma direct_image_dom : "dom (direct_image f) = powerset (Function.dom f)"
   by (simp add: direct_image_def)
 
