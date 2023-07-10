@@ -58,7 +58,7 @@ definition valid_map :: "('A, 'x, 'y) PresheafMap \<Rightarrow> bool" where
 
 (* Validity *)
 
-lemma validI :
+lemma validI [intro] :
   fixes F :: "('A,'x) Presheaf"
   defines "T \<equiv> space F"
   defines "F0 \<equiv> ob F"
@@ -135,7 +135,7 @@ lemma diamond_rule :
 shows "(ar F \<cdot> i_DB) \<cdot> ((ar F \<cdot> i_BA) \<cdot>  x) = (ar F \<cdot> i_DC) \<cdot> ((ar F \<cdot> i_CA) \<cdot>  x)"
   by (smt (z3) A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) compose_app_assoc compose_inc_def i_BA_def i_CA_def i_DB_def i_DC_def mem_Collect_eq valid_ar valid_cod valid_composition valid_dom x_el)
 
-lemma valid_mapI :
+lemma valid_mapI [intro] :
   fixes f :: "('A,'x,'y) PresheafMap"
   defines "T \<equiv> map_space f"
   defines "F \<equiv> dom f"

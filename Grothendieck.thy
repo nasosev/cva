@@ -24,13 +24,13 @@ lemma gc_leI_raw : "A \<in> opens (space F) \<Longrightarrow> B \<in> opens (spa
   unfolding gc_def
   by simp
 
-lemma gc_leI : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> d
+lemma gc_leI [intro] : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> d
  b \<subseteq> d a \<Longrightarrow> Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> Poset.le (gc F) a b" 
   unfolding gc_def
   apply clarsimp
   by force
 
-lemma gc_leE: "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
+lemma gc_leD [dest] : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
 \<Longrightarrow> d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b)" 
   unfolding gc_def 
   by force

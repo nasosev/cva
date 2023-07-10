@@ -67,7 +67,7 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 
 (* Validity *)
 
-theorem validI :
+lemma validI [intro]:
   fixes P :: "'a Poset"
   assumes welldefined : "(\<And>x y. (x,y) \<in> le_rel P \<Longrightarrow> x \<in> el P \<and> y \<in> el P)"
   assumes reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
@@ -89,7 +89,7 @@ lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P\<Longrightarr
   by (smt (verit, ccfv_threshold) valid_def)
 
 
-lemma valid_mapI: "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
+lemma valid_mapI [intro] : "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
                    (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
                    (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
                    (\<And>a a'. a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f \<star> a) (f \<star> a'))

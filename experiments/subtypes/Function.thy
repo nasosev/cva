@@ -57,7 +57,7 @@ lemma deterministic : "(x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func 
 lemma total : " x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func f"
   by (simp add: dom.rep_eq func.rep_eq raw_dom_def) 
 
-lemma valid_mapI: "((\<And>x y. (x, y) \<in> raw_func rf \<Longrightarrow>  x \<in> raw_dom rf \<and> y \<in> raw_cod rf) \<Longrightarrow>
+lemma valid_mapI [intro] : "((\<And>x y. (x, y) \<in> raw_func rf \<Longrightarrow>  x \<in> raw_dom rf \<and> y \<in> raw_cod rf) \<Longrightarrow>
                    (\<And>x y y'. (x, y) \<in> raw_func rf \<Longrightarrow> (x, y') \<in> raw_func rf \<Longrightarrow> y = y') \<Longrightarrow>
                    (\<And>x. x \<in> raw_dom rf \<Longrightarrow> (\<exists>y. (x, y) \<in> raw_func rf))
                    \<Longrightarrow> valid_map rf) "

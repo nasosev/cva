@@ -37,7 +37,7 @@ lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (x, y) \<in> func
 lemma valid_map_total : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func f"
   by (simp add: valid_map_def) 
 
-lemma valid_mapI: "((\<And>x y. (x, y) \<in> func f \<Longrightarrow>  x \<in> dom f \<and> y \<in> cod f) \<Longrightarrow>
+lemma valid_mapI [intro] : "((\<And>x y. (x, y) \<in> func f \<Longrightarrow>  x \<in> dom f \<and> y \<in> cod f) \<Longrightarrow>
                    (\<And>x y y'. (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y') \<Longrightarrow>
                    (\<And>x. x \<in> dom f \<Longrightarrow> (\<exists>y. (x, y) \<in> func f))
                    \<Longrightarrow> valid_map f) "

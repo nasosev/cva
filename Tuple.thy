@@ -173,7 +173,7 @@ lemma valid_rel_prealg :
   assumes "valid T"
   defines "R \<equiv> rel_prealg T"
   shows "Prealgebra.valid R"
-proof (intro Prealgebra.validI, standard+, goal_cases)
+proof (intro Prealgebra.validI, standard, goal_cases)
   case 1
   then show ?case
     using Presheaf.valid_space R_def Tuple.valid_welldefined assms(1) valid_relation_space by auto 
@@ -835,7 +835,5 @@ next
 next
   case (3 a b a b a b)
   then show ?case oops
-
-  
 
 end

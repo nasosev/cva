@@ -30,7 +30,7 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
 
 (* Validity *)
 
-lemma validI :
+lemma validI [intro] :
   fixes S :: "'a Semigroup"
   assumes welldefined : "Poset.valid_map (mult S) \<and> dom (mult S) = poset S \<times>\<times> poset S"
   and associative : "\<And> a b c . a \<in> elems S \<Longrightarrow> b \<in> elems S \<Longrightarrow> c \<in> elems S \<Longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)"

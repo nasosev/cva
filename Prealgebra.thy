@@ -59,7 +59,7 @@ definition valid_map :: "('A, 'a, 'b) PrealgebraMap \<Rightarrow> bool" where
 
 (* Validity *)
 
-lemma validI :
+lemma validI [intro] :
   fixes F :: "('A,'a) Prealgebra"
   defines "T \<equiv> space F"
   defines "F0 \<equiv> ob F"
@@ -136,7 +136,7 @@ lemma valid_composition :
   unfolding valid_def
   by meson 
 
-lemma valid_mapI :
+lemma valid_mapI [intro] :
   fixes f :: "('A,'a,'b) PrealgebraMap"
   defines "T \<equiv> map_space f"
   defines "F \<equiv> dom f"

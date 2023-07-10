@@ -84,7 +84,7 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
 
 (* Validity *)
 
-lemma validI :
+lemma validI [intro] :
   fixes V :: "('A,'a) OVA"
   assumes welldefined : "Prealgebra.valid (prealgebra V)
                       \<and> Semigroup.valid (semigroup V)
@@ -1034,7 +1034,7 @@ corollary locally_complete_imp_complete :
   assumes V_valid: "valid V"
   assumes local_completeness: "\<And>A . A \<in> opens (space V) \<Longrightarrow> Poset.is_complete (F A)"
   shows "Poset.is_complete (poset V)"
-proof standard+
+proof standard
   show "Poset.valid (poset V)"
     using V_valid by (metis OVA.valid_welldefined valid_gc)
 next
@@ -1090,12 +1090,12 @@ next
           by blast
       qed
        moreover have "\<forall>z\<in>el (poset V). (\<forall>u\<in>U. le V z u) \<longrightarrow> le V z i"
-       proof standard+ text \<open> Note that standard won't work here, it doesn't lift the second implication\<close>
+       proof standard+
         fix z
         assume "z \<in>  elems V"
         assume "\<forall>u\<in>U. le V z u"
-        moreover have lb2: "\<forall> v \<in> U . d v \<subseteq> d z"
-          by (smt (verit) U V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation d_antitone in_mono valid_gc_poset valid_prealgebra)
+        moreover have lb2: "\<forall> v \<in> U . d v \<subseteq> d z" 
+          by (metis (no_types, lifting) OVA.valid_welldefined U V_valid \<open>z \<in> OVA.elems V\<close> calculation d_antitone subset_iff)
         moreover have "d z \<in> opens (space V)"
           using V_valid \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> d_elem_is_open by blast
          moreover have "\<forall> v \<in> U .d v \<in> opens (space V)"

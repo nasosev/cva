@@ -62,7 +62,7 @@ lemma valid_inc_dom : "i \<in> inclusions T \<Longrightarrow> dom i \<in> opens 
 lemma valid_inc_cod: "i \<in> inclusions T \<Longrightarrow> cod i \<in> opens T"
   by simp
 
-lemma validI : "(\<And>A. A \<in> opens T \<Longrightarrow> A \<subseteq> universe T) \<Longrightarrow> {} \<in> opens T \<Longrightarrow> universe T \<in> opens T 
+lemma validI [intro]: "(\<And>A. A \<in> opens T \<Longrightarrow> A \<subseteq> universe T) \<Longrightarrow> {} \<in> opens T \<Longrightarrow> universe T \<in> opens T 
 \<Longrightarrow> (\<And>U. U \<subseteq> opens T \<Longrightarrow> \<Union>U \<in> opens T) \<Longrightarrow> (\<And>A B. A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> A \<inter> B \<in> opens T) \<Longrightarrow> valid T"
   by (simp add: valid_def)
 
