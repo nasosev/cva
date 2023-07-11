@@ -1014,10 +1014,81 @@ proof (standard, goal_cases)
   qed
   next
   case 2
-  then show ?case sorry
-qed
+  then show ?case 
+  proof -
+    define "i_A" where "i_A = make_inc (d a) (d a \<union> d b)"
+    define "i_B" where "i_B = make_inc (d b) (d a \<union> d b)"
+    define "j_AB" where "j_AB = make_inc (d a \<inter> d b) (d b)"
+    define "k_AB" where "k_AB = make_inc (d a \<inter> d b) (d a)"
 
-(* [Theorem 2 (2/4), CVA] *)
+    have "e (comb V a b) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+                                      \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
+                                      \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }" using
+      rel_semigroup_mult_e [where ?T=T and ?a=a and ?b=b]
+      using T_valid V_def a_el b_el rel_semigroup_cod i_A_def i_B_def by force
+
+    moreover have "d a \<in> opens (OVA.space V)"
+      by (metis OVA.select_convs(1) OVA.select_convs(3) T_valid V_def a_el comp_apply local_dom rel_semigroup_cod valid_rel_prealg) 
+
+    moreover have "comb V a b \<in> OVA.elems V"
+      by (metis OVA.select_convs(3) T_valid V_def a_el b_el comp_apply rel_semigroup_cod rel_semigroup_mult_el) 
+
+    moreover have "e (res V (d a) (comb V a b)) 
+                                    = (Prealgebra.ar (rel_prealg T) \<cdot> i_A) \<star> { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+                                      \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
+                                      \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }"
+      using i_A_def i_B_def assms calculation
+      by (simp add: rel_semigroup_cod res_def)
+
+    moreover have "... = { (ar T \<cdot> i_A) \<cdot> t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+                                      \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
+                                      \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }"
+      using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_A"] calculation
+      by (smt (z3) CollectD CollectI Collect_cong Collect_mono_iff Function.dom_def Inclusion.select_convs(1) Inclusion.select_convs(2) OVA.select_convs(3) Prealgebra.Prealgebra.select_convs(1) Presheaf.valid_ar Presheaf.valid_dom T_valid Tuple.valid_welldefined V_def a_el b_el comp_apply i_A_def inf_sup_ord(3) local_dom rel_semigroup_cod rel_semigroup_mult_d relation_ar_value valid_rel_prealg)
+
+
+    have "b \<in> OVA.elems V \<and> d a \<inter> d b \<in> Space.opens (OVA.space V)"
+      by (metis OVA.select_convs(1) OVA.select_convs(3) T_valid Tuple.valid_space V_def b_el calculation(2) comp_apply local_dom rel_semigroup_cod valid_inter valid_rel_prealg valid_relation_space)  
+
+    moreover have "e (res (rel_ova T) (d a \<inter> d b) b) = (Prealgebra.ar (rel_prealg T) \<cdot> j_AB) \<star> e b" using j_AB_def
+      by (metis Int_lower2 OVA.select_convs(1) V_def calculation(5) res_def snd_eqD) 
+
+    moreover have "... = { (ar T \<cdot> j_AB) \<cdot> t | t . t \<in> e b }" 
+      using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> j_AB" and ?a="e b"] calculation
+      by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Presheaf.valid_ar T_valid Tuple.valid_welldefined V_def comp_apply direct_image_dom gc_elem_local j_AB_def local_dom mem_Collect_eq powerset_el rel_semigroup_cod relation_ar_dom relation_ar_value valid_rel_prealg valid_relation_space) 
+
+    moreover have "res (rel_ova T) (d a \<inter> d b) b \<in> OVA.elems V"
+      by (smt (verit) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Prealgebra.restricted_element T_valid V_def calculation(5) comp_apply gc_elem_local local_dom local_elem_gc rel_semigroup_cod res_def valid_rel_prealg) 
+
+
+    moreover have "e a \<subseteq> ob T \<cdot> d a"
+      by (metis (mono_tags, lifting) OVA.select_convs(1) OVA.select_convs(3) T_valid V_def assms(4) calculation(2) comp_apply gc_elem_local powerset_el rel_semigroup_cod relation_ob_value valid_rel_prealg valid_relation_space) 
+
+    moreover have "e (comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)) =
+                                     { t | t . t \<in> ob T \<cdot> d a 
+                                      \<and> (ar T \<cdot> (Space.ident (d a))) \<cdot> t \<in> e a     
+                                      \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+      using rel_semigroup_mult_e [where ?T=T and ?a=a and ?b="res (rel_ova T) (d a \<inter> d b) b"] assms calculation
+      by (smt (verit) Collect_cong Int_Un_eq(3) Int_lower2 OVA.select_convs(3) Space.ident_def \<open>res (rel_ova T) (d a \<inter> d b) b \<in> OVA.elems V\<close> comp_apply d_res k_AB_def rel_semigroup_cod) 
+ 
+     moreover have "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+       by (metis (no_types, lifting) Function.ident_app OVA.select_convs(1) Presheaf.valid_identity T_valid Tuple.valid_welldefined V_def calculation(2) valid_relation_space)
+ 
+      moreover have "... = { t | t . t \<in> e a \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+        using calculation(9) by blast
+
+      moreover have "... = { t | t . t \<in> e a \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> { (ar T \<cdot> j_AB) \<cdot> t | t . t \<in> e b
+ } }"
+        using calculation(6) calculation(7) by presburger 
+
+      moreover have "... = { t | t . t \<in> e a \<and> t \<in> { (ar T \<cdot> k_AB) \<cdot> ((ar T \<cdot> j_AB) \<cdot> t) | t . t \<in> e b
+ } }" using calculation
+
+
+
+        
+   qed
+
 theorem rel_ova_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"

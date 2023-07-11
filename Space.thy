@@ -31,7 +31,7 @@ abbreviation (input) valid_inc :: "'A Inclusion \<Rightarrow> bool" where
 abbreviation inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
   "inclusions T \<equiv> {i. valid_inc i \<and> dom i \<in> opens T \<and> cod i \<in> opens T}"
 
-(* There is a built-in constructor Inclusion.make, but the simplifier doesn't seem to like it *)
+(* There are built-in constructors (Inclusion.make), but the simplifier/SH doesn't seem to like them? *)
 abbreviation (input) make_inc :: "'A Open \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
 "make_inc B A \<equiv> \<lparr> dom = B, cod = A \<rparr>"
 
