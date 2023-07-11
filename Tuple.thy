@@ -23,15 +23,11 @@ definition valid :: "('A, 'x) TupleSystem \<Rightarrow> bool" where
     let
       welldefined = Presheaf.valid (presheaf T);
       flasque = \<forall>i. i \<in> inclusions (space T) \<longrightarrow> Function.is_surjective (ar T \<cdot> i);
-      binary_gluing = (\<forall> A B a b i_A j_A i_B j_B . A \<in> opens (space T) \<longrightarrow> B \<in> opens (space T) 
+      binary_gluing = (\<forall> A B a b . A \<in> opens (space T) \<longrightarrow> B \<in> opens (space T) 
         \<longrightarrow> a \<in> ob T \<cdot> A
         \<longrightarrow> b \<in> ob T \<cdot> B
-        \<longrightarrow> i_A = make_inc (A \<inter> B) A
-        \<longrightarrow> j_A = make_inc A (A \<union> B)
-        \<longrightarrow> i_B = make_inc (A \<inter> B) B
-        \<longrightarrow> j_B = make_inc B (A \<union> B)
-        \<longrightarrow> (ar T \<cdot> i_A) \<cdot> a = (ar T \<cdot> i_B) \<cdot> b
-        \<longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> j_A) \<cdot> c = a \<and> (ar T \<cdot> j_B) \<cdot> c = b))
+        \<longrightarrow> (ar T \<cdot> (make_inc (A \<inter> B) A)) \<cdot> a = (ar T \<cdot> (make_inc (A \<inter> B) B)) \<cdot> b
+        \<longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> (make_inc A (A \<union> B))) \<cdot> c = a \<and> (ar T \<cdot> (make_inc B (A \<union> B))) \<cdot> c = b))
     in
     welldefined \<and> flasque \<and> binary_gluing"
 
@@ -82,14 +78,9 @@ lemma valid_flasque : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<
   unfolding valid_def
   by (simp add: Let_def)
 
-lemma valid_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> a \<in> ob T \<cdot> A
-        \<Longrightarrow> b \<in> ob T \<cdot> B
-         \<Longrightarrow> i_A = make_inc (A \<inter> B) A
-           \<Longrightarrow> j_A = make_inc A (A \<union> B)
-         \<Longrightarrow> i_B = make_inc (A \<inter> B) B
-           \<Longrightarrow> j_B = make_inc B (A \<union> B)
-            \<Longrightarrow> (ar T \<cdot> i_A) \<cdot> a = (ar T \<cdot> i_B) \<cdot> b
-            \<Longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> j_A) \<cdot> c = a \<and> (ar T \<cdot> j_B) \<cdot> c = b)"
+lemma valid_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> a \<in> ob T \<cdot> A \<Longrightarrow> b \<in> ob T \<cdot> B
+        \<Longrightarrow> (ar T \<cdot> (make_inc (A \<inter> B) A)) \<cdot> a = (ar T \<cdot> (make_inc (A \<inter> B) B)) \<cdot> b
+        \<Longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> (make_inc A (A \<union> B))) \<cdot> c = a \<and> (ar T \<cdot> (make_inc B (A \<union> B))) \<cdot> c = b)"
   unfolding valid_def
   by (simp add: Let_def)
 
@@ -987,10 +978,9 @@ proof -
 qed
 
 lemma comb_law_left : 
-  fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and a b :: "('A, 'x) Relation"
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
   defines "V \<equiv> rel_ova T"
   assumes T_valid : "valid T"
-  and A_open : "A \<in> opens (space T)"
   and a_el : "a \<in> elems V"
   and b_el : "b \<in> elems V"
 shows "res (rel_ova T) (d a) (comb (rel_ova T) a b) = comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)"
@@ -1018,26 +1008,34 @@ proof (standard, goal_cases)
   proof -
     define "i_A" where "i_A = make_inc (d a) (d a \<union> d b)"
     define "i_B" where "i_B = make_inc (d b) (d a \<union> d b)"
-    define "j_AB" where "j_AB = make_inc (d a \<inter> d b) (d b)"
-    define "k_AB" where "k_AB = make_inc (d a \<inter> d b) (d a)"
+    define "i_AB_B" where "i_AB_B = make_inc (d a \<inter> d b) (d b)"
+    define "i_AB_A" where "i_AB_A = make_inc (d a \<inter> d b) (d a)"
 
-    have "e (comb V a b) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+    define "lhs" where "lhs = e (res V (d a) (comb V a b)) "
+    define "rhs" where "rhs = e (comb V a (res V (d a \<inter> d b) b))"
+
+    have A_open: "d a \<in> opens (OVA.space V)"
+      by (metis OVA.select_convs(1) OVA.select_convs(3) T_valid V_def a_el comp_apply local_dom rel_semigroup_cod valid_rel_prealg) 
+    moreover have B_open: "d b \<in> opens (OVA.space V)"
+      by (metis OVA.select_convs(1) OVA.select_convs(3) T_valid V_def b_el comp_apply local_dom rel_semigroup_cod valid_rel_prealg)
+    moreover have ea_subset: "e a \<subseteq> ob T \<cdot> d a"
+      by (metis (mono_tags, lifting) OVA.select_convs(3) T_valid V_def a_el comp_apply gc_elem_local local_dom powerset_el rel_semigroup_cod relation_ob_value valid_rel_prealg valid_relation_space) 
+    moreover have eb_subset: "e b \<subseteq> ob T \<cdot> d b"
+      by (metis (mono_tags, lifting) OVA.select_convs(1) OVA.select_convs(3) T_valid V_def b_el calculation(2) comp_apply gc_elem_local powerset_el rel_semigroup_cod relation_ob_value valid_rel_prealg valid_relation_space)
+
+    moreover have "e (comb V a b) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                       \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }" using
       rel_semigroup_mult_e [where ?T=T and ?a=a and ?b=b]
       using T_valid V_def a_el b_el rel_semigroup_cod i_A_def i_B_def by force
 
-    moreover have "d a \<in> opens (OVA.space V)"
-      by (metis OVA.select_convs(1) OVA.select_convs(3) T_valid V_def a_el comp_apply local_dom rel_semigroup_cod valid_rel_prealg) 
-
     moreover have "comb V a b \<in> OVA.elems V"
       by (metis OVA.select_convs(3) T_valid V_def a_el b_el comp_apply rel_semigroup_cod rel_semigroup_mult_el) 
 
-    moreover have "e (res V (d a) (comb V a b)) 
-                                    = (Prealgebra.ar (rel_prealg T) \<cdot> i_A) \<star> { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+    moreover have "lhs = (Prealgebra.ar (rel_prealg T) \<cdot> i_A) \<star> { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                       \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }"
-      using i_A_def i_B_def assms calculation
+      using i_A_def i_B_def assms calculation lhs_def
       by (simp add: rel_semigroup_cod res_def)
 
     moreover have "... = { (ar T \<cdot> i_A) \<cdot> t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
@@ -1046,47 +1044,69 @@ proof (standard, goal_cases)
       using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_A"] calculation
       by (smt (z3) CollectD CollectI Collect_cong Collect_mono_iff Function.dom_def Inclusion.select_convs(1) Inclusion.select_convs(2) OVA.select_convs(3) Prealgebra.Prealgebra.select_convs(1) Presheaf.valid_ar Presheaf.valid_dom T_valid Tuple.valid_welldefined V_def a_el b_el comp_apply i_A_def inf_sup_ord(3) local_dom rel_semigroup_cod rel_semigroup_mult_d relation_ar_value valid_rel_prealg)
 
+    moreover have "... = { t | t s u . t \<in> e a \<and> s \<in> e b
+                                     \<and> u \<in> ob T \<cdot> (d a \<union> d b) 
+                                     \<and> s = (ar T \<cdot> i_B) \<cdot> u 
+                                     \<and> t = (ar T \<cdot> i_A) \<cdot> u }"
+      by blast 
 
     have "b \<in> OVA.elems V \<and> d a \<inter> d b \<in> Space.opens (OVA.space V)"
-      by (metis OVA.select_convs(1) OVA.select_convs(3) T_valid Tuple.valid_space V_def b_el calculation(2) comp_apply local_dom rel_semigroup_cod valid_inter valid_rel_prealg valid_relation_space)  
+      by (metis OVA.select_convs(1) Prealgebra.valid_space T_valid V_def b_el A_open B_open valid_inter valid_rel_prealg)
 
-    moreover have "e (res (rel_ova T) (d a \<inter> d b) b) = (Prealgebra.ar (rel_prealg T) \<cdot> j_AB) \<star> e b" using j_AB_def
-      by (metis Int_lower2 OVA.select_convs(1) V_def calculation(5) res_def snd_eqD) 
+    moreover have "e (res (rel_ova T) (d a \<inter> d b) b) = (Prealgebra.ar (rel_prealg T) \<cdot> i_AB_B) \<star> e b"
+      using i_AB_B_def Int_lower2 OVA.select_convs(1) V_def res_def snd_eqD
+      by (metis calculation(9))
 
-    moreover have "... = { (ar T \<cdot> j_AB) \<cdot> t | t . t \<in> e b }" 
-      using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> j_AB" and ?a="e b"] calculation
-      by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Presheaf.valid_ar T_valid Tuple.valid_welldefined V_def comp_apply direct_image_dom gc_elem_local j_AB_def local_dom mem_Collect_eq powerset_el rel_semigroup_cod relation_ar_dom relation_ar_value valid_rel_prealg valid_relation_space) 
+    moreover have "... = { (ar T \<cdot> i_AB_B) \<cdot> t | t . t \<in> e b }" 
+      using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_AB_B" and ?a="e b"] calculation
+      by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Presheaf.valid_ar T_valid Tuple.valid_welldefined V_def comp_apply direct_image_dom gc_elem_local i_AB_B_def local_dom mem_Collect_eq powerset_el rel_semigroup_cod relation_ar_dom relation_ar_value valid_rel_prealg valid_relation_space) 
 
     moreover have "res (rel_ova T) (d a \<inter> d b) b \<in> OVA.elems V"
-      by (smt (verit) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Prealgebra.restricted_element T_valid V_def calculation(5) comp_apply gc_elem_local local_dom local_elem_gc rel_semigroup_cod res_def valid_rel_prealg) 
-
-
-    moreover have "e a \<subseteq> ob T \<cdot> d a"
-      by (metis (mono_tags, lifting) OVA.select_convs(1) OVA.select_convs(3) T_valid V_def assms(4) calculation(2) comp_apply gc_elem_local powerset_el rel_semigroup_cod relation_ob_value valid_rel_prealg valid_relation_space) 
-
-    moreover have "e (comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)) =
+      by (smt (verit, best) Int_lower2 OVA.select_convs(1) OVA.select_convs(3) Prealgebra.restricted_element T_valid V_def calculation(10) calculation(9) comp_apply d_res eb_subset i_AB_B_def local_elem_gc B_open prod.collapse rel_semigroup_cod relation_as_value valid_rel_prealg valid_relation_space)
+  
+    moreover have "rhs =
                                      { t | t . t \<in> ob T \<cdot> d a 
                                       \<and> (ar T \<cdot> (Space.ident (d a))) \<cdot> t \<in> e a     
-                                      \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
-      using rel_semigroup_mult_e [where ?T=T and ?a=a and ?b="res (rel_ova T) (d a \<inter> d b) b"] assms calculation
-      by (smt (verit) Collect_cong Int_Un_eq(3) Int_lower2 OVA.select_convs(3) Space.ident_def \<open>res (rel_ova T) (d a \<inter> d b) b \<in> OVA.elems V\<close> comp_apply d_res k_AB_def rel_semigroup_cod) 
+                                      \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+      using rel_semigroup_mult_e [where ?T=T and ?a=a and ?b="res (rel_ova T) (d a \<inter> d b) b"] assms
+        calculation rhs_def
+      by (smt (verit) Collect_cong Int_Un_eq(3) Int_lower2 OVA.select_convs(3) Space.ident_def \<open>res (rel_ova T) (d a \<inter> d b) b \<in> OVA.elems V\<close> comp_apply d_res i_AB_A_def rel_semigroup_cod) 
  
-     moreover have "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
-       by (metis (no_types, lifting) Function.ident_app OVA.select_convs(1) Presheaf.valid_identity T_valid Tuple.valid_welldefined V_def calculation(2) valid_relation_space)
+     moreover have "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+       by (metis (no_types, lifting) Function.ident_app OVA.select_convs(1) Presheaf.valid_identity T_valid Tuple.valid_welldefined V_def A_open valid_relation_space)
  
-      moreover have "... = { t | t . t \<in> e a \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
-        using calculation(9) by blast
+      moreover have "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+        using ea_subset by blast
 
-      moreover have "... = { t | t . t \<in> e a \<and> (ar T \<cdot> k_AB) \<cdot> t \<in> { (ar T \<cdot> j_AB) \<cdot> t | t . t \<in> e b
- } }"
-        using calculation(6) calculation(7) by presburger 
+      moreover have "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> { (ar T \<cdot> i_AB_B) \<cdot> t | t . t \<in> e b } }"
+        using calculation(10) calculation(11) by presburger
 
-      moreover have "... = { t | t . t \<in> e a \<and> t \<in> { (ar T \<cdot> k_AB) \<cdot> ((ar T \<cdot> j_AB) \<cdot> t) | t . t \<in> e b
- } }" using calculation
+      moreover have "... = { t | t s . t \<in> e a \<and> s \<in> e b
+                                       \<and> (ar T \<cdot> i_AB_A) \<cdot> t = (ar T \<cdot> i_AB_B) \<cdot> s }"
+        by blast
+
+    moreover have "... \<subseteq> { t | t s u . t \<in> e a \<and> s \<in> e b
+                                         \<and> u \<in> ob T \<cdot> (d a \<union> d b) 
+                                         \<and> s = (ar T \<cdot> i_B) \<cdot> u 
+                                         \<and> t = (ar T \<cdot> i_A) \<cdot> u }" 
+      using valid_binary_gluing [where?T=T and ?A="d a" and ?B="d b"] i_B_def i_A_def A_open B_open ea_subset eb_subset assms
+      by (smt (verit, ccfv_SIG) Collect_mono_iff OVA.select_convs(1) i_AB_A_def i_AB_B_def subset_iff valid_relation_space)
+
+    ultimately have "rhs \<subseteq> lhs"
+      by (smt (verit) \<open>{(Tuple.ar T \<cdot> i_A) \<cdot> t |t. t \<in> Tuple.ob T \<cdot> (d a \<union> d b) \<and> (Tuple.ar T \<cdot> i_A) \<cdot> t \<in> e a \<and> (Tuple.ar T \<cdot> i_B) \<cdot> t \<in> e b} = {uu_. \<exists>t s u. uu_ = t \<and> t \<in> e a \<and> s \<in> e b \<and> u \<in> Tuple.ob T \<cdot> (d a \<union> d b) \<and> s = (Tuple.ar T \<cdot> i_B) \<cdot> u \<and> t = (Tuple.ar T \<cdot> i_A) \<cdot> u}\<close>) 
+    
+    
+    moreover have "e (comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)) \<subseteq> e (res V (d a) (comb V
+ a b))"
+      by (smt (verit) \<open>{(Tuple.ar T \<cdot> i_A) \<cdot> t |t. t \<in> Tuple.ob T \<cdot> (d a \<union> d b) \<and> (Tuple.ar T \<cdot> i_A) \<cdot> t \<in> e a \<and> (Tuple.ar T \<cdot> i_B) \<cdot> t \<in> e b} = {uu_. \<exists>t s u. uu_ = t \<and> t \<in> e a \<and> s \<in> e b \<and> u \<in> Tuple.ob T \<cdot> (d a \<union> d b) \<and> s = (Tuple.ar T \<cdot> i_B) \<cdot> u \<and> t = (Tuple.ar T \<cdot> i_A) \<cdot> u}\<close> calculation(13) calculation(14) calculation(15) calculation(16) calculation(17) calculation(18) calculation(7) calculation(8)) 
+
+     moreover have " { t | t s u . t \<in> e a \<and> s \<in> e b
+                                         \<and> u \<in> ob T \<cdot> (d a \<union> d b) 
+                                         \<and> s = (ar T \<cdot> i_B) \<cdot> u 
+                                         \<and> t = (ar T \<cdot> i_A) \<cdot> u } \<subseteq>
+            { t | t s . t \<in> e a \<and> s \<in> e b \<and> (ar T \<cdot> i_AB_A) \<cdot> t = (ar T \<cdot> i_AB_B) \<cdot> s } "
 
 
-
-        
    qed
 
 theorem rel_ova_valid :
