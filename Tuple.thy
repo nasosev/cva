@@ -994,6 +994,17 @@ lemma rel_neut_e : "valid T \<Longrightarrow> A \<in> Space.opens (space T) \<Lo
 using rel_neutral_def [where ?T=T] rel_neutral_nat_value_app [where ?T=T and ?A=A]
   by (smt (verit, del_insts) OVA.select_convs(2) PrealgebraMap.select_convs(1) Tuple.valid_space UNIV_unit all_not_in_conv empty_not_UNIV old.unit.exhaust rel_neutral_dom snd_conv terminal_value) 
 
+lemma rel_diamond_rule :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation" and u :: "'x"
+  defines "V \<equiv> rel_ova T"
+  and t_tup : "t \<equiv> (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> u"
+  and s_tup : "s \<equiv> (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> u"
+  assumes T_valid : "valid T"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+  and u_tup : "u \<in> ob T \<cdot> (d a \<union> d b)"
+shows "(ar T \<cdot> make_inc (d a \<inter> d b) (d a)) \<cdot> t = (ar T \<cdot> make_inc (d a \<inter> d b) (d b)) \<cdot> s"
+  by (metis Presheaf.diamond_rule Space.valid_def T_valid Tuple.valid_space Tuple.valid_welldefined V_def a_el b_el inf_sup_ord(1) inf_sup_ord(2) inf_sup_ord(3) inf_sup_ord(4) rel_el_open s_tup t_tup u_tup valid_union2)
+
 lemma rel_neutral_law_left : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and a :: "('A, 'x) Relation"
   defines "V \<equiv> rel_ova T"
@@ -1091,37 +1102,35 @@ proof (standard, goal_cases)
         using i_AB_B_def Int_lower2 OVA.select_convs(1) V_def res_def snd_eqD
       by (metis T_valid Tuple.valid_space a_el b_el rel_el_open valid_inter valid_relation_space)
 
-      moreover have r2: "... = { (ar T \<cdot> i_AB_B) \<cdot> t | t . t \<in> e b }" 
+    moreover have r2: "... = { (ar T \<cdot> i_AB_B) \<cdot> t | t . t \<in> e b }" 
         using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_AB_B" and ?a="e b"] calculation
         by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Int_lower2 Presheaf.valid_ar Presheaf.valid_dom T_valid Tuple.valid_space Tuple.valid_welldefined V_def a_el b_el i_AB_B_def mem_Collect_eq rel_el_open rel_el_subset relation_ar_value valid_inter)
 
-      moreover have r3: "rhs =  { t | t . t \<in> ob T \<cdot> d a 
+    moreover have r3: "rhs =  { t | t . t \<in> ob T \<cdot> d a 
                                       \<and> (ar T \<cdot> (Space.ident (d a))) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
-
       using  rel_comb_e [where ?T=T and ?a=a and ?b="res (rel_ova T) (d a \<inter> d b) b"] assms rhs_def
       by (smt (verit) Collect_cong Int_Un_eq(3) Int_lower2 Space.ident_def Tuple.valid_space fst_conv i_AB_A_def rel_el_open rel_res_el rel_space res_def valid_inter)
 
-     moreover have r4: "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
-       by (metis (no_types, lifting) Function.ident_app Presheaf.valid_identity T_valid Tuple.valid_welldefined V_def a_el rel_el_open)
+    moreover have r4: "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+      by (metis (no_types, lifting) Function.ident_app Presheaf.valid_identity T_valid Tuple.valid_welldefined V_def a_el rel_el_open)
 
-      moreover have r5: "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
-        by (metis (no_types, lifting) T_valid V_def a_el rel_el_subset subsetD)
+    moreover have r5: "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+      by (metis (no_types, lifting) T_valid V_def a_el rel_el_subset subsetD)
 
-      moreover have r6: "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> { (ar T \<cdot> i_AB_B) \<cdot> t | t .
+    moreover have r6: "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> { (ar T \<cdot> i_AB_B) \<cdot> t | t .
         t \<in> e b } }" using r1 r2 by presburger 
 
-      moreover have r7: "... = { t | t s . t \<in> e a \<and> s \<in> e b
+    moreover have r7: "... = { t | t s . t \<in> e a \<and> s \<in> e b
                                        \<and> (ar T \<cdot> i_AB_A) \<cdot> t = (ar T \<cdot> i_AB_B) \<cdot> s }"
-        by blast
-
-      ultimately have rhs2: "rhs = { t | t s . t \<in> e a \<and> s \<in> e b
+      by blast
+    ultimately have rhs2: "rhs = { t | t s . t \<in> e a \<and> s \<in> e b
                                        \<and> (ar T \<cdot> i_AB_A) \<cdot> t = (ar T \<cdot> i_AB_B) \<cdot> s }"
         by presburger 
 
       moreover have "{ t | t s . t \<in> e a \<and> s \<in> e b \<and> (ar T \<cdot> i_AB_A) \<cdot> t = (ar T \<cdot> i_AB_B) \<cdot> s } 
-                          \<subseteq> { t | t s u . t \<in> e a \<and> s \<in> e b
-                                     \<and> u \<in> ob T \<cdot> (d a \<union> d b) 
+                          \<subseteq> { t | u t s . u \<in> ob T \<cdot> (d a \<union> d b) 
+                                     \<and> t \<in> e a \<and> s \<in> e b
                                      \<and> s = (ar T \<cdot> i_B) \<cdot> u 
                                      \<and> t = (ar T \<cdot> i_A) \<cdot> u }" 
         using valid_binary_gluing [where ?T=T and ?A="d a" and ?B="d b"] assms
@@ -1131,9 +1140,13 @@ proof (standard, goal_cases)
       moreover have "rhs \<subseteq> lhs" using rhs2 lhs2
         using calculation(2) by force 
 
-      moreover have "lhs \<subseteq> rhs" using rhs2 lhs2 calculation assms
+      moreover have "lhs \<subseteq> rhs" using rhs2 lhs2 calculation assms rel_diamond_rule [where ?T=T]
+        by (smt (verit) Collect_mono_iff i_AB_A_def i_AB_B_def i_A_def i_B_def) 
 
-   qed
+      ultimately show ?thesis
+        by (metis V_def lhs_def rhs_def subset_antisym)
+    qed
+  qed
 
 theorem rel_ova_valid :
   fixes T :: "('A, 'x) TupleSystem"
@@ -1157,10 +1170,12 @@ next
     by (smt (z3) OVA.select_convs(2) OVA.select_convs(3) assms comp_apply local_dom local_elem_gc rel_neutral_is_element rel_semigroup_cod valid_rel_prealg valid_relation_space) 
 next
   case 5
-  then show ?case sorry
+  then show ?case using comb_law_left [where ?T=T]
+    using assms by blast
 next
   case 6
-  then show ?case sorry
+  then show ?case using comb_law_left [where ?T=T] rel_semigroup_mult_comm [where ?T=T]
+    by (smt (verit, del_insts) Int_commute OVA.select_convs(3) Tuple.valid_space assms comp_apply inf_le1 rel_el_open rel_res_el rel_semigroup_cod valid_inter)
 qed
 
 (* [Theorem 2 (3/4), CVA] *)
