@@ -82,6 +82,14 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
     in
       welldefined \<and> domain_law \<and> neutral_law_left \<and> neutral_law_right \<and> comb_law_left \<and> comb_law_right"
 
+(* Properties *)
+
+abbreviation is_commutative :: "('A, 'a) OVA \<Rightarrow> bool" where
+"is_commutative V \<equiv> \<forall> a b . a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> comb V a b = comb V b a"
+
+abbreviation is_strongly_neutral :: "('A, 'a) OVA \<Rightarrow> bool" where
+"is_strongly_neutral V \<equiv> \<forall> A B . A \<in> opens (space V) \<longrightarrow> B \<in> opens (space V) \<longrightarrow> comb V (neut V A) (neut V B) = neut V (A \<union> B)"
+
 (* Validity *)
 
 lemma validI [intro] :
@@ -825,21 +833,21 @@ next
   qed
 
 (* [Corollary 1 (1/2), CVA] *)
+
 corollary strongly_neutral_covariance :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid : "valid V"
-  and strongly_neutral: "\<forall> A B . comb V (neut V A) (neut V B) = neut V (A \<union> B)"
-  and  "B \<subseteq> A" and "B \<in> opens (space V)" and "A \<in> opens (space V)"
-defines "ex \<equiv> ext V"
-shows "ex A (neut V B) = neut V A "
-  by (metis (no_types, lifting) V_valid assms(3) assms(4) assms(5) ex_def fst_eqD ext_def neutral_is_element strongly_neutral sup.absorb_iff1)
+  and B_le_A : "B \<subseteq> A" and B_open : "B \<in> opens (space V)" and A_open : "A \<in> opens (space V)"
+  and strongly_neutral: "is_strongly_neutral V"
+shows "ext V A (neut V B) = neut V A "  
+  by (metis (no_types, lifting) V_valid assms fst_eqD ext_def neutral_is_element strongly_neutral sup.absorb_iff1)
 
 (* [Corollary 1 (2/2), CVA] *)
 corollary strongly_neutral_monoid :
   fixes V :: "('A,'a) OVA" and a :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and a_el : "a \<in> elems V"
-  and strongly_neutral: "\<forall> A B . comb V (neut V A) (neut V B) = neut V (A \<union> B)"
+  and strongly_neutral: "is_strongly_neutral V"
 defines "identity  \<equiv> neut V {}"
 shows "comb V identity a = a \<and> comb V a identity = a "
 proof standard
@@ -851,7 +859,7 @@ proof standard
   moreover have "... = comb V (comb V identity \<epsilon>A) a" using valid_comb_associative
     by (metis (no_types, opaque_lifting) OVA.valid_welldefined Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def neutral_is_element) 
   moreover have "... = comb V \<epsilon>A a"
-    by (simp add: \<epsilon>A_def identity_def strongly_neutral)
+    by (metis (no_types, lifting) Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def strongly_neutral sup_bot_left valid_prealgebra)
   moreover have "... = a"
     using calculation(1) by presburger
   ultimately show "comb V identity a = a"
@@ -865,7 +873,7 @@ next
   moreover have "... = comb V a (comb V \<epsilon>A identity)" using valid_comb_associative
     by (metis (no_types, lifting) OVA.valid_welldefined Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def neutral_is_element) 
   moreover have "... = comb V a \<epsilon>A"
-    by (simp add: \<epsilon>A_def identity_def strongly_neutral)
+    by (metis (no_types, lifting) Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def strongly_neutral sup_bot.right_neutral valid_prealgebra)
   moreover have "... = a"
     using calculation(1) by presburger
   ultimately show "comb V a identity = a"
