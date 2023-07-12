@@ -1179,7 +1179,36 @@ next
 qed
 
 (* [Theorem 2 (3/4), CVA] *)
-theorem rel_ova_strongly_neutral : "todo"
+theorem rel_ova_strongly_neutral :
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  shows "is_strongly_neutral (rel_ova T)"
+proof safe
+  fix A B
+  assume "A \<in> opens (OVA.space (rel_ova T))"
+  assume "B \<in> opens (OVA.space (rel_ova T))"
+
+  define "lhs" where "lhs = comb (rel_ova T) (neut (rel_ova T) A) (neut (rel_ova T) B)"
+  define "rhs" where "rhs = neut (rel_ova T) (A \<union> B)"
+
+  have "rhs = (A \<union> B, ob T \<cdot> (A \<union> B))"
+    by (metis OVA.select_convs(1) Tuple.valid_space \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> rhs_def assms rel_neut_e snd_conv valid_relation_space valid_union2) 
+  moreover have "\<forall> t .  t \<in> ob T \<cdot> (A \<union> B)  \<longrightarrow> (ar T \<cdot> make_inc A (A \<union> B)) \<cdot> t \<in> ob T \<cdot> A"
+    by (metis OVA.select_convs(1) Presheaf.restricted_element Tuple.valid_space Tuple.valid_welldefined Un_upper1 \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> assms valid_relation_space valid_union2)
+  moreover have "\<forall> t .  t \<in> ob T \<cdot> (A \<union> B)  \<longrightarrow> (ar T \<cdot> make_inc B (A \<union> B)) \<cdot> t \<in> ob T \<cdot> B"
+    by (metis OVA.select_convs(1) Presheaf.restricted_element Tuple.valid_space Tuple.valid_welldefined Un_upper2 \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> assms valid_relation_space valid_union2)
+  moreover have "lhs = (A \<union> B, { t | t . t \<in> ob T \<cdot> (A \<union> B)
+                              \<and> (ar T \<cdot> make_inc A (A \<union> B) ) \<cdot> t \<in> ob T \<cdot> A
+                              \<and> (ar T \<cdot> make_inc B (A \<union> B) ) \<cdot> t \<in> ob T \<cdot> B })"  using lhs_def
+    rel_comb_e [where ?T=T] rel_neut_e [where ?T=T]
+    by (smt (verit, best) Collect_cong \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> assms prod.collapse prod.inject rel_comb_d rel_neut_el rel_space) 
+  moreover have "... = (A \<union> B, ob T \<cdot> (A \<union> B))"
+    using calculation(2) calculation(3) by auto
+  ultimately have "lhs = rhs"
+    by fastforce 
+  thus "comb (rel_ova T) (neut (rel_ova T) A) (neut (rel_ova T) B) = neut (rel_ova T) (A \<union> B)"
+    using lhs_def rhs_def by force
+qed    
 
 (* [Theorem 2 (4/4), CVA] *)
 theorem rel_tuple_system : "todo"
