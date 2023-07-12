@@ -63,14 +63,14 @@ lemma validI [intro] :
   defines "T \<equiv> space F"
   defines "F0 \<equiv> ob F"
   defines "F1 \<equiv> ar F"
-  assumes welldefined : "(Space.valid T)
-                    \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Function.valid_map (F1 \<cdot> i)
+  assumes welldefined : "Space.valid T
+                    \<and> Function.valid_map F0 \<and> Function.valid_map F1
+                    \<and> (\<forall> i. i \<in> inclusions T \<longrightarrow> Function.valid_map (F1 \<cdot> i)
                            \<and>  Function.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
-                           \<and>  Function.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i) )"
-  assumes identity : "(\<forall>A. A \<in> opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Function.ident (F0 \<cdot> A))"
-  assumes composition :" (\<forall> i j. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>
-        Space.dom j = Space.cod i \<longrightarrow> (F1 \<cdot> (j \<propto> i )) = (F1 \<cdot> i) \<bullet> (F1 \<cdot> j))"
+                           \<and>  Function.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i))"
+  assumes identity : "\<And> A. A \<in> opens T \<Longrightarrow> (F1 \<cdot> (Space.ident A)) = Function.ident (F0 \<cdot> A)"
+  assumes composition :"\<And> i j. j \<in> inclusions T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow>
+        Space.dom j = Space.cod i \<Longrightarrow> F1 \<cdot> (j \<propto> i ) = (F1 \<cdot> i) \<bullet> (F1 \<cdot> j)"
   shows "valid F"
   unfolding valid_def
   apply (simp add: Let_def)
@@ -162,8 +162,8 @@ lemma valid_mapI [intro] :
                     \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.valid_map (nat f \<cdot> A))
                     \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.dom (nat f \<cdot> A) = (ob F \<cdot> A))
                     \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
-  assumes naturality : "(\<forall>i. i \<in> inclusions T \<longrightarrow>
-          (nat f \<cdot> Space.dom i) \<bullet> (ar F \<cdot> i) = (ar F' \<cdot> i) \<bullet> (nat f \<cdot> Space.cod i))"
+  assumes naturality : "\<And> i. i \<in> inclusions T \<Longrightarrow>
+          (nat f \<cdot> Space.dom i) \<bullet> (ar F \<cdot> i) = (ar F' \<cdot> i) \<bullet> (nat f \<cdot> Space.cod i)"
   shows "valid_map f"
   unfolding valid_map_def
   apply (simp add: Let_def)

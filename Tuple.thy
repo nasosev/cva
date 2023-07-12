@@ -84,6 +84,20 @@ lemma valid_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \
   unfolding valid_def
   by (simp add: Let_def)
 
+lemma validI [intro] :
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes welldefined : "Presheaf.valid (presheaf T)"
+  and flasque : "\<And>i. i \<in> inclusions (space T) \<Longrightarrow> Function.is_surjective (ar T \<cdot> i)"
+  and binary_gluing : "\<And> A B a b . A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) 
+        \<Longrightarrow> a \<in> ob T \<cdot> A
+        \<Longrightarrow> b \<in> ob T \<cdot> B
+        \<Longrightarrow> (ar T \<cdot> (make_inc (A \<inter> B) A)) \<cdot> a = (ar T \<cdot> (make_inc (A \<inter> B) B)) \<cdot> b
+        \<Longrightarrow> (\<exists> c . c \<in> (ob T \<cdot> (A \<union> B)) \<and> (ar T \<cdot> (make_inc A (A \<union> B))) \<cdot> c = a \<and> (ar T \<cdot> (make_inc B (A \<union> B))) \<cdot> c = b)"
+shows "valid T"
+  unfolding valid_def
+  apply (simp add: Let_def)
+  by (simp add: assms)
+
 lemma valid_space : "valid T \<Longrightarrow> Space.valid (space T)"
   using Presheaf.valid_space Tuple.valid_welldefined by blast
 
@@ -1211,6 +1225,12 @@ proof safe
 qed    
 
 (* [Theorem 2 (4/4), CVA] *)
-theorem rel_tuple_system : "todo"
+theorem rel_tuple_system :
+  fixes T :: "('A, 'x) TupleSystem"
+  defines "R \<equiv> \<lparr> presheaf = forget (rel_prealg T) \<rparr>" (* or `TupleSystem.make (forget (rel_prealg T))` *)
+  assumes "valid T"
+  shows "valid R"
+proof (intro validI, goal_cases)
+  oops
 
 end

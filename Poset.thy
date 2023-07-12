@@ -70,9 +70,9 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 lemma validI [intro]:
   fixes P :: "'a Poset"
   assumes welldefined : "(\<And>x y. (x,y) \<in> le_rel P \<Longrightarrow> x \<in> el P \<and> y \<in> el P)"
-  assumes reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
-  assumes antisymmetry : "(\<And>x y. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow>  le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y)"
-  assumes transitivity : "(\<And>x y z. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z)"
+  and reflexivity : "(\<And>x. x \<in> el P \<Longrightarrow> le P x x)"
+  and antisymmetry : "(\<And>x y. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow>  le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y)"
+  and transitivity : "(\<And>x y z. x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z)"
     shows "valid P"
   by (smt (verit, best) antisymmetry reflexivity transitivity valid_def welldefined)
 
@@ -662,6 +662,16 @@ lemma fibre_from_image :
   and t_el : "t \<in> (direct_image f) \<star> a"
   shows "\<exists> t' . t' \<in> a \<and> f \<cdot> t' = t"
   using a_el direct_image_app f_valid t_el by fastforce
+
+(* Forgetful functor from Pos to Set *)
+
+definition forget_map ::  "('a, 'b) PosetMap \<Rightarrow> ('a, 'b) Function" where
+"forget_map f \<equiv> \<lparr> Function.cod = el (cod f), func = func f \<rparr>" 
+
+lemma forget_map_valid : "valid_map f \<Longrightarrow> Function.valid_map (forget_map f)"
+  unfolding valid_map_def forget_map_def
+  apply (simp add:Let_def)
+  by (smt (verit) CollectD Function.dom_def Function.select_convs(1) Function.select_convs(2) Function.valid_map_def) 
 
 (* Examples *)
 

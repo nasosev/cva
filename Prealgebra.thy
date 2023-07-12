@@ -1,7 +1,7 @@
 section \<open> Prealgebra.thy \<close>
 
 theory Prealgebra
-imports Main Function Space Poset
+imports Main Function Space Poset Presheaf
 begin
 
 (* Prealgebra type (poset-valued presheaf) *)
@@ -316,6 +316,27 @@ proof -
   ultimately show ?thesis
     by presburger 
 qed
+
+(* Forgetful functor from [T, Pos] to [T, Set] *)
+
+definition forget ::  "('A, 'a) Prealgebra \<Rightarrow> ('A, 'a) Presheaf" where
+  "forget F \<equiv>
+    \<lparr> Presheaf.space = space F, 
+
+      ob = \<lparr> Function.cod = { el P | P . P \<in> Function.cod (ob F) }, 
+             func = { (A, el (ob F \<cdot> A)) | A . A \<in> opens (space F) } \<rparr>, 
+
+      ar =  \<lparr> Function.cod = { Poset.forget_map f | f . f \<in> Function.cod (ar F) }, 
+             func = { (i, Poset.forget_map (ar F \<cdot> i)) | i . i \<in> inclusions (space F) } \<rparr> \<rparr>"
+
+lemma forget_valid : "valid F \<Longrightarrow> Presheaf.valid (forget F)"
+proof (intro Presheaf.validI, clarsimp, goal_cases)
+  case 1
+  then show ?case using Poset.forget_map_valid forget_def [where ?F=F]
+    oops
+
+ 
+
 
 (* Examples *)
 
