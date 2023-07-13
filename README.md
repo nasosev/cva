@@ -76,4 +76,4 @@ isabelle jedit -d . -l CVA
 
 ## Acknowledgements
 
-Many, many thanks to Callum Bannister, Brae Webb, Kait Lam, and Scott Heiner for their help with this project! :heart:
+Many, many thanks to Brae Webb, Callum Bannister, Kait Lam, and Scott Heiner for their help with this project! :heart:
