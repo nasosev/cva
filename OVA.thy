@@ -701,23 +701,18 @@ proof (rule iffI)
   assume "local_le V (d b) (res V (d b) a) b"
   define "\<epsilon>A" where "\<epsilon>A \<equiv> neut V (d a)"
   define "a_B" where "a_B \<equiv> res V (d b) a"
-  have "le V a a_B"
-      using a_B_def B_le_A V_valid a_el b_el d_elem_is_open id_le_res by blast 
-  moreover have "a = comb V \<epsilon>A a"
-    by (metis \<epsilon>A_def V_valid a_el valid_neutral_law_left) 
-  moreover have "local_le V (d a) (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
-    by (smt (verit) B_le_A OVA.valid_welldefined Poset.valid_def V_valid \<epsilon>A_def a_B_def a_el b_el calculation(1) calculation(2) comb_is_element d_elem_is_open d_res fst_eqD local_le neutral_is_element res_elem sup.absorb_iff1 valid_comb_monotone valid_domain_law valid_poset)
-  moreover have "local_le V (d a) (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)" using assms a_B_def
-      valid_comb_monotone [where ?V=V] le_eq_local_le [where ?V=V]
+  have "local_le V (d a) (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
+    by (smt (verit) B_le_A OVA.valid_welldefined V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_res fst_conv id_le_res local_le neutral_is_element res_elem sup.absorb_iff1 valid_domain_law valid_monotone valid_neutral_law_left valid_poset valid_reflexivity) 
+  moreover have "local_le V (d a) (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)" using assms a_B_def valid_comb_monotone [where ?V=V] le_eq_local_le [where ?V=V]
     by (smt (verit) Poset.valid_def \<epsilon>A_def \<open>Poset.le (Prealgebra.ob (prealgebra V) \<cdot> d b) (e (res V (d b) a)) (e b)\<close> comb_is_element d_elem_is_open d_res fst_eqD neutral_is_element res_elem sup.order_iff valid_domain_law valid_poset valid_semigroup)
   moreover have "comb V \<epsilon>A b = ext V (d a) b" using \<epsilon>A_def ext_def [where ?V=V and ?A="d a" and ?b=b]
     by (metis B_le_A V_valid a_el b_el d_elem_is_open) 
   ultimately show "local_le V (d a) a (ext V (d a) b)"
-    by (smt (verit, best) B_le_A OVA.valid_welldefined V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_res fst_eqD local_inclusion_element neutral_is_element res_elem sup.order_iff valid_domain_law valid_ob valid_transitivity)
+    by (smt (z3) B_le_A V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_ext d_res local_inclusion_element neutral_is_element res_elem valid_domain_law valid_neutral_law_left valid_ob valid_prealgebra valid_transitivity)
 next
+  assume "local_le V (d a) a (ext V (d a) b)"
   define "\<epsilon>A" where "\<epsilon>A \<equiv> neut V (d a)"
   define "a_B" where "a_B \<equiv> res V (d b) a"
-  assume "local_le V (d a) a (ext V (d a) b)"
   have "local_le V (d b) a_B (res V (d b) (ext V (d a) b))" using assms a_B_def res_monotone_local [where
           ?V=V and ?B="d b" and ?a1.0=a and ?a2.0="comb V \<epsilon>A b"] le_eq_local_le [where ?V=V]
     by (smt (verit, best) OVA.res_monotone \<open>Poset.le (Prealgebra.ob (prealgebra V) \<cdot> d a) (e a) (e (ext V (d a) b))\<close> d_elem_is_open d_ext d_res ext_elem res_elem)
