@@ -693,9 +693,8 @@ qed
 (* [Theorem 1 (1/2), CVA] *)
 theorem res_ext_adjunction :
   fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V"
+  assumes V_valid : "valid V" and B_le_A : "d b \<subseteq> d a" 
   and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-  and B_le_A : "d b \<subseteq> d a"
 shows "local_le V (d b) (res V (d b) a) b = local_le V (d a) a (ext V (d a) b)"
 proof (rule iffI)
   assume "local_le V (d b) (res V (d b) a) b"
