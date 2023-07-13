@@ -16,8 +16,8 @@ definition dom :: "('x, 'y) Function \<Rightarrow> 'x set" where
 definition valid_map :: "('x, 'y) Function \<Rightarrow> bool" where
 "valid_map f \<equiv>
   let
-      welldefined = (\<forall>x y. (x, y) \<in> func f \<longrightarrow> y \<in> cod f);
-      deterministic = (\<forall>x y y'. (x, y) \<in> func f \<and> (x, y') \<in> func f \<longrightarrow> y = y');
+      welldefined = \<forall>x y. (x, y) \<in> func f \<longrightarrow> y \<in> cod f;
+      deterministic = \<forall>x y y'. (x, y) \<in> func f \<and> (x, y') \<in> func f \<longrightarrow> y = y';
       total = (\<forall>x. x \<in> dom f \<longrightarrow> (\<exists>y. (x, y) \<in> func f))
 
   in welldefined \<and> deterministic \<and> total"
