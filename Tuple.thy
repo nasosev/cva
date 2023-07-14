@@ -1198,7 +1198,6 @@ theorem rel_ova_commutative :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "is_commutative (rel_ova T)"
-  unfolding is_strongly_neutral_def
   by (simp add: assms is_commutative_def rel_semigroup_cod rel_semigroup_mult_comm)
 
 (* [Theorem 2 (3/4), CVA] *)
@@ -1284,9 +1283,8 @@ lemma rel_idempotent_left :
   shows "OVA.comb R (OVA.res R B a) a = a"
   by (metis B_elem B_le_A OVA.select_convs(1) OVA.select_convs(3) R_def T_valid a_el rel_idempotent rel_ova_valid rel_res_el rel_semigroup_mult_comm rel_space valid_gc_poset)
 
-
 (* [Theorem 2 (4/4), CVA] *)
-theorem rel_tuple_system :
+theorem rel_ova_tuple_system :
   fixes T :: "('A, 'x) TupleSystem"
   defines "R \<equiv> rel_ova T"
   defines "flasque \<equiv> \<forall>i. i \<in> inclusions (OVA.space R) \<longrightarrow> Poset.is_surjective (Prealgebra.ar (prealgebra R) \<cdot> i)"
