@@ -17,10 +17,8 @@ definition valid_map :: "('x, 'y) Function \<Rightarrow> bool" where
 "valid_map f \<equiv>
   let
       welldefined = \<forall>x y. (x, y) \<in> func f \<longrightarrow> y \<in> cod f;
-      deterministic = \<forall>x y y'. (x, y) \<in> func f \<and> (x, y') \<in> func f \<longrightarrow> y = y';
-      total = (\<forall>x. x \<in> dom f \<longrightarrow> (\<exists>y. (x, y) \<in> func f))
-
-  in welldefined \<and> deterministic \<and> total"
+      deterministic = \<forall>x y y'. (x, y) \<in> func f \<and> (x, y') \<in> func f \<longrightarrow> y = y'
+  in welldefined \<and> deterministic"
 
 (* Validity *)
 
@@ -28,18 +26,17 @@ lemma dom : "(x, y) \<in> func f \<Longrightarrow> x \<in> dom f"
   unfolding dom_def
   by blast
 
+lemma map_total : "x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func f"
+  by (simp add: Function.dom_def)
+
 lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> y \<in> cod f"
   by (simp add: valid_map_def) 
 
 lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y'"
   by (simp add: valid_map_def) 
 
-lemma valid_map_total : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func f"
-  by (simp add: valid_map_def) 
-
 lemma valid_mapI [intro] : "((\<And>x y. (x, y) \<in> func f \<Longrightarrow>  x \<in> dom f \<and> y \<in> cod f) \<Longrightarrow>
-                   (\<And>x y y'. (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y') \<Longrightarrow>
-                   (\<And>x. x \<in> dom f \<Longrightarrow> (\<exists>y. (x, y) \<in> func f))
+                   (\<And>x y y'. (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y')
                    \<Longrightarrow> valid_map f) "
   by (metis valid_map_def)
 
@@ -57,7 +54,7 @@ definition app :: "('x, 'y) Function \<Rightarrow> 'x \<Rightarrow> 'y" (infixr 
   else Function_app_undefined_arg_not_in_domain x" 
 
 lemma fun_app : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> (x, f \<cdot> x) \<in> func f"
-  by (metis (no_types, lifting) app_def theI' valid_map_def)  
+  by (metis app_def map_total theI' valid_map_deterministic)
 
 lemma fun_app2 : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> f \<cdot> x  \<in> cod f"
   by (meson fun_app valid_map_welldefined)
@@ -98,7 +95,7 @@ lemma compose_deterministic : "valid_map g \<Longrightarrow> valid_map f \<Longr
   by (smt (verit, ccfv_threshold) compose_def valid_map_deterministic relcomp.simps select_convs(2))
 
 lemma compose_total : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func (g \<bullet> f)"
-  by (metis (no_types, opaque_lifting) compose_def relcomp.simps select_convs(2) valid_map_total valid_map_welldefined)
+  by (metis (no_types, lifting) compose_def fun_app fun_app2 relcomp.simps select_convs(2))
 
 lemma compose_valid : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<bullet> f)"
   by (smt (verit) CollectD Function.dom_def compose_def compose_deterministic compose_welldefined_cod select_convs(1) valid_map_def)
@@ -126,22 +123,22 @@ lemma compose_app_assoc : "valid_map g \<Longrightarrow> valid_map f \<Longright
 
 (* Properties *)
 
-abbreviation is_surjective :: "('x, 'y) Function \<Rightarrow> bool" where
+definition is_surjective :: "('x, 'y) Function \<Rightarrow> bool" where
 "is_surjective f \<equiv> \<forall> y . y \<in> cod f \<longrightarrow> (\<exists> x . x \<in> dom f \<and> f \<cdot> x = y)"
 
-abbreviation is_injective :: "('x, 'y) Function \<Rightarrow> bool" where
+definition is_injective :: "('x, 'y) Function \<Rightarrow> bool" where
 "is_injective f \<equiv> \<forall>x x' . x \<in> dom f \<longrightarrow> x' \<in> dom f \<longrightarrow> f \<cdot> x = f \<cdot> x' \<longrightarrow> x = x'"
 
-abbreviation is_bijective :: "('x, 'y) Function \<Rightarrow> bool" where
+definition is_bijective :: "('x, 'y) Function \<Rightarrow> bool" where
 "is_bijective f \<equiv> is_surjective f \<and> is_injective f"
 
 lemma surjection_is_right_cancellative : "valid_map h \<Longrightarrow> valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h
  \<Longrightarrow> g \<bullet> f = h \<bullet> f \<Longrightarrow> g = h"
-  by (metis cod_compose compose_app_assoc fun_ext) 
+  by (metis cod_compose compose_app_assoc fun_ext is_surjective_def)
 
 lemma injection_is_left_cancellative : "valid_map h \<Longrightarrow> valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> is_injective f \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f 
  \<Longrightarrow> f \<bullet> g = f \<bullet> h \<Longrightarrow> g = h"
-  by (metis compose_app_assoc dom_compose fun_app2 fun_ext) 
+  by (smt (verit) compose_app_assoc dom_compose fun_app2 fun_ext is_injective_def)
 
 (* Identity functions *)
 
@@ -183,12 +180,11 @@ lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
   by (simp add: const_def)
 
 lemma const_app [simp] : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (const X Y y) \<cdot> x = y"
-  by (smt (verit) Pair_inject const_cod const_def const_dom fun_app mem_Collect_eq select_convs(2) valid_mapI)
+  by (smt (verit) CollectD Pair_inject const_cod const_def const_dom fun_app select_convs(2) valid_mapI)
 
 lemma const_valid : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> valid_map (const X Y y)"
   unfolding valid_map_def const_def
-  apply clarsimp
-  by (simp add: Function.dom_def)
+  by clarsimp
 
 lemma const_func : "y \<in> Y \<Longrightarrow> func (const X Y y) = {(x, y) | x . x \<in> X }"
   by (simp add: const_def)

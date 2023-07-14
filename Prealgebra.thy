@@ -330,14 +330,8 @@ definition forget ::  "('A, 'a) Prealgebra \<Rightarrow> ('A, 'a) Presheaf" wher
              func = { (i, Poset.forget_map (ar F \<cdot> i)) | i . i \<in> inclusions (space F) } \<rparr> \<rparr>"
 
 lemma forget_valid : "valid F \<Longrightarrow> Presheaf.valid (forget F)"
-proof (intro Presheaf.validI, clarsimp, goal_cases)
-  case 1
-  then show ?case using Poset.forget_map_valid forget_def [where ?F=F]
-    oops
-
+  oops
  
-
-
 (* Examples *)
 
 definition const ::  "'A Space \<Rightarrow> ('A, 'a) Prealgebra" where

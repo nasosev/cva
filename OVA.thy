@@ -84,10 +84,10 @@ definition valid :: "('A, 'a) OVA \<Rightarrow> bool" where
 
 (* Properties *)
 
-abbreviation is_commutative :: "('A, 'a) OVA \<Rightarrow> bool" where
+definition is_commutative :: "('A, 'a) OVA \<Rightarrow> bool" where
 "is_commutative V \<equiv> \<forall> a b . a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> comb V a b = comb V b a"
 
-abbreviation is_strongly_neutral :: "('A, 'a) OVA \<Rightarrow> bool" where
+definition is_strongly_neutral :: "('A, 'a) OVA \<Rightarrow> bool" where
 "is_strongly_neutral V \<equiv> \<forall> A B . A \<in> opens (space V) \<longrightarrow> B \<in> opens (space V) \<longrightarrow> comb V (neut V A) (neut V B) = neut V (A \<union> B)"
 
 (* Validity *)
@@ -770,7 +770,7 @@ corollary strongly_neutral_covariance :
   and B_le_A : "B \<subseteq> A" and B_open : "B \<in> opens (space V)" and A_open : "A \<in> opens (space V)"
   and strongly_neutral: "is_strongly_neutral V"
 shows "ext V A (neut V B) = neut V A "  
-  by (metis (no_types, lifting) V_valid assms fst_eqD ext_def neutral_is_element strongly_neutral sup.absorb_iff1)
+  by (metis (no_types, lifting) V_valid assms fst_eqD ext_def neutral_is_element strongly_neutral sup.absorb_iff1 is_strongly_neutral_def)
 
 (* [Corollary 1 (2/2), CVA] *)
 corollary strongly_neutral_monoid :
@@ -789,7 +789,7 @@ proof standard
   moreover have "... = comb V (comb V identity \<epsilon>A) a" using valid_comb_associative
     by (metis (no_types, opaque_lifting) OVA.valid_welldefined Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def neutral_is_element) 
   moreover have "... = comb V \<epsilon>A a"
-    by (metis (no_types, lifting) Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def strongly_neutral sup_bot_left valid_prealgebra)
+    by (metis (no_types, lifting) is_strongly_neutral_def Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def strongly_neutral sup_bot_left valid_prealgebra)
   moreover have "... = a"
     using calculation(1) by presburger
   ultimately show "comb V identity a = a"
@@ -803,7 +803,7 @@ next
   moreover have "... = comb V a (comb V \<epsilon>A identity)" using valid_comb_associative
     by (metis (no_types, lifting) OVA.valid_welldefined Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def neutral_is_element) 
   moreover have "... = comb V a \<epsilon>A"
-    by (metis (no_types, lifting) Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def strongly_neutral sup_bot.right_neutral valid_prealgebra)
+    by (metis (no_types, lifting) is_strongly_neutral_def Prealgebra.valid_welldefined Space.valid_def V_valid \<epsilon>A_def a_el d_elem_is_open identity_def strongly_neutral sup_bot.right_neutral valid_prealgebra)
   moreover have "... = a"
     using calculation(1) by presburger
   ultimately show "comb V a identity = a"
@@ -965,6 +965,7 @@ corollary locally_complete_imp_complete :
   assumes V_valid: "valid V"
   assumes local_completeness: "\<And>A . A \<in> opens (space V) \<Longrightarrow> Poset.is_complete (F A)"
   shows "Poset.is_complete (poset V)"
+  unfolding is_complete_def
 proof standard
   show "Poset.valid (poset V)"
     using V_valid by (metis OVA.valid_welldefined valid_gc)
@@ -983,7 +984,7 @@ next
     moreover have "ex_U \<subseteq> Poset.el (F (d_U))"
       by (smt (verit) Sup_upper UN_subset_iff Union_least F_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_ext ex_U_def ex_def image_subsetI in_mono d_elem_is_open V_valid)
     moreover have "some_e_U \<noteq> None" using Poset.complete_inf_not_none
-      using calculation(1) calculation(2) local_completeness some_e_U_def by fastforce
+      using calculation(1) calculation(2) local_completeness some_e_U_def F_def V_valid valid_ob valid_prealgebra by blast 
 
     obtain e_U where "some_e_U = Some e_U" using \<open>some_e_U \<noteq> None\<close> by auto
    
@@ -1006,7 +1007,8 @@ next
         moreover have "d u \<subseteq> d_U"
           using calculation(1) d_U_def by blast
         moreover have "Poset.valid (F (d_U))"
-          using \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> local_completeness by blast
+          using \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> local_completeness
+          by (simp add: is_complete_def) 
         moreover have "Poset.is_complete (F (d_U))"
           using \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> local_completeness by blast 
         moreover have "Poset.is_inf (F (d_U)) ex_U e_U" using ex_U_def local_completeness
@@ -1042,7 +1044,7 @@ next
         moreover have "\<forall> v \<in> U . pr d_U (ex (d z) v) = ex d_U v" using up_and_down
           by (smt (verit, ccfv_threshold) UN_subset_iff V_valid \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> calculation(3) calculation(4) calculation(5) d_U_def ex_def lb2 pr_def subset_eq)
         moreover have "Poset.valid (F d_U)"
-          by (simp add: \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> local_completeness)
+          using \<open>d_U \<in> opens (OVA.space V)\<close> is_complete_def local_completeness by fastforce
         moreover have "d_U \<in> opens (space V)"
           using \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> by blast
         moreover have "d_U \<subseteq> d z"

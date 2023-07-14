@@ -298,7 +298,8 @@ proof -
         ?T=T] rel_neutral_def [where ?T=T]
     by (smt (verit, best) T_valid i_inc mem_Collect_eq rel_neutral_is_element relation_ar_cod)
   moreover have "\<exists> x . x \<in> el (Poset.dom Ri) \<and> Ri \<star> x = \<epsilon>B"
-    using calculation(3) calculation(4) by blast 
+    using calculation(3) calculation(4) is_surjective_def
+    by fastforce 
   obtain "x" where "x \<in> el (Poset.dom Ri) \<and> Ri \<star> x = \<epsilon>B"
     using \<open>\<exists>x. x \<in> el (PosetMap.dom Ri) \<and> Ri \<star> x = \<epsilon>B\<close> by blast 
   moreover have "Poset.le (PosetMap.dom Ri) x \<epsilon>A"
@@ -1197,6 +1198,7 @@ theorem rel_ova_strongly_neutral :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "is_strongly_neutral (rel_ova T)"
+  unfolding is_strongly_neutral_def
 proof safe
   fix A B
   assume "A \<in> opens (OVA.space (rel_ova T))"
@@ -1227,10 +1229,36 @@ qed
 (* [Theorem 2 (4/4), CVA] *)
 theorem rel_tuple_system :
   fixes T :: "('A, 'x) TupleSystem"
+  defines "R \<equiv> rel_prealg T"
+  defines "flasque \<equiv> \<forall>i. i \<in> inclusions (Prealgebra.space R) \<longrightarrow> Poset.is_surjective (Prealgebra.ar R \<cdot> i)"
+  defines "binary_gluing \<equiv> (\<forall> A B a b . A \<in> opens (Prealgebra.space R) \<longrightarrow> B \<in> opens (Prealgebra.space R) 
+        \<longrightarrow> a \<in> el (Prealgebra.ob R \<cdot> A)
+        \<longrightarrow> b \<in> el (Prealgebra.ob R \<cdot> B)
+        \<longrightarrow> (Prealgebra.ar R \<cdot> (make_inc (A \<inter> B) A)) \<star> a = (Prealgebra.ar R \<cdot> (make_inc (A \<inter> B) B)) \<star> b
+        \<longrightarrow> (\<exists> c . c \<in> el (Prealgebra.ob R \<cdot> (A \<union> B)) \<and> (Prealgebra.ar R \<cdot> (make_inc A (A \<union> B))) \<star> c = a \<and> (Prealgebra.ar R \<cdot> (make_inc B
+ (A \<union> B))) \<star> c = b))"
+  assumes "valid T"
+  shows "flasque \<and> binary_gluing"
+proof (safe, goal_cases)
+  case 1
+  then show ?case 
+    unfolding flasque_def
+using surj_imp_direct_image_surj Presheaf.valid_ar R_def Tuple.valid_welldefined assms(4) relation_ar_value valid_flasque valid_relation_space by fastforce
+next
+  case 2
+  then show ?case sorry
+qed
+
+
+(*
+(* [Theorem 2 (4/4), CVA] *)
+theorem rel_tuple_system :
+  fixes T :: "('A, 'x) TupleSystem"
   defines "R \<equiv> \<lparr> presheaf = forget (rel_prealg T) \<rparr>" (* or `TupleSystem.make (forget (rel_prealg T))` *)
   assumes "valid T"
   shows "valid R"
 proof (intro validI, goal_cases)
   oops
+*)
 
 end

@@ -59,9 +59,9 @@ definition valid_map :: "('a, 'b) PosetMap \<Rightarrow> bool" where
       e_dom = el (dom f);
       e_cod = el (cod f);
       welldefined = valid (dom f) \<and> valid (cod f) \<and> (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> e_dom \<and> b \<in> e_cod);
-      deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');
-      total = (\<forall>a. a \<in> e_dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f));
-      monotone = (\<forall>a a'. a \<in> e_dom \<and> a' \<in> e_dom \<and> le_dom a a' \<longrightarrow> le_cod (f \<star> a) (f \<star> a'))
+      deterministic = \<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b';
+      total = \<forall>a. a \<in> e_dom \<longrightarrow> (\<exists>b. (a, b) \<in> func f);
+      monotone = \<forall>a a'. a \<in> e_dom \<and> a' \<in> e_dom \<and> le_dom a a' \<longrightarrow> le_cod (f \<star> a) (f \<star> a')
 
   in welldefined \<and> deterministic \<and> total \<and> monotone"
 
@@ -253,22 +253,22 @@ lemma compose_assoc : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
 
 (* Properties *)
 
-abbreviation is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+definition is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "is_surjective f \<equiv> \<forall> b . b \<in> el (cod f) \<longrightarrow> (\<exists> a . a \<in> el (dom f) \<and> f \<star> a = b)"
 
-abbreviation is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+definition is_injective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "is_injective f \<equiv> \<forall>a a' . a \<in> el (dom f) \<longrightarrow> a' \<in> el (dom f) \<longrightarrow> f \<star> a = f \<star> a' \<longrightarrow> a = a'"
 
-abbreviation is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
+definition is_bijective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
 "is_bijective f \<equiv> is_surjective f \<and> is_injective f"
 
 lemma surjection_is_right_cancellative : "valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h \<Longrightarrow>  g \<diamondop> f = h \<diamondop> f \<Longrightarrow> g = h"
-  by (metis cod_compose compose_app_assoc fun_ext )
+  by (metis Poset.cod_compose Poset.compose_app_assoc Poset.fun_ext Poset.is_surjective_def)
 
 lemma injection_is_left_cancellative : "valid_map f \<Longrightarrow> is_injective f \<Longrightarrow>
   valid_map g \<Longrightarrow> valid_map h \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f \<Longrightarrow>  f \<diamondop> g = f \<diamondop> h \<Longrightarrow> g = h"
-  by (smt (verit, best) compose_app_assoc dom_compose fun_app2 fun_ext)
+  by (smt (verit, ccfv_threshold) Poset.compose_app_assoc Poset.dom_compose Poset.fun_app2 Poset.fun_ext Poset.is_injective_def)
 
 (* Identity maps *)
 
@@ -394,10 +394,10 @@ definition inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 definition sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 "sup P U \<equiv> if (\<exists>s. s \<in> el P \<and> is_sup P U s) then Some (SOME s. s \<in> el P \<and> is_sup P U s) else None"
 
-abbreviation is_complete :: "'a Poset \<Rightarrow> bool" where
+definition is_complete :: "'a Poset \<Rightarrow> bool" where
 "is_complete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i))"
 
-abbreviation is_cocomplete :: "'a Poset \<Rightarrow> bool" where
+definition is_cocomplete :: "'a Poset \<Rightarrow> bool" where
 "is_cocomplete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>s. is_sup P U s))"
 
 lemma inf_unique : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> i \<in> el P\<Longrightarrow> i' \<in> el P \<Longrightarrow> is_inf P U i \<Longrightarrow> is_inf P U i' \<Longrightarrow> i = i'"
@@ -433,10 +433,10 @@ lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longright
   by (metis (no_types, lifting) sup_unique option.distinct(1) option.inject some_equality)
 
 lemma complete_inf_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
-  by (simp add: inf_def is_inf_def)
+  by (simp add: inf_def is_complete_def is_inf_def)
 
 lemma cocomplete_sup_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
-  by (simp add: is_sup_def sup_def)
+  by (simp add: is_sup_def is_cocomplete_def sup_def)
 
 lemma complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
 proof
@@ -624,7 +624,8 @@ lemma surj_imp_direct_image_surj :
   fixes f :: "('a, 'b) Function"
   assumes f_valid : "Function.valid_map f"
   and f_surj : "Function.is_surjective f"
-  shows "Poset.is_surjective (direct_image f)"
+shows "Poset.is_surjective (direct_image f)"
+  unfolding is_surjective_def
 proof safe
   fix b
   define "X" where "X = Function.dom f"
@@ -634,7 +635,7 @@ proof safe
   have "b \<subseteq> Y"
     by (metis (no_types, lifting) Poset.Poset.select_convs(1) PowD Y_def \<open>b \<in> el (PosetMap.cod (direct_image f))\<close> direct_image_cod powerset_def)
   moreover have "\<forall> y \<in> b . (\<exists> x . x \<in> X \<and> f \<cdot> x = y)"
-    using X_def Y_def calculation f_surj by auto
+    by (metis Function.is_surjective_def X_def Y_def calculation f_surj subsetD)
   define "pre" where "pre = (\<lambda> y. (SOME x. (y \<in> b) \<longrightarrow> (f \<cdot> x = y \<and> x \<in> X) ))"
   moreover have "\<forall> y . (y \<in> b \<longrightarrow> f \<cdot> (pre y) = y)"
     by (smt (verit, best) \<open>\<forall>y\<in>b. \<exists>x. x \<in> X \<and> f \<cdot> x = y\<close> pre_def someI_ex)
