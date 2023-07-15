@@ -696,9 +696,9 @@ theorem res_ext_adjunction :
   fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and B_le_A : "d b \<subseteq> d a" 
   and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-shows "local_le V (d b) (res V (d b) a) b = local_le V (d a) a (ext V (d a) b)"
+shows "local_le V (d b) (res V (d b) a) b = local_le V (d a) a (ext V (d a) b)" (is "?L \<longleftrightarrow> ?R")
 proof (rule iffI)
-  assume "local_le V (d b) (res V (d b) a) b"
+  assume "?L"
   define "\<epsilon>A" where "\<epsilon>A \<equiv> neut V (d a)"
   define "a_B" where "a_B \<equiv> res V (d b) a"
   have "local_le V (d a) (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
@@ -707,10 +707,10 @@ proof (rule iffI)
     by (smt (verit) Poset.valid_def \<epsilon>A_def \<open>Poset.le (Prealgebra.ob (prealgebra V) \<cdot> d b) (e (res V (d b) a)) (e b)\<close> comb_is_element d_elem_is_open d_res fst_eqD neutral_is_element res_elem sup.order_iff valid_domain_law valid_poset valid_semigroup)
   moreover have "comb V \<epsilon>A b = ext V (d a) b" using \<epsilon>A_def ext_def [where ?V=V and ?A="d a" and ?b=b]
     by (metis B_le_A V_valid a_el b_el d_elem_is_open) 
-  ultimately show "local_le V (d a) a (ext V (d a) b)"
+  ultimately show "?R"
     by (smt (z3) B_le_A V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_ext d_res local_inclusion_element neutral_is_element res_elem valid_domain_law valid_neutral_law_left valid_ob valid_prealgebra valid_transitivity)
 next
-  assume "local_le V (d a) a (ext V (d a) b)"
+  assume "?R"
   define "\<epsilon>A" where "\<epsilon>A \<equiv> neut V (d a)"
   define "a_B" where "a_B \<equiv> res V (d b) a"
   have "local_le V (d b) a_B (res V (d b) (ext V (d a) b))" using assms a_B_def res_monotone_local [where
@@ -722,7 +722,7 @@ next
     by (metis V_valid \<epsilon>A_def a_el b_el calculation(2) d_elem_is_open fst_eqD neutral_is_element)
   moreover have "comb V (res V (d a \<inter> d b) \<epsilon>A) b = comb V (neut V (d b)) b"
     by (metis B_le_A Int_absorb1 V_valid \<epsilon>A_def a_el b_el d_elem_is_open stability) 
-  ultimately show "local_le V (d b) (res V (d b) a) b"
+  ultimately show "?L"
     by (metis V_valid a_B_def b_el valid_neutral_law_left)
 qed
 

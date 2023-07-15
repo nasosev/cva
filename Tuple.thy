@@ -63,7 +63,7 @@ definition rel_semigroup :: "('A, 'x) TupleSystem \<Rightarrow> (('A, 'x) Relati
                         \<and> C = A \<union> B
                         \<and> a \<in> el (Prealgebra.ob R \<cdot> A)
                         \<and> b \<in> el (Prealgebra.ob R \<cdot> B)
-                        \<and> c = { t | t . t \<in> ob T \<cdot> C
+                        \<and> c = { t . t \<in> ob T \<cdot> C
                                         \<and> (ar T \<cdot> (make_inc A C)) \<cdot> t \<in> a     
                                         \<and> (ar T \<cdot> (make_inc B C)) \<cdot> t \<in> b } } \<rparr>
     in
@@ -416,7 +416,7 @@ lemma rel_semigroup_mult_val :
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
   defines "R \<equiv> rel_prealg T"
   defines "dc \<equiv> d a \<union> d b"
-  defines "ec \<equiv> { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
+  defines "ec \<equiv> { t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
   defines "c \<equiv> (dc, ec)"
   assumes T_valid : "valid T" and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)"
@@ -447,7 +447,7 @@ proof -
   assume "t \<in> e (join \<star> (a, b))"
   have "(a,b) \<in> el (Poset.dom join)"
     by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el join_def rel_semigroup_dom)
-  moreover have "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+  moreover have "e (join \<star> (a, b)) = { t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
@@ -468,7 +468,7 @@ proof -
   assume "t \<in> e (join \<star> (a, b))"
   have "(a,b) \<in> el (Poset.dom join)"
     by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el join_def rel_semigroup_dom)
-  moreover have "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+  moreover have "e (join \<star> (a, b)) = { t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
@@ -492,7 +492,7 @@ lemma rel_semigroup_mult_e [simp] :
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "e (join \<star> (a, b)) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+shows "e (join \<star> (a, b)) = { t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                      \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
   using rel_semigroup_def [where ?T=T] assms rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
@@ -527,7 +527,7 @@ lemma rel_semigroup_mult_el :
 shows "join \<star> (a, b) \<in> el (gc R)"
 proof - 
   define "dc" where "dc = d a \<union> d b"
-  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
+  define "ec" where "ec = { t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
                                         \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
   define "c" where "c = (dc, ec)"
   have "(a,b) \<in> el (PosetMap.dom join)" using assms  Poset.product_def
@@ -584,9 +584,9 @@ lemma rel_semigroup_mult_total :
   assumes T_valid : "valid T" 
   and ab_el : "(a,b) \<in> el (PosetMap.dom (mult (rel_semigroup T)))" 
 shows "\<exists>c. ((a,b), c) \<in> PosetMap.func (mult (rel_semigroup T))"
-proof -
+proof
   define "dc" where "dc = d a \<union> d b"
-  define "ec" where "ec = { t | t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
+  define "ec" where "ec = { t . t \<in> ob T \<cdot> dc \<and> (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
   define "c" where "c = (dc, ec)"
   have "d a \<in> opens (space T)"  using rel_semigroup_def [where ?T=T]
@@ -601,7 +601,7 @@ proof -
       ec_def c_def 
     apply (simp add :Let_def)
     using prod.exhaust_sel by blast
-  ultimately show ?thesis
+  ultimately show "((a,b), c) \<in> PosetMap.func (mult (rel_semigroup T))"
     by blast
 qed
 
@@ -691,7 +691,7 @@ next
       fix t
       assume "t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))"
 
-      define "eab" where "eab = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+      define "eab" where "eab = { t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                      \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
 
@@ -766,7 +766,7 @@ next
       moreover have "s_B' = t'_B'" using assms calculation Presheaf.diamond_rule
         by (metis (no_types, lifting) CollectD Tuple.valid_welldefined \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> d_antitone eab_def i_def j_B'_def local_dom sup.cobounded2 valid_rel_prealg valid_relation_space)
 
-      define "ea'b'" where "ea'b' = { t | t . t \<in> ob T \<cdot> (d a' \<union> d b') 
+      define "ea'b'" where "ea'b' = { t . t \<in> ob T \<cdot> (d a' \<union> d b') 
                                      \<and> (ar T \<cdot> (make_inc (d a') (d a' \<union> d b'))) \<cdot> t \<in> e a'     
                                      \<and> (ar T \<cdot> (make_inc (d b') (d a' \<union> d b'))) \<cdot> t \<in> e b' }"
 
@@ -805,7 +805,7 @@ next
     define "lhs" where "lhs = e (mul S (mul S a b) c)"
     define "rhs" where "rhs = e (mul S a (mul S b c))"
     define "U" where "U = d a \<union> d b \<union> d c"
-    define "mhs" where "mhs =  { t | t . t \<in> ob T \<cdot> U
+    define "mhs" where "mhs =  { t . t \<in> ob T \<cdot> U
                                      \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a  
                                      \<and> (ar T \<cdot> (make_inc (d b) U)) \<cdot> t \<in> e b  
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }"
@@ -814,27 +814,27 @@ next
   \<longrightarrow> (ar T \<cdot> (make_inc B A)) \<cdot> ((ar T \<cdot> (make_inc A  U)) \<cdot> t) = (ar T \<cdot> (make_inc B U)) \<cdot> t"
       by (smt (verit, del_insts) Function.ident_app Presheaf.diamond_rule Presheaf.valid_identity Presheaf.valid_space R_def Space.ident_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el dual_order.refl dual_order.trans local_dom valid_rel_prealg valid_relation_space valid_union2)
 
-    moreover have "lhs = { t | t . t \<in> ob T \<cdot> U
+    moreover have "lhs = { t . t \<in> ob T \<cdot> U
                                      \<and> (ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t \<in> e (mul S a b)  
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }" using rel_semigroup_mult_e [where ?T=T and ?a="mul S a b" and ?b=c]
       by (smt (verit) Collect_cong R_def S_def T_valid U_def a_el b_el c_el lhs_def rel_semigroup_mult_d rel_semigroup_mult_el)
 
-    moreover have "... = { t | t . t \<in> ob T \<cdot> U
-                                     \<and> (ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t \<in> { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+    moreover have "... = { t . t \<in> ob T \<cdot> U
+                                     \<and> (ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t \<in> { t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                                                                  \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                                                                  \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b } 
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }" 
       using rel_semigroup_mult_e [where ?T=T and ?a=a and ?b=b]
       using R_def S_def T_valid a_el b_el by presburger
 
-     moreover have "... = { t | t . t \<in> ob T \<cdot> U
+     moreover have "... = { t . t \<in> ob T \<cdot> U
                                      \<and> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> ob T \<cdot> (d a \<union> d b) 
                                                                                  \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> e a     
                                                                                  \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> e b  
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }"
        by blast 
 
-     moreover have "... = { t | t . t \<in> ob T \<cdot> U 
+     moreover have "... = { t . t \<in> ob T \<cdot> U 
                                      \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> ((ar T \<cdot> (make_inc (d a \<union> d b) U)) \<cdot> t) \<in> e b  
                                      \<and> (ar T \<cdot> (make_inc (d c) U)) \<cdot> t \<in> e c }" 
@@ -848,27 +848,27 @@ next
      ultimately have lhs: "lhs = mhs"
        by presburger 
 
-    have "rhs = { t | t . t \<in> ob T \<cdot> U
+    have "rhs = { t . t \<in> ob T \<cdot> U
                                      \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> e (mul S b c)  }" using rel_semigroup_mult_e [where ?T=T and ?a=a and ?b="mul S b c"]
       by (smt (verit, ccfv_SIG) Collect_cong R_def S_def T_valid U_def a_el b_el c_el rel_semigroup_mult_d rel_semigroup_mult_el rhs_def sup_assoc)
 
-    moreover have "... = { t | t . t \<in> ob T \<cdot> U
+    moreover have "... = { t . t \<in> ob T \<cdot> U
                                      \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a     
-                                     \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> { t | t . t \<in> ob T \<cdot> (d b \<union> d c) 
+                                     \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> { t . t \<in> ob T \<cdot> (d b \<union> d c) 
                                      \<and> (ar T \<cdot> (make_inc (d b) (d b \<union> d c))) \<cdot> t \<in> e b     
                                      \<and> (ar T \<cdot> (make_inc (d c) (d b \<union> d c))) \<cdot> t \<in> e c }  }" 
       using rel_semigroup_mult_e [where ?T=T and ?a=b and ?b=c]
       using R_def S_def T_valid b_el c_el by presburger 
 
-    moreover have "... = { t | t . t \<in> ob T \<cdot> U
+    moreover have "... = { t . t \<in> ob T \<cdot> U
                                      \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t \<in> ob T \<cdot> (d b \<union> d c) 
                                      \<and> ((ar T \<cdot> (make_inc (d b) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e b     
                                      \<and> ((ar T \<cdot> (make_inc (d c) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e c }"
       by blast 
 
-    moreover have "... = { t | t . t \<in> ob T \<cdot> U   
+    moreover have "... = { t . t \<in> ob T \<cdot> U   
                                      \<and> (ar T \<cdot> (make_inc (d a) U)) \<cdot> t \<in> e a    
                                      \<and> ((ar T \<cdot> (make_inc (d b) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e b     
                                      \<and> ((ar T \<cdot> (make_inc (d c) (d b \<union> d c))) \<cdot> ((ar T \<cdot> (make_inc (d b \<union> d c) U)) \<cdot> t)) \<in> e c }"
@@ -876,7 +876,7 @@ next
       by (metis (no_types, lifting) Presheaf.valid_space R_def T_valid Tuple.valid_welldefined U_def a_el b_el c_el local_dom sup.cobounded2 sup_assoc valid_rel_prealg valid_relation_space valid_union2)
 
     moreover have "... = mhs"
-      by (smt (verit, del_insts) Collect_cong R_def S_def T_valid Tuple.valid_welldefined U_def \<open>{t |t. t \<in> Tuple.ob T \<cdot> U \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a, cod = d a \<union> d b\<rparr>) \<cdot> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a \<union> d b, cod = U\<rparr>) \<cdot> t \<in> e a \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d b, cod = d a \<union> d b\<rparr>) \<cdot> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a \<union> d b, cod = U\<rparr>) \<cdot> t \<in> e b \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d c, cod = U\<rparr>) \<cdot> t \<in> e c} = mhs\<close> a_el b_el c_el local.trans local_dom rel_semigroup_mult_d rel_semigroup_mult_el sup.cobounded1 sup.cobounded2 sup_assoc valid_rel_prealg valid_relation_space) 
+      by (smt (verit, del_insts) Collect_cong R_def S_def T_valid Tuple.valid_welldefined U_def \<open>{t . t \<in> Tuple.ob T \<cdot> U \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a, cod = d a \<union> d b\<rparr>) \<cdot> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a \<union> d b, cod = U\<rparr>) \<cdot> t \<in> e a \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d b, cod = d a \<union> d b\<rparr>) \<cdot> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d a \<union> d b, cod = U\<rparr>) \<cdot> t \<in> e b \<and> (Tuple.ar T \<cdot> \<lparr>Inclusion.dom = d c, cod = U\<rparr>) \<cdot> t \<in> e c} = mhs\<close> a_el b_el c_el local.trans local_dom rel_semigroup_mult_d rel_semigroup_mult_el sup.cobounded1 sup.cobounded2 sup_assoc valid_rel_prealg valid_relation_space) 
 
     ultimately have rhs : "rhs = mhs"
       by presburger 
@@ -978,7 +978,7 @@ lemma rel_comb_d : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longri
   by (simp add: rel_semigroup_cod) 
 
 lemma rel_comb_e : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longrightarrow> b \<in> elems (rel_ova T) 
-\<Longrightarrow> e (comb (rel_ova T) a b) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+\<Longrightarrow> e (comb (rel_ova T) a b) = { t . t \<in> ob T \<cdot> (d a \<union> d b) 
                               \<and> (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a
                               \<and> (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b }" 
   using rel_semigroup_mult_e [where ?T=T and ?a=a and ?b=b]
@@ -1027,13 +1027,13 @@ lemma rel_neutral_law_left :
   and a_el : "a \<in> elems V"
 shows "comb V (neut V (d a)) a = a"
 proof -
-  define "ea" where "ea = { t | t . t \<in> ob T \<cdot> d a \<and> (ar T \<cdot> (make_inc (d a) (d a))) \<cdot> t \<in> e (neut V (d a))    
+  define "ea" where "ea = { t . t \<in> ob T \<cdot> d a \<and> (ar T \<cdot> (make_inc (d a) (d a))) \<cdot> t \<in> e (neut V (d a))    
                                          \<and> (ar T \<cdot> (make_inc (d a) (d a))) \<cdot> t \<in> e a }"
-  have "e (comb V (neut V (d a)) a) = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e (neut V (d a)) \<and> t \<in> e a }" 
+  have "e (comb V (neut V (d a)) a) = { t . t \<in> ob T \<cdot> d a \<and> t \<in> e (neut V (d a)) \<and> t \<in> e a }" 
     using rel_semigroup_mult_e [where ?T=T and ?a="neut V (d a)" and ?b=a] Presheaf.valid_identity
       [where ?F="presheaf T"] Function.ident_app
     by (smt (verit) Collect_cong OVA.select_convs(3) Space.ident_def T_valid Tuple.valid_welldefined Un_absorb V_def a_el comp_apply fst_conv rel_el_open rel_neut_el rel_semigroup_cod)
-  moreover have "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a }" using calculation
+  moreover have "... = { t . t \<in> ob T \<cdot> d a \<and> t \<in> e a }" using calculation
       rel_neutral_nat_value_app [where ?T=T and ?A="d a"]
     by (metis (no_types, lifting) T_valid V_def a_el rel_el_open rel_neut_e)
   moreover have "... = e a" 
@@ -1088,12 +1088,12 @@ proof (standard, goal_cases)
     define "lhs" where "lhs = e (res V (d a) (comb V a b)) "
     define "rhs" where "rhs = e (comb V a (res V (d a \<inter> d b) b))"
 
-    have "e (comb V a b) = { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+    have "e (comb V a b) = { t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                       \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }" 
         using  i_A_def i_B_def assms rel_comb_e [where ?T=T and ?a=a and ?b=b] by presburger
 
-    moreover have "lhs = (Prealgebra.ar (rel_prealg T) \<cdot> i_A) \<star> { t | t . t \<in> ob T \<cdot> (d a \<union> d b) 
+    moreover have "lhs = (Prealgebra.ar (rel_prealg T) \<cdot> i_A) \<star> { t . t \<in> ob T \<cdot> (d a \<union> d b) 
                                       \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }"
       using i_A_def i_B_def assms  lhs_def calculation
@@ -1120,19 +1120,19 @@ proof (standard, goal_cases)
         using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_AB_B" and ?a="e b"] calculation
         by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Int_lower2 Presheaf.valid_ar Presheaf.valid_dom T_valid Tuple.valid_space Tuple.valid_welldefined V_def a_el b_el i_AB_B_def mem_Collect_eq rel_el_open rel_el_subset relation_ar_value valid_inter)
 
-    moreover have r3: "rhs =  { t | t . t \<in> ob T \<cdot> d a 
+    moreover have r3: "rhs =  { t . t \<in> ob T \<cdot> d a 
                                       \<and> (ar T \<cdot> (Space.ident (d a))) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
       using  rel_comb_e [where ?T=T and ?a=a and ?b="res (rel_ova T) (d a \<inter> d b) b"] assms rhs_def
       by (smt (verit) Collect_cong Int_Un_eq(3) Int_lower2 Space.ident_def Tuple.valid_space fst_conv i_AB_A_def rel_el_open rel_res_el rel_space res_def valid_inter)
 
-    moreover have r4: "... = { t | t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+    moreover have r4: "... = { t . t \<in> ob T \<cdot> d a \<and> t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
       by (metis (no_types, lifting) Function.ident_app Presheaf.valid_identity T_valid Tuple.valid_welldefined V_def a_el rel_el_open)
 
-    moreover have r5: "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
+    moreover have r5: "... = { t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> e (res (rel_ova T) (d a \<inter> d b) b) }"
       by (metis (no_types, lifting) T_valid V_def a_el rel_el_subset subsetD)
 
-    moreover have r6: "... = { t | t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> { (ar T \<cdot> i_AB_B) \<cdot> t | t .
+    moreover have r6: "... = { t . t \<in> e a \<and> (ar T \<cdot> i_AB_A) \<cdot> t \<in> { (ar T \<cdot> i_AB_B) \<cdot> t | t .
         t \<in> e b } }" using r1 r2 by presburger 
 
     moreover have r7: "... = { t | t s . t \<in> e a \<and> s \<in> e b
@@ -1220,7 +1220,7 @@ proof safe
     by (metis OVA.select_convs(1) Presheaf.restricted_element Tuple.valid_space Tuple.valid_welldefined Un_upper1 \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> assms valid_relation_space valid_union2)
   moreover have "\<forall> t .  t \<in> ob T \<cdot> (A \<union> B)  \<longrightarrow> (ar T \<cdot> make_inc B (A \<union> B)) \<cdot> t \<in> ob T \<cdot> B"
     by (metis OVA.select_convs(1) Presheaf.restricted_element Tuple.valid_space Tuple.valid_welldefined Un_upper2 \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> assms valid_relation_space valid_union2)
-  moreover have "lhs = (A \<union> B, { t | t . t \<in> ob T \<cdot> (A \<union> B)
+  moreover have "lhs = (A \<union> B, { t . t \<in> ob T \<cdot> (A \<union> B)
                               \<and> (ar T \<cdot> make_inc A (A \<union> B) ) \<cdot> t \<in> ob T \<cdot> A
                               \<and> (ar T \<cdot> make_inc B (A \<union> B) ) \<cdot> t \<in> ob T \<cdot> B })"  using lhs_def
     rel_comb_e [where ?T=T] rel_neut_e [where ?T=T]
@@ -1306,4 +1306,26 @@ next
 qed
 
 
+(* Lists (L) and non-empty lists (L_+) functors *)
+
+
+abbreviation lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
+"lists_in_set X \<equiv> { xs . set xs \<subseteq> X }"
+
+abbreviation ne_lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
+"ne_lists_in_set X \<equiv> { xs  . set xs \<subseteq> X \<and> length xs \<noteq> 0 }" 
+
+definition lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
+"lists T = 
+  (let
+    ob = \<lparr> Function.cod = UNIV, func = { (A, lists_in_set (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>;
+    ar = \<lparr> Function.cod = UNIV, 
+        func = { (i, 
+                    \<lparr> Function.cod = ob \<cdot> (Space.cod i), func = undefined \<rparr> 
+                  ) | i . i \<in> inclusions (space T) }  \<rparr>
+  in
+  \<lparr> presheaf = \<lparr> Presheaf.space = space T, ob = ob, ar = undefined \<rparr> \<rparr>)"
+
+
+(* valid *)
 end

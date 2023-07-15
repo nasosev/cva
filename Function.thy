@@ -127,7 +127,7 @@ definition is_surjective :: "('x, 'y) Function \<Rightarrow> bool" where
 "is_surjective f \<equiv> \<forall> y . y \<in> cod f \<longrightarrow> (\<exists> x . x \<in> dom f \<and> f \<cdot> x = y)"
 
 definition is_injective :: "('x, 'y) Function \<Rightarrow> bool" where
-"is_injective f \<equiv> \<forall>x x' . x \<in> dom f \<longrightarrow> x' \<in> dom f \<longrightarrow> f \<cdot> x = f \<cdot> x' \<longrightarrow> x = x'"
+"is_injective f \<equiv> \<forall> x x' . x \<in> dom f \<longrightarrow> x' \<in> dom f \<longrightarrow> f \<cdot> x = f \<cdot> x' \<longrightarrow> x = x'"
 
 definition is_bijective :: "('x, 'y) Function \<Rightarrow> bool" where
 "is_bijective f \<equiv> is_surjective f \<and> is_injective f"
