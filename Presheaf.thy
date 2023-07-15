@@ -14,18 +14,14 @@ record ('A, 'x) Presheaf =
 definition valid :: "('A, 'x) Presheaf \<Rightarrow> bool" where
   "valid F \<equiv>
     let
-      T = space F;
-      F0 = ob F;
-      F1 = ar F;
-
-      welldefined = (Space.valid T)
-                    \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> valid_map (F1 \<cdot> i)
-                           \<and>  Function.dom (F1 \<cdot> i) = F0 \<cdot> Space.cod i
-                           \<and>  Function.cod (F1 \<cdot> i) = F0 \<cdot> Space.dom i );
-      identity = (\<forall>A. A \<in> opens T \<longrightarrow> (F1 \<cdot> (Space.ident A)) = Function.ident (F0 \<cdot> A));
-      composition = (\<forall>j i. j \<in> inclusions T \<longrightarrow> i \<in> inclusions T \<longrightarrow>  Space.dom j = Space.cod i
-        \<longrightarrow>  F1 \<cdot> (j \<propto> i) = (F1 \<cdot> i) \<bullet> (F1 \<cdot> j))
+      welldefined = (Space.valid (space F))
+                    \<and> (Function.valid_map (ob F)) \<and> (Function.valid_map (ar F))
+                    \<and> (\<forall>i. i \<in> inclusions (space F) \<longrightarrow> valid_map (ar F \<cdot> i)
+                           \<and>  Function.dom (ar F \<cdot> i) = ob F \<cdot> Space.cod i
+                           \<and>  Function.cod (ar F \<cdot> i) = ob F \<cdot> Space.dom i );
+      identity = (\<forall>A. A \<in> opens (space F) \<longrightarrow> (ar F \<cdot> (Space.ident A)) = Function.ident (ob F \<cdot> A));
+      composition = (\<forall>j i. j \<in> inclusions (space F) \<longrightarrow> i \<in> inclusions (space F) \<longrightarrow>  Space.dom j = Space.cod i
+        \<longrightarrow>  ar F \<cdot> (j \<propto> i) = (ar F \<cdot> i) \<bullet> (ar F \<cdot> j))
     in 
     welldefined \<and> identity \<and> composition"
 
@@ -42,16 +38,14 @@ abbreviation map_space :: "('A, 'x, 'y) PresheafMap \<Rightarrow> 'A Space" wher
 definition valid_map :: "('A, 'x, 'y) PresheafMap \<Rightarrow> bool" where
  "valid_map f \<equiv>
     let
-      T = map_space f;
-
-      welldefined = Space.valid T
-                    \<and> T = space (cod f)
+      welldefined = Space.valid (map_space f)
+                    \<and> map_space f = space (cod f)
                     \<and> valid (dom f) \<and> valid (cod f)
                     \<and> (Function.valid_map (nat f))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.valid_map (nat f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A));
-      naturality = (\<forall>i. i \<in> inclusions T \<longrightarrow>
+                    \<and> (\<forall>A. A \<in> opens (map_space f) \<longrightarrow> Function.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens (map_space f) \<longrightarrow> Function.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens (map_space f) \<longrightarrow> Function.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A));
+      naturality = (\<forall>i. i \<in> inclusions (map_space f) \<longrightarrow>
           (nat f \<cdot> Space.dom i) \<bullet> (ar (dom f) \<cdot> i) = (ar (cod f) \<cdot> i) \<bullet> (nat f  \<cdot> Space.cod i))
     in
     (welldefined \<and> naturality)"
@@ -60,40 +54,38 @@ definition valid_map :: "('A, 'x, 'y) PresheafMap \<Rightarrow> bool" where
 
 lemma validI [intro] :
   fixes F :: "('A,'x) Presheaf"
-  defines "T \<equiv> space F"
-  defines "F0 \<equiv> ob F"
-  defines "F1 \<equiv> ar F"
-  assumes welldefined : "Space.valid T
-                    \<and> Function.valid_map F0 \<and> Function.valid_map F1
-                    \<and> (\<forall> i. i \<in> inclusions T \<longrightarrow> Function.valid_map (F1 \<cdot> i)
-                           \<and>  Function.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
-                           \<and>  Function.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i))"
-  assumes identity : "\<And> A. A \<in> opens T \<Longrightarrow> (F1 \<cdot> (Space.ident A)) = Function.ident (F0 \<cdot> A)"
-  assumes composition :"\<And> i j. j \<in> inclusions T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow>
-        Space.dom j = Space.cod i \<Longrightarrow> F1 \<cdot> (j \<propto> i ) = (F1 \<cdot> i) \<bullet> (F1 \<cdot> j)"
+  assumes welldefined_space : "Space.valid (space F)"
+  and welldefined_valid_ob : "Function.valid_map (ob F)"
+  and welldefined_valid_ar : "Function.valid_map (ar F)"
+  and welldefined_ar : "\<And> i. i \<in> inclusions (space F) \<Longrightarrow> Function.valid_map (ar F \<cdot> i)"
+  and welldefined_ar_dom : "\<And> i. i \<in> inclusions (space F) \<Longrightarrow> Function.dom (ar F \<cdot> i) = (ob F \<cdot> Space.cod i)"
+  and welldefined_ar_cod : "\<And> i. i \<in> inclusions (space F) \<Longrightarrow> Function.cod (ar F \<cdot> i) = (ob F \<cdot> Space.dom i)"
+  and identity : "\<And> A. A \<in> opens (space F) \<Longrightarrow> (ar F \<cdot> (Space.ident A)) = Function.ident (ob F \<cdot> A)"
+  and composition :"\<And> i j. j \<in> inclusions (space F) \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow>
+        Space.dom j = Space.cod i \<Longrightarrow> ar F \<cdot> (j \<propto> i) = (ar F \<cdot> i) \<bullet> (ar F \<cdot> j)"
   shows "valid F"
   unfolding valid_def
   apply (simp add: Let_def)
   apply safe
-  using T_def welldefined apply blast
-  using F0_def welldefined apply blast
-  using F1_def welldefined apply fastforce
-  using T_def F1_def welldefined apply blast
-  using T_def F0_def F1_def welldefined apply blast 
-  using T_def F0_def F1_def welldefined apply blast
-  using T_def F0_def F1_def welldefined apply blast
-  using T_def F0_def F1_def welldefined apply blast
-  using T_def F0_def F1_def identity apply blast
-  using T_def F1_def composition by blast  
+  apply (simp add: welldefined_space)
+  apply (simp add: welldefined_valid_ob)
+  apply (simp add: welldefined_valid_ar)
+  apply (simp add: welldefined_ar)
+  apply (simp add: welldefined_ar_dom)
+  apply (simp add: welldefined_ar_dom)
+  apply (simp add: welldefined_ar_cod)
+  apply (simp add: welldefined_ar_cod)
+  using identity apply blast
+  by (simp add: composition)
 
-lemma valid_welldefined  : "valid F \<Longrightarrow> let T = space F; F0 = ob F; F1 = ar F in (Space.valid T)
-                    \<and> (Function.valid_map F0) \<and> (Function.valid_map F1)
-                    \<and> (\<forall>i. i \<in> inclusions T \<longrightarrow> Function.valid_map (F1 \<cdot> i)
-                           \<and>  Function.dom (F1 \<cdot> i) = (F0 \<cdot> Space.cod i)
-                           \<and>  Function.cod (F1 \<cdot> i) = (F0 \<cdot> Space.dom i) )"
+lemma valid_welldefined  : "valid F \<Longrightarrow> Space.valid (space F)
+                    \<and> Function.valid_map (ob F) \<and> Function.valid_map (ar F)
+                    \<and> (\<forall>i. i \<in> inclusions (space F) \<longrightarrow> Function.valid_map (ar F \<cdot> i)
+                           \<and>  Function.dom (ar F \<cdot> i) = (ob F \<cdot> Space.cod i)
+                           \<and>  Function.cod (ar F \<cdot> i) = (ob F \<cdot> Space.dom i))"
   unfolding valid_def by (simp add: Let_def)
 
-lemma valid_space  : "valid F \<Longrightarrow> T = space F \<Longrightarrow> Space.valid T"
+lemma valid_space  : "valid F \<Longrightarrow> Space.valid (space F)"
   by (meson Presheaf.valid_welldefined)
 
 lemma valid_ar  :
@@ -122,6 +114,17 @@ lemma valid_composition :
 
 (* Application *)
 
+lemma ident_app [simp] :
+ "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> 
+  (ar F \<cdot> (Space.ident A)) \<cdot> x = Function.ident (ob F \<cdot> A) \<cdot> x"
+  by (simp add: valid_identity)
+
+lemma image : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> x \<in> ob F \<cdot> (Space.cod i) \<Longrightarrow>
+    ((ar F \<cdot> i) \<cdot> x) \<in> ob F \<cdot> (Space.dom i) "
+  using fun_app2 valid_ar valid_cod valid_dom by fastforce
+
+(* Restriction *)
+
 lemma diamond_rule :
   fixes F :: "('A, 'x) Presheaf" and A B C D :: "'A Open" and x :: "'x"
   assumes F_valid :"valid F"
@@ -136,6 +139,12 @@ lemma diamond_rule :
   and "i_DC \<equiv> make_inc D C"
 shows "(ar F \<cdot> i_DB) \<cdot> ((ar F \<cdot> i_BA) \<cdot>  x) = (ar F \<cdot> i_DC) \<cdot> ((ar F \<cdot> i_CA) \<cdot>  x)"
   by (smt (z3) A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) compose_app_assoc compose_inc_def i_BA_def i_CA_def i_DB_def i_DC_def mem_Collect_eq valid_ar valid_cod valid_composition valid_dom x_el)
+
+lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Function.dom (ar F \<cdot> i) = ob F \<cdot> (Space.cod i)"
+  using valid_dom by blast
+
+lemma res_cod [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Function.cod (ar F \<cdot> i) = ob F \<cdot> (Space.dom i)"
+  using valid_cod by blast
 
 lemma restricted_element :
   fixes F :: "('A, 'x) Presheaf" and A B :: "'A Open" and x :: "'x"
@@ -152,47 +161,44 @@ shows "(ar F \<cdot> i) \<cdot> x \<in> ob F \<cdot> B"
 
 lemma valid_mapI [intro] :
   fixes f :: "('A,'x,'y) PresheafMap"
-  defines "T \<equiv> map_space f"
-  defines "F \<equiv> dom f"
-  defines "F' \<equiv> cod f"
-  assumes welldefined : "(Space.valid T)
-                    \<and> T = space F'
-                    \<and> (Function.valid_map (nat f))
-                    \<and> valid F \<and> valid F'
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.valid_map (nat f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.dom (nat f \<cdot> A) = (ob F \<cdot> A))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.cod (nat f \<cdot> A) = (ob F' \<cdot> A))"
-  assumes naturality : "\<And> i. i \<in> inclusions T \<Longrightarrow>
-          (nat f \<cdot> Space.dom i) \<bullet> (ar F \<cdot> i) = (ar F' \<cdot> i) \<bullet> (nat f \<cdot> Space.cod i)"
+  assumes welldefined_space : "Space.valid (map_space f)"
+  and welldefined_spaces : "map_space f = space (cod f)"
+  and welldefined_map : "Function.valid_map (nat f)"
+  and welldefined_dom : "valid (dom f)"
+  and welldefined_cod : "valid (cod f)"
+  and welldefined_nat_val : "\<And>A. A \<in> opens (map_space f) \<Longrightarrow> Function.valid_map (nat f \<cdot> A)"
+  and welldefined_nat_dom : "\<And>A. A \<in> opens (map_space f) \<Longrightarrow> Function.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A)"
+  and welldefined_nat_cod : "\<And>A. A \<in> opens (map_space f) \<Longrightarrow> Function.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A)"
+  and naturality : "\<And> i. i \<in> inclusions (map_space f) \<Longrightarrow>
+          (nat f \<cdot> Space.dom i) \<bullet> (ar (dom f) \<cdot> i) = (ar (cod f) \<cdot> i) \<bullet> (nat f \<cdot> Space.cod i)"
   shows "valid_map f"
   unfolding valid_map_def
   apply (simp add: Let_def)
   apply safe
-  using T_def local.welldefined apply blast
-  using F'_def T_def local.welldefined apply fastforce
-  using F_def local.welldefined apply blast
-  using F'_def local.welldefined apply blast
-  using local.welldefined apply blast
-  using T_def local.welldefined apply blast
-  apply (simp add: F_def T_def local.welldefined)
-  apply (simp add: F_def T_def local.welldefined)
-  apply (simp add: F'_def T_def local.welldefined)
-  apply (simp add: F'_def T_def local.welldefined)
-  using F'_def F_def T_def naturality by blast 
+  apply (simp add: welldefined_space)
+  apply (simp add: welldefined_spaces)
+  apply (simp add: welldefined_dom)
+  apply (simp add: welldefined_cod)
+  apply (simp add: welldefined_map)
+  using welldefined_nat_val apply blast
+  using welldefined_nat_dom apply blast
+  using welldefined_nat_dom apply blast
+  using welldefined_nat_cod apply blast
+  using welldefined_nat_cod apply blast
+  by (simp add: naturality)
 
 lemma valid_map_welldefined :
-  "valid_map f \<Longrightarrow> let T = map_space f in Space.valid T
-                    \<and> T = space (cod f)
+  "valid_map f \<Longrightarrow>   map_space f = space (cod f)
                     \<and> valid (dom f) \<and> valid (cod f)
-                    \<and> (Function.valid_map (nat f))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.valid_map (nat f \<cdot> A))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
-                    \<and> (\<forall>A. A \<in> opens T \<longrightarrow> Function.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A))"
+                    \<and> Function.valid_map (nat f)
+                    \<and> (\<forall>A. A \<in> opens (map_space f) \<longrightarrow> Function.valid_map (nat f \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens (map_space f)  \<longrightarrow> Function.dom (nat f \<cdot> A) = (ob (dom f) \<cdot> A))
+                    \<and> (\<forall>A. A \<in> opens (map_space f)  \<longrightarrow> Function.cod (nat f \<cdot> A) = (ob (cod f) \<cdot> A))"
   unfolding valid_map_def
   by meson 
 
 lemma valid_map_space : "valid_map f \<Longrightarrow> Space.valid (map_space f)"
-  by (meson valid_map_welldefined) 
+  by (simp add: Presheaf.valid_map_welldefined valid_space)
 
 lemma valid_map_spaces : "valid_map f \<Longrightarrow> space (dom f) = space (cod f)"
   by (meson valid_map_welldefined) 
@@ -231,9 +237,5 @@ lemma valid_map_image :
   and a_dom : "a \<in>  FA"
 shows "fA \<cdot> a \<in>  F'A"
   by (metis A_open F'A_def FA_def a_dom fA_def f_valid fun_app2 valid_map_nat_cod valid_map_nat_dom valid_map_nat_welldefined)
-
-lemma image : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> a \<in>  (ob F \<cdot> Space.cod i) \<Longrightarrow>
-    ((ar F \<cdot> i) \<cdot> a) \<in>  (ob F \<cdot> Space.dom i)"
-  using fun_app2 valid_ar valid_dom valid_cod by fastforce 
 
 end

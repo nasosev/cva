@@ -985,7 +985,8 @@ next
     moreover have "ex_U \<subseteq> Poset.el (F (d_U))"
       by (smt (verit) Sup_upper UN_subset_iff Union_least F_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_ext ex_U_def ex_def image_subsetI in_mono d_elem_is_open V_valid)
     moreover have "some_e_U \<noteq> None" using Poset.complete_inf_not_none
-      using calculation(1) calculation(2) local_completeness some_e_U_def F_def V_valid valid_ob valid_prealgebra by blast 
+      using calculation(1) calculation(2) local_completeness some_e_U_def F_def V_valid valid_ob valid_prealgebra
+      by metis
 
     obtain e_U where "some_e_U = Some e_U" using \<open>some_e_U \<noteq> None\<close> by auto
    

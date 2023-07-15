@@ -206,6 +206,113 @@ lemma lists_map_valid : "valid_map f \<Longrightarrow> valid_map (lists_map f)"
   apply (meson fun_app2 subsetD)
   by force
 
+lemma lists_map_cod : "cod (lists_map f) = lists (Function.cod f)"
+  by (simp add: lists_map_def)
+
+lemma lists_map_dom : "dom (lists_map f) = lists (Function.dom f)"
+  unfolding lists_map_def app_def dom_def
+  by simp
+
+lemma lists_map_ident : "lists_map (Function.ident X) = ident (lists X)"
+  unfolding lists_map_def lists_def app_def ident_def Id_on_def
+  apply clarsimp
+  oops
+(*
+proof -
+  fix X :: "'a set"
+  have " {(p, p) |p . p \<subseteq> X} =  Id_on (Pow X)" using Id_on_def [where ?A="Pow X"]   Pow_def
+      [where ?A=X] set_eqI [where ?A="Id_on (Pow X)" and ?B="{(p, p) |p. p \<subseteq> X}"]
+    by blast
+
+  moreover have "func (ident (powerset X)) = {(p, p) |p . p \<subseteq> X}"
+    by (simp add: Poset.ident_def calculation powerset_def)
+  moreover have "dom (direct_image (Function.ident X)) = powerset X"
+    by (simp add: direct_image_dom)
+  moreover have "cod (direct_image (Function.ident X)) = powerset X"
+    by (simp add: Function.ident_def direct_image_cod)
+
+  moreover have "\<forall> p . p \<subseteq> X \<longrightarrow> {Function.ident X \<cdot> x |x. x \<in> p} = p" using Function.ident_app [where
+        ?X=X]
+    by (smt (verit, ccfv_threshold) Collect_cong Collect_mem_eq in_mono)
+  moreover have "func (direct_image (Function.ident X)) = {(p, p) |p . p \<subseteq> X}" using calculation
+      direct_image_def
+    [where ?f="Function.ident X"] Function.ident_app [where ?X=X]
+    by force
+   ultimately show "direct_image (Function.ident X) = ident (powerset X)"
+     by (simp add: Poset.ident_def)
+ qed
+*)
+
+lemma direct_image_trans :
+  fixes g :: "('b, 'c) Function" and f :: "('a , 'b) Function"
+  assumes f_valid : "Function.valid_map f"
+  and g_valid : "Function.valid_map g"
+  and "Function.cod f = Function.dom g"
+shows "lists_map g \<bullet> lists_map f = lists_map (g \<bullet> f)"
+proof (rule fun_ext, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: assms(3) compose_valid f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+next
+  case 2
+  then show ?case
+    by (simp add: assms(3) compose_valid f_valid g_valid lists_map_valid) 
+next
+  case 3
+  then show ?case
+    by (simp add: assms(3) f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+next
+  case 4
+  then show ?case
+    by (simp add: assms(3) lists_map_cod lists_map_dom) 
+next
+  case (5 x)
+  then show ?case 
+    unfolding lists_map_def
+    apply clarsimp
+    oops
+  
+
+(*
+  case 1
+  then show ?case
+    by (simp add: Poset.compose_valid assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
+next
+  case 2
+  then show ?case
+    using Function.compose_valid assms(3) direct_image_valid f_valid g_valid by blast 
+next
+  case 3
+  then show ?case
+    by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
+next
+  case 4
+  then show ?case
+    by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
+next
+  case (5 a)
+  then show ?case 
+    proof -
+    fix a
+    assume "a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))"
+    have "a \<subseteq> Function.dom f"
+      by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.dom_compose PowD \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_def) 
+    have "(a, {f \<cdot> x |x. x \<in> a}) \<in> {(b, {f \<cdot> x |x. x \<in> b}) |b. b \<subseteq> Function.dom f} "
+      using \<open>a \<subseteq> Function.dom f\<close> by blast
+    moreover have "{f \<cdot> x |x. x \<in> a} \<subseteq> Function.cod f"
+      using Function.fun_app2 \<open>a \<subseteq> Function.dom f\<close> f_valid by fastforce
+    moreover have "({f \<cdot> x |x. x \<in> a}, {g \<cdot> (f \<cdot> x) |x. x \<in> a}) \<in> {(b, {g \<cdot> x |x. x \<in> b}) |b. b \<subseteq>
+      Function.cod f}"
+      using calculation(2) by blast
+    moreover have "(a, {g \<cdot> (f \<cdot> x) |x. x \<in> a}) \<in>
+  {(p, {f \<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
+      using calculation(1) calculation(3) by auto
+    ultimately show "(direct_image g \<diamondop> direct_image f) \<star> a = direct_image (g \<bullet> f) \<star> a"
+      by (smt (verit) CollectD Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Poset.compose_app_assoc Poset.dom_compose \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid fst_conv g_valid snd_conv subset_eq)
+  qed
+qed
+  *)
+
 (* Nonempty lists functor *)
 
 definition ne_lists :: "'x set \<Rightarrow> ('x list) set" where

@@ -123,7 +123,7 @@ lemma relation_ob_value_valid : "valid T \<Longrightarrow> A \<in> opens (space 
   using relation_ob_value [where ?T=T]
   by (simp add: powerset_valid)
 
-lemma relation_as_value : "A \<in> opens (space T) \<Longrightarrow> a \<subseteq> (ob T \<cdot> A) \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
+lemma relation_as_value : "A \<in> opens (space T) \<Longrightarrow> a \<subseteq> ob T \<cdot> A \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
   by (simp add: powerset_def relation_ob_value)
 
 lemma relation_ar_value : "i \<in> inclusions (space T) 
@@ -136,12 +136,12 @@ lemma relation_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (s
 
 lemma relation_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.dom (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.cod i"
-  by (simp add: Presheaf.valid_dom Tuple.valid_welldefined direct_image_dom relation_ar_value relation_ob_value)
+  by (simp add: Tuple.valid_welldefined direct_image_dom relation_ar_value relation_ob_value)
 
 lemma relation_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.cod (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.dom i"
   unfolding rel_prealg_def
-  by (simp add: Function.fun_app_iff Function.valid_map_def Presheaf.valid_cod Tuple.valid_welldefined direct_image_cod)
+  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined direct_image_cod)
 
 lemma relation_ar_ident :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
@@ -164,25 +164,44 @@ shows "Prealgebra.ar R \<cdot> (j \<propto> i) = Prealgebra.ar R \<cdot> i \<dia
 lemma valid_rel_prealg :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
-  defines "R \<equiv> rel_prealg T"
-  shows "Prealgebra.valid R"
-proof (intro Prealgebra.validI, standard, goal_cases)
+  shows "Prealgebra.valid (rel_prealg T)"
+proof (intro Prealgebra.validI, safe, goal_cases)
   case 1
   then show ?case
-    using Presheaf.valid_space R_def Tuple.valid_welldefined assms(1) valid_relation_space by auto 
+    by (simp add: Tuple.valid_space assms valid_relation_space) 
 next
   case 2
   then show ?case
-    by (simp add: R_def assms(1) relation_ar_cod relation_ar_dom relation_ar_valid relation_ar_value_valid relation_ob_valid relation_ob_value_valid valid_relation_space) 
+    by (simp add: relation_ob_valid) 
 next
   case 3
   then show ?case
-    by (simp add: R_def assms(1) relation_ar_ident valid_relation_space) 
+    by (simp add: relation_ar_valid) 
 next
-  case 4
+  case (4 A)
   then show ?case
-    using R_def assms(1) relation_ar_trans valid_relation_space by fastforce 
-qed
+    by (simp add: assms relation_ob_value_valid valid_relation_space) 
+next
+  case (5 i)
+  then show ?case
+    by (simp add: assms relation_ar_value_valid valid_relation_space) 
+next
+  case (6 i)
+  then show ?case
+    by (simp add: assms relation_ar_dom valid_relation_space) 
+next
+  case (7 i)
+  then show ?case
+    by (simp add: assms relation_ar_cod valid_relation_space) 
+next
+  case (8 A)
+  then show ?case
+    by (simp add: assms relation_ar_ident valid_relation_space) 
+next
+  case (9 i j)
+  then show ?case
+    by (simp add: assms relation_ar_trans valid_relation_space) 
+qed 
 
 (* Validity of neutral *)
 
@@ -1304,7 +1323,6 @@ qed
 
 (* Lists (L) and non-empty lists (L_+) functors *)
 
-
 definition lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
 "lists T = 
   \<lparr> presheaf = \<lparr> 
@@ -1324,46 +1342,84 @@ lemma lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (spac
   unfolding lists_def
   by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(3) Presheaf.valid_ar Tuple.valid_welldefined TupleSystem.select_convs(1) UNIV_I fst_conv lists_map_valid mem_Collect_eq snd_conv) 
 
+lemma lists_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
+\<Longrightarrow> Function.dom (Presheaf.ar (presheaf (lists T)) \<cdot> i) = Presheaf.ob (presheaf (lists T)) \<cdot> Space.cod i"
+  unfolding lists_def
+  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined lists_map_dom)
+
+lemma lists_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
+\<Longrightarrow> Function.cod (Presheaf.ar (presheaf (lists T)) \<cdot> i) = Presheaf.ob (presheaf (lists T)) \<cdot> Space.dom i"
+  unfolding lists_def
+  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined lists_map_def)
+
+lemma lists_ar_ident :
+  fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
+  defines "L \<equiv> presheaf (lists T)"
+  assumes "valid T"
+  assumes "A \<in> opens (space T)"
+  shows "Presheaf.ar L \<cdot> Space.ident A = Function.ident (Presheaf.ob L \<cdot> A)"
+  using Presheaf.valid_identity L_def Tuple.valid_welldefined assms(2) assms(3) direct_image_ident relation_ar_value relation_ob_value valid_ident_inc by fastforce
+
+lemma lists_ar_trans :
+  fixes T :: "('A, 'x) TupleSystem" and i j :: "'A Inclusion"
+  defines "R \<equiv> rel_prealg T"
+  assumes T_valid: "valid T"
+  and i_inc : "i \<in> inclusions (space T)"
+  and j_inc :"j \<in> inclusions (space T)"
+  and endpoints : "Space.dom j = Space.cod i"
+shows "Prealgebra.ar R \<cdot> (j \<propto> i) = Prealgebra.ar R \<cdot> i \<diamondop> Prealgebra.ar R \<cdot> j"
+  by (smt (verit, ccfv_threshold) Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom R_def T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid direct_image_trans dom_compose_inc endpoints i_inc j_inc mem_Collect_eq relation_ar_value)
+
+
 lemma valid_presheaf_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "Presheaf.valid (presheaf (lists T))"
-    unfolding lists_def
-proof (intro Presheaf.validI, simp add: Let_def, safe, goal_cases)
+proof (intro Presheaf.validI, goal_cases)
   case 1
-  then show ?case
-    by (simp add: Tuple.valid_space assms) 
+  then show ?case 
+  unfolding lists_def
+  by (simp add: Tuple.valid_space assms)
 next
   case 2
-  then show ?case
-    using Function.valid_map_def by fastforce 
+  then show ?case 
+  unfolding lists_def
+  by fastforce
 next
   case 3
   then show ?case
-    using Function.valid_map_def by fastforce 
+  unfolding lists_def
+  by fastforce
 next
   case (4 i)
   then show ?case
-    by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_ar Tuple.valid_welldefined UNIV_I assms fst_conv lists_map_valid mem_Collect_eq snd_conv) 
+    unfolding lists_def
+    apply clarsimp
+    by (smt (verit) CollectD CollectI Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_mapI UNIV_I assms fst_conv lists_ar_value lists_ar_value_valid snd_conv)
 next
-  case (5 i x)
-  then show ?case oops
+  case (5 i)
+  then show ?case 
+    unfolding lists_def
+    apply clarsimp
+    by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_dom Tuple.valid_welldefined UNIV_I assms fst_conv lists_map_dom mem_Collect_eq snd_conv)
 next
-  case (6 i x)
-  then show ?case sorry
+  case (6 i)
+  then show ?case 
+    unfolding lists_def
+    apply clarsimp
+    by (simp add: Function.dom_def Tuple.valid_welldefined assms lists_map_cod)
 next
-  case (7 i x)
-  then show ?case sorry
+  case (7 A)
+  then show ?case
+    unfolding lists_def
+    apply clarsimp
+    oops
+(*
 next
-  case (8 i x)
-  then show ?case sorry
-next
-  case (9 A)
-  then show ?case sorry
-next
-  case (10 i j)
+  case (8 i j)
   then show ?case sorry
 qed
+*)
 
 
 lemma valid_lists : 
