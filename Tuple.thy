@@ -123,7 +123,7 @@ lemma relation_ob_value_valid : "valid T \<Longrightarrow> A \<in> opens (space 
   using relation_ob_value [where ?T=T]
   by (simp add: powerset_valid)
 
-lemma relation_as_value : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> a \<subseteq> (ob T \<cdot> A) \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
+lemma relation_as_value : "A \<in> opens (space T) \<Longrightarrow> a \<subseteq> (ob T \<cdot> A) \<Longrightarrow> a \<in> el (Prealgebra.ob (rel_prealg T) \<cdot> A)"
   by (simp add: powerset_def relation_ob_value)
 
 lemma relation_ar_value : "i \<in> inclusions (space T) 
@@ -136,15 +136,12 @@ lemma relation_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (s
 
 lemma relation_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.dom (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.cod i"
-  unfolding rel_prealg_def
-  apply (simp_all add : Let_def)
-  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_dom Tuple.valid_welldefined UNIV_I direct_image_dom fst_conv mem_Collect_eq snd_conv)
+  by (simp add: Presheaf.valid_dom Tuple.valid_welldefined direct_image_dom relation_ar_value relation_ob_value)
 
 lemma relation_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.cod (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.dom i"
   unfolding rel_prealg_def
-  apply (simp_all add : Let_def)
-  by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_welldefined Tuple.valid_welldefined UNIV_I direct_image_cod fst_conv mem_Collect_eq snd_conv)
+  by (simp add: Function.fun_app_iff Function.valid_map_def Presheaf.valid_cod Tuple.valid_welldefined direct_image_cod)
 
 lemma relation_ar_ident :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
@@ -1305,27 +1302,154 @@ next
     by (metis (no_types, lifting) Int_lower2 OVA.select_convs(1) R_def Tuple.valid_space assms(4) comb_is_element comb_law_left inf_le1 rel_el_open rel_idempotent rel_idempotent_left rel_ova_valid valid_comb_law_right valid_domain_law valid_inter valid_relation_space)    fix a b
 qed
 
-
 (* Lists (L) and non-empty lists (L_+) functors *)
 
-
-abbreviation lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
+definition lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
 "lists_in_set X \<equiv> { xs . set xs \<subseteq> X }"
 
-abbreviation ne_lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
-"ne_lists_in_set X \<equiv> { xs  . set xs \<subseteq> X \<and> length xs \<noteq> 0 }" 
+definition lists_in_set_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
+"lists_in_set_map f \<equiv> 
+  \<lparr> Function.cod = lists_in_set (Function.cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> lists_in_set (Function.dom f) } \<rparr>"
 
 definition lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
 "lists T = 
-  (let
-    ob = \<lparr> Function.cod = UNIV, func = { (A, lists_in_set (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>;
-    ar = \<lparr> Function.cod = UNIV, 
-        func = { (i, 
-                    \<lparr> Function.cod = ob \<cdot> (Space.cod i), func = undefined \<rparr> 
-                  ) | i . i \<in> inclusions (space T) }  \<rparr>
-  in
-  \<lparr> presheaf = \<lparr> Presheaf.space = space T, ob = ob, ar = undefined \<rparr> \<rparr>)"
+  \<lparr> presheaf = \<lparr> 
+    Presheaf.space = space T, 
+    Presheaf.ob = \<lparr> Function.cod = UNIV, func = { (A, lists_in_set (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>,
+     ar = \<lparr> Function.cod = UNIV, func = { (i, lists_in_set_map (ar T \<cdot> i)) | i . i \<in> inclusions (space T) }  \<rparr> \<rparr> \<rparr>"
+
+lemma lists_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Presheaf.ob (presheaf (lists T))) \<cdot> A = lists_in_set (ob T \<cdot> A)"
+  unfolding lists_def
+  by (smt (verit) Collect_cong Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(2) TupleSystem.select_convs(1) UNIV_I fst_conv mem_Collect_eq snd_conv)
+
+lemma lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (lists T))) \<cdot> i = lists_in_set_map (ar T \<cdot> i)"
+  unfolding lists_def
+  by (simp add: Function.dom_def)
+
+lemma lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Function.valid_map ((Presheaf.ar (presheaf (lists T))) \<cdot> i)"
+  unfolding lists_def lists_in_set_def lists_in_set_map_def
+  apply (intro Function.valid_mapI)
+  apply clarsimp
+   apply auto
+  try
+  oops
 
 
-(* valid *)
+
+
+lemma valid_presheaf_lists : 
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  shows "Presheaf.valid (presheaf (lists T))"
+    unfolding lists_def
+proof (intro Presheaf.validI, simp add: Let_def, safe, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: Tuple.valid_space assms) 
+next
+  case 2
+  then show ?case
+    using Function.valid_map_def by fastforce 
+next
+  case 3
+  then show ?case
+    using Function.valid_map_def by fastforce 
+next
+  case (4 i)
+  then show ?case 
+  proof (intro Function.valid_mapI,goal_cases)
+    case (1 x y)
+    then show ?case 
+    proof -
+      have "
+  next
+    case (2 x y y')
+    then show ?case sorry
+  qed
+next
+  case (5 i x)
+  then show ?case sorry
+next
+  case (6 i x)
+  then show ?case sorry
+next
+  case (7 i x)
+  then show ?case sorry
+next
+  case (8 i x)
+  then show ?case sorry
+next
+  case (9 A)
+  then show ?case sorry
+next
+  case (10 i j)
+  then show ?case sorry
+qed
+
+
+lemma valid_lists : 
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  shows "valid (lists T)"
+proof (intro validI, goal_cases)
+  case 1
+  then show ?case 
+    unfolding lists_def
+  proof (intro Presheaf.validI, safe, goal_cases)
+    case 1
+    then show ?case
+      by (metis Presheaf.Presheaf.select_convs(1) Tuple.valid_space TupleSystem.select_convs(1) assms)
+  next
+    case 2
+    then show ?case
+      by (smt (verit) CollectD Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(2) TupleSystem.select_convs(1) UNIV_I fst_conv snd_conv) 
+  next
+    case 3
+    then show ?case
+      by (smt (verit) CollectD Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(3) TupleSystem.select_convs(1) UNIV_I fst_conv snd_conv) 
+  next
+    case (4 i)
+    then show ?case 
+      apply (simp add: Let_def)
+    proof (intro Function.valid_mapI,goal_cases)
+      case (1 x y)
+      then show ?case sorry
+    next
+      case (2 x y y')
+      then show ?case sorry
+    qed
+
+      
+  next
+    case (5 i x)
+    then show ?case sorry
+  next
+    case (6 i x)
+    then show ?case sorry
+  next
+    case (7 i x)
+    then show ?case sorry
+  next
+    case (8 i x)
+    then show ?case sorry
+  next
+    case (9 A)
+    then show ?case sorry
+  next
+    case (10 i j)
+    then show ?case sorry
+  qed
+next
+  case (2 i)
+  then show ?case sorry
+next
+  case (3 A B a b)
+  then show ?case sorry
+qed
+                           
+
+definition ne_lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
+"ne_lists_in_set X \<equiv> { xs  . set xs \<subseteq> X \<and> length xs \<noteq> 0 }" 
+
 end

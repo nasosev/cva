@@ -35,7 +35,7 @@ lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (x, y) \<in> func f
 lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y'"
   by (simp add: valid_map_def) 
 
-lemma valid_mapI [intro] : "((\<And>x y. (x, y) \<in> func f \<Longrightarrow>  x \<in> dom f \<and> y \<in> cod f) \<Longrightarrow>
+lemma valid_mapI [intro] : "((\<And>x y. (x, y) \<in> func f \<Longrightarrow> y \<in> cod f) \<Longrightarrow>
                    (\<And>x y y'. (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y')
                    \<Longrightarrow> valid_map f) "
   by (metis valid_map_def)
@@ -50,7 +50,7 @@ definition "Function_app_undefined_arg_not_in_domain _ \<equiv> undefined"
 definition app :: "('x, 'y) Function \<Rightarrow> 'x \<Rightarrow> 'y" (infixr "\<cdot>" 998) where
 "app f x \<equiv> 
    if x \<in> dom f
-   then  (THE y. (x, y) \<in> func f)
+   then (THE y. (x, y) \<in> func f)
   else Function_app_undefined_arg_not_in_domain x" 
 
 lemma fun_app : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> (x, f \<cdot> x) \<in> func f"
