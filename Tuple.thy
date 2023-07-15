@@ -1304,39 +1304,25 @@ qed
 
 (* Lists (L) and non-empty lists (L_+) functors *)
 
-definition lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
-"lists_in_set X \<equiv> { xs . set xs \<subseteq> X }"
-
-definition lists_in_set_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
-"lists_in_set_map f \<equiv> 
-  \<lparr> Function.cod = lists_in_set (Function.cod f), 
-    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> lists_in_set (Function.dom f) } \<rparr>"
 
 definition lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
 "lists T = 
   \<lparr> presheaf = \<lparr> 
     Presheaf.space = space T, 
-    Presheaf.ob = \<lparr> Function.cod = UNIV, func = { (A, lists_in_set (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>,
-     ar = \<lparr> Function.cod = UNIV, func = { (i, lists_in_set_map (ar T \<cdot> i)) | i . i \<in> inclusions (space T) }  \<rparr> \<rparr> \<rparr>"
+    Presheaf.ob = \<lparr> Function.cod = UNIV, func = { (A, Function.lists (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>,
+     ar = \<lparr> Function.cod = UNIV, func = { (i, Function.lists_map (ar T \<cdot> i)) | i . i \<in> inclusions (space T) }  \<rparr> \<rparr> \<rparr>"
 
-lemma lists_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Presheaf.ob (presheaf (lists T))) \<cdot> A = lists_in_set (ob T \<cdot> A)"
+lemma lists_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Presheaf.ob (presheaf (lists T))) \<cdot> A = Function.lists (ob T \<cdot> A)"
   unfolding lists_def
-  by (smt (verit) Collect_cong Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(2) TupleSystem.select_convs(1) UNIV_I fst_conv mem_Collect_eq snd_conv)
+  by (simp add: Function.fun_app_iff Function.valid_map_def)
 
-lemma lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (lists T))) \<cdot> i = lists_in_set_map (ar T \<cdot> i)"
+lemma lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (lists T))) \<cdot> i = Function.lists_map (ar T \<cdot> i)"
   unfolding lists_def
   by (simp add: Function.dom_def)
 
 lemma lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Function.valid_map ((Presheaf.ar (presheaf (lists T))) \<cdot> i)"
-  unfolding lists_def lists_in_set_def lists_in_set_map_def
-  apply (intro Function.valid_mapI)
-  apply clarsimp
-   apply auto
-  try
-  oops
-
-
-
+  unfolding lists_def
+  by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(3) Presheaf.valid_ar Tuple.valid_welldefined TupleSystem.select_convs(1) UNIV_I fst_conv lists_map_valid mem_Collect_eq snd_conv) 
 
 lemma valid_presheaf_lists : 
   fixes T :: "('A, 'x) TupleSystem"
@@ -1357,19 +1343,11 @@ next
     using Function.valid_map_def by fastforce 
 next
   case (4 i)
-  then show ?case 
-  proof (intro Function.valid_mapI,goal_cases)
-    case (1 x y)
-    then show ?case 
-    proof -
-      have "
-  next
-    case (2 x y y')
-    then show ?case sorry
-  qed
+  then show ?case
+    by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_ar Tuple.valid_welldefined UNIV_I assms fst_conv lists_map_valid mem_Collect_eq snd_conv) 
 next
   case (5 i x)
-  then show ?case sorry
+  then show ?case oops
 next
   case (6 i x)
   then show ?case sorry
@@ -1393,63 +1371,8 @@ lemma valid_lists :
   assumes "valid T"
   shows "valid (lists T)"
 proof (intro validI, goal_cases)
-  case 1
-  then show ?case 
-    unfolding lists_def
-  proof (intro Presheaf.validI, safe, goal_cases)
-    case 1
-    then show ?case
-      by (metis Presheaf.Presheaf.select_convs(1) Tuple.valid_space TupleSystem.select_convs(1) assms)
-  next
-    case 2
-    then show ?case
-      by (smt (verit) CollectD Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(2) TupleSystem.select_convs(1) UNIV_I fst_conv snd_conv) 
-  next
-    case 3
-    then show ?case
-      by (smt (verit) CollectD Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(3) TupleSystem.select_convs(1) UNIV_I fst_conv snd_conv) 
-  next
-    case (4 i)
-    then show ?case 
-      apply (simp add: Let_def)
-    proof (intro Function.valid_mapI,goal_cases)
-      case (1 x y)
-      then show ?case sorry
-    next
-      case (2 x y y')
-      then show ?case sorry
-    qed
+  oops               
 
-      
-  next
-    case (5 i x)
-    then show ?case sorry
-  next
-    case (6 i x)
-    then show ?case sorry
-  next
-    case (7 i x)
-    then show ?case sorry
-  next
-    case (8 i x)
-    then show ?case sorry
-  next
-    case (9 A)
-    then show ?case sorry
-  next
-    case (10 i j)
-    then show ?case sorry
-  qed
-next
-  case (2 i)
-  then show ?case sorry
-next
-  case (3 A B a b)
-  then show ?case sorry
-qed
-                           
 
-definition ne_lists_in_set :: "'x set \<Rightarrow> ('x list) set" where
-"ne_lists_in_set X \<equiv> { xs  . set xs \<subseteq> X \<and> length xs \<noteq> 0 }" 
 
 end

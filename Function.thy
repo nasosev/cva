@@ -189,4 +189,39 @@ lemma const_valid : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> val
 lemma const_func : "y \<in> Y \<Longrightarrow> func (const X Y y) = {(x, y) | x . x \<in> X }"
   by (simp add: const_def)
 
+(* Lists functor *)
+
+definition lists :: "'x set \<Rightarrow> ('x list) set" where
+"lists X \<equiv> { xs . set xs \<subseteq> X }"
+
+definition lists_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
+"lists_map f \<equiv> 
+  \<lparr> Function.cod = lists (Function.cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> lists (Function.dom f) } \<rparr>"
+
+lemma lists_map_valid : "valid_map f \<Longrightarrow> valid_map (lists_map f)" 
+  unfolding lists_map_def lists_def
+  apply (intro valid_mapI)
+  apply clarsimp
+  apply (meson fun_app2 subsetD)
+  by force
+
+(* Nonempty lists functor *)
+
+definition ne_lists :: "'x set \<Rightarrow> ('x list) set" where
+"ne_lists X \<equiv> { xs . set xs \<subseteq> X \<and> length xs \<noteq> 0 }" 
+
+definition ne_lists_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
+"ne_lists_map f \<equiv> 
+  \<lparr> Function.cod = ne_lists (Function.cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> ne_lists (Function.dom f) } \<rparr>"
+
+lemma ne_lists_map_valid : "valid_map f \<Longrightarrow> valid_map (ne_lists_map f)" 
+  unfolding ne_lists_map_def ne_lists_def
+  apply (intro valid_mapI)
+  apply clarsimp
+  apply (meson fun_app2 subsetD)
+  by force
+
+
 end
