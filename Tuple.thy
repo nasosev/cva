@@ -1337,6 +1337,10 @@ lemma lists_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Presheaf.ob (
   unfolding lists_def
   by (simp add: Function.fun_app_iff Function.valid_map_def)
 
+lemma lists_ob_el : "A \<in> opens (space T) \<Longrightarrow> xs \<in> (Presheaf.ob (presheaf (lists T))) \<cdot> A \<Longrightarrow> x \<in> set xs \<Longrightarrow> x \<in> ob T \<cdot> A"
+  unfolding lists_def
+  by (simp add: Function.fun_app_iff Function.lists_def Function.valid_map_def in_listsD lists_eq_set)
+
 lemma lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (lists T))) \<cdot> i = Function.lists_map (ar T \<cdot> i)"
   unfolding lists_def
   by (simp add: Function.dom_def)
@@ -1421,6 +1425,58 @@ next
     using assms lists_ar_trans [where ?T=T and ?i=i and ?j=j] lists_space [where ?T=T]
     by simp
 qed
+
+lemma lists_flasque : "valid T \<Longrightarrow> (\<And>i. i \<in> inclusions (space T) \<Longrightarrow> Function.is_surjective (ar (lists T) \<cdot> i))"
+proof (simp add: Function.is_surjective_def,safe)
+  assume T_valid : "valid T"
+
+  fix i :: "'a Inclusion"
+  fix ys
+  assume i_valid : "Inclusion.dom i \<subseteq> Inclusion.cod i"
+  assume i_valid_d : "Inclusion.dom i \<in> opens (Tuple.space T)"
+  assume i_valid_c : "Inclusion.cod i \<in> opens (Tuple.space T)"
+  assume ys_el : "ys \<in> Function.cod (Tuple.ar (Tuple.lists T) \<cdot> i)"
+
+  show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" 
+  proof 
+    have i_inc : "i \<in> inclusions (space T)"
+      using i_valid i_valid_c i_valid_d by blast 
+    moreover have fibre : "\<forall>y. y \<in> set ys  \<longrightarrow> (\<exists>x. x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
+      by (metis (no_types, lifting) Function.is_surjective_def Presheaf.valid_cod T_valid Tuple.valid_welldefined i_valid i_valid_c i_valid_d lists_ar_cod lists_ob_el mem_Collect_eq valid_flasque ys_el)
+
+    define "lift" where "lift = (\<lambda> y. SOME x. (y \<in> set ys \<longrightarrow>  x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y))"
+
+
+    define "xs" where "xs = map lift ys" (* [lift y . y <- ys] *)
+
+    moreover have "\<forall>x. x \<in> set xs \<longrightarrow> x \<in> Function.dom (ar T \<cdot> i)" using lift_def xs_def fibre calculation ys_el T_valid i_inc 
+                            
+    moreover have "xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i)" using lift_def xs_def fibre
+        calculation ys_el T_valid i_inc lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
+          ?f="ar T \<cdot> i"] 
+      by (metis Abs_unit_inverse Rep_unit bexE image_constant insert_compr singletonD subseqs_refl)  
+
+     show ?thesis 
+
+      using Function.fun_app2 Presheaf.valid_ar Tuple.valid_welldefined \<open>Inclusion.cod i \<in> opens (Tuple.space T)\<close> \<open>Inclusion.dom i \<in> opens (Tuple.space T)\<close> \<open>Inclusion.dom i \<subseteq> Inclusion.cod i\<close> \<open>Tuple.valid T\<close> by fastforce 
+    moreover have "\<forall>x. x \<in> xs  Function.dom (ar T \<cdot> i)
+    show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists
+ T) \<cdot> i) \<cdot> xs = ys" unfolding lists_def 
+      apply clarsimp
+
+    
+    define "fibre" where "fibre = (\<lambda> x . x \<in> Function.dom (ar T \<cdot> i) \<longrightarrow> (SOME y. y \<in> Function.cod (ar T \<cdot>
+ i) \<and> (ar T \<cdot> i) \<cdot> x = y))" 
+
+ 
+
+  qed
+
+lemma lists_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> a \<in> ob (lists T) \<cdot> A \<Longrightarrow> b \<in> ob (lists T) \<cdot> B
+        \<Longrightarrow> (ar (lists T) \<cdot> (make_inc (A \<inter> B) A)) \<cdot> a = (ar (lists T) \<cdot> (make_inc (A \<inter> B) B)) \<cdot> b
+        \<Longrightarrow> (\<exists> c . c \<in> (ob (lists T) \<cdot> (A \<union> B)) \<and> (ar (lists T) \<cdot> (make_inc A (A \<union> B))) \<cdot> c = a \<and> (ar (lists T) \<cdot> (make_inc B (A \<union> B))) \<cdot> c = b)"
+  unfolding lists_def
+  oops
 
 lemma valid_lists : 
   fixes T :: "('A, 'x) TupleSystem"
