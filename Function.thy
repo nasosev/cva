@@ -259,65 +259,32 @@ next
   proof -
     fix xs
     assume "xs \<in> Function.dom (lists_map g \<bullet> lists_map f)"
-
     have "xs \<in> Function.dom (lists_map f)"
       by (metis \<open>xs \<in> Function.dom (lists_map g \<bullet> lists_map f)\<close> cod_eq_dom dom_compose f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
-    define "Lf_xs" where "Lf_xs = map (\<lambda> t . f \<cdot> t) xs" 
+    define "Lf_xs" where "Lf_xs = map (\<lambda> x . f \<cdot> x) xs" 
     moreover have "Lf_xs = (lists_map f) \<cdot> xs" unfolding Lf_xs_def lists_map_def
       by (smt (z3) Collect_cong Pair_inject \<open>xs \<in> Function.dom (lists_map f)\<close> f_valid fun_app lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
     moreover have "Lf_xs \<in> Function.dom (lists_map g)" unfolding Lf_xs_def lists_map_def
       by (metis Lf_xs_def \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(2) cod_eq_dom f_valid fun_app2 lists_map_cod lists_map_def lists_map_dom lists_map_valid)
-    define "LgLf_xs" where "LgLf_xs = map (\<lambda> t . g \<cdot> t) Lf_xs" 
+    define "LgLf_xs" where "LgLf_xs = map (\<lambda> x . g \<cdot> x) Lf_xs" 
     moreover have "LgLf_xs = (lists_map g) \<cdot> Lf_xs" unfolding Lf_xs_def lists_map_def
       by (smt (verit) Collect_cong Lf_xs_def LgLf_xs_def Pair_inject \<open>Lf_xs \<in> Function.dom (lists_map g)\<close> fun_app g_valid lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
     moreover have "LgLf_xs = (lists_map g \<bullet> lists_map f) \<cdot> xs"
       by (metis \<open>Lf_xs \<in> Function.dom (lists_map g)\<close> \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(2) calculation(4) cod_eq_dom compose_app f_valid fun_app g_valid lists_map_cod lists_map_dom lists_map_valid) 
-    moreover have "LgLf_xs = map (\<lambda> t . g \<cdot> (f  \<cdot> t)) xs" unfolding LgLf_xs_def Lf_xs_def
-        calculation assms 
-
-    
+    moreover have "LgLf_xs = map (\<lambda> x . g \<cdot> (f  \<cdot> x)) xs" unfolding LgLf_xs_def Lf_xs_def
+      by clarsimp
+    moreover have "\<forall> x . x \<in> Function.dom f \<longrightarrow> g \<cdot> (f  \<cdot> x) = (g \<bullet> f)  \<cdot> x"  using compose_app_assoc [where ?g=g and ?f=f]
+      using cod_eq_dom f_valid g_valid by presburger
+    moreover have "\<forall> x . x \<in> set xs \<longrightarrow> x \<in> Function.dom f"
+      using Function.lists_def \<open>xs \<in> Function.dom (lists_map f)\<close> lists_map_dom by fastforce 
+    moreover have "LgLf_xs = map (\<lambda> x . (g \<bullet> f)  \<cdot> x) xs" using LgLf_xs_def calculation assms
+      by simp 
+    moreover have "LgLf_xs = lists_map (g \<bullet> f) \<cdot> xs" using lists_map_def [where ?f="g \<bullet> f"]
+      by (smt (verit, del_insts) \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(9) cod_eq_dom compose_valid dom_compose f_valid fun_app_iff g_valid lists_map_dom lists_map_valid mem_Collect_eq select_convs(2))
     ultimately show "(lists_map g \<bullet> lists_map f) \<cdot> xs = lists_map (g \<bullet> f) \<cdot> xs"
-qed
-(*
-
-  case 1
-  then show ?case
-    by (simp add: Poset.compose_valid assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
-next
-  case 2
-  then show ?case
-    using Function.compose_valid assms(3) direct_image_valid f_valid g_valid by blast 
-next
-  case 3
-  then show ?case
-    by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
-next
-  case 4
-  then show ?case
-    by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
-next
-  case (5 a)
-  then show ?case 
-    proof -
-    fix a
-    assume "a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))"
-    have "a \<subseteq> Function.dom f"
-      by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.dom_compose PowD \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_def) 
-    have "(a, {f \<cdot> x |x. x \<in> a}) \<in> {(b, {f \<cdot> x |x. x \<in> b}) |b. b \<subseteq> Function.dom f} "
-      using \<open>a \<subseteq> Function.dom f\<close> by blast
-    moreover have "{f \<cdot> x |x. x \<in> a} \<subseteq> Function.cod f"
-      using Function.fun_app2 \<open>a \<subseteq> Function.dom f\<close> f_valid by fastforce
-    moreover have "({f \<cdot> x |x. x \<in> a}, {g \<cdot> (f \<cdot> x) |x. x \<in> a}) \<in> {(b, {g \<cdot> x |x. x \<in> b}) |b. b \<subseteq>
-      Function.cod f}"
-      using calculation(2) by blast
-    moreover have "(a, {g \<cdot> (f \<cdot> x) |x. x \<in> a}) \<in>
-  {(p, {f \<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
-      using calculation(1) calculation(3) by auto
-    ultimately show "(direct_image g \<diamondop> direct_image f) \<star> a = direct_image (g \<bullet> f) \<star> a"
-      by (smt (verit) CollectD Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Poset.compose_app_assoc Poset.dom_compose \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid fst_conv g_valid snd_conv subset_eq)
+      by presburger 
   qed
 qed
-  *)
 
 (* Nonempty lists functor *)
 
