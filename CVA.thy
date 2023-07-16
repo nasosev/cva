@@ -327,7 +327,7 @@ lemma neutral_collapse_strongly_neutral :
   assumes V_valid : "valid V"
   and neutral_collapse : "neut_par V = neut_seq V"
 shows "is_strongly_neutral (par_algebra V) \<longleftrightarrow> is_strongly_neutral (seq_algebra V)"
-proof (standard)
+proof
   define "pc" where "pc = par V"
   define "sc" where "sc = seq V"
   define "\<gamma>" where "\<gamma> = neut_par V"

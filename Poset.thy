@@ -281,10 +281,13 @@ lemma ident_valid  : "valid P \<Longrightarrow> valid_map (ident P)"
   by blast
 
 lemma ident_dom [simp] : "dom (ident P) = P"
-  by (simp add: Poset.ident_def)
+  by (simp add: ident_def)
 
 lemma ident_cod [simp] : "cod (ident P) = P"
-  by (simp add: Poset.ident_def)
+  by (simp add: ident_def)
+
+lemma ident_func [simp] : "func (ident P) = Id_on (el P)"
+  by (simp add: ident_def)
 
 lemma ident_app [simp] :
   fixes a :: "'a" and P :: "'a Poset"
@@ -552,11 +555,10 @@ shows "le (cod pf) (pf \<star> a) (pf \<star> a')"
 
 lemma direct_image_ident : "direct_image (Function.ident X) = ident (powerset X)"
 proof -
-  fix X :: "'a set"
+  fix X :: "'x set"
   have " {(p, p) |p . p \<subseteq> X} =  Id_on (Pow X)" using Id_on_def [where ?A="Pow X"]   Pow_def
       [where ?A=X] set_eqI [where ?A="Id_on (Pow X)" and ?B="{(p, p) |p. p \<subseteq> X}"]
     by blast
-
   moreover have "func (ident (powerset X)) = {(p, p) |p . p \<subseteq> X}"
     by (simp add: Poset.ident_def calculation powerset_def)
   moreover have "dom (direct_image (Function.ident X)) = powerset X"
@@ -579,24 +581,24 @@ lemma direct_image_trans :
   fixes g :: "('b, 'c) Function" and f :: "('a , 'b) Function"
   assumes f_valid : "Function.valid_map f"
   and g_valid : "Function.valid_map g"
-  and "Function.cod f = Function.dom g"
+  and cod_eq_dom : "Function.cod f = Function.dom g"
 shows "direct_image g \<diamondop> direct_image f = direct_image (g \<bullet> f)"
 proof (rule fun_ext, goal_cases)
   case 1
   then show ?case
-    by (simp add: Poset.compose_valid assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
+    by (simp add: Poset.compose_valid cod_eq_dom direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
 next
   case 2
   then show ?case
-    using Function.compose_valid assms(3) direct_image_valid f_valid g_valid by blast 
+    using Function.compose_valid cod_eq_dom direct_image_valid f_valid g_valid by blast 
 next
   case 3
   then show ?case
-    by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
+    by (simp add: cod_eq_dom direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
 next
   case 4
   then show ?case
-    by (simp add: assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
+    by (simp add: cod_eq_dom  direct_image_cod direct_image_dom direct_image_valid f_valid g_valid)
 next
   case (5 a)
   then show ?case 
@@ -604,7 +606,7 @@ next
     fix a
     assume "a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))"
     have "a \<subseteq> Function.dom f"
-      by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.dom_compose PowD \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_def) 
+      by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.dom_compose PowD \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> cod_eq_dom direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_def) 
     have "(a, {f \<cdot> x |x. x \<in> a}) \<in> {(b, {f \<cdot> x |x. x \<in> b}) |b. b \<subseteq> Function.dom f} "
       using \<open>a \<subseteq> Function.dom f\<close> by blast
     moreover have "{f \<cdot> x |x. x \<in> a} \<subseteq> Function.cod f"
@@ -616,7 +618,7 @@ next
   {(p, {f \<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
       using calculation(1) calculation(3) by auto
     ultimately show "(direct_image g \<diamondop> direct_image f) \<star> a = direct_image (g \<bullet> f) \<star> a"
-      by (smt (verit) CollectD Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Poset.compose_app_assoc Poset.dom_compose \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid fst_conv g_valid snd_conv subset_eq)
+      by (smt (verit) CollectD Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Poset.compose_app_assoc assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid fst_conv g_valid powerset_el snd_conv subset_eq)
   qed
 qed
 

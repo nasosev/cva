@@ -177,12 +177,12 @@ lemma valid_gc_poset :
 lemma valid_le :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  assumes A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)"
-  assumes a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-  assumes a_dom : "d a = A" and b_dom : "d b = B"
-  assumes a_le_b : "le V a b"
+  and A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+  and a_dom : "d a = A" and b_dom : "d b = B"
+  and a_le_b : "le V a b"
   shows "B \<subseteq> A \<and> local_le V B (res V B a) b"
-proof standard
+proof
   show "B \<subseteq> A" using assms
     by (metis d_antitone valid_gc_poset valid_prealgebra)
 next
@@ -549,7 +549,7 @@ qed
 lemma stability:
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
   assumes V_valid: "valid V"
-  assumes B_le_A : "B \<subseteq> A" and B_open : "B \<in> opens (space V)" and A_open : "A \<in> opens (space V)"
+  and B_le_A : "B \<subseteq> A" and B_open : "B \<in> opens (space V)" and A_open : "A \<in> opens (space V)"
   defines \<epsilon>A_def: "\<epsilon>A \<equiv> neut V A"
   defines \<epsilon>B_def: "\<epsilon>B \<equiv> neut V B"
   defines \<epsilon>A_B_def: "\<epsilon>A_B \<equiv> res V B \<epsilon>A"
@@ -620,8 +620,8 @@ qed
 lemma id_le_res :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and  B_open : "B \<in> opens (space V)"  and B_le_A : "B \<subseteq> d a"
-  and  a_el : "a \<in> elems V"
+  and B_open : "B \<in> opens (space V)" and B_le_A : "B \<subseteq> d a"
+  and a_el : "a \<in> elems V"
 shows " le V a (res V B a)"
 proof -
   define "A" where "A = d a"
@@ -781,7 +781,7 @@ corollary strongly_neutral_monoid :
   and strongly_neutral: "is_strongly_neutral V"
 defines "identity  \<equiv> neut V {}"
 shows "comb V identity a = a \<and> comb V a identity = a "
-proof standard
+proof
   define "\<epsilon>A" where "\<epsilon>A = neut V (d a)"
   have "a = comb V \<epsilon>A a "
     by (smt (verit, best) V_valid \<epsilon>A_def a_el d_elem_is_open valid_neutral_law_left)
@@ -967,7 +967,7 @@ corollary locally_complete_imp_complete :
   assumes local_completeness: "\<And>A . A \<in> opens (space V) \<Longrightarrow> Poset.is_complete (F A)"
   shows "Poset.is_complete (poset V)"
   unfolding is_complete_def
-proof standard
+proof
   show "Poset.valid (poset V)"
     using V_valid by (metis OVA.valid_welldefined valid_gc)
 next

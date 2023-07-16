@@ -703,7 +703,7 @@ next
     define "i" where "i = make_inc (d a' \<union> d b') (d a \<union> d b)"
 
     moreover have "(Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))) \<subseteq> (e (join \<star> (a', b')))"
-    proof standard
+    proof
       fix t
       assume "t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))"
 
@@ -1421,14 +1421,11 @@ next
 qed
 *)
 
-
 lemma valid_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "valid (lists T)"
 proof (intro validI, goal_cases)
   oops               
-
-
 
 end

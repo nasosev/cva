@@ -230,8 +230,8 @@ lemma valid_map_naturality :
 lemma valid_map_image :
   fixes f :: "('A, 'x, 'y) PresheafMap" and A :: "'A Open" and a :: "'x"
   defines "FA \<equiv> Presheaf.ob (dom f) \<cdot> A"
-  defines "F'A \<equiv> Presheaf.ob (cod f) \<cdot> A"
-  defines "fA \<equiv> (nat f) \<cdot> A"
+  and "F'A \<equiv> Presheaf.ob (cod f) \<cdot> A"
+  and "fA \<equiv> (nat f) \<cdot> A"
   assumes f_valid :"valid_map f"
   and A_open : "A \<in> opens (map_space f)"
   and a_dom : "a \<in>  FA"

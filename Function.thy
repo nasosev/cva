@@ -154,6 +154,9 @@ lemma ident_dom [simp] : "dom (ident X) = X"
 lemma ident_cod [simp] : "cod (ident X) = X"
   by (simp add: ident_def)
 
+lemma ident_func [simp] : "func (ident X) = Id_on X"
+  by (simp add: ident_def)
+
 lemma ident_app [simp] : "x \<in> X \<Longrightarrow> ident X \<cdot> x = x"
   by (metis Id_onI fun_app_iff ident_def ident_valid select_convs(2)) 
 
@@ -214,66 +217,69 @@ lemma lists_map_dom : "dom (lists_map f) = lists (Function.dom f)"
   by simp
 
 lemma lists_map_ident : "lists_map (Function.ident X) = ident (lists X)"
-  unfolding lists_map_def lists_def app_def ident_def Id_on_def
-  apply clarsimp
-  oops
-(*
 proof -
-  fix X :: "'a set"
-  have " {(p, p) |p . p \<subseteq> X} =  Id_on (Pow X)" using Id_on_def [where ?A="Pow X"]   Pow_def
-      [where ?A=X] set_eqI [where ?A="Id_on (Pow X)" and ?B="{(p, p) |p. p \<subseteq> X}"]
-    by blast
+  fix X :: "'x set" 
+  have "cod (lists_map (Function.ident X)) = lists X"
+    by (simp add: lists_map_cod)
+  moreover have "dom (lists_map (Function.ident X)) = lists X"
+    by (simp add: lists_map_dom)
+  moreover have "func (lists_map (Function.ident X)) = { (ts, ts) | ts . ts \<in> lists X }" unfolding
+      lists_map_def lists_def  ident_cod ident_dom ident_func Id_on_def
+    apply clarsimp
+    by (metis (no_types, lifting) ident_app list.map_ident_strong subsetD)
+  ultimately show "lists_map (Function.ident X) = ident (lists X)"
+    by (smt (verit, best) Collect_cong Function.dom_def Id_onE Id_onI Id_on_def' ident_cod ident_func mem_Collect_eq valid_map_eqI)
+qed
 
-  moreover have "func (ident (powerset X)) = {(p, p) |p . p \<subseteq> X}"
-    by (simp add: Poset.ident_def calculation powerset_def)
-  moreover have "dom (direct_image (Function.ident X)) = powerset X"
-    by (simp add: direct_image_dom)
-  moreover have "cod (direct_image (Function.ident X)) = powerset X"
-    by (simp add: Function.ident_def direct_image_cod)
-
-  moreover have "\<forall> p . p \<subseteq> X \<longrightarrow> {Function.ident X \<cdot> x |x. x \<in> p} = p" using Function.ident_app [where
-        ?X=X]
-    by (smt (verit, ccfv_threshold) Collect_cong Collect_mem_eq in_mono)
-  moreover have "func (direct_image (Function.ident X)) = {(p, p) |p . p \<subseteq> X}" using calculation
-      direct_image_def
-    [where ?f="Function.ident X"] Function.ident_app [where ?X=X]
-    by force
-   ultimately show "direct_image (Function.ident X) = ident (powerset X)"
-     by (simp add: Poset.ident_def)
- qed
-*)
-
-lemma direct_image_trans :
-  fixes g :: "('b, 'c) Function" and f :: "('a , 'b) Function"
+lemma lists_map_trans :
+  fixes g :: "('y, 'z) Function" and f :: "('x , 'y) Function"
   assumes f_valid : "Function.valid_map f"
   and g_valid : "Function.valid_map g"
-  and "Function.cod f = Function.dom g"
+  and cod_eq_dom : "Function.cod f = Function.dom g"
 shows "lists_map g \<bullet> lists_map f = lists_map (g \<bullet> f)"
 proof (rule fun_ext, goal_cases)
   case 1
   then show ?case
-    by (simp add: assms(3) compose_valid f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    by (simp add: cod_eq_dom compose_valid f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
 next
   case 2
   then show ?case
-    by (simp add: assms(3) compose_valid f_valid g_valid lists_map_valid) 
+    by (simp add: cod_eq_dom compose_valid f_valid g_valid lists_map_valid) 
 next
   case 3
   then show ?case
-    by (simp add: assms(3) f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    by (simp add: cod_eq_dom f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
 next
   case 4
   then show ?case
-    by (simp add: assms(3) lists_map_cod lists_map_dom) 
+    by (simp add: cod_eq_dom lists_map_cod lists_map_dom) 
 next
   case (5 x)
   then show ?case 
-    unfolding lists_map_def
-    apply clarsimp
-    oops
-  
+  proof -
+    fix xs
+    assume "xs \<in> Function.dom (lists_map g \<bullet> lists_map f)"
 
+    have "xs \<in> Function.dom (lists_map f)"
+      by (metis \<open>xs \<in> Function.dom (lists_map g \<bullet> lists_map f)\<close> cod_eq_dom dom_compose f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    define "Lf_xs" where "Lf_xs = map (\<lambda> t . f \<cdot> t) xs" 
+    moreover have "Lf_xs = (lists_map f) \<cdot> xs" unfolding Lf_xs_def lists_map_def
+      by (smt (z3) Collect_cong Pair_inject \<open>xs \<in> Function.dom (lists_map f)\<close> f_valid fun_app lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "Lf_xs \<in> Function.dom (lists_map g)" unfolding Lf_xs_def lists_map_def
+      by (metis Lf_xs_def \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(2) cod_eq_dom f_valid fun_app2 lists_map_cod lists_map_def lists_map_dom lists_map_valid)
+    define "LgLf_xs" where "LgLf_xs = map (\<lambda> t . g \<cdot> t) Lf_xs" 
+    moreover have "LgLf_xs = (lists_map g) \<cdot> Lf_xs" unfolding Lf_xs_def lists_map_def
+      by (smt (verit) Collect_cong Lf_xs_def LgLf_xs_def Pair_inject \<open>Lf_xs \<in> Function.dom (lists_map g)\<close> fun_app g_valid lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "LgLf_xs = (lists_map g \<bullet> lists_map f) \<cdot> xs"
+      by (metis \<open>Lf_xs \<in> Function.dom (lists_map g)\<close> \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(2) calculation(4) cod_eq_dom compose_app f_valid fun_app g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    moreover have "LgLf_xs = map (\<lambda> t . g \<cdot> (f  \<cdot> t)) xs" unfolding LgLf_xs_def Lf_xs_def
+        calculation assms 
+
+    
+    ultimately show "(lists_map g \<bullet> lists_map f) \<cdot> xs = lists_map (g \<bullet> f) \<cdot> xs"
+qed
 (*
+
   case 1
   then show ?case
     by (simp add: Poset.compose_valid assms(3) direct_image_cod direct_image_dom direct_image_valid f_valid g_valid) 
