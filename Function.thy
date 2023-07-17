@@ -216,6 +216,16 @@ lemma lists_map_dom : "dom (lists_map f) = lists (dom f)"
   unfolding lists_map_def app_def dom_def
   by simp
 
+lemma lists_map_length : "valid_map f \<Longrightarrow> xs \<in> dom (lists_map f) \<Longrightarrow> length xs = length (lists_map f \<cdot> xs) "
+  unfolding lists_map_def app_def
+  using map_total by fastforce 
+
+lemma lists_map_el : "valid_map f \<Longrightarrow> xs \<in> dom (lists_map f) \<Longrightarrow> 0 \<le> k \<and> k < length xs 
+\<Longrightarrow> (lists_map f \<cdot> xs) ! k = f \<cdot> (xs ! k)"
+  unfolding lists_map_def app_def
+  apply clarsimp
+  using map_total by fastforce
+
 lemma lists_map_ident : "lists_map (ident X) = ident (lists X)"
 proof -
   fix X :: "'x set" 

@@ -1380,6 +1380,20 @@ lemma lists_ar_trans :
 shows "Presheaf.ar L \<cdot> (j \<propto> i) = Presheaf.ar L \<cdot> i \<bullet> Presheaf.ar L \<cdot> j"
   by (smt (verit, del_insts) inclusions_def L_def Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid dom_compose_inc endpoints i_inc j_inc lists_ar_value lists_map_trans mem_Collect_eq)
 
+lemma lists_res_length : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> xs \<in> Presheaf.ob (presheaf (lists T)) \<cdot> Space.cod i
+\<Longrightarrow> length xs = length (((Presheaf.ar (presheaf (lists T))) \<cdot> i) \<cdot> xs)"
+  unfolding lists_def
+  apply clarsimp
+  using lists_map_length [where ?f="(Presheaf.ar (presheaf T)) \<cdot> i" and ?xs=xs]
+  by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined UNIV_I lists_map_dom mem_Collect_eq prod.inject valid_inc_cod) 
+
+lemma lists_res_el : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> xs \<in> Presheaf.ob (presheaf (lists T)) \<cdot> Space.cod i
+\<Longrightarrow> 0 \<le> k \<and> k < length xs \<Longrightarrow> (((Presheaf.ar (presheaf (lists T))) \<cdot> i) \<cdot> xs) ! k = (ar T\<cdot> i) \<cdot> (xs ! k)"
+  unfolding lists_def
+  apply clarsimp
+  using lists_map_el[where ?f="(Presheaf.ar (presheaf T)) \<cdot> i" and ?xs=xs and ?k=k]
+  by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined UNIV_I bot_nat_0.extremum fst_conv lists_map_dom mem_Collect_eq snd_conv valid_inc_cod)
+
 lemma valid_presheaf_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -1437,12 +1451,12 @@ proof (simp add: Function.is_surjective_def, safe)
   fix i
   fix ys
   assume i_valid : "i \<in> inclusions (space T)"
-  assume ys_el : "ys \<in> Function.cod (Tuple.ar (Tuple.lists T) \<cdot> i)"
-  show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" (is "\<exists>xs. ?P xs")
+  assume ys_el : "ys \<in> Function.cod (ar (lists T) \<cdot> i)"
+  show "\<exists>xs. xs \<in> Function.dom (ar (lists T) \<cdot> i) \<and> (ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" (is "\<exists>xs. ?P xs")
   proof - 
     have fibre : "\<forall>y \<in> set ys . \<exists>x. (x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
       by (metis Function.is_surjective_def Presheaf.valid_cod Tuple.valid_welldefined assms i_valid lists_ar_cod lists_ob_el valid_flasque valid_inc_dom ys_el)
-    moreover have "\<exists>lift. \<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y) "
+    moreover have "\<exists>lift. \<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y)"
         by (metis fibre)
     moreover obtain "lift" where lift: "\<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y)"
         using calculation(2) by blast
@@ -1468,12 +1482,52 @@ proof (simp add: Function.is_surjective_def, safe)
     qed
   qed
 
-lemma lists_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> a \<in> ob (lists T) \<cdot> A \<Longrightarrow> b \<in> ob (lists T) \<cdot> B
-        \<Longrightarrow> (ar (lists T) \<cdot> (make_inc (A \<inter> B) A)) \<cdot> a = (ar (lists T) \<cdot> (make_inc (A \<inter> B) B)) \<cdot> b
-        \<Longrightarrow> (\<exists> c . c \<in> (ob (lists T) \<cdot> (A \<union> B)) \<and> (ar (lists T) \<cdot> (make_inc A (A \<union> B))) \<cdot> c = a \<and> (ar (lists T) \<cdot> (make_inc B (A \<union> B))) \<cdot> c = b)"
-  unfolding lists_def
-  oops
+lemma lists_binary_gluing :
+  fixes T :: "('A, 'x) TupleSystem" and A B :: "'A Open" and as bs :: "'x list"
+  defines "i_A \<equiv> make_inc (A \<inter> B) A"
+  and "i_B \<equiv> make_inc (A \<inter> B) B"
+  and "j_A \<equiv> make_inc A (A \<union> B)"
+  and "j_B \<equiv> make_inc B (A \<union> B)"
+assumes T_valid : "valid T"
+  and A_open : "A \<in> opens (space T)" and B_open : "B \<in> opens (space T)" 
+  and a_el : "as \<in> ob (lists T) \<cdot> A" and b_el : "bs \<in> ob (lists T) \<cdot> B"
+  and locally_agrees : "(ar (lists T) \<cdot> i_A) \<cdot> as = (ar (lists T) \<cdot> i_B) \<cdot> bs"
+  shows "\<exists>cs. cs \<in> (ob (lists T) \<cdot> (A \<union> B)) \<and> (ar (lists T) \<cdot> j_A) \<cdot> cs = as \<and> (ar (lists T) \<cdot> j_B) \<cdot> cs = bs"
+proof -
+  have "i_A \<in> inclusions (space T)" using assms inclusions_def
+    by (smt (verit) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Tuple.valid_space inf.cobounded1 valid_inter)
+  moreover have "i_B \<in> inclusions (space T)" using assms inclusions_def
+    using \<open>i_A \<in> inclusions (Tuple.space T)\<close> valid_inc_dom by fastforce
+  moreover have "j_A \<in> inclusions (space T)" using assms inclusions_def
+    by (smt (verit) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Tuple.valid_space Un_upper1 valid_union2)
+  moreover have "j_B \<in> inclusions (space T)" using assms inclusions_def
+    using \<open>j_A \<in> inclusions (Tuple.space T)\<close> valid_inc_cod by fastforce
+  moreover have "length as = length bs"
+    by (metis Inclusion.select_convs(2) T_valid a_el b_el calculation(1) calculation(2) i_A_def i_B_def lists_res_length locally_agrees)
+  define "n" where "n = length as"
 
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (ar T \<cdot> i_A) \<cdot> (as ! k) = (ar T \<cdot> i_B) \<cdot>
+    (bs ! k)" using assms calculation n_def
+    by (metis Inclusion.select_convs(2) \<open>length as = length bs\<close> lists_res_el)
+
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (\<exists>c_k. c_k \<in> Tuple.ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> c_k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c_k = (bs ! k))" 
+    using n_def j_A_def j_B_def valid_binary_gluing [where ?T=T and ?A=A and ?B=B]
+    by (metis A_open B_open T_valid \<open>length as = length bs\<close> a_el b_el calculation(6) i_A_def i_B_def lists_ob_el nth_mem)
+
+  moreover have "\<exists>c. \<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> Tuple.ob T \<cdot> (A \<union> B) \<and> 
+  (Tuple.ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (Tuple.ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
+    by (metis calculation(7))
+
+  moreover obtain "c" where c : "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> Tuple.ob T \<cdot> (A \<union> B) \<and> 
+  (Tuple.ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (Tuple.ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
+    using calculation(8) by blast
+
+  define "cs" where "cs = [c (Int.nat k) . k <- [0..int n-1]]" 
+ 
+  moreover have "cs \<in> (ob (lists T) \<cdot> (A \<union> B))" using cs_def calculation 
+  
+(* [Lemma 1 (1/2), CVA] *)
 lemma valid_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
