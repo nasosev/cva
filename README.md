@@ -41,7 +41,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 - [x] Theorem 2 (rel_ova_valid, rel_ova_commutative, rel_ova_strongly_neutral, rel_ova_tuple_system)
 - [x] Lemma 1 (valid_lists, valid_ne_lists)
-- [ ] Proposition 4 ()
+- [ ] Proposition 4 (rel_ext_preimage)
 - [ ] Proposition 5 ()
 - [ ] Lemma 2 ()
 - [ ] Lemma 3 ()

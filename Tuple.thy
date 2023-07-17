@@ -1324,6 +1324,29 @@ next
     by (metis (no_types, lifting) Int_lower2 OVA.select_convs(1) R_def Tuple.valid_space assms(4) comb_is_element comb_law_left inf_le1 rel_el_open rel_idempotent rel_idempotent_left rel_ova_valid valid_comb_law_right valid_domain_law valid_inter valid_relation_space)    fix a b
 qed
 
+(* [Proposition 4, CVA] *)
+lemma rel_ext_preimage : 
+  fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and b :: "('A, 'x) Relation"
+  defines "R \<equiv> rel_ova T"
+  assumes T_valid : "valid T"
+  and A_open : "A \<in> Space.opens (OVA.space R)" 
+  and b_el : "b \<in> elems R"
+  and B_le_A : "d b \<subseteq> A"
+shows "e (ext R A b) = { t . t \<in> ob T \<cdot> A \<and> (ar T \<cdot> (make_inc (d b) A)) \<cdot> t \<in> e b}"
+proof -
+  have "e (ext R A b) = e (comb R (neut R A) b)" using R_def ext_def [where ?V=R and ?A=A and ?b=b]
+    using A_open B_le_A b_el by presburger
+  moreover have "... = { t . t \<in> ob T \<cdot> A 
+                            \<and> (ar T \<cdot> make_inc A (A \<union> d b)) \<cdot> t \<in> e (neut R A)
+                            \<and> (ar T \<cdot> make_inc (d b) (A \<union> d b)) \<cdot> t \<in> e b }" using
+    R_def rel_comb_e [where ?T=T and ?a="neut R A" and ?b=b] rel_neut_el [where ?T=T and ?A=A]
+    by (smt (verit, del_insts) A_open B_le_A Collect_cong T_valid b_el fst_conv rel_space sup.orderE)
+  moreover have "... = { t . t \<in> ob T \<cdot> A  \<and> (ar T \<cdot> make_inc (d b) A) \<cdot> t \<in> e b }"
+    by (metis (no_types, lifting) A_open B_le_A Function.ident_app OVA.select_convs(1) Presheaf.valid_identity R_def Space.ident_def T_valid Tuple.valid_welldefined rel_neut_e sup.orderE valid_relation_space) 
+  ultimately show ?thesis
+    by presburger
+qed
+
 (* Lists functor *)
 
 definition lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
