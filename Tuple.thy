@@ -1555,6 +1555,235 @@ next
     by (simp add: assms lists_binary_gluing lists_space) 
 qed
 
+(* Nonempty-lists functor *)
 
+definition ne_lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
+"ne_lists T = 
+  \<lparr> presheaf = \<lparr> 
+    Presheaf.space = space T, 
+    Presheaf.ob = \<lparr> Function.cod = UNIV, func = { (A, Function.ne_lists (ob T \<cdot> A)) | A . A \<in> opens (space T) } \<rparr>,
+     ar = \<lparr> Function.cod = UNIV, func = { (i, Function.ne_lists_map (ar T \<cdot> i)) | i . i \<in> inclusions (space T) }  \<rparr> \<rparr> \<rparr>"
+
+lemma ne_lists_space: "Tuple.space (Tuple.ne_lists T) = space T"
+  by (simp add: Tuple.ne_lists_def)
+
+lemma ne_lists_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Presheaf.ob (presheaf (ne_lists T))) \<cdot> A = Function.ne_lists (ob T \<cdot> A)"
+  unfolding ne_lists_def
+  by (simp add: Function.fun_app_iff Function.valid_map_def)
+
+lemma ne_lists_ob_el : "A \<in> opens (space T) \<Longrightarrow> xs \<in> (Presheaf.ob (presheaf (ne_lists T))) \<cdot> A \<Longrightarrow> x \<in> set xs \<Longrightarrow> x \<in> ob T \<cdot> A"
+  unfolding ne_lists_def
+  by (smt (verit) CollectD CollectI Function.fun_app_iff Function.ne_lists_def Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(2) TupleSystem.select_convs(1) UNIV_I fst_conv in_listsD lists_eq_set snd_conv)
+
+lemma ne_lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (ne_lists T))) \<cdot> i = Function.ne_lists_map (ar T \<cdot> i)"
+  unfolding ne_lists_def
+  by (simp add: Function.dom_def)
+
+lemma ne_lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Function.valid_map ((Presheaf.ar (presheaf (ne_lists T))) \<cdot> i)"
+  unfolding ne_lists_def
+  by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.Presheaf.select_convs(3) Presheaf.valid_ar Tuple.valid_welldefined TupleSystem.select_convs(1) UNIV_I fst_conv ne_lists_map_valid mem_Collect_eq snd_conv) 
+
+lemma ne_lists_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
+\<Longrightarrow> Function.dom (Presheaf.ar (presheaf (ne_lists T)) \<cdot> i) = Presheaf.ob (presheaf (ne_lists T)) \<cdot> Space.cod i"
+  unfolding ne_lists_def
+  by (simp add: inclusion_cod Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined ne_lists_map_dom)
+
+lemma ne_lists_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
+\<Longrightarrow> Function.cod (Presheaf.ar (presheaf (ne_lists T)) \<cdot> i) = Presheaf.ob (presheaf (ne_lists T)) \<cdot> Space.dom i"
+  unfolding ne_lists_def
+  by (simp add: inclusion_dom Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined ne_lists_map_def)
+
+lemma ne_lists_ar_ident :
+  fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
+  defines "L \<equiv> presheaf (ne_lists T)"
+  assumes T_valid : "valid T"
+  assumes A_open : "A \<in> opens (space T)"
+  shows "Presheaf.ar L \<cdot> Space.ident A = Function.ident (Presheaf.ob L \<cdot> A)"
+  using A_open L_def Presheaf.valid_identity T_valid Tuple.valid_welldefined ne_lists_ar_value ne_lists_map_ident ne_lists_ob_value valid_ident_inc by fastforce
+
+lemma ne_lists_ar_trans :
+  fixes T :: "('A, 'x) TupleSystem" and i j :: "'A Inclusion"
+  defines "L \<equiv> presheaf (ne_lists T)"
+  assumes T_valid: "valid T"
+  and i_inc : "i \<in> inclusions (space T)"
+  and j_inc :"j \<in> inclusions (space T)"
+  and endpoints : "Space.dom j = Space.cod i"
+shows "Presheaf.ar L \<cdot> (j \<propto> i) = Presheaf.ar L \<cdot> i \<bullet> Presheaf.ar L \<cdot> j"
+  by (smt (verit, del_insts) inclusions_def L_def Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid dom_compose_inc endpoints i_inc j_inc ne_lists_ar_value ne_lists_map_trans mem_Collect_eq)
+
+lemma ne_lists_res_length : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> xs \<in> Presheaf.ob (presheaf (ne_lists T)) \<cdot> Space.cod i
+\<Longrightarrow> length xs = length (((Presheaf.ar (presheaf (ne_lists T))) \<cdot> i) \<cdot> xs)"
+  unfolding ne_lists_def
+  apply clarsimp
+  using ne_lists_map_length [where ?f="(Presheaf.ar (presheaf T)) \<cdot> i" and ?xs=xs]
+  by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined UNIV_I ne_lists_map_dom mem_Collect_eq prod.inject valid_inc_cod) 
+
+lemma ne_lists_res_el : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> xs \<in> Presheaf.ob (presheaf (ne_lists T)) \<cdot> Space.cod i
+\<Longrightarrow> 0 \<le> k \<and> k < length xs \<Longrightarrow> (((Presheaf.ar (presheaf (ne_lists T))) \<cdot> i) \<cdot> xs) ! k = (ar T\<cdot> i) \<cdot> (xs ! k)"
+  unfolding ne_lists_def
+  apply clarsimp
+  using ne_lists_map_el[where ?f="(Presheaf.ar (presheaf T)) \<cdot> i" and ?xs=xs and ?k=k]
+  by (smt (verit) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined UNIV_I bot_nat_0.extremum fst_conv ne_lists_map_dom mem_Collect_eq snd_conv valid_inc_cod)
+
+lemma valid_presheaf_ne_lists : 
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  shows "Presheaf.valid (presheaf (ne_lists T))"
+proof (intro Presheaf.validI, goal_cases)
+  case 1
+  then show ?case 
+  unfolding ne_lists_def
+  by (simp add: Tuple.valid_space assms)
+next
+  case 2
+  then show ?case 
+  unfolding ne_lists_def
+  by fastforce
+next
+  case 3
+  then show ?case
+  unfolding ne_lists_def
+  by fastforce
+next
+  case (4 i)
+  then show ?case
+    unfolding ne_lists_def
+    apply clarsimp
+    by (smt (verit) CollectD CollectI Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_mapI UNIV_I assms fst_conv ne_lists_ar_value ne_lists_ar_value_valid snd_conv)
+next
+  case (5 i)
+  then show ?case 
+    unfolding ne_lists_def
+    apply clarsimp
+    by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined assms ne_lists_map_dom valid_inc_cod)
+next
+  case (6 i)
+  then show ?case 
+    unfolding ne_lists_def
+    apply clarsimp
+    by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined assms ne_lists_map_cod valid_inc_dom)
+next
+  case (7 A)
+  then show ?case
+    using assms ne_lists_ar_ident [where ?T=T and ?A=A] ne_lists_space [where ?T=T]
+    by simp
+next
+  case (8 i j)
+  then show ?case 
+    using assms ne_lists_ar_trans [where ?T=T and ?i=i and ?j=j] ne_lists_space [where ?T=T]
+    by simp
+qed
+
+lemma ne_lists_flasque :
+  fixes T :: "('A, 'x) TupleSystem" and i :: "'A Inclusion"
+  assumes T_valid : "valid T"
+shows "\<And>i. i \<in> inclusions (space T) \<Longrightarrow> Function.is_surjective (ar (ne_lists T) \<cdot> i)"
+proof (simp add: Function.is_surjective_def, safe) 
+  fix i
+  fix ys
+  assume i_valid : "i \<in> inclusions (space T)"
+  assume ys_el : "ys \<in> Function.cod (ar (ne_lists T) \<cdot> i)"
+  show "\<exists>xs. xs \<in> Function.dom (ar (ne_lists T) \<cdot> i) \<and> (ar (Tuple.ne_lists T) \<cdot> i) \<cdot> xs = ys" (is "\<exists>xs. ?P xs")
+  proof - 
+    have fibre : "\<forall>y \<in> set ys . \<exists>x. (x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
+      by (metis Function.is_surjective_def Presheaf.valid_cod Tuple.valid_welldefined assms i_valid ne_lists_ar_cod ne_lists_ob_el valid_flasque valid_inc_dom ys_el)
+    moreover have "\<exists>lift. \<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y)"
+        by (metis fibre)
+    moreover obtain "lift" where lift: "\<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y)"
+        using calculation(2) by blast
+    define "xs" where "xs = map lift ys"
+    moreover have "\<forall>x. x \<in> set xs \<longrightarrow> x \<in> Function.dom (ar T \<cdot> i)" using calculation xs_def
+      using lift by auto
+    moreover have "xs \<in> Function.dom (Tuple.ar (Tuple.ne_lists T) \<cdot> i)" using  xs_def fibre
+        calculation ys_el T_valid i_valid ne_lists_ar_value [where ?i=i and ?T=T] ne_lists_map_def [where
+          ?f="ar T \<cdot> i"]
+      by (smt (verit) Function.ne_lists_def length_map mem_Collect_eq ne_lists_map_cod ne_lists_map_dom subset_code(1)) 
+    moreover have "length xs = length ys"
+      by (simp add: xs_def) 
+    moreover have "\<forall> k . 0 \<le> k \<and> k < length xs \<longrightarrow> (Tuple.ar T \<cdot> i) \<cdot> (xs ! k) = ys ! k"
+      by (metis calculation(6) lift nth_map nth_mem xs_def) 
+    moreover have "map (\<lambda>x. (Tuple.ar T \<cdot> i) \<cdot> x) xs = ys"
+      by (metis bot_nat_0.extremum calculation(7) calculation(6) length_map nth_equalityI nth_map)
+    moreover have "(Tuple.ar (Tuple.ne_lists T) \<cdot> i) \<cdot> xs = ys" using  xs_def fibre
+        calculation ys_el T_valid i_valid ne_lists_ar_value [where ?i=i and ?T=T] ne_lists_map_def [where
+          ?f="ar T \<cdot> i"]
+      by (smt (verit) Function.fun_app_iff Function.select_convs(2) ne_lists_ar_value_valid ne_lists_map_dom mem_Collect_eq) 
+    show "\<exists>xs. ?P xs"
+      using \<open>(Tuple.ar (Tuple.ne_lists T) \<cdot> i) \<cdot> xs = ys\<close> calculation(5) by blast 
+    qed
+  qed
+
+lemma ne_lists_binary_gluing :
+  fixes T :: "('A, 'x) TupleSystem" and A B :: "'A Open" and as bs :: "'x list"
+  defines "i_A \<equiv> make_inc (A \<inter> B) A"
+  and "i_B \<equiv> make_inc (A \<inter> B) B"
+  and "j_A \<equiv> make_inc A (A \<union> B)"
+  and "j_B \<equiv> make_inc B (A \<union> B)"
+assumes T_valid : "valid T"
+  and A_open : "A \<in> opens (space T)" and B_open : "B \<in> opens (space T)" 
+  and a_el : "as \<in> ob (ne_lists T) \<cdot> A" and b_el : "bs \<in> ob (ne_lists T) \<cdot> B"
+  and locally_agrees : "(ar (ne_lists T) \<cdot> i_A) \<cdot> as = (ar (ne_lists T) \<cdot> i_B) \<cdot> bs"
+  shows "\<exists>cs. cs \<in> (ob (ne_lists T) \<cdot> (A \<union> B)) \<and> (ar (ne_lists T) \<cdot> j_A) \<cdot> cs = as \<and> (ar (ne_lists T) \<cdot> j_B) \<cdot> cs = bs"
+proof -
+  have "i_A \<in> inclusions (space T)" using assms inclusions_def
+    by (smt (verit) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Tuple.valid_space inf.cobounded1 valid_inter)
+  moreover have "i_B \<in> inclusions (space T)" using assms inclusions_def
+    using \<open>i_A \<in> inclusions (Tuple.space T)\<close> valid_inc_dom by fastforce
+  moreover have "j_A \<in> inclusions (space T)" using assms inclusions_def
+    by (smt (verit) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Tuple.valid_space Un_upper1 valid_union2)
+  moreover have "j_B \<in> inclusions (space T)" using assms inclusions_def
+    using \<open>j_A \<in> inclusions (Tuple.space T)\<close> valid_inc_cod by fastforce
+  moreover have "length as = length bs"
+    by (metis Inclusion.select_convs(2) T_valid a_el b_el calculation(1) calculation(2) i_A_def i_B_def ne_lists_res_length locally_agrees)
+  define "n" where "n = length as"
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (ar T \<cdot> i_A) \<cdot> (as ! k) = (ar T \<cdot> i_B) \<cdot>
+    (bs ! k)" using assms calculation n_def
+    by (metis Inclusion.select_convs(2) \<open>length as = length bs\<close> ne_lists_res_el)
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (\<exists>c_k. c_k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> c_k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c_k = (bs ! k))" 
+    using n_def j_A_def j_B_def valid_binary_gluing [where ?T=T and ?A=A and ?B=B]
+    by (metis A_open B_open T_valid \<open>length as = length bs\<close> a_el b_el calculation(6) i_A_def i_B_def ne_lists_ob_el nth_mem)
+  moreover have "\<exists>c. \<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
+    by (metis calculation(7))
+  moreover obtain "c" where c : "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
+    using calculation(8) by blast
+  define "cs" where "cs = [c (Int.nat k) . k <- [0..int n-1]]" 
+  moreover have "length cs = n"
+    by (simp add: calculation(9)) 
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> cs ! k = c k" using cs_def
+    by clarsimp
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (cs ! k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> (cs ! k) = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> (cs ! k) = (bs ! k))" using calculation
+    using c by presburger
+  moreover have "cs \<in> (ob (ne_lists T) \<cdot> (A \<union> B))" using cs_def ne_lists_map_elI [where ?xs=cs and ?X="ob T \<cdot> (A \<union> B)"]
+    by (smt (verit) B_open CollectD Function.ne_lists_def Inclusion.select_convs(2) \<open>length as = length bs\<close> b_el calculation(10) calculation(12) calculation(3) j_A_def list.size(3) n_def ne_lists_ob_value valid_inc_cod)
+  moreover have "(ar (ne_lists T) \<cdot> j_A) \<cdot> cs = as" using j_A_def calculation
+    by (metis Inclusion.select_convs(2) T_valid bot_nat_0.extremum ne_lists_res_el ne_lists_res_length nth_equalityI) 
+  moreover have "(ar (ne_lists T) \<cdot> j_B) \<cdot> cs = bs" using j_B_def calculation
+    by (metis Inclusion.select_convs(2) T_valid \<open>length as = length bs\<close> bot_nat_0.extremum ne_lists_res_el ne_lists_res_length nth_equalityI)
+  ultimately show ?thesis
+    by metis
+qed
+
+(* [Lemma 1 (2/2), CVA] *)
+lemma valid_ne_lists : 
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  shows "valid (ne_lists T)"
+proof (intro validI, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: assms valid_presheaf_ne_lists) 
+next
+  case (2 i)
+  then show ?case
+    by (simp add: assms ne_lists_flasque ne_lists_space) 
+next
+  case (3 A B a b)
+  then show ?case
+    by (simp add: assms ne_lists_binary_gluing ne_lists_space) 
+qed     
 
 end
