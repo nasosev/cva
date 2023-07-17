@@ -1437,39 +1437,37 @@ proof (simp add: Function.is_surjective_def,safe)
   assume i_valid_c : "Inclusion.cod i \<in> opens (Tuple.space T)"
   assume ys_el : "ys \<in> Function.cod (Tuple.ar (Tuple.lists T) \<cdot> i)"
 
-  show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" 
-  proof 
+  show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs
+    = ys" (is "\<exists>xs. ?P xs")
+  proof -
     have i_inc : "i \<in> inclusions (space T)"
       using i_valid i_valid_c i_valid_d by blast 
-    moreover have fibre : "\<forall>y. y \<in> set ys  \<longrightarrow> (\<exists>x. x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
+    moreover have fibre : "\<forall>y \<in> set ys . \<exists>x. (x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
       by (metis (no_types, lifting) Function.is_surjective_def Presheaf.valid_cod T_valid Tuple.valid_welldefined i_valid i_valid_c i_valid_d lists_ar_cod lists_ob_el mem_Collect_eq valid_flasque ys_el)
-
-    define "lift" where "lift = (\<lambda> y. SOME x. (y \<in> set ys \<longrightarrow>  x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y))"
-
-
-    define "xs" where "xs = map lift ys" (* [lift y . y <- ys] *)
-
-    moreover have "\<forall>x. x \<in> set xs \<longrightarrow> x \<in> Function.dom (ar T \<cdot> i)" using lift_def xs_def fibre calculation ys_el T_valid i_inc 
-                            
-    moreover have "xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i)" using lift_def xs_def fibre
+    moreover have "\<exists>lift. \<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y) "
+        by (metis fibre)
+    moreover obtain "lift" where lift: "\<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y)"
+        using calculation(3) by blast
+    define "xs" where "xs = map lift ys"
+    moreover have "\<forall>x. x \<in> set xs \<longrightarrow> x \<in> Function.dom (ar T \<cdot> i)" using calculation xs_def
+      using lift by auto
+    moreover have "xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i)" using  xs_def fibre
         calculation ys_el T_valid i_inc lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
-          ?f="ar T \<cdot> i"] 
-      by (metis Abs_unit_inverse Rep_unit bexE image_constant insert_compr singletonD subseqs_refl)  
-
-     show ?thesis 
-
-      using Function.fun_app2 Presheaf.valid_ar Tuple.valid_welldefined \<open>Inclusion.cod i \<in> opens (Tuple.space T)\<close> \<open>Inclusion.dom i \<in> opens (Tuple.space T)\<close> \<open>Inclusion.dom i \<subseteq> Inclusion.cod i\<close> \<open>Tuple.valid T\<close> by fastforce 
-    moreover have "\<forall>x. x \<in> xs  Function.dom (ar T \<cdot> i)
-    show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists
- T) \<cdot> i) \<cdot> xs = ys" unfolding lists_def 
-      apply clarsimp
-
-    
-    define "fibre" where "fibre = (\<lambda> x . x \<in> Function.dom (ar T \<cdot> i) \<longrightarrow> (SOME y. y \<in> Function.cod (ar T \<cdot>
- i) \<and> (ar T \<cdot> i) \<cdot> x = y))" 
-
- 
-
+          ?f="ar T \<cdot> i"]
+      by (metis (no_types, lifting) Function.lists_def lists_map_dom mem_Collect_eq subsetI) 
+    moreover have "length xs = length ys"
+      by (simp add: xs_def) 
+    moreover have "\<forall> k . 0 \<le> k \<and> k < length xs \<longrightarrow> (Tuple.ar T \<cdot> i) \<cdot> (xs ! k) = ys ! k"
+      by (metis calculation(7) lift nth_map nth_mem xs_def) 
+    moreover have "map (\<lambda>x. (Tuple.ar T \<cdot> i) \<cdot> x) xs = ys"
+      by (metis bot_nat_0.extremum calculation(7) calculation(8) length_map nth_equalityI nth_map)
+    moreover have "(Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" using  xs_def fibre
+        calculation ys_el T_valid i_inc lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
+          ?f="ar T \<cdot> i"]
+      by (smt (verit) Function.fun_app_iff Function.select_convs(2) lists_ar_value_valid lists_map_dom mem_Collect_eq) 
+    show "\<exists>xs. ?P xs"
+      using \<open>(Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys\<close> calculation(6) by blast 
+    qed
   qed
 
 lemma lists_binary_gluing : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> a \<in> ob (lists T) \<cdot> A \<Longrightarrow> b \<in> ob (lists T) \<cdot> B

@@ -146,7 +146,7 @@ definition ident :: "'x set \<Rightarrow> ('x, 'x) Function" where
 "ident X \<equiv>  \<lparr> cod = X, func = Id_on X \<rparr>"
 
 lemma ident_valid : "valid_map (ident X)"
-  by (simp add: Function.dom_def Id_on_iff ident_def valid_map_def) 
+  by (simp add: dom_def Id_on_iff ident_def valid_map_def) 
 
 lemma ident_dom [simp] : "dom (ident X) = X" 
   by (simp add: Id_on_iff dom_def ident_def)
@@ -199,8 +199,8 @@ definition lists :: "'x set \<Rightarrow> ('x list) set" where
 
 definition lists_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
 "lists_map f \<equiv> 
-  \<lparr> Function.cod = lists (Function.cod f), 
-    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> lists (Function.dom f) } \<rparr>"
+  \<lparr> cod = lists (cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> lists (dom f) } \<rparr>"
 
 lemma lists_map_valid : "valid_map f \<Longrightarrow> valid_map (lists_map f)" 
   unfolding lists_map_def lists_def
@@ -209,33 +209,33 @@ lemma lists_map_valid : "valid_map f \<Longrightarrow> valid_map (lists_map f)"
   apply (meson fun_app2 subsetD)
   by force
 
-lemma lists_map_cod : "cod (lists_map f) = lists (Function.cod f)"
+lemma lists_map_cod : "cod (lists_map f) = lists (cod f)"
   by (simp add: lists_map_def)
 
-lemma lists_map_dom : "dom (lists_map f) = lists (Function.dom f)"
+lemma lists_map_dom : "dom (lists_map f) = lists (dom f)"
   unfolding lists_map_def app_def dom_def
   by simp
 
-lemma lists_map_ident : "lists_map (Function.ident X) = ident (lists X)"
+lemma lists_map_ident : "lists_map (ident X) = ident (lists X)"
 proof -
   fix X :: "'x set" 
-  have "cod (lists_map (Function.ident X)) = lists X"
+  have "cod (lists_map (ident X)) = lists X"
     by (simp add: lists_map_cod)
-  moreover have "dom (lists_map (Function.ident X)) = lists X"
+  moreover have "dom (lists_map (ident X)) = lists X"
     by (simp add: lists_map_dom)
-  moreover have "func (lists_map (Function.ident X)) = { (ts, ts) | ts . ts \<in> lists X }" unfolding
+  moreover have "func (lists_map (ident X)) = { (ts, ts) | ts . ts \<in> lists X }" unfolding
       lists_map_def lists_def  ident_cod ident_dom ident_func Id_on_def
     apply clarsimp
     by (metis (no_types, lifting) ident_app list.map_ident_strong subsetD)
-  ultimately show "lists_map (Function.ident X) = ident (lists X)"
+  ultimately show "lists_map (ident X) = ident (lists X)"
     by (smt (verit, best) Collect_cong Function.dom_def Id_onE Id_onI Id_on_def' ident_cod ident_func mem_Collect_eq valid_map_eqI)
 qed
 
 lemma lists_map_trans :
   fixes g :: "('y, 'z) Function" and f :: "('x , 'y) Function"
-  assumes f_valid : "Function.valid_map f"
-  and g_valid : "Function.valid_map g"
-  and cod_eq_dom : "Function.cod f = Function.dom g"
+  assumes f_valid : "valid_map f"
+  and g_valid : "valid_map g"
+  and cod_eq_dom : "cod f = dom g"
 shows "lists_map g \<bullet> lists_map f = lists_map (g \<bullet> f)"
 proof (rule fun_ext, goal_cases)
   case 1
@@ -258,29 +258,29 @@ next
   then show ?case 
   proof -
     fix xs
-    assume "xs \<in> Function.dom (lists_map g \<bullet> lists_map f)"
-    have "xs \<in> Function.dom (lists_map f)"
-      by (metis \<open>xs \<in> Function.dom (lists_map g \<bullet> lists_map f)\<close> cod_eq_dom dom_compose f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    assume "xs \<in> dom (lists_map g \<bullet> lists_map f)"
+    have "xs \<in> dom (lists_map f)"
+      by (metis \<open>xs \<in> dom (lists_map g \<bullet> lists_map f)\<close> cod_eq_dom dom_compose f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
     define "Lf_xs" where "Lf_xs = map (\<lambda> x . f \<cdot> x) xs" 
     moreover have "Lf_xs = (lists_map f) \<cdot> xs" unfolding Lf_xs_def lists_map_def
-      by (smt (z3) Collect_cong Pair_inject \<open>xs \<in> Function.dom (lists_map f)\<close> f_valid fun_app lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
-    moreover have "Lf_xs \<in> Function.dom (lists_map g)" unfolding Lf_xs_def lists_map_def
-      by (metis Lf_xs_def \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(2) cod_eq_dom f_valid fun_app2 lists_map_cod lists_map_def lists_map_dom lists_map_valid)
+      by (smt (z3) Collect_cong Pair_inject \<open>xs \<in> dom (lists_map f)\<close> f_valid fun_app lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "Lf_xs \<in> dom (lists_map g)" unfolding Lf_xs_def lists_map_def
+      by (metis Lf_xs_def \<open>xs \<in> dom (lists_map f)\<close> calculation(2) cod_eq_dom f_valid fun_app2 lists_map_cod lists_map_def lists_map_dom lists_map_valid)
     define "LgLf_xs" where "LgLf_xs = map (\<lambda> x . g \<cdot> x) Lf_xs" 
     moreover have "LgLf_xs = (lists_map g) \<cdot> Lf_xs" unfolding Lf_xs_def lists_map_def
-      by (smt (verit) Collect_cong Lf_xs_def LgLf_xs_def Pair_inject \<open>Lf_xs \<in> Function.dom (lists_map g)\<close> fun_app g_valid lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
+      by (smt (verit) Collect_cong Lf_xs_def LgLf_xs_def Pair_inject \<open>Lf_xs \<in> dom (lists_map g)\<close> fun_app g_valid lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
     moreover have "LgLf_xs = (lists_map g \<bullet> lists_map f) \<cdot> xs"
-      by (metis \<open>Lf_xs \<in> Function.dom (lists_map g)\<close> \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(2) calculation(4) cod_eq_dom compose_app f_valid fun_app g_valid lists_map_cod lists_map_dom lists_map_valid) 
+      by (metis \<open>Lf_xs \<in> dom (lists_map g)\<close> \<open>xs \<in> dom (lists_map f)\<close> calculation(2) calculation(4) cod_eq_dom compose_app f_valid fun_app g_valid lists_map_cod lists_map_dom lists_map_valid) 
     moreover have "LgLf_xs = map (\<lambda> x . g \<cdot> (f  \<cdot> x)) xs" unfolding LgLf_xs_def Lf_xs_def
       by clarsimp
-    moreover have "\<forall> x . x \<in> Function.dom f \<longrightarrow> g \<cdot> (f  \<cdot> x) = (g \<bullet> f)  \<cdot> x"  using compose_app_assoc [where ?g=g and ?f=f]
+    moreover have "\<forall> x . x \<in> dom f \<longrightarrow> g \<cdot> (f  \<cdot> x) = (g \<bullet> f)  \<cdot> x"  using compose_app_assoc [where ?g=g and ?f=f]
       using cod_eq_dom f_valid g_valid by presburger
-    moreover have "\<forall> x . x \<in> set xs \<longrightarrow> x \<in> Function.dom f"
-      using Function.lists_def \<open>xs \<in> Function.dom (lists_map f)\<close> lists_map_dom by fastforce 
+    moreover have "\<forall> x . x \<in> set xs \<longrightarrow> x \<in> dom f"
+      using lists_def \<open>xs \<in> dom (lists_map f)\<close> lists_map_dom by fastforce 
     moreover have "LgLf_xs = map (\<lambda> x . (g \<bullet> f)  \<cdot> x) xs" using LgLf_xs_def calculation assms
       by simp 
     moreover have "LgLf_xs = lists_map (g \<bullet> f) \<cdot> xs" using lists_map_def [where ?f="g \<bullet> f"]
-      by (smt (verit, del_insts) \<open>xs \<in> Function.dom (lists_map f)\<close> calculation(9) cod_eq_dom compose_valid dom_compose f_valid fun_app_iff g_valid lists_map_dom lists_map_valid mem_Collect_eq select_convs(2))
+      by (smt (verit, del_insts) \<open>xs \<in> dom (lists_map f)\<close> calculation(9) cod_eq_dom compose_valid dom_compose f_valid fun_app_iff g_valid lists_map_dom lists_map_valid mem_Collect_eq select_convs(2))
     ultimately show "(lists_map g \<bullet> lists_map f) \<cdot> xs = lists_map (g \<bullet> f) \<cdot> xs"
       by presburger 
   qed
@@ -293,8 +293,8 @@ definition ne_lists :: "'x set \<Rightarrow> ('x list) set" where
 
 definition ne_lists_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
 "ne_lists_map f \<equiv> 
-  \<lparr> Function.cod = ne_lists (Function.cod f), 
-    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> ne_lists (Function.dom f) } \<rparr>"
+  \<lparr> cod = ne_lists (cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> ne_lists (dom f) } \<rparr>"
 
 lemma ne_lists_map_valid : "valid_map f \<Longrightarrow> valid_map (ne_lists_map f)" 
   unfolding ne_lists_map_def ne_lists_def
