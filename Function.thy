@@ -216,15 +216,20 @@ lemma lists_map_dom : "dom (lists_map f) = lists (dom f)"
   unfolding lists_map_def app_def dom_def
   by simp
 
-lemma lists_map_length : "valid_map f \<Longrightarrow> xs \<in> dom (lists_map f) \<Longrightarrow> length xs = length (lists_map f \<cdot> xs) "
+lemma lists_map_length : "xs \<in> dom (lists_map f) \<Longrightarrow> length xs = length (lists_map f \<cdot> xs) "
   unfolding lists_map_def app_def
   using map_total by fastforce 
 
-lemma lists_map_el : "valid_map f \<Longrightarrow> xs \<in> dom (lists_map f) \<Longrightarrow> 0 \<le> k \<and> k < length xs 
+lemma lists_map_el : "xs \<in> dom (lists_map f) \<Longrightarrow> 0 \<le> k \<and> k < length xs 
 \<Longrightarrow> (lists_map f \<cdot> xs) ! k = f \<cdot> (xs ! k)"
   unfolding lists_map_def app_def
   apply clarsimp
   using map_total by fastforce
+
+lemma lists_map_elI : "(\<And>k. 0 \<le> k \<and> k < length xs \<Longrightarrow> (xs ! k) \<in> X) \<Longrightarrow> xs \<in> lists X"
+  unfolding lists_def
+  apply clarsimp
+  by (metis in_set_conv_nth)
 
 lemma lists_map_ident : "lists_map (ident X) = ident (lists X)"
 proof -

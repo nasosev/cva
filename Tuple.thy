@@ -1324,7 +1324,7 @@ next
     by (metis (no_types, lifting) Int_lower2 OVA.select_convs(1) R_def Tuple.valid_space assms(4) comb_is_element comb_law_left inf_le1 rel_el_open rel_idempotent rel_idempotent_left rel_ova_valid valid_comb_law_right valid_domain_law valid_inter valid_relation_space)    fix a b
 qed
 
-(* Lists (L) and non-empty lists (L_+) functors *)
+(* Lists functor *)
 
 definition lists :: "('A, 'x) TupleSystem \<Rightarrow> ('A, 'x list) TupleSystem" where
 "lists T = 
@@ -1505,28 +1505,37 @@ proof -
   moreover have "length as = length bs"
     by (metis Inclusion.select_convs(2) T_valid a_el b_el calculation(1) calculation(2) i_A_def i_B_def lists_res_length locally_agrees)
   define "n" where "n = length as"
-
   moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (ar T \<cdot> i_A) \<cdot> (as ! k) = (ar T \<cdot> i_B) \<cdot>
     (bs ! k)" using assms calculation n_def
     by (metis Inclusion.select_convs(2) \<open>length as = length bs\<close> lists_res_el)
-
-  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (\<exists>c_k. c_k \<in> Tuple.ob T \<cdot> (A \<union> B) \<and> 
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (\<exists>c_k. c_k \<in> ob T \<cdot> (A \<union> B) \<and> 
   (ar T \<cdot> j_A) \<cdot> c_k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c_k = (bs ! k))" 
     using n_def j_A_def j_B_def valid_binary_gluing [where ?T=T and ?A=A and ?B=B]
     by (metis A_open B_open T_valid \<open>length as = length bs\<close> a_el b_el calculation(6) i_A_def i_B_def lists_ob_el nth_mem)
-
-  moreover have "\<exists>c. \<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> Tuple.ob T \<cdot> (A \<union> B) \<and> 
-  (Tuple.ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (Tuple.ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
+  moreover have "\<exists>c. \<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
     by (metis calculation(7))
-
-  moreover obtain "c" where c : "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> Tuple.ob T \<cdot> (A \<union> B) \<and> 
-  (Tuple.ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (Tuple.ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
+  moreover obtain "c" where c : "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (c k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> c k = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> c k = (bs ! k))"
     using calculation(8) by blast
-
   define "cs" where "cs = [c (Int.nat k) . k <- [0..int n-1]]" 
- 
-  moreover have "cs \<in> (ob (lists T) \<cdot> (A \<union> B))" using cs_def calculation 
-  
+  moreover have "length cs = n"
+    by (simp add: calculation(9)) 
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> cs ! k = c k" using cs_def
+    by clarsimp
+  moreover have "\<forall> k . 0 \<le> k \<and> k < n \<longrightarrow> (cs ! k \<in> ob T \<cdot> (A \<union> B) \<and> 
+  (ar T \<cdot> j_A) \<cdot> (cs ! k) = (as ! k) \<and> (ar T \<cdot> j_B) \<cdot> (cs ! k) = (bs ! k))" using calculation
+    using c by presburger
+  moreover have "cs \<in> (ob (lists T) \<cdot> (A \<union> B))" using cs_def lists_map_elI [where ?xs=cs and ?X="ob T \<cdot> (A \<union> B)"]
+    by (metis A_open B_open T_valid Tuple.valid_space calculation(10) calculation(12) lists_ob_value valid_union2)
+  moreover have "(ar (lists T) \<cdot> j_A) \<cdot> cs = as" using j_A_def calculation
+    by (metis Inclusion.select_convs(2) T_valid bot_nat_0.extremum lists_res_el lists_res_length nth_equalityI) 
+  moreover have "(ar (lists T) \<cdot> j_B) \<cdot> cs = bs" using j_B_def calculation
+    by (metis Inclusion.select_convs(2) T_valid \<open>length as = length bs\<close> bot_nat_0.extremum lists_res_el lists_res_length nth_equalityI)
+  ultimately show ?thesis
+    by metis
+qed
+
 (* [Lemma 1 (1/2), CVA] *)
 lemma valid_lists : 
   fixes T :: "('A, 'x) TupleSystem"
@@ -1542,7 +1551,10 @@ next
     by (simp add: assms lists_flasque lists_space) 
 next
   case (3 A B a b)
-  then show ?case sorry
-qed     
+  then show ?case
+    by (simp add: assms lists_binary_gluing lists_space) 
+qed
+
+
 
 end
