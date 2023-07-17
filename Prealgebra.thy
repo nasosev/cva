@@ -101,8 +101,8 @@ lemma valid_ar :
 proof -
   define "F1" where "F1 = Prealgebra.ar F" 
   define "T" where "T = Prealgebra.space F" 
-  have "(\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i))"  using valid_welldefined
-    by (metis (mono_tags, lifting) CollectD CollectI F1_def T_def assms(1)) 
+  have "(\<forall>i. i \<in> inclusions T \<longrightarrow> Poset.valid_map (F1 \<cdot> i))"  using valid_welldefined 
+    by (metis (mono_tags, lifting) F1_def T_def assms(1)) 
     moreover have "i \<in> inclusions T"
       using T_def assms(2) by fastforce 
     moreover have "Poset.valid_map (F1 \<cdot> i)"
@@ -240,7 +240,7 @@ lemma restricted_element :
 defines "i \<equiv> make_inc B A"
 shows "(ar F \<cdot> i) \<star> a \<in> el (ob F \<cdot> B)"
   using valid_ar [where ?F=F and ?i=i]
-  by (metis (no_types, lifting) A_open B_le_A B_open CollectI F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) i_def image x_el)
+  by (metis (no_types, lifting) inclusions_def A_open B_le_A B_open CollectI F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) i_def image x_el)
 
 lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> (Space.cod i)"
   using valid_dom by blast
@@ -258,7 +258,7 @@ lemma res_monotone :
   and a_elem : "a \<in> Poset.el FA" and a'_elem : "a' \<in> Poset.el FA" 
   and a_le_a' : "Poset.le FA a a'"
 shows "Poset.le FB (Fi \<star> a) (Fi \<star> a')"
-  by (metis (no_types, lifting) FA_def FB_def F_valid Fi_def Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_dom a'_elem a_elem a_le_a' i_inc mem_Collect_eq valid_map_monotone)
+  by (metis FA_def FB_def F_valid Fi_def Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_dom a'_elem a_elem a_le_a' assms(5) valid_map_monotone)
 
 lemma diamond_rule :
   fixes F :: "('A, 'a) Prealgebra" and A B C D :: "'A Open" and a :: "'a"
@@ -276,17 +276,17 @@ shows "(ar F \<cdot> i_DB) \<star> ((ar F \<cdot> i_BA) \<star> a) = (ar F \<cdo
 proof -
   define "i" where "i \<equiv> make_inc D A"
   have "i \<in> inclusions (space F)"
-    using A_open B_le_A D_le_B D_open i_def by auto
+    using A_open B_le_A D_le_B D_open i_def inclusions_def by fastforce
    moreover have "i_BA \<in> inclusions (space F) \<and> i_CA \<in> inclusions (space F) \<and> i_DB \<in> inclusions (space F) \<and> i_DC \<in> inclusions (space F)"
-     by (simp add: A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open i_BA_def i_CA_def i_DB_def i_DC_def)
+     by (simp add: A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open i_BA_def i_CA_def i_DB_def i_DC_def inclusions_def)
   moreover have "i = i_BA \<propto> i_DB"
     by (simp add: i_BA_def i_DB_def i_def) 
   moreover have "i = i_CA \<propto> i_DC"
     by (simp add: i_CA_def i_DC_def i_def)
   moreover have "(ar F \<cdot> i_DB) \<star> ((ar F \<cdot> i_BA) \<star>  a) = (ar F \<cdot> i) \<star> a"
-    by (simp add: A_open B_le_A B_open D_le_B D_open F_valid Poset.compose_app_assoc a_el calculation(3) i_BA_def i_DB_def valid_ar valid_composition) 
+    by (metis F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_app_assoc Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_composition Prealgebra.valid_dom a_el calculation(2) calculation(3) i_BA_def i_DB_def)
   moreover have "(ar F \<cdot> i_DC) \<star> ((ar F \<cdot> i_CA) \<star>  a) = (ar F \<cdot> i) \<star> a"
-    by (simp add: A_open C_le_A C_open D_le_C D_open F_valid Poset.compose_app_assoc a_el calculation(4) i_CA_def i_DC_def valid_ar valid_composition) 
+    by (metis F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_app_assoc Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_composition Prealgebra.valid_dom a_el calculation(2) calculation(4) i_CA_def i_DC_def) 
   ultimately show ?thesis
     by presburger 
 qed
@@ -320,49 +320,49 @@ lemma const_ob [simp] : "Space.valid T \<Longrightarrow> A \<in> opens T \<Longr
   by (smt (verit) Function.const_app Prealgebra.Prealgebra.select_convs(2) Prealgebra.const_def UNIV_I) 
 
 lemma const_ar [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> ar (const T) \<cdot> i = Poset.ident Poset.discrete"
-  by (metis (no_types, lifting) CollectD CollectI Function.const_app Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def UNIV_I) 
+  by (metis Function.const_app Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def UNIV_I)
 
 lemma const_value_res [simp] : "Space.valid T \<Longrightarrow> i \<in> inclusions T \<Longrightarrow> a \<in> el (ob (const T) \<cdot> (Space.cod i)) 
 \<Longrightarrow> (ar (const T) \<cdot> i) \<star> a = a"
-  by (simp add: discrete_valid) 
+  by (simp add: discrete_valid valid_inc_cod)
 
 lemma const_valid : "Space.valid T \<Longrightarrow> valid (const T)"
-proof (intro validI, safe, goal_cases)
+proof (intro validI, goal_cases)
   case 1
   then show ?case
     by (simp add: Prealgebra.const_def)  
 next
   case 2
   then show ?case
-    by (metis (no_types, lifting) Function.const_valid Prealgebra.Prealgebra.select_convs(2) Prealgebra.const_def UNIV_I valid_universe) 
+    by (metis Function.const_valid Prealgebra.Prealgebra.select_convs(2) Prealgebra.const_def UNIV_I valid_universe)
 next
   case 3
   then show ?case
-    by (metis (no_types, lifting) Function.const_valid Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def Space.valid_def UNIV_I valid_ident_inc) 
+    by (metis Function.const_valid Prealgebra.Prealgebra.select_convs(3) Prealgebra.const_def UNIV_I valid_empty valid_ident_inc)
 next
   case (4 A)
   then show ?case
-    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ob discrete_valid) 
+    by (metis Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ob discrete_valid)
 next
   case (5 i)
   then show ?case
-    by (metis (no_types, lifting) Poset.ident_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar discrete_valid mem_Collect_eq) 
+    by (metis Poset.ident_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar discrete_valid)
 next
   case (6 i)
   then show ?case
-    by (metis (no_types, lifting) Poset.ident_dom Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob mem_Collect_eq)  
+    by (metis Poset.ident_dom Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob valid_inc_cod)                            
 next
   case (7 i)
   then show ?case
-    by (metis (no_types, lifting) Poset.ident_cod Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob mem_Collect_eq) 
+    by (metis Poset.ident_cod Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob valid_inc_dom)
 next
   case (8 A)
   then show ?case
-    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob valid_ident_inc) 
+    by (metis Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def const_ar const_ob valid_ident_inc)
 next
   case (9 i j)
   then show ?case
-    by (smt (verit) Poset.compose_ident_left Poset.ident_cod Poset.ident_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def cod_compose_inc compose_inc_valid const_ar discrete_valid dom_compose_inc mem_Collect_eq) 
+    by (smt (verit, ccfv_threshold) CollectD CollectI Poset.compose_ident_left Poset.ident_cod Poset.ident_valid Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def cod_compose_inc compose_inc_valid const_ar discrete_valid dom_compose_inc inclusions_def)
 qed 
 
 abbreviation terminal :: "'A Space \<Rightarrow> ('A, unit) Prealgebra" where

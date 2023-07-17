@@ -197,13 +197,13 @@ next
     using V_valid a_dom a_el a_le_b b_dom b_el d_antitone valid_gc_poset valid_prealgebra
     by metis 
   moreover have "i \<in> inclusions (space V)" using B_le_A V_valid
-    by (simp add: A_open B_open i_def) 
+    by (simp add: A_open B_open i_def inclusions_def) 
   moreover have psh_valid : "Prealgebra.valid (prealgebra V)"
     by (simp add: V_valid valid_prealgebra)
   moreover have "Poset.valid_map pr_B"
     using calculation(3) pr_B_def psh_valid valid_ar by blast
   moreover have "Poset.dom pr_B = FA \<and> Poset.cod pr_B = FB"
-    by (simp add: A_open B_le_A B_open FA_def FB_def i_def pr_B_def psh_valid) 
+    by (simp add: A_open B_le_A B_open FA_def FB_def i_def pr_B_def psh_valid inclusions_def) 
   moreover have "ea_B \<in> Poset.el FB"
     by (metis Poset.fun_app2 calculation(1) calculation(5) calculation(6) ea_B_def)
   moreover have "e b \<in> Poset.el FB"
@@ -311,7 +311,7 @@ proof -
     moreover have "Space.valid_inc i"
       by (simp add: assms(3) assms(4) i_def)
     moreover have  "i \<in> inclusions (space V)"
-      using assms(4) calculation(2) calculation(3) i_def by force
+      using assms(4) calculation(2) calculation(3) i_def inclusions_def by force
     moreover have "f =  ar (prealgebra V) \<cdot> i"
       by (simp add: f_def)
     moreover have "Poset.valid_map f" using Prealgebra.valid_ar calculation
@@ -427,7 +427,7 @@ proof -
   moreover have "local_le V A a1 a2" using assms
     using FA_def calculation(2) by fastforce
   moreover have "i \<in> inclusions (space V) \<and> Space.dom i = B \<and> Space.cod i = A"
-    by (metis (no_types, lifting) A_def CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) V_valid assms(2) assms(3) assms(5) d_elem_is_open i_def)
+    by (metis (no_types, lifting)  inclusions_def A_def CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) V_valid assms(2) assms(3) assms(5) d_elem_is_open i_def)
     moreover have "local_le V B (res V B a1)  (res V B a1)"
       by (metis V_valid assms(2) assms(3) assms(5) d_res res_elem local_inclusion_element valid_ob valid_prealgebra valid_reflexivity) 
     moreover have "d (res V B a1) = B"
@@ -437,7 +437,7 @@ proof -
     ultimately show ?thesis 
       using le_eq_local_le [where ?V=V and ?A=B and ?a1.0="res V B a1" and
         ?a2.0="res V B a2"] assms
-        by (metis (no_types, lifting) A_def res_def res_elem i_def local_inclusion_element mem_Collect_eq res_monotone snd_conv valid_prealgebra) 
+      by (smt (verit) A_def Prealgebra.image global_inclusion_element i_def local_inclusion_element res_def res_monotone snd_conv valid_prealgebra)
     qed
 
 lemma res_monotone_local :
@@ -517,17 +517,18 @@ proof -
   moreover have "valid_inc i_CB"
     by (simp add: assms(5) i_CB_def) 
   moreover have "i_CB \<in> inclusions (space V)"
-    using assms(3) assms(4) calculation(5) i_CB_def by force 
+    using assms(3) assms(4) calculation(5) i_CB_def inclusions_def by force 
   moreover have "valid_inc i_BA"
     by (simp add: assms(6) i_BA_def) 
     moreover have "i_BA \<in> inclusions (space V)"
-      using assms(2) assms(3) calculation(7) i_BA_def by auto 
+      using assms(2) assms(3) calculation(7) i_BA_def inclusions_def
+      by fastforce  
 moreover have "valid_inc i_CA"
   using assms(5) assms(6) i_CA_def by auto 
   moreover have "i_CA = i_BA \<propto> i_CB" using Space.compose_inc_def
     by (simp add: i_BA_def i_CA_def i_CB_def) 
   moreover have "Poset.valid_map f \<and> Poset.valid_map g \<and> Poset.valid_map h"
-    by (metis (no_types, lifting) F1_def Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_welldefined assms(2) assms(3) assms(4) assms(5) assms(6) calculation(4) f_def g_def h_def i_BA_def i_CA_def i_CB_def mem_Collect_eq order.trans) 
+    by (metis F1_def Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_valid Prealgebra.valid_composition Prealgebra.valid_welldefined calculation(10) calculation(4) calculation(6) calculation(8) f_def g_def h_def i_BA_def i_CB_def)
   moreover have "Space.cod i_BA = A \<and> Space.dom i_BA = B "
     by (simp add: i_BA_def) 
   moreover have "Space.cod i_CB = B \<and> Space.dom i_CB = C "
@@ -535,12 +536,12 @@ moreover have "valid_inc i_CA"
   moreover have "Space.cod i_CA = A \<and> Space.dom i_CA = C "
     by (simp add: i_CA_def) 
   moreover have "Poset.dom f = Prealgebra.ob (prealgebra V) \<cdot> A"
-    by (simp add: F1_def assms(2) assms(3) assms(6) calculation(12) calculation(4) f_def) 
+    by (simp add:  inclusions_def F1_def assms(2) assms(3) assms(6) calculation(12) calculation(4) f_def) 
     moreover have "Poset.cod f  = Prealgebra.ob (prealgebra V) \<cdot> B \<and> Poset.dom g  = Prealgebra.ob
       (prealgebra V) \<cdot> B"
-      by (simp add: F1_def assms(2) assms(3) assms(4) assms(5) assms(6) calculation(12) calculation(13) calculation(4) f_def g_def)  
+      by (simp add: F1_def calculation(12) calculation(13) calculation(4) calculation(6) calculation(8) f_def g_def)
     moreover have " (F1 \<cdot> i_CB) \<star> ((F1 \<cdot> i_BA) \<star> (e a)) =  (F1 \<cdot> i_CA) \<star> (e a)"  using Poset.compose_app_assoc
-      by (metis (no_types, lifting) F1_def V_valid assms(2) assms(3) assms(4) assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(4) calculation(5) calculation(7) f_def g_def local_inclusion_element mem_Collect_eq res_cod valid_composition valid_dom)
+      by (metis F1_def Prealgebra.valid_composition V_valid assms(7) assms(8) calculation(10) calculation(11) calculation(12) calculation(13) calculation(15) calculation(16) calculation(4) calculation(6) calculation(8) f_def g_def local_inclusion_element)
   ultimately show ?thesis
     by (metis f_def g_def)
 qed
@@ -563,7 +564,7 @@ proof -
   moreover have "Space.cod i = A \<and> Space.dom i = B"
     by (simp add: i_def)
   moreover have "i \<in> inclusions (space V)"
-    using A_open B_le_A B_open calculation(3) by force
+    using A_open B_le_A B_open calculation(3) inclusions_def by force
   moreover have "valid_map (neutral V)"
     using V_valid valid_neutral by blast 
   moreover have "Prealgebra.valid one"
@@ -571,7 +572,7 @@ proof -
   moreover have v1: "Poset.valid_map (Prealgebra.ar one \<cdot> i)" using calculation assms Prealgebra.valid_ar
     [where ?F="prealgebra V" and ?i=i]
     apply clarsimp
-     by (metis (no_types, lifting) OVA.valid_welldefined Poset.ident_valid Prealgebra.valid_welldefined Space.valid_def const_ar mem_Collect_eq terminal_ob)
+    by (metis OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def Prealgebra.valid_ar)
   moreover have v2: "Poset.valid_map (f \<cdot> B)"
       by (smt (verit, best) B_open OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def Prealgebra.valid_map_welldefined V_valid f_def)
   moreover have "Prealgebra.valid one"
@@ -579,20 +580,20 @@ proof -
   moreover have "(Prealgebra.ar one \<cdot> i ) \<star> ()  = ()"
     by simp
   moreover have "() \<in> Poset.el (Poset.dom  (ar one \<cdot> i))" using Prealgebra.terminal_value
-    using A_open B_le_A B_open V_valid calculation(3) one_def valid_domain valid_prealgebra valid_space by fastforce 
+    using A_open B_le_A B_open V_valid calculation(3) one_def valid_domain valid_prealgebra valid_space inclusions_def  calculation(4) by fastforce
   moreover have "((f \<cdot> B) \<diamondop> (ar one \<cdot> i)) \<star> () = (f \<cdot> B) \<star> ((ar one \<cdot> i)) \<star> ()"
     using OVA.valid_welldefined Prealgebra.Prealgebra.select_convs(1) Prealgebra.valid_map_welldefined
-    assms calculation res_cod compose_app_assoc f_def  
-    by (metis (no_types, lifting) Prealgebra.const_def mem_Collect_eq)  
+    assms calculation res_cod compose_app_assoc f_def inclusions_def
+    by (metis (no_types, lifting) Prealgebra.const_def) 
   moreover have "((Prealgebra.ar (prealgebra V) \<cdot> i) \<diamondop> (f \<cdot> A)) \<star> ()=  e \<epsilon>B"
     using  assms calculation f_def one_def snd_conv valid_map_naturality
-    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def mem_Collect_eq valid_codomain valid_domain) 
+    by (metis Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def valid_codomain valid_domain) 
   moreover have "e \<epsilon>A=   (f \<cdot> A) \<star> ()"
     by (simp add: \<epsilon>A_def f_def)
   ultimately show ?thesis
     using Prealgebra.valid_map_welldefined Prealgebra.valid_welldefined 
-      assms compose_app_assoc eq_fst_iff f_def res_def i_def neutral_is_element singletonI sndI terminal_value valid_codomain valid_domain
-    by (metis (no_types, lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def mem_Collect_eq) 
+      assms compose_app_assoc eq_fst_iff f_def res_def i_def neutral_is_element sndI valid_codomain valid_domain
+    by (metis (no_types, opaque_lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def)
 qed
 
 (* [Remark 3 (1/3), CVA] *)
@@ -631,7 +632,8 @@ proof -
   define "FB" where "FB = Prealgebra.ob (prealgebra V) \<cdot> B"
   define "a_B" where "a_B =  Fi \<star> (e a)"
   have "i \<in> inclusions (space V)"
-    using B_le_A B_open V_valid a_el d_elem_is_open i_def by fastforce 
+    using B_le_A B_open V_valid a_el d_elem_is_open i_def inclusions_def
+    by (metis (no_types, lifting) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2)) 
   moreover have "res V B a = (B, a_B)"
     by (metis B_le_A B_open Fi_def a_B_def a_el res_def i_def) 
   moreover have "Prealgebra.valid (prealgebra V)"

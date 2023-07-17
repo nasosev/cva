@@ -136,12 +136,12 @@ lemma relation_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (s
 
 lemma relation_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.dom (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.cod i"
-  by (simp add: Tuple.valid_welldefined direct_image_dom relation_ar_value relation_ob_value)
+  by (simp add: Tuple.valid_welldefined direct_image_dom relation_ar_value relation_ob_value inclusions_def)
 
 lemma relation_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> PosetMap.cod (Prealgebra.ar (rel_prealg T) \<cdot> i) = Prealgebra.ob (rel_prealg T) \<cdot> Space.dom i"
   unfolding rel_prealg_def
-  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined direct_image_cod)
+  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined direct_image_cod inclusions_def)
 
 lemma relation_ar_ident :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
@@ -159,16 +159,16 @@ lemma relation_ar_trans :
   and j_inc :"j \<in> inclusions (space T)"
   and endpoints : "Space.dom j = Space.cod i"
 shows "Prealgebra.ar R \<cdot> (j \<propto> i) = Prealgebra.ar R \<cdot> i \<diamondop> Prealgebra.ar R \<cdot> j"
-  by (smt (verit, ccfv_threshold) Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom R_def T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid direct_image_trans dom_compose_inc endpoints i_inc j_inc mem_Collect_eq relation_ar_value)
+  by (smt (verit, ccfv_threshold) inclusions_def Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom R_def T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid direct_image_trans dom_compose_inc endpoints i_inc j_inc mem_Collect_eq relation_ar_value)
 
 lemma valid_rel_prealg :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "Prealgebra.valid (rel_prealg T)"
-proof (intro Prealgebra.validI, safe, goal_cases)
+proof (intro Prealgebra.validI, goal_cases)
   case 1
   then show ?case
-    by (simp add: Tuple.valid_space assms valid_relation_space) 
+    by (simp add: Tuple.valid_space assms valid_relation_space ) 
 next
   case 2
   then show ?case
@@ -311,7 +311,7 @@ proof -
   moreover have "Poset.is_surjective Ri" using Poset.surj_imp_direct_image_surj [where?f=Ti]
     using Presheaf.valid_ar T_valid Ti_def Tuple.valid_welldefined calculation(1) calculation(2) i_inc by blast 
   moreover have "\<epsilon>B \<in> el (Poset.cod Ri)" using \<epsilon>B_def Ri_def R_def rel_prealg_def [where
-        ?T=T] rel_neutral_def [where ?T=T]
+        ?T=T] rel_neutral_def [where ?T=T] inclusions_def
     by (smt (verit, best) T_valid i_inc mem_Collect_eq rel_neutral_is_element relation_ar_cod)
   moreover have "\<exists> x . x \<in> el (Poset.dom Ri) \<and> Ri \<star> x = \<epsilon>B"
     using calculation(3) calculation(4) is_surjective_def
@@ -319,9 +319,10 @@ proof -
   obtain "x" where "x \<in> el (Poset.dom Ri) \<and> Ri \<star> x = \<epsilon>B"
     using \<open>\<exists>x. x \<in> el (PosetMap.dom Ri) \<and> Ri \<star> x = \<epsilon>B\<close> by blast 
   moreover have "Poset.le (PosetMap.dom Ri) x \<epsilon>A"
-    using R_def Ri_def T_valid \<epsilon>A_def calculation(5) i_inc mem_Collect_eq rel_neutral_top relation_ar_dom by fastforce 
+    using R_def Ri_def T_valid \<epsilon>A_def calculation(5) inclusions_def i_inc mem_Collect_eq rel_neutral_top relation_ar_dom
+    by (smt (verit)) 
   ultimately show ?thesis
-    by (smt (verit) Poset.fun_app Poset.valid_map_cod Presheaf.valid_ar R_def Ri_def T_valid Ti_def Tuple.valid_welldefined \<epsilon>A_def \<epsilon>B_def direct_image_mono i_inc mem_Collect_eq rel_neutral_top relation_ar_cod relation_ar_dom relation_ar_value_valid relation_ob_value_valid valid_antisymmetry) 
+    by (smt (verit) inclusions_def Poset.fun_app Poset.valid_map_cod Presheaf.valid_ar R_def Ri_def T_valid Ti_def Tuple.valid_welldefined \<epsilon>A_def \<epsilon>B_def direct_image_mono i_inc mem_Collect_eq rel_neutral_top relation_ar_cod relation_ar_dom relation_ar_value_valid relation_ob_value_valid valid_antisymmetry) 
 qed
 
 lemma rel_neutral_natural : 
@@ -333,30 +334,30 @@ lemma rel_neutral_natural :
 proof (intro Poset.fun_ext,goal_cases)
   case 1
   then show ?case
-    by (smt (verit, best) Poset.compose_ident_right PrealgebraMap.select_convs(1) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_def rel_neutral_dom rel_neutral_nat_valid terminal_ob) 
+    by (smt (verit, best) inclusions_def Poset.compose_ident_right PrealgebraMap.select_convs(1) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_def rel_neutral_dom rel_neutral_nat_valid terminal_ob) 
 next
   case 2
   then show ?case
-    by (smt (verit, ccfv_threshold) Poset.compose_valid Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(2) T_valid \<epsilon>_def i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_nat_valid valid_rel_prealg valid_relation_space) 
+    by (smt (verit, ccfv_threshold) inclusions_def Poset.compose_valid Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(2) T_valid \<epsilon>_def i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_nat_valid valid_rel_prealg valid_relation_space) 
 next
   case 3
   then show ?case
-    by (smt (z3) Poset.compose_ident_right Poset.dom_compose Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_dom rel_neutral_nat_valid terminal_ob valid_rel_prealg valid_relation_space) 
+    by (smt (z3) inclusions_def Poset.compose_ident_right Poset.dom_compose Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_dom rel_neutral_nat_valid terminal_ob valid_rel_prealg valid_relation_space) 
 next
   case 4
   then show ?case
-    by (smt (verit, del_insts) Poset.cod_compose Poset.compose_ident_right Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_dom rel_neutral_nat_valid res_cod terminal_ob valid_rel_prealg valid_relation_space) 
+    by (smt (verit, del_insts) inclusions_def Poset.cod_compose Poset.compose_ident_right Prealgebra.valid_ar Prealgebra.valid_dom PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_dom rel_neutral_nat_valid res_cod terminal_ob valid_rel_prealg valid_relation_space) 
 next
   case (5 a)
   then show ?case
-    by (smt (verit) Poset.Poset.select_convs(1) Poset.compose_app_assoc Poset.compose_ident_right Poset.discrete_def PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_unit \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_dom rel_neutral_nat_valid rel_neutral_stable relation_ar_dom relation_ar_value_valid singletonD terminal_ob)   
+    by (smt (verit) inclusions_def Poset.Poset.select_convs(1) Poset.compose_app_assoc Poset.compose_ident_right Poset.discrete_def PrealgebraMap.select_convs(1) PrealgebraMap.select_convs(2) Presheaf.valid_space T_valid Tuple.valid_welldefined UNIV_unit \<epsilon>_def const_ar i_inc mem_Collect_eq rel_neutral_cod rel_neutral_def rel_neutral_dom rel_neutral_nat_valid rel_neutral_stable relation_ar_dom relation_ar_value_valid singletonD terminal_ob)   
 qed
 
 lemma rel_neutral_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "Prealgebra.valid_map (rel_neutral T)"
-proof (intro valid_mapI, safe, goal_cases)
+proof (intro valid_mapI, goal_cases)
   case 1
   then show ?case
     by (smt (verit, best) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def PrealgebraMap.select_convs(1) Presheaf.valid_space Tuple.valid_welldefined assms rel_neutral_def) 
@@ -642,7 +643,7 @@ proof -
     by (metis R_def T_valid assms(5) local_dom relation_ob_value valid_rel_prealg valid_relation_space) 
   moreover have "ea_B \<in> el (Prealgebra.ob R \<cdot> d b)" using assms calculation Prealgebra.valid_ar
       [where ?i=i]
-    by (smt (verit) Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.image ea_B_def gc_elem_local local_dom mem_Collect_eq valid_rel_prealg)
+    by (smt (verit) inclusions_def Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.image ea_B_def gc_elem_local local_dom mem_Collect_eq valid_rel_prealg)
   moreover have "ea_B \<subseteq> e b" using powerset_le
       [where ?A="ob T \<cdot> d b" and ?a="ea_B" and ?a'="e b"]
     by (metis R_def T_valid assms(5) calculation(3) calculation(4) calculation(5) gc_elem_local valid_rel_prealg) 
@@ -663,7 +664,7 @@ lemma relation_res_tup :
   and B_le_A : "B \<subseteq> A"
   and t_el_a : "t \<in> ea"
 shows "(ar T \<cdot> i) \<cdot> t \<in> (Prealgebra.ar R \<cdot> i) \<star> ea"
-  by (smt (z3) A_open B_le_A B_open CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.Poset.select_convs(1) Pow_iff Presheaf.valid_welldefined R_def T_valid Tuple.valid_welldefined a_el direct_image_app i_def powerset_def relation_ar_value relation_ob_value t_el_a)
+  by (smt (z3) inclusions_def A_open B_le_A B_open CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.Poset.select_convs(1) Pow_iff Presheaf.valid_welldefined R_def T_valid Tuple.valid_welldefined a_el direct_image_app i_def powerset_def relation_ar_value relation_ob_value t_el_a)
 
 lemma rel_semigroup_mult_monotone : 
   fixes T :: "('A, 'x) TupleSystem" and a b a' b' :: "('A, 'x) Relation"
@@ -718,7 +719,8 @@ next
       moreover have "d a' \<union> d b' \<subseteq> d a \<union> d b"
         by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) d_antitone join_def product_le_1 product_le_2 rel_semigroup_dom sup.mono valid_gc valid_rel_prealg) 
       moreover have "i \<in> inclusions (space T)"
-        using \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> calculation(2) calculation(3) i_def by auto
+        using \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> calculation(2) calculation(3) i_def inclusions_def
+        by fastforce 
       moreover have "t \<in> Prealgebra.ar R \<cdot> i \<star> eab"
         using \<open>t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))\<close> calculation(1) by auto
       moreover have "\<exists> t' . t' \<in> eab \<and> (ar T \<cdot> i) \<cdot> t' = t" using calculation assms relation_ar_value
@@ -743,10 +745,10 @@ next
       define "i_A'_A" where "i_A'_A = make_inc (d a') (d a)"
       define "i_B'_B" where "i_B'_B = make_inc (d b') (d b)"
 
-      moreover have "i_A'_A \<in> inclusions (space T)"
-        by (metis (no_types, lifting) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> calculation(9) d_antitone i_A'_A_def local_dom valid_rel_prealg valid_relation_space) 
-      moreover have "i_B'_B \<in> inclusions (space T)"
-        by (metis (no_types, lifting) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) R_def T_valid \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> calculation(10) d_antitone local_dom valid_rel_prealg valid_relation_space)
+      moreover have "i_A'_A \<in> inclusions (space T)" using i_A'_A_def inclusions_def local_dom valid_rel_prealg valid_relation_space assms
+        by (smt (verit, best) Inclusion.select_convs(1) Inclusion.select_convs(2) \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> calculation(9) d_antitone mem_Collect_eq) 
+      moreover have "i_B'_B \<in> inclusions (space T)" using i_B'_B_def inclusions_def local_dom valid_rel_prealg valid_relation_space assms
+        by (smt (verit) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) \<open>Poset.le (gc R) b b'\<close> \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> d_antitone)
       
       define "t'_A'" where "t'_A' = (ar T \<cdot> i_A'_A) \<cdot> t'_A"
       define "t'_B'" where "t'_B' = (ar T \<cdot> i_B'_B) \<cdot> t'_B" 
@@ -1011,7 +1013,7 @@ lemma rel_res_d : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longrig
 lemma rel_res_e : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longrightarrow> B \<in> Space.opens (space T) \<Longrightarrow> B \<subseteq> d a
   \<Longrightarrow> e (res (rel_ova T) B a) = { (ar T \<cdot> make_inc B (d a)) \<cdot> t | t . t \<in> e a}"
 using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> make_inc B (d a)" and ?a="e a"]
-  by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) OVA.select_convs(1) Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined mem_Collect_eq rel_el_open rel_el_subset relation_ar_value res_def snd_conv valid_relation_space)
+  by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) OVA.select_convs(1) Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined inclusions_def mem_Collect_eq rel_el_open rel_el_subset relation_ar_value res_def snd_conv valid_relation_space)
 
 lemma rel_neut_el : "valid T \<Longrightarrow> A \<in> Space.opens (space T)
   \<Longrightarrow> neut (rel_ova T) A \<in> elems (rel_ova T)"
@@ -1119,7 +1121,7 @@ proof (standard, goal_cases)
                                       \<and> (ar T \<cdot> i_A) \<cdot> t \<in> e a     
                                       \<and> (ar T \<cdot> i_B) \<cdot> t \<in> e b }"
       using assms i_A_def i_B_def rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot>
-          i_A"] calculation
+          i_A"] calculation inclusions_def
       by (smt (z3) Collect_cong Inclusion.select_convs(1) Inclusion.select_convs(2) Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined mem_Collect_eq rel_comb_d rel_comb_el rel_el_open rel_el_subset relation_ar_value sup_ge1) 
 
     ultimately have lhs2 : "lhs = { t | t s u . t \<in> e a \<and> s \<in> e b
@@ -1133,7 +1135,8 @@ proof (standard, goal_cases)
       by (metis T_valid Tuple.valid_space a_el b_el rel_el_open valid_inter valid_relation_space)
 
     moreover have r2: "... = { (ar T \<cdot> i_AB_B) \<cdot> t | t . t \<in> e b }" 
-        using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_AB_B" and ?a="e b"] calculation
+        using rel_prealg_def [where ?T=T] direct_image_app [where ?f="ar T \<cdot> i_AB_B" and ?a="e b"]
+          calculation  inclusions_def
         by (smt (verit, del_insts) Inclusion.select_convs(1) Inclusion.select_convs(2) Int_lower2 Presheaf.valid_ar Presheaf.valid_dom T_valid Tuple.valid_space Tuple.valid_welldefined V_def a_el b_el i_AB_B_def mem_Collect_eq rel_el_open rel_el_subset relation_ar_value valid_inter)
 
     moreover have r3: "rhs =  { t . t \<in> ob T \<cdot> d a 
@@ -1352,12 +1355,12 @@ lemma lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (spac
 lemma lists_ar_dom : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> Function.dom (Presheaf.ar (presheaf (lists T)) \<cdot> i) = Presheaf.ob (presheaf (lists T)) \<cdot> Space.cod i"
   unfolding lists_def
-  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined lists_map_dom)
+  by (simp add: inclusion_cod Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined lists_map_dom)
 
 lemma lists_ar_cod : "valid T \<Longrightarrow> i \<in> inclusions (space T)
 \<Longrightarrow> Function.cod (Presheaf.ar (presheaf (lists T)) \<cdot> i) = Presheaf.ob (presheaf (lists T)) \<cdot> Space.dom i"
   unfolding lists_def
-  by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined lists_map_def)
+  by (simp add: inclusion_dom Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined lists_map_def)
 
 lemma lists_ar_ident :
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open"
@@ -1375,7 +1378,7 @@ lemma lists_ar_trans :
   and j_inc :"j \<in> inclusions (space T)"
   and endpoints : "Space.dom j = Space.cod i"
 shows "Presheaf.ar L \<cdot> (j \<propto> i) = Presheaf.ar L \<cdot> i \<bullet> Presheaf.ar L \<cdot> j"
-  by (smt (verit, del_insts) L_def Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid dom_compose_inc endpoints i_inc j_inc lists_ar_value lists_map_trans mem_Collect_eq)
+  by (smt (verit, del_insts) inclusions_def L_def Presheaf.valid_ar Presheaf.valid_cod Presheaf.valid_composition Presheaf.valid_dom T_valid Tuple.valid_welldefined cod_compose_inc compose_inc_valid dom_compose_inc endpoints i_inc j_inc lists_ar_value lists_map_trans mem_Collect_eq)
 
 lemma valid_presheaf_lists : 
   fixes T :: "('A, 'x) TupleSystem"
@@ -1407,13 +1410,13 @@ next
   then show ?case 
     unfolding lists_def
     apply clarsimp
-    by (smt (verit) Function.dom_def Function.fun_app Function.select_convs(1) Function.select_convs(2) Function.valid_map_def Presheaf.valid_dom Tuple.valid_welldefined UNIV_I assms fst_conv lists_map_dom mem_Collect_eq snd_conv)
+    by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined assms lists_map_dom valid_inc_cod)
 next
   case (6 i)
   then show ?case 
     unfolding lists_def
     apply clarsimp
-    by (simp add: Function.dom_def Tuple.valid_welldefined assms lists_map_cod)
+    by (simp add: Function.fun_app_iff Function.valid_map_def Tuple.valid_welldefined assms lists_map_cod valid_inc_dom)
 next
   case (7 A)
   then show ?case
@@ -1426,47 +1429,42 @@ next
     by simp
 qed
 
-lemma lists_flasque : "valid T \<Longrightarrow> (\<And>i. i \<in> inclusions (space T) \<Longrightarrow> Function.is_surjective (ar (lists T) \<cdot> i))"
-proof (simp add: Function.is_surjective_def,safe)
-  assume T_valid : "valid T"
-
-  fix i :: "'a Inclusion"
+lemma lists_flasque :
+  fixes T :: "('A, 'x) TupleSystem" and i :: "'A Inclusion"
+  assumes T_valid : "valid T"
+shows "\<And>i. i \<in> inclusions (space T) \<Longrightarrow> Function.is_surjective (ar (lists T) \<cdot> i)"
+proof (simp add: Function.is_surjective_def, safe) 
+  fix i
   fix ys
-  assume i_valid : "Inclusion.dom i \<subseteq> Inclusion.cod i"
-  assume i_valid_d : "Inclusion.dom i \<in> opens (Tuple.space T)"
-  assume i_valid_c : "Inclusion.cod i \<in> opens (Tuple.space T)"
+  assume i_valid : "i \<in> inclusions (space T)"
   assume ys_el : "ys \<in> Function.cod (Tuple.ar (Tuple.lists T) \<cdot> i)"
-
-  show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs
-    = ys" (is "\<exists>xs. ?P xs")
-  proof -
-    have i_inc : "i \<in> inclusions (space T)"
-      using i_valid i_valid_c i_valid_d by blast 
-    moreover have fibre : "\<forall>y \<in> set ys . \<exists>x. (x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
-      by (metis (no_types, lifting) Function.is_surjective_def Presheaf.valid_cod T_valid Tuple.valid_welldefined i_valid i_valid_c i_valid_d lists_ar_cod lists_ob_el mem_Collect_eq valid_flasque ys_el)
+  show "\<exists>xs. xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i) \<and> (Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" (is "\<exists>xs. ?P xs")
+  proof - 
+    have fibre : "\<forall>y \<in> set ys . \<exists>x. (x \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> x = y)"
+      by (metis Function.is_surjective_def Presheaf.valid_cod Tuple.valid_welldefined assms i_valid lists_ar_cod lists_ob_el valid_flasque valid_inc_dom ys_el)
     moreover have "\<exists>lift. \<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y) "
         by (metis fibre)
     moreover obtain "lift" where lift: "\<forall>y \<in> set ys. (lift y \<in> Function.dom (ar T \<cdot> i) \<and> (ar T \<cdot> i) \<cdot> lift y = y)"
-        using calculation(3) by blast
+        using calculation(2) by blast
     define "xs" where "xs = map lift ys"
     moreover have "\<forall>x. x \<in> set xs \<longrightarrow> x \<in> Function.dom (ar T \<cdot> i)" using calculation xs_def
       using lift by auto
     moreover have "xs \<in> Function.dom (Tuple.ar (Tuple.lists T) \<cdot> i)" using  xs_def fibre
-        calculation ys_el T_valid i_inc lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
+        calculation ys_el T_valid i_valid lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
           ?f="ar T \<cdot> i"]
-      by (metis (no_types, lifting) Function.lists_def lists_map_dom mem_Collect_eq subsetI) 
+      by (smt (verit) Function.lists_def lists_map_dom mem_Collect_eq subsetI)
     moreover have "length xs = length ys"
       by (simp add: xs_def) 
     moreover have "\<forall> k . 0 \<le> k \<and> k < length xs \<longrightarrow> (Tuple.ar T \<cdot> i) \<cdot> (xs ! k) = ys ! k"
-      by (metis calculation(7) lift nth_map nth_mem xs_def) 
+      by (metis calculation(6) lift nth_map nth_mem xs_def) 
     moreover have "map (\<lambda>x. (Tuple.ar T \<cdot> i) \<cdot> x) xs = ys"
-      by (metis bot_nat_0.extremum calculation(7) calculation(8) length_map nth_equalityI nth_map)
+      by (metis bot_nat_0.extremum calculation(7) calculation(6) length_map nth_equalityI nth_map)
     moreover have "(Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys" using  xs_def fibre
-        calculation ys_el T_valid i_inc lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
+        calculation ys_el T_valid i_valid lists_ar_value [where ?i=i and ?T=T] lists_map_def [where
           ?f="ar T \<cdot> i"]
       by (smt (verit) Function.fun_app_iff Function.select_convs(2) lists_ar_value_valid lists_map_dom mem_Collect_eq) 
     show "\<exists>xs. ?P xs"
-      using \<open>(Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys\<close> calculation(6) by blast 
+      using \<open>(Tuple.ar (Tuple.lists T) \<cdot> i) \<cdot> xs = ys\<close> calculation(5) by blast 
     qed
   qed
 
@@ -1486,7 +1484,8 @@ proof (intro validI, goal_cases)
     by (simp add: assms valid_presheaf_lists) 
 next
   case (2 i)
-  then show ?case sorry
+  then show ?case
+    by (simp add: assms lists_flasque lists_space) 
 next
   case (3 A B a b)
   then show ?case sorry

@@ -138,7 +138,7 @@ lemma diamond_rule :
   and "i_DB \<equiv> make_inc D B"
   and "i_DC \<equiv> make_inc D C"
 shows "(ar F \<cdot> i_DB) \<cdot> ((ar F \<cdot> i_BA) \<cdot>  x) = (ar F \<cdot> i_DC) \<cdot> ((ar F \<cdot> i_CA) \<cdot>  x)"
-  by (smt (z3) A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) compose_app_assoc compose_inc_def i_BA_def i_CA_def i_DB_def i_DC_def mem_Collect_eq valid_ar valid_cod valid_composition valid_dom x_el)
+  by (smt (z3) CollectI F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) assms(10) assms(11) assms(12) assms(13) assms(14) assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) compose_app_assoc compose_inc_def inclusions_def valid_ar valid_cod valid_composition valid_dom)
 
 lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Function.dom (ar F \<cdot> i) = ob F \<cdot> (Space.cod i)"
   using valid_dom by blast
@@ -154,8 +154,7 @@ lemma restricted_element :
   and x_el : "x \<in> ob F \<cdot> A"
 defines "i \<equiv> make_inc B A"
 shows "(ar F \<cdot> i) \<cdot> x \<in> ob F \<cdot> B"
-  using valid_ar [where ?F=F and ?i=i]
-  using A_open B_le_A B_open F_valid fun_app2 i_def valid_cod valid_dom x_el by fastforce
+  using valid_ar [where ?F=F and ?i=i] A_open B_le_A B_open F_valid fun_app2 i_def valid_cod valid_dom x_el inclusions_def  by fastforce
 
 (* PresheafMap validity *)
 

@@ -28,8 +28,17 @@ record 'A Inclusion =
 abbreviation (input) valid_inc :: "'A Inclusion \<Rightarrow> bool" where
   "valid_inc i \<equiv> dom i \<subseteq> cod i"
 
-abbreviation inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
+definition inclusions :: "'A Space \<Rightarrow> 'A Inclusion set" where
   "inclusions T \<equiv> {i. valid_inc i \<and> dom i \<in> opens T \<and> cod i \<in> opens T}"
+
+lemma inclusion_valid : "i \<in> inclusions T \<Longrightarrow> valid_inc i"
+  by (simp add: inclusions_def)
+
+lemma inclusion_dom : "i \<in> inclusions T \<Longrightarrow> dom i \<in> opens T"
+  by (simp add: inclusions_def)
+
+lemma inclusion_cod : "i \<in> inclusions T \<Longrightarrow> cod i \<in> opens T"
+  by (simp add: inclusions_def)
 
 (* There are built-in constructors (Inclusion.make), but the simplifier/SH doesn't seem to like them? *)
 abbreviation (input) make_inc :: "'A Open \<Rightarrow> 'A Open \<Rightarrow> 'A Inclusion" where
@@ -57,10 +66,10 @@ lemma valid_inter : "valid T \<Longrightarrow> A \<in> opens T \<Longrightarrow>
   using valid_def by blast
 
 lemma valid_inc_dom : "i \<in> inclusions T \<Longrightarrow> dom i \<in> opens T"
-  by simp
+  by (simp add: inclusions_def)
 
 lemma valid_inc_cod: "i \<in> inclusions T \<Longrightarrow> cod i \<in> opens T"
-  by simp
+  by (simp add: inclusions_def)
 
 lemma validI [intro]: "(\<And>A. A \<in> opens T \<Longrightarrow> A \<subseteq> universe T) \<Longrightarrow> {} \<in> opens T \<Longrightarrow> universe T \<in> opens T 
 \<Longrightarrow> (\<And>U. U \<subseteq> opens T \<Longrightarrow> \<Union>U \<in> opens T) \<Longrightarrow> (\<And>A B. A \<in> opens T \<Longrightarrow> B \<in> opens T \<Longrightarrow> A \<inter> B \<in> opens T) \<Longrightarrow> valid T"
@@ -94,7 +103,7 @@ lemma ident_valid : "A \<in> opens T \<Longrightarrow> valid_inc (ident A)"
   by (simp add: ident_def)
 
 lemma valid_ident_inc : "A \<in> opens T \<Longrightarrow> ident A \<in> inclusions T" 
-  by (simp add: ident_def)
+  by (simp add: ident_def inclusions_def)
 
 lemma compose_inc_ident_left [simp] : "ident (cod i) \<propto> i = i"
   by (simp add: compose_inc_def ident_def)
@@ -105,10 +114,10 @@ lemma compose_inc_ident_right [simp] : "i \<propto> ident (dom i) = i"
 (* Properties *)
 
 lemma inc_cod_sup [simp] : "i \<in> inclusions T \<Longrightarrow> dom i \<union> cod i = cod i"
-  by blast
+  using inclusions_def by fastforce
 
 lemma inc_dom_inf [simp] : "i \<in> inclusions T \<Longrightarrow> dom i \<inter> cod i = dom i"
-  by blast
+  by (simp add: Int_absorb1 Int_commute inclusions_def)
 
 (* Examples *)
 

@@ -93,20 +93,20 @@ lemma valid_gc_transitive :
   and le_prj_b_c : "le (ob F \<cdot> C) (prj_BC \<star> b) c"
 shows "le (ob F \<cdot> C) (prj_AC \<star> a) c"
 proof - 
-  have "Poset.valid_map prj_AB" using assms
-  using valid_ar by fastforce 
-  moreover have "Poset.valid_map prj_BC" using assms calculation
-    using valid_ar by fastforce 
+  have "Poset.valid_map prj_AB" using assms inclusions_def valid_ar
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) mem_Collect_eq)
+  moreover have "Poset.valid_map prj_BC" using assms calculation inclusions_def valid_ar
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) mem_Collect_eq) 
   moreover have "Poset.valid_map prj_AC" using assms calculation
-    using valid_ar by fastforce 
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_ar inclusions_def mem_Collect_eq subsetD subsetI) 
   moreover have "le (ob F \<cdot> C) (prj_BC \<star> (prj_AB \<star>  a)) (prj_BC \<star>  b)"
-    by (metis (no_types, lifting) A_el A_open B_le_A B_open C_le_B F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.fun_app2 valid_welldefined T_def assms(14) b_el i_BA_def i_CB_def le_prj_a_b mem_Collect_eq prj_AB_def prj_BC_def valid_map_monotone)
+    by (metis (no_types, lifting) inclusions_def A_el A_open B_le_A B_open C_le_B F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.fun_app2 valid_welldefined T_def assms(14) b_el i_BA_def i_CB_def le_prj_a_b mem_Collect_eq prj_AB_def prj_BC_def valid_map_monotone)
   moreover have "le (ob F \<cdot> C) (prj_BC \<star> (prj_AB \<star> a)) c"
-    by (smt (z3) A_el A_open B_le_A B_open C_le_B F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.fun_app2 valid_welldefined T_def assms(14) b_el c_el calculation(4) i_BA_def i_CB_def le_prj_b_c mem_Collect_eq prj_AB_def prj_BC_def valid_transitivity)
+    by (smt (z3) inclusions_def A_el A_open B_le_A B_open C_le_B F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.fun_app2 valid_welldefined T_def assms(14) b_el c_el calculation(4) i_BA_def i_CB_def le_prj_b_c mem_Collect_eq prj_AB_def prj_BC_def valid_transitivity)
   moreover have "prj_BC \<diamondop> prj_AB = prj_AC" using assms calculation
-    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) compose_inc_def mem_Collect_eq valid_composition) 
-  moreover have "prj_BC \<star> (prj_AB \<star> a) = prj_AC \<star> a" using assms calculation
-    by (smt (verit) Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_app Poset.fun_app Poset.fun_app2 valid_welldefined mem_Collect_eq) 
+    by (metis (no_types, lifting) inclusions_def Inclusion.select_convs(1) Inclusion.select_convs(2) compose_inc_def mem_Collect_eq valid_composition) 
+  moreover have "prj_BC \<star> (prj_AB \<star> a) = prj_AC \<star> a" using assms calculation inclusions_def
+    by (smt (verit, ccfv_threshold) Poset.ident_app Prealgebra.diamond_rule Prealgebra.valid_identity Space.ident_def dual_order.refl subset_trans valid_ob)
   ultimately show ?thesis
     by metis
 qed
@@ -202,10 +202,10 @@ lemma valid_gc_le_unwrap :
     moreover have "Space.valid_inc i"
       by (metis Aa_el Inclusion.select_convs(1) Inclusion.select_convs(2) assms(7) d_antitone i_def le_gc F_valid) 
   moreover have "Poset.valid_map pr" using assms calculation
-    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) valid_welldefined local_dom mem_Collect_eq) 
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_welldefined inclusions_def local_dom mem_Collect_eq)
     define "a_B" where "a_B = (pr \<star> (e Aa))"
     moreover have "Poset.dom pr = FA \<and> Poset.cod pr = FB"
-      by (metis (no_types, lifting) Aa_el Bb_el FA_def FB_def Inclusion.simps(1) Inclusion.simps(2) valid_welldefined assms(1) assms(2) calculation(2) local_dom mem_Collect_eq F_valid)
+      by (metis (no_types, lifting) Aa_el Bb_el FA_def FB_def F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_welldefined calculation(2) i_def inclusions_def local_dom mem_Collect_eq pr_def)
     moreover have "a_B \<in> Poset.el FB"
       by (metis Poset.fun_app2 \<open>Poset.valid_map pr\<close> a_B_def calculation(1) calculation(4)) 
     moreover have " Poset.valid (gc F)"
