@@ -833,6 +833,44 @@ next
   then show ?case
     oops
 
+(* Intersection and union as poset maps *)
+
+definition intersection ::  "'x set \<Rightarrow> ('x set \<times> 'x set, 'x set) PosetMap" where
+"intersection X \<equiv> 
+   \<lparr> dom = powerset X \<times>\<times> powerset X, 
+     cod = powerset X, 
+     func = {((a, b), a \<inter> b) | a b . (a, b) \<in> el (powerset X \<times>\<times> powerset X)} \<rparr>" 
+
+lemma intersection_valid : "valid_map (intersection X)" 
+  unfolding intersection_def 
+  apply (intro valid_mapI)
+       apply clarsimp
+  apply (simp add: powerset_valid product_valid)
+  apply (simp add: powerset_valid)
+     apply (smt (verit) CollectD Int_commute PosetMap.select_convs(1) PosetMap.select_convs(2) PosetMap.select_convs(3) fst_conv inf.absorb_iff2 inf_left_commute powerset_el product_el_1 snd_conv)
+  apply fastforce
+   apply fastforce
+  apply (simp add: powerset_def product_def app_def)
+  by auto
+
+definition union ::  "'x set \<Rightarrow> ('x set \<times> 'x set, 'x set) PosetMap" where
+"union X \<equiv> 
+   \<lparr> dom = powerset X \<times>\<times> powerset X, 
+     cod = powerset X, 
+     func = {((a, b), a \<union> b) | a b . (a, b) \<in> el (powerset X \<times>\<times> powerset X)} \<rparr>" 
+
+lemma union_valid : "valid_map (union X)" 
+  unfolding union_def 
+  apply (intro valid_mapI)
+       apply clarsimp
+  apply (simp add: powerset_valid product_valid)
+  apply (simp add: powerset_valid)
+  apply (smt (verit, ccfv_SIG) CollectD PosetMap.select_convs(1) PosetMap.select_convs(2) PosetMap.select_convs(3) Un_subset_iff fst_conv powerset_el product_el_1 product_el_2 snd_conv)
+  apply fastforce
+   apply fastforce
+  apply (simp add: powerset_def product_def app_def)
+  by auto
+
 (* Forgetful functor from Pos to Set *)
 
 definition forget_map ::  "('a, 'b) PosetMap \<Rightarrow> ('a, 'b) Function" where
@@ -842,6 +880,7 @@ lemma forget_map_valid : "valid_map f \<Longrightarrow> Function.valid_map (forg
   unfolding valid_map_def forget_map_def
   apply (simp add:Let_def)
   by (smt (verit) CollectD Function.dom_def Function.select_convs(1) Function.select_convs(2) Function.valid_map_def) 
+
 
 (* Examples *)
 
