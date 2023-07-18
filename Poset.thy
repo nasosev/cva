@@ -150,7 +150,7 @@ lemma fun_ext_raw : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow>
 lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And> a . a \<in> el (dom f) \<Longrightarrow> f \<star> a = g \<star> a) \<Longrightarrow> f = g"
   by (meson Poset.fun_ext_raw valid_map_eqI)
 
-lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (f \<star> a) = b"
+lemma fun_app_iff  : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> f \<star> a = b"
   by (meson fun_app valid_map_deterministic valid_map_welldefined)
 
 (* Map composition *)
