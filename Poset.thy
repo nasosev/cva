@@ -449,17 +449,10 @@ proof
   have "s = sup P U"
     oops
 
-(* Powerset and direct image *)
+(* Powerset *)
 
 definition powerset :: "'a set \<Rightarrow> ('a set) Poset" where
 "powerset X \<equiv> \<lparr> el = Pow X, le_rel = {(U, V). U \<in> Pow X \<and> V \<in> Pow X \<and> U \<subseteq> V} \<rparr>"
-
-definition direct_image :: "('a, 'b) Function \<Rightarrow> ('a set, 'b set) PosetMap" where
-"direct_image f \<equiv> \<lparr>
-        dom = powerset (Function.dom f),
-        cod = powerset (Function.cod f),
-        func = {(p, {f \<cdot> x | x . x \<in> p}) | p . p \<subseteq> Function.dom f}
- \<rparr>"
 
 lemma powerset_valid : "valid (powerset A)"
   by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD case_prodI dual_order.refl fst_conv mem_Collect_eq order_trans powerset_def snd_conv subset_antisym valid_def)
@@ -469,6 +462,15 @@ lemma powerset_le : "a \<in> el (powerset A) \<Longrightarrow> a' \<in> el (powe
 
 lemma powerset_el : "(a \<in> el (powerset A)) = (a \<subseteq> A)"
   by (simp add: powerset_def)
+
+(* Direct image *)
+
+definition direct_image :: "('x, 'y) Function \<Rightarrow> ('x set, 'y set) PosetMap" where
+"direct_image f \<equiv> \<lparr>
+        dom = powerset (Function.dom f),
+        cod = powerset (Function.cod f),
+        func = {(a, {f \<cdot> x | x . x \<in> a}) | a . a \<subseteq> Function.dom f}
+ \<rparr>"
 
 lemma direct_image_dom : "dom (direct_image f) = powerset (Function.dom f)"
   by (simp add: direct_image_def)
@@ -488,9 +490,8 @@ lemma direct_image_mono_raw: "Function.valid_map f \<Longrightarrow> a \<subsete
   by (smt (verit, del_insts) Collect_mono_iff Poset.Poset.select_convs(1) PowI powerset_def subset_eq)
 
 lemma direct_image_valid :
-  fixes f :: "('a,'b) Function"
+  fixes f :: "('x, 'y) Function"
   assumes f_valid : "Function.valid_map f"
-  defines "X \<equiv> Function.dom f" and "Y \<equiv> Function.cod f"
   shows "valid_map (direct_image f)"
 proof (intro valid_mapI, safe, goal_cases)
   case 1
@@ -531,10 +532,12 @@ next
 
     have "(direct_image f) \<star> a = {f \<cdot> x | x . x \<in> a}" using direct_image_def [where ?f=f] app_def
         [where ?f="direct_image f" and ?a=a]
-      by (metis (mono_tags, lifting) Poset.Poset.select_convs(1) PowD \<open>a \<in> el (PosetMap.dom (direct_image f))\<close> direct_image_app direct_image_dom f_valid powerset_def)
+      by (smt (verit) Collect_cong \<open>a \<in> el (PosetMap.dom (direct_image f))\<close> direct_image_app direct_image_dom f_valid powerset_el)
+
     moreover have "(direct_image f) \<star> a' = {f \<cdot> x | x . x \<in> a'}" using direct_image_def [where ?f=f] app_def
         [where ?f="direct_image f" and ?a=a']
-      by (metis (mono_tags, lifting) Poset.Poset.select_convs(1) PosetMap.select_convs(1) Pow_iff \<open>a' \<in> el (PosetMap.dom (direct_image f))\<close> direct_image_app f_valid powerset_def)
+      by (smt (verit) Collect_cong PosetMap.select_convs(1) \<open>a' \<in> el (PosetMap.dom (direct_image f))\<close> direct_image_app f_valid powerset_el)
+
     moreover have "{f \<cdot> x | x . x \<in> a} \<subseteq> {f \<cdot> x | x . x \<in> a'}" using direct_image_def [where ?f=f]
         calculation
       by (smt (verit) Poset.Poset.select_convs(2) Pow_iff \<open>a \<in> el (PosetMap.dom (direct_image f))\<close> \<open>a' \<in> el (PosetMap.dom (direct_image f))\<close> \<open>le (PosetMap.dom (direct_image f)) a a'\<close> case_prod_unfold direct_image_dom direct_image_mono_raw f_valid fst_conv mem_Collect_eq powerset_def snd_conv)
@@ -578,7 +581,7 @@ proof -
  qed
 
 lemma direct_image_trans :
-  fixes g :: "('b, 'c) Function" and f :: "('a , 'b) Function"
+  fixes g :: "('y, 'z) Function" and f :: "('x , 'y) Function"
   assumes f_valid : "Function.valid_map f"
   and g_valid : "Function.valid_map g"
   and cod_eq_dom : "Function.cod f = Function.dom g"
@@ -606,7 +609,7 @@ next
     fix a
     assume "a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))"
     have "a \<subseteq> Function.dom f"
-      by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.dom_compose PowD \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> cod_eq_dom direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_def) 
+      by (metis Poset.dom_compose \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> cod_eq_dom direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_el)
     have "(a, {f \<cdot> x |x. x \<in> a}) \<in> {(b, {f \<cdot> x |x. x \<in> b}) |b. b \<subseteq> Function.dom f} "
       using \<open>a \<subseteq> Function.dom f\<close> by blast
     moreover have "{f \<cdot> x |x. x \<in> a} \<subseteq> Function.cod f"
@@ -618,7 +621,7 @@ next
   {(p, {f \<cdot> x |x. x \<in> p}) |p. p \<subseteq> Function.dom f} O {(p, {g \<cdot> x |x. x \<in> p}) |p. p  \<subseteq> Function.cod f}"
       using calculation(1) calculation(3) by auto
     ultimately show "(direct_image g \<diamondop> direct_image f) \<star> a = direct_image (g \<bullet> f) \<star> a"
-      by (smt (verit) CollectD Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Poset.compose_app_assoc assms(3) direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid fst_conv g_valid powerset_el snd_conv subset_eq)
+      by (smt (verit) CollectD Collect_cong Function.compose_app_assoc Function.compose_valid Function.dom_compose Poset.compose_app_assoc cod_eq_dom direct_image_app direct_image_cod direct_image_dom direct_image_valid f_valid fst_conv g_valid powerset_el snd_conv subsetD)
   qed
 qed
 
@@ -665,6 +668,170 @@ lemma fibre_from_image :
   and t_el : "t \<in> (direct_image f) \<star> a"
   shows "\<exists> t' . t' \<in> a \<and> f \<cdot> t' = t"
   using a_el direct_image_app f_valid t_el by fastforce
+
+(* Preimage *)
+
+definition preimage :: "('x, 'y) Function \<Rightarrow> ('y set, 'x set) PosetMap" where
+"preimage f \<equiv> \<lparr>
+        dom = powerset (Function.cod f),
+        cod = powerset (Function.dom f),
+        func = {(b, {x \<in> Function.dom f . f \<cdot> x \<in> b}) | b . b \<subseteq> Function.cod f} 
+ \<rparr>"
+
+lemma preimage_dom : "dom (preimage f) = powerset (Function.cod f)"
+  by (simp add: preimage_def)
+
+lemma preimage_cod : "cod (preimage f) = powerset (Function.dom f)"
+  by (simp add: preimage_def)
+
+lemma preimage_app : "Function.valid_map f \<Longrightarrow> b \<subseteq> Function.cod f \<Longrightarrow> (preimage f) \<star> b = {x . x \<in> Function.dom f \<and> f \<cdot> x \<in> b}"
+  unfolding Function.valid_map_def app_def preimage_def
+  apply (simp add: Let_def)
+  by (simp add: powerset_def)
+
+lemma preimage_mono_raw: "Function.valid_map f \<Longrightarrow> b \<subseteq> Function.cod f \<Longrightarrow> b' \<subseteq> Function.cod f
+ \<Longrightarrow> b \<subseteq> b' \<Longrightarrow> (preimage f) \<star> b \<subseteq> (preimage f) \<star> b'"
+  unfolding Function.valid_map_def app_def preimage_def
+  apply (simp add: Let_def)
+  by (smt (verit, del_insts) Collect_mono_iff Poset.Poset.select_convs(1) PowI powerset_def subset_eq)
+
+(* Example debug with bad definition of preimage: *)
+(*
+definition preimage :: "('x, 'y) Function \<Rightarrow> ('y set, 'x set) PosetMap" where
+"preimage f \<equiv> \<lparr>
+        dom = powerset (Function.cod f),
+        cod = powerset (Function.dom f),
+        func = {(b, {x . f \<cdot> x \<in> b}) | b . b \<subseteq> Function.cod f} 
+ \<rparr>"
+
+lemma debug :
+  fixes f :: "('x, 'y) Function"
+  assumes f_valid : "Function.valid_map f"
+  assumes def : "f = \<lparr>Function.cod = {y\<^sub>1}, func = {}\<rparr>"
+  shows "\<And> a b . (a, b) \<in> func (preimage f) \<Longrightarrow> b \<in> el (cod (preimage f))"
+  apply (simp add: def)
+  unfolding preimage_def
+  apply clarsimp
+  unfolding Function.app_def
+  apply clarsimp
+  unfolding powerset_def
+  apply clarsimp
+  unfolding Function.dom_def
+  apply clarsimp
+*)
+
+lemma preimage_valid :
+  fixes f :: "('x, 'y) Function"
+  assumes f_valid : "Function.valid_map f"
+  shows "valid_map (preimage f)"
+proof (intro valid_mapI, safe, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: preimage_dom powerset_valid) 
+next
+  case 2
+  then show ?case
+    by (simp add: preimage_cod powerset_valid) 
+next
+  case (3 b a)
+  then show ?case
+    by (simp add: preimage_def powerset_def) 
+next
+  case (4 b a)
+  then show ?case
+    by (simp add: powerset_def preimage_def) 
+next
+  case (5 b a a' x)
+  then show ?case
+    by (smt (verit) CollectD PosetMap.select_convs(3) fst_conv preimage_def snd_conv)
+next
+  case (6 b a a' x)
+  then show ?case
+    by (smt (z3) CollectD PosetMap.select_convs(3) preimage_def fst_conv snd_conv) 
+next
+  case (7 b)
+  then show ?case
+    by (simp add: preimage_def powerset_def) 
+next
+  case (8 b b')
+  then show ?case 
+  proof -
+    fix b b'
+    assume "b \<in> el (PosetMap.dom (preimage f))"
+    assume "b'\<in> el (PosetMap.dom (preimage f))"
+    assume "le (PosetMap.dom (preimage f)) b b'"
+
+    have "(preimage f) \<star> b = {x . x \<in> Function.dom f \<and> f \<cdot> x \<in> b}" using preimage_def [where ?f=f] app_def
+        [where ?f="preimage f" and ?a=b]
+      by (smt (verit, best) Collect_cong PosetMap.select_convs(1) \<open>b \<in> el (PosetMap.dom (preimage f))\<close> f_valid powerset_el preimage_app)
+    moreover have "(preimage f) \<star> b' = {x . x \<in> Function.dom f \<and> f \<cdot> x \<in> b'}" using preimage_def [where ?f=f] app_def
+        [where ?f="preimage f" and ?a=b']
+      by (smt (verit) Collect_cong PosetMap.select_convs(1) \<open>b' \<in> el (PosetMap.dom (preimage f))\<close> f_valid powerset_el preimage_app)
+    moreover have "{x . x \<in> Function.dom f \<and> f \<cdot> x \<in> b} \<subseteq> {x . x \<in> Function.dom f \<and> f \<cdot> x \<in> b'}" using preimage_def [where ?f=f]
+        calculation
+      using \<open>b \<in> el (PosetMap.dom (preimage f))\<close> \<open>b' \<in> el (PosetMap.dom (preimage f))\<close> \<open>le (PosetMap.dom (preimage f)) b b'\<close> powerset_le by fastforce
+    ultimately show "le (PosetMap.dom (preimage f)) b b' \<Longrightarrow> le (PosetMap.cod (preimage f)) (preimage f \<star> b) (preimage f \<star> b')"
+      by (simp add: powerset_def preimage_cod) 
+  qed
+qed
+
+lemma preimage_mono:
+  fixes f :: "('a, 'b) Function" and b b' :: "'b set"
+  defines "pf \<equiv> preimage f"
+  assumes f_valid : "Function.valid_map f"
+  and b_el : "b \<in> el (dom pf)" and b'_el : "b' \<in> el (dom pf)" and b_le_b' : "le (dom pf) b b'"
+shows "le (cod pf) (pf \<star> b) (pf \<star> b')"
+  by (metis b'_el b_el b_le_b' f_valid pf_def preimage_valid valid_map_monotone)
+
+lemma preimage_ident : "preimage (Function.ident X) = ident (powerset X)"
+proof -
+  fix X :: "'x set"
+  have " {(p, p) |p . p \<subseteq> X} =  Id_on (Pow X)" using Id_on_def [where ?A="Pow X"]   Pow_def
+      [where ?A=X] set_eqI [where ?A="Id_on (Pow X)" and ?B="{(p, p) |p. p \<subseteq> X}"]
+    by blast
+  moreover have "func (ident (powerset X)) = {(p, p) |p . p \<subseteq> X}"
+    by (simp add: Poset.ident_def calculation powerset_def)
+  moreover have "dom (preimage (Function.ident X)) = powerset X"
+    by (simp add: preimage_dom)
+  moreover have "cod (preimage (Function.ident X)) = powerset X"
+    by (simp add: preimage_cod)
+  moreover have "\<forall> p . p \<subseteq> X \<longrightarrow> {x . x \<in> X \<and> Function.ident X \<cdot> x \<in> p} = p" using Function.ident_app [where
+        ?X=X]
+    by force
+  moreover have "func (preimage (Function.ident X)) = {(p, p) |p . p \<subseteq> X}" using calculation
+      preimage_def
+    [where ?f="Function.ident X"] Function.ident_app [where ?X=X]
+    by force
+   ultimately show "preimage (Function.ident X) = ident (powerset X)"
+     by (simp add: Poset.ident_def)
+ qed
+
+lemma preimage_trans :
+  fixes g :: "('y, 'z) Function" and f :: "('x , 'y) Function"
+  assumes f_valid : "Function.valid_map f"
+  and g_valid : "Function.valid_map g"
+  and cod_eq_dom : "Function.cod f = Function.dom g"
+shows "preimage f \<diamondop> preimage g = preimage (g \<bullet> f)"
+proof (rule fun_ext, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: Poset.compose_valid cod_eq_dom preimage_cod preimage_dom preimage_valid f_valid g_valid) 
+next
+  case 2
+  then show ?case
+    using Function.compose_valid cod_eq_dom preimage_valid f_valid g_valid by blast 
+next
+  case 3
+  then show ?case
+    by (simp add: cod_eq_dom preimage_cod preimage_dom preimage_valid f_valid g_valid) 
+next
+  case 4
+  then show ?case
+    by (simp add: cod_eq_dom  preimage_cod preimage_dom preimage_valid f_valid g_valid)
+next
+  case (5 c)
+  then show ?case
+    oops
 
 (* Forgetful functor from Pos to Set *)
 
