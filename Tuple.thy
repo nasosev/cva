@@ -1249,28 +1249,27 @@ next
     by (smt (verit, del_insts) Int_commute OVA.select_convs(3) Tuple.valid_space assms comp_apply inf_le1 rel_el_open rel_res_el rel_semigroup_cod valid_inter rel_ova_def)
 qed
 
-lemma rel_leD :
-  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "R \<equiv> rel_ova T"
-  assumes T_valid : "valid T" 
-  and a_el : "a \<in> elems R"
-  and b_el : "b \<in> elems R"
-  and le : "le R a b"
-shows "d b \<subseteq> d a \<and> (((Prealgebra.ar (prealgebra R) \<cdot> (make_inc (d b) (d a))) \<star> e a) \<subseteq> (e b))"  
-  using leD [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el le rel_ova_valid
-  by (metis OVA.select_convs(1) OVA.select_convs(3) comp_apply rel_ova_def rel_semigroup_cod relation_le_is_subseteq)  
-
 lemma rel_le_eq :
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
   defines "R \<equiv> rel_ova T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> elems R"
   and b_el : "b \<in> elems R"
-  and le : "le R a b"
 shows "le R a b
-= (d b \<subseteq> d a \<and>  Poset.le (Prealgebra.ob (prealgebra R) \<cdot> d b) ((Prealgebra.ar (prealgebra R) \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b))"  
-  using le_eq [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el le rel_ova_valid
-  by blast 
+= (d b \<subseteq> d a \<and>  ((Prealgebra.ar (prealgebra R) \<cdot> (make_inc (d b) (d a))) \<star> e a) \<subseteq> (e b))"  
+  using le_eq [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el rel_ova_valid
+  by (smt (verit, del_insts) OVA.select_convs(1) OVA.select_convs(3) comp_apply d_elem_is_open powerset_el powerset_le rel_el_subset rel_ova_def rel_semigroup_cod rel_space relation_le_is_subseteq relation_ob_value subset_trans)  
+
+lemma rel_le_rel_eq :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
+  defines "R \<equiv> rel_ova T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> elems R"
+  and b_el : "b \<in> elems R"
+shows "(a,b) \<in> le_rel (poset R)
+= (d b \<subseteq> d a \<and>  ((Prealgebra.ar (prealgebra R) \<cdot> (make_inc (d b) (d a))) \<star> e a) \<subseteq> (e b))"  
+  using le_eq [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el rel_ova_valid
+  by (smt (verit, ccfv_SIG) OVA.select_convs(1) OVA.select_convs(3) comp_apply d_elem_is_open powerset_le rel_el_subset rel_ova_def rel_semigroup_cod rel_space relation_as_value relation_le_is_subseteq relation_ob_value subset_trans)
 
 (* [Theorem 2 (2/4), CVA] *)
 theorem rel_ova_commutative :
@@ -2048,18 +2047,31 @@ proof -
     by (smt (z3) Poset.valid_map_eqI)
 
   show ?thesis using fin lhs_def rhs_def assms 
-    try
     by simp
 qed
 
-lemma  rel_comb_is_int_ext :
+lemma  rel_comb_is_int_e :
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
   defines "R \<equiv> rel_ova T" 
   assumes T_valid : "valid T"
   and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
-shows "e (comb R a b) = e (ext V (d a \<union> d b) a) \<inter> e (ext V (d a \<union> d b) b)"
-  using rel_comb_is_int_ext [where ?T=T] rel_comb_e [where ?T=T and ?a=a and ?b=b] rel_ext_e [where
-      ?T=T and ?A="d a \<union> d b"] intersection_def [where ?X="ob T \<cdot> (d a \<union> d b)"]
+shows "e (comb R a b) = e (ext R (d a \<union> d b) a) \<inter> e (ext R (d a \<union> d b) b)"
+
+proof -
+  have "e (comb R a b) = { t \<in> ob T \<cdot> (d a \<union> d b) . 
+                                (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a
+                              \<and> (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b } " 
+    using rel_comb_e [where ?T=T and ?a=a and ?b=b]
+    using R_def T_valid a_el b_el by fastforce
+  moreover have "... = { t \<in> ob T \<cdot> (d a \<union> d b) . (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a }
+                     \<inter> { t \<in> ob T \<cdot> (d a \<union> d b) . (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b }"
+    by blast 
+  moreover have "... = e (ext R (d a \<union> d b) a) \<inter> e (ext R (d a \<union> d b) b)"
+    using assms rel_ext_e [where ?T=T and ?A="d a \<union> d b" and ?b=a] rel_ext_e [where ?T=T and ?A="d a \<union> d b" and ?b=b]
+    by (simp add: Tuple.valid_space rel_el_open valid_union2) 
+  ultimately show ?thesis
+    by presburger
+qed
 
 (* [Proposition 5 (2/3), CVA] *)
 proposition rel_ova_is_complete :
@@ -2158,11 +2170,75 @@ next
      by (metis (mono_tags, lifting) "3"(3) OVA.valid_welldefined P_def T_valid \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> \<open>c \<in> el P\<close> comp_apply d_antitone rel_ova_valid)  
    moreover have "d b \<subseteq> d c"
      by (metis (mono_tags, lifting) OVA.valid_welldefined P_def T_valid \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> \<open>b \<in> el P\<close> \<open>c \<in> el P\<close> comp_apply d_antitone rel_ova_valid) 
-   moreover have "d a \<union> d b \<subseteq> d c"
+   moreover have 1: "d a \<union> d b \<subseteq> d c"
      by (simp add: calculation(1) calculation(2)) 
-   moreover have "e (comb R a b) = 
-   show "(c, comb (rel_ova T) a b) \<in> le_rel P"
-sorry qed
+   moreover have 2  : "valid T \<and> d a \<union> d b \<in> opens (space T) \<and> c \<in> elems R"
+     by (metis "3"(2) "3"(3) P_def R_def T_valid Tuple.valid_space \<open>c \<in> el P\<close> comp_apply rel_el_open valid_union2)
+   moreover have ca : "e (res R (d a) c) \<subseteq> e a" using rel_le_eq [where ?T=T and ?a=c and ?b=a]
+     by (smt (verit, ccfv_threshold) "2" P_def R_def \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> a_el comp_apply rel_el_open rel_space res_def snd_conv)
+   moreover have cb : "e (res R (d b) c) \<subseteq> e b" using rel_le_eq [where ?T=T and ?a=c and ?b=b]
+     by (smt (verit, del_insts) "2" P_def R_def \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> b_el comp_apply rel_el_open rel_space res_def snd_conv)
+
+   moreover have 3 : "e (res R (d a \<union> d b) c) \<subseteq> e (comb (rel_ova T) a b)" 
+   proof 
+     fix t
+     assume "t \<in> e (res R (d a \<union> d b) c)"
+     have "e (res R (d a \<union> d b) c) =  { (ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t | t . t \<in> e c}" 
+       using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] 1 2  R_def
+       by fastforce
+     moreover have "t \<in> { (ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t | t . t \<in> e c}"
+       using \<open>t \<in> e (res R (d a \<union> d b) c)\<close> calculation by blast 
+     moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> 
+                       { (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
+       using calculation(2) by blast
+     moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> 
+                       { (ar T \<cdot> make_inc (d a) (d c)) \<cdot> t | t . t \<in> e c}" using
+       Presheaf.valid_composition [where ?F="presheaf T"]
+       by (smt (z3) "1" "2" CollectD CollectI Function.ident_app P_def Presheaf.diamond_rule Presheaf.valid_identity Space.ident_def Tuple.valid_welldefined \<open>a \<in> el P\<close> \<open>c \<in> el P\<close> calculation(3) comp_apply inf_sup_ord(3) rel_el_open rel_el_subset subset_eq)   
+     moreover have "e (res R (d a) (res R (d a \<union> d b) c)) 
+        = { (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
+        using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] rel_res_e [where ?T=T and ?a="res R (d a \<union> d b) c" and ?B="d a"]
+        by (smt (z3) "1" "2" Collect_cong R_def a_el mem_Collect_eq rel_el_open rel_res_d rel_res_el sup_ge1)
+      moreover have "e (res R (d a) (res R (d a \<union> d b) c)) = e (res R (d a) c)"
+        by (metis "1" "2" R_def a_el d_elem_is_open dual_order.eq_iff le_supI1 rel_ova_valid rel_space res_functorial)
+     moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e (res R (d a) c)"
+       using calculation(3) calculation(5) calculation(6) by blast 
+     moreover have res_t_in_a : "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a"
+       using ca calculation(7) by blast
+
+     moreover have b:"(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> 
+                       { (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
+       using calculation(2) by blast
+     moreover have "{ (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot>
+ t) | t . t \<in> e c} = { (ar T \<cdot> make_inc (d b) (d c)) \<cdot> t | t . t \<in> e c}"
+       by (smt (verit) "1" "2" Collect_cong Function.ident_app P_def Presheaf.diamond_rule Presheaf.valid_identity R_def Space.ident_def Tuple.valid_welldefined \<open>b \<in> el P\<close> comp_apply equalityE le_sup_iff rel_el_open rel_el_subset subsetD)
+     moreover have "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> 
+                       { (ar T \<cdot> make_inc (d b) (d c)) \<cdot> t | t . t \<in> e c}"
+       using b calculation(10) by blast  
+       moreover have "e (res R (d b) (res R (d a \<union> d b) c))
+        = { (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
+        using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] rel_res_e [where ?T=T and ?a="res R (d a \<union> d b) c" and ?B="d b"]
+        by (smt (z3) "1" "2" Collect_cong P_def R_def \<open>b \<in> el P\<close> comp_apply d_elem_is_open le_sup_iff mem_Collect_eq rel_ova_valid rel_res_d rel_res_el rel_space subsetI)
+      moreover have "e (res R (d b) (res R (d a \<union> d b) c)) = e (res R (d b) c)"
+        by (metis "1" "2" R_def Un_upper2 b_el d_elem_is_open rel_ova_valid rel_space res_functorial)
+     moreover have "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e (res R (d b) c)"
+       using b calculation(12) calculation(13) by blast
+     moreover have res_t_in_b : "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b"
+       using calculation(14) cb by blast
+
+     ultimately show "t \<in> e (comb (rel_ova T) a b)" using rel_comb_e [where ?T=T and ?a=a and ?b=b]
+       by (smt (verit) "1" "2" CollectI R_def a_el b_el in_mono rel_el_subset rel_res_d rel_res_el)
+   qed
+   moreover have 4: "Prealgebra.ar (prealgebra (rel_ova T)) \<cdot> \<lparr>Inclusion.dom = d (comb (rel_ova T) a
+ b), cod = d c\<rparr> \<star> e c = e (res R (d a \<union> d b) c)"
+     by (metis (no_types, lifting) "1" "2" R_def a_el b_el rel_comb_d rel_space res_def snd_conv) 
+   moreover have "le R c (comb (rel_ova T) a b)" using 1 2 3 4 rel_le_eq [where ?T=T and ?a=c and
+         ?b="comb (rel_ova T) a b"]
+     by (metis P_def R_def \<open>comb (rel_ova T) a b \<in> el P\<close> a_el b_el comp_apply rel_comb_d) 
+   thus "(c, comb (rel_ova T) a b) \<in> le_rel P" using R_def rel_le_rel_eq [where ?T=T and ?a=c and
+         ?b="comb (rel_ova T) a b"]
+     using "2" P_def \<open>comb (rel_ova T) a b \<in> el P\<close> by auto
+ qed
 next
   case 4
   then show ?case
@@ -2176,7 +2252,5 @@ next
   then show ?case
     by (metis R_def T_valid a_el b_el comp_apply rel_comb_el) 
 qed
-
-
 
 end
