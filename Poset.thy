@@ -380,10 +380,10 @@ lemma discrete_valid : "valid discrete"
 (* Infima and suprema *)
 
 definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"is_inf P U i \<equiv>  U \<subseteq> el P \<and> i \<in> el P \<and>  ((\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i))"
+"is_inf P U i \<equiv>  U \<subseteq> el P \<and> i \<in> el P \<and> ((\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i))"
 
 definition is_sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"is_sup P U s \<equiv> U \<subseteq> el P \<and> s \<in> el P \<and>  (s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z))"
+"is_sup P U s \<equiv> U \<subseteq> el P \<and> s \<in> el P \<and> (s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z))"
 
 abbreviation is_bot :: "'a Poset \<Rightarrow> 'a \<Rightarrow> bool" where
 "is_bot P b \<equiv> b \<in> el P \<and> (\<forall>p \<in> el P. le P b p)"
@@ -462,6 +462,53 @@ lemma powerset_le : "a \<in> el (powerset A) \<Longrightarrow> a' \<in> el (powe
 
 lemma powerset_el : "(a \<in> el (powerset A)) = (a \<subseteq> A)"
   by (simp add: powerset_def)
+
+lemma powerset_is_complete : "is_complete (powerset X)" 
+proof (simp add: is_complete_def, safe, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: powerset_valid) 
+next
+  case (2 U)
+  then show ?case 
+  proof -
+    fix U
+    assume "U \<subseteq> el (powerset X)"
+    define "i" where "i = (if U = {} then X else \<Inter> U)"
+    have "is_inf (powerset X) U i" 
+    proof (simp add: is_inf_def, safe, goal_cases)
+      case (1 x)
+      then show ?case
+        using \<open>U \<subseteq> el (powerset X)\<close> by blast 
+    next
+      case 2
+      then show ?case
+        by (metis Inter_subset \<open>U \<subseteq> el (powerset X)\<close> i_def in_mono order_refl powerset_el) 
+    next
+      case (3 u)
+      then show ?case
+        by (metis Inter_lower equals0D i_def powerset_le) 
+    next
+      case (4 u)
+      then show ?case
+        by (metis Inf_lower \<open>U \<subseteq> el (powerset X)\<close> dual_order.trans empty_iff i_def in_mono powerset_el) 
+    next
+      case (5 u)
+      then show ?case
+        using \<open>U \<subseteq> el (powerset X)\<close> by blast 
+    next
+      case (6 z)
+      then show ?case
+        by (metis Inf_greatest \<open>U \<subseteq> el (powerset X)\<close> i_def powerset_el powerset_le subsetD) 
+    next
+      case (7 z)
+      then show ?case
+        by (metis Inter_subset \<open>U \<subseteq> el (powerset X)\<close> i_def powerset_el subset_iff) 
+    qed
+    show "\<exists>i. is_inf (powerset X) U i"
+      using \<open>is_inf (powerset X) U i\<close> by blast 
+  qed
+qed
 
 (* Direct image *)
 

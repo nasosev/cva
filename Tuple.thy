@@ -2029,4 +2029,47 @@ proof -
     by simp
 qed
 
+(* [Proposition 5 (2/3), CVA] *)
+proposition rel_ova_is_complete :
+  fixes T :: "('A, 'x) TupleSystem"
+  assumes "valid T"
+  defines "R \<equiv> rel_ova T" 
+  shows "is_complete (poset (rel_ova T))"
+  using locally_complete_imp_complete powerset_is_complete
+  by (metis OVA.simps(1) assms(1) rel_ova_def rel_ova_valid rel_space relation_ob_value)
+
+lemma rel_comb_le1 : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longrightarrow> b \<in> elems (rel_ova T) 
+   \<Longrightarrow> le (rel_ova T) (comb (rel_ova T) a b) a"
+  apply (intro gc_leI)
+
+
+(* [Proposition 5 (3/3), CVA] *)
+proposition rel_comb_is_meet :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
+  defines "R \<equiv> rel_ova T" 
+  assumes T_valid : "valid T"
+  and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
+shows "is_inf (poset R) {a, b} (comb R a b)"
+  unfolding R_def
+proof (simp add: is_inf_def, safe, goal_cases)
+  case 1
+  then show ?case 
+next
+  case 2
+  then show ?case sorry
+next
+  case (3 a b)
+  then show ?case sorry
+next
+  case 4
+  then show ?case sorry
+next
+  case 5
+  then show ?case sorry
+next
+  case 6
+  then show ?case sorry
+qed
+
+
 end

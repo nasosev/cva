@@ -16,30 +16,30 @@ definition gc :: "('A, 'a) Prealgebra \<Rightarrow> ('A set \<times> 'a) Poset" 
       Poset.le_rel = { ((A, a), (B, b)) . 
                      A \<in> opens (space F) \<and> B \<in> opens (space F) 
                      \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
-                     \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (Space.make_inc B A) \<star> a) b } \<rparr>"
+                     \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (make_inc B A) \<star> a) b } \<rparr>"
 
 lemma gc_elD [dest] : "a \<in> el (gc F) \<Longrightarrow> a = (d a, e a)"
   by simp 
 
 lemma gc_leI_raw : "A \<in> opens (space F) \<Longrightarrow> B \<in> opens (space F) \<Longrightarrow> B \<subseteq> A
 \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) \<Longrightarrow> b \<in> Poset.el (ob F \<cdot> B)
-\<Longrightarrow> Poset.le (ob F \<cdot> B) ((ar F \<cdot> (Space.make_inc B A)) \<star> a) b \<Longrightarrow> Poset.le (gc F) (A,a) (B,b)"
+\<Longrightarrow> Poset.le (ob F \<cdot> B) ((ar F \<cdot> (make_inc B A)) \<star> a) b \<Longrightarrow> Poset.le (gc F) (A,a) (B,b)"
   unfolding gc_def
   by simp
 
 lemma gc_leI [intro] : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> d
- b \<subseteq> d a \<Longrightarrow> Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> Poset.le (gc F) a b" 
+ b \<subseteq> d a \<Longrightarrow> Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> Poset.le (gc F) a b" 
   unfolding gc_def
   apply clarsimp
   by force
 
 lemma gc_leD [dest] : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
-\<Longrightarrow> d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b)" 
+\<Longrightarrow> d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b)" 
   unfolding gc_def 
   by force
 
 lemma gc_le_eq : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
-= (d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (Space.make_inc (d b) (d a))) \<star> e a) (e b))"
+= (d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b))"
   unfolding gc_def
   by fastforce
 
@@ -50,7 +50,7 @@ lemma gc_el : "el (gc F) = { (A, a) . A \<in> opens (space F) \<and> a \<in> Pos
 lemma gc_le_rel : "le_rel (gc F) = { ((A, a), (B, b)) .
  A \<in> opens (space F) \<and> B \<in> opens (space F) 
  \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
- \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (Space.make_inc B A) \<star> a) b }" 
+ \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (make_inc B A) \<star> a) b }" 
   unfolding gc_def 
   by simp
 
@@ -80,9 +80,9 @@ d Aa = d Aa' \<Longrightarrow> Poset.le (gc F) Aa Aa' \<Longrightarrow> Poset.le
 lemma valid_gc_transitive :
   fixes F :: "('A,'a) Prealgebra" and A B C :: "'A Open" and a b c :: "'a"
   defines "T \<equiv> space F"
-  defines "i_BA \<equiv> Space.make_inc B A"
-  defines "i_CB \<equiv> Space.make_inc C B"
-  defines "i_CA \<equiv> Space.make_inc C A"
+  defines "i_BA \<equiv> make_inc B A"
+  defines "i_CB \<equiv> make_inc C B"
+  defines "i_CA \<equiv> make_inc C A"
   defines "prj_AB \<equiv> ar F \<cdot> i_BA"
   defines "prj_BC \<equiv> ar F \<cdot> i_CB"
   defines "prj_AC \<equiv> ar F \<cdot> i_CA"
@@ -167,7 +167,7 @@ qed
 lemma valid_gc_le_wrap :
   fixes F :: "('A, 'a) Prealgebra" and Aa Bb :: "('A set \<times> 'a)"
 
-  defines "i \<equiv> Space.make_inc (d Bb) (d Aa)"
+  defines "i \<equiv> make_inc (d Bb) (d Aa)"
   defines "pr \<equiv>  (ar F) \<cdot> i"
   defines "FA \<equiv>  ob F \<cdot> (d Aa)"
   defines "FB \<equiv>  ob F \<cdot> (d Bb)"
@@ -186,7 +186,7 @@ lemma valid_gc_le_wrap :
 
 lemma valid_gc_le_unwrap :
   fixes F :: "('A, 'a) Prealgebra" and Aa Bb :: "('A set \<times> 'a)"
-  defines "i \<equiv> Space.make_inc (d Bb) (d Aa)"
+  defines "i \<equiv> make_inc (d Bb) (d Aa)"
   defines "pr \<equiv> ar F \<cdot> i"
   defines "FA \<equiv> ob F \<cdot> (d Aa)"
   defines "FB \<equiv> ob F \<cdot> (d Bb)"
