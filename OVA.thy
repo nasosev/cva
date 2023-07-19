@@ -40,13 +40,12 @@ abbreviation le\_V :: "('A, 'a) Valuation \<Rightarrow> ('A,'a) OVA \<Rightarrow
 
 definition "OVA_local_le_undefined_domain_mismatch _ _ \<equiv> undefined"
 
-
+(* Note the parameter A is actually redundant *)
 abbreviation (input) local_le :: "('A,'a) OVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "local_le V A a a' \<equiv> 
   if A = d a \<and> A = d a' 
   then Poset.le (Prealgebra.ob (prealgebra V) \<cdot> A) (e a) (e a')
   else OVA_local_le_undefined_domain_mismatch a a'"
-
 
 abbreviation space :: "('A,'a) OVA \<Rightarrow> 'A Space" where
 "space V \<equiv> Prealgebra.space (prealgebra V)"
@@ -259,9 +258,11 @@ lemma valid_comb_monotone : "valid V \<Longrightarrow> a1 \<in> elems V \<Longri
 \<Longrightarrow> le V (comb V a1 b1) (comb V a2 b2)"
   by (smt (verit) valid_monotone valid_semigroup)
 
-lemma leI [intro] : "a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d b \<subseteq> d a 
-\<Longrightarrow> Poset.le (ob (prealgebra V) \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> le V a b" 
-  oops
+(* Don't mark this as [intro] *)
+lemma leI : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d b \<subseteq> d a 
+\<Longrightarrow> Poset.le (ob (prealgebra V) \<cdot> d b) ((ar (prealgebra V) \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> le V a b" 
+  using valid_gc_poset [where ?V=V] gc_leI [where ?a=a and ?b=b and ?F="prealgebra V"]
+  by simp 
 
 lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> e a \<in> el (ob (prealgebra V) \<cdot> d a)"
   by (metis OVA.valid_welldefined gc_elem_local)
@@ -742,7 +743,7 @@ proof (rule iffI)
   have "local_le V (d a) (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
     by (smt (verit) B_le_A OVA.valid_welldefined V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_res fst_conv id_le_res local_le neutral_is_element res_elem sup.absorb_iff1 valid_domain_law valid_monotone valid_neutral_law_left valid_poset valid_reflexivity) 
   moreover have "local_le V (d a) (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)" using assms a_B_def valid_comb_monotone [where ?V=V] le_eq_local_le [where ?V=V]
-    by (smt (verit) Poset.valid_def \<epsilon>A_def \<open>Poset.le (Prealgebra.ob (prealgebra V) \<cdot> d b) (e (res V (d b) a)) (e b)\<close> comb_is_element d_elem_is_open d_res fst_eqD neutral_is_element res_elem sup.order_iff valid_domain_law valid_poset valid_semigroup)
+    by (smt (verit) OVA.valid_welldefined Poset.valid_def \<epsilon>A_def \<open>if d b = d (res V (d b) a) \<and> d b = d b then Poset.le (Prealgebra.ob (prealgebra V) \<cdot> d b) (e (res V (d b) a)) (e b) else OVA_local_le_undefined_domain_mismatch (res V (d b) a) b\<close> comb_is_element d_elem_is_open d_res fst_eqD neutral_is_element res_elem sup.absorb_iff1 valid_domain_law valid_poset)
   moreover have "comb V \<epsilon>A b = ext V (d a) b" using \<epsilon>A_def ext_def [where ?V=V and ?A="d a" and ?b=b]
     by (metis B_le_A V_valid a_el b_el d_elem_is_open) 
   ultimately show "?R"
@@ -880,7 +881,7 @@ proof -
   have "local_le V (d a) a a"
     by (meson V_valid assms(2) d_elem_is_open local_inclusion_element valid_ob valid_prealgebra valid_reflexivity)
   moreover have "local_le V B (res V B a) (res V B a)"
-    by (meson V_valid assms(2) assms(3) assms(4) d_elem_is_open e_res valid_ob valid_prealgebra valid_reflexivity)
+    by (metis OVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open d_res e_res valid_ob valid_reflexivity)
   moreover have "res V B a \<in> elems V"
     using V_valid assms(2) assms(3) assms(4) res_elem by blast
   moreover have "d (res V B a) = B"
@@ -890,68 +891,79 @@ proof -
 qed
 
 lemma ext_functorial_lhs_imp_rhs :
-  fixes V :: "('A,'a) OVA" and A B C:: "'A Open"  and c :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and A B:: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and "A \<in> opens (space V)" and "B \<in> opens (space V)" and "C \<in> opens (space V)"
-  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
+  and c_el : "c \<in> elems V"
+  and A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)"
+  and C_le_B : "d c \<subseteq> B" and B_le_A : "B \<subseteq> A"
   defines "ex \<equiv> ext V"
   and "pr \<equiv> res V"
   shows "le V (ex A c) (ex A (ex B c))"
 proof -
+  define "C" where "C = d c"
   have "local_le V C c c"
-    by (metis V_valid assms(4) assms(7) assms(8) local_inclusion_element valid_ob valid_prealgebra valid_reflexivity)
+    by (metis C_def OVA.valid_welldefined V_valid c_el d_elem_is_open local_inclusion_element valid_ob valid_reflexivity)
   moreover have "local_le V C (pr C (ex A c)) c"
-    by (smt (verit, best) V_valid assms(2) assms(4) assms(5) assms(6) assms(7) assms(8) calculation dual_order.trans ex_def galois_insertion pr_def)
+    by (smt (verit, best) A_open B_le_A C_def C_le_B V_valid c_el calculation dual_order.trans ex_def galois_insertion pr_def)
   moreover have "pr C (pr B (ex A c)) = pr C (ex A c)"
-    by (smt (verit, del_insts) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_ext dual_order.trans ex_def ext_elem res_functorial d_elem_is_open pr_def V_valid)
+    by (smt (verit, ccfv_SIG) A_open B_le_A B_open C_def C_le_B V_valid c_el d_elem_is_open d_ext dual_order.trans ex_def ext_elem pr_def res_functorial)
   moreover have "local_le V C  (pr C (pr B (ex A c))) c"
-    by (simp add: calculation(2) calculation(3))
-  moreover have "local_le V B (pr B (ex A c)) (ex B c)"
-    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(4) d_ext d_res ex_def ext_elem res_elem order_trans pr_def res_ext_adjunction)
+    using calculation(2) calculation(3) by presburger
+  moreover have "local_le V B (pr B (ex A c)) (ex B c)" 
+    using C_def assms calculation d_ext d_res ex_def ext_elem res_elem order_trans pr_def
+      res_ext_adjunction [where ?V=V]
+    by (smt (verit))
   moreover have "local_le V A (ex A c) (ex A (ex B c))"
-    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(5) d_ext dual_order.trans ex_def ext_elem pr_def res_ext_adjunction)
-    ultimately show ?thesis
-      by (smt (verit) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_ext dual_order.refl dual_order.trans elem_le_wrap ex_def galois_insertion ext_elem res_functorial pr_def)
+    using assms calculation d_ext dual_order.trans ex_def ext_elem pr_def res_ext_adjunction [where ?V=V]
+    by (smt (z3))
+  moreover have "d (ex A c) = A \<and> d ((ex A (ex B c))) = A"
+    by (smt (verit) A_open B_le_A B_open C_le_B V_valid c_el d_ext dual_order.trans ex_def ext_elem) 
+    ultimately show ?thesis using assms  d_ext
+          dual_order.refl dual_order.trans elem_le_wrap ex_def pr_def galois_insertion [where ?V=V]
+          ext_elem [where ?V=V] res_functorial [where ?V=V] le_eq_local_le [where ?V=V]
+      by (smt (verit))
 qed
 
 lemma ext_functorial_rhs_imp_lhs :
-  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V"
-  and "A \<in> opens (space V)" and "B \<in> opens (space V)" and "C \<in> opens (space V)"
-  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
+  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and c :: "('A, 'a) Valuation"
   defines "ex \<equiv> ext V"
   and "pr \<equiv> res V"
+  assumes V_valid : "valid V"
+  and c_el : "c \<in> elems V" 
+  and A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)" 
+  and C_le_B : "d c \<subseteq> B" and B_le_A : "B \<subseteq> A"
   shows "le V (ex A (ex B c)) (ex A c)"
 proof -
   have "local_le V A (ex A (ex B c)) (ex A (ex B c))"
-    by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_ext e_ext ex_def ext_elem valid_ob valid_prealgebra valid_reflexivity)
+    by (metis A_open B_le_A B_open C_le_B OVA.valid_welldefined V_valid c_el d_ext e_ext ex_def ext_elem valid_ob valid_reflexivity)
   moreover have "local_le V B (pr B (ex A (ex B c))) (ex B c)"
-    by (metis V_valid assms(2) assms(3)  assms(5) assms(6) assms(7) assms(8) d_ext e_ext ex_def galois_insertion ext_elem pr_def valid_ob valid_prealgebra valid_reflexivity)
-    moreover have "local_le V C (pr C (pr B (ex A (ex B c)))) c"
-      by (metis (no_types, lifting) V_valid assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) d_ext ex_def galois_insertion ext_elem le_eq_local_le d_elem_is_open pr_def valid_poset valid_reflexivity valid_semigroup)
-moreover have "local_le V C (pr C (ex A (ex B c))) c"
-  by (metis (full_types) assms(2) assms(3) assms(5) assms(6) assms(7) assms(8) calculation(3) d_ext ex_def ext_elem res_functorial d_elem_is_open pr_def V_valid)
-  moreover have "local_le V A (ex A (ex B c)) (ex A c)" using res_ext_adjunction
-    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) calculation(4) d_ext dual_order.trans ex_def ext_elem pr_def)
+    by (metis A_open B_le_A B_open C_le_B OVA.valid_welldefined V_valid c_el d_ext e_ext ex_def ext_elem galois_insertion pr_def valid_ob valid_reflexivity)
+  moreover have "local_le V (d c) (pr (d c) (pr B (ex A (ex B c)))) c"
+    by (metis A_open B_le_A B_open C_le_B V_valid c_el d_elem_is_open d_ext ex_def ext_elem galois_insertion local_inclusion_element pr_def valid_ob valid_prealgebra valid_reflexivity)
+  moreover have "local_le V (d c) (pr (d c) (ex A (ex B c))) c"
+    by (metis (no_types, lifting) A_open B_le_A B_open C_le_B V_valid c_el calculation(3) d_elem_is_open d_ext ex_def ext_elem pr_def res_functorial)
+  moreover have "local_le V A (ex A (ex B c)) (ex A c)" using res_ext_adjunction [where ?V=V]
+    by (smt (z3) A_open B_le_A B_open C_le_B V_valid c_el calculation(4) d_ext dual_order.trans ex_def ext_elem pr_def) 
   ultimately show ?thesis
-    by (smt (verit, best) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_ext dual_order.trans ex_def ext_elem le_eq_local_le)
+    by (smt (verit) A_open B_le_A B_open C_le_B OVA.valid_welldefined V_valid c_el d_ext e_ext ex_def ext_functorial_lhs_imp_rhs local_elem_gc local_le prod.exhaust_sel subset_trans valid_antisymmetry valid_ob)
 qed
 
 (* [Theorem 1 (2/2), CVA] *)
 theorem ext_functorial :
-  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and "A \<in> opens (space V)" and "B \<in> opens (space V)" and "C \<in> opens (space V)"
-  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
+  and c_el : "c \<in> elems V"
+  and A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)"
+  and C_le_B : "d c \<subseteq> B" and B_le_A : "B \<subseteq> A" 
   defines "ex \<equiv> ext V"
   shows "ex A (ex B c) = ex A c"
 proof -
   have "le V (ex A (ex B c)) (ex A c)"
-    using assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def ext_functorial_rhs_imp_lhs V_valid by blast
+    using A_open B_le_A B_open C_le_B V_valid c_el ex_def ext_functorial_rhs_imp_lhs by blast
   moreover have "le V (ex A c)  (ex A (ex B c))"
-    using assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) ex_def ext_functorial_lhs_imp_rhs V_valid by blast
+    using A_open B_le_A B_open C_le_B V_valid c_el ex_def ext_functorial_lhs_imp_rhs by blast
   ultimately show ?thesis
-    by (smt (z3) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_ext dual_order.trans ex_def ext_elem valid_antisymmetry valid_poset valid_semigroup)
+    by (smt (verit, best) A_open B_le_A B_open C_le_B V_valid c_el d_ext dual_order.trans ex_def ext_elem valid_antisymmetry valid_poset valid_semigroup)
 qed
 
 (* [Corollary 2 (3/3), CVA] *)
@@ -966,12 +978,12 @@ corollary galois_closure_idempotent :
   by (metis assms(2) assms(3) assms(6) assms(7) assms(8) d_res ex_def galois_insertion res_elem pr_def V_valid)
 
 lemma up_and_down :
-  fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and c :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
   and "A \<in> opens (space V)" and "B \<in> opens (space V)" and "C \<in> opens (space V)"
-  and "C \<subseteq> B" and "B \<subseteq> A" and "d c = C" and "c \<in> elems V"
+  and "d c \<subseteq> B" and "B \<subseteq> A"  and "c \<in> elems V"
 shows "res V B (ext V A c) = ext V B c"
-  by (metis V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) d_ext ext_functorial galois_insertion ext_elem)
+  by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) d_ext ext_elem ext_functorial galois_insertion)
 
 lemma intermediate_extension :
   fixes V :: "('A,'a) OVA" and a c :: "('A, 'a) Valuation" and A B C :: "('A Open)"
@@ -991,7 +1003,7 @@ proof -
   moreover have "ext V A c = ext V A (ext V B c)" using ext_functorial
     by (metis B_leq_A C_le_B c_elem calculation(1) dom_c V_valid)
   moreover have "local_le V A a (ext V A (ext V B c))"
-    using calculation(3) calculation(4) by auto
+    by (metis calculation(3) calculation(4))
   ultimately show ?thesis using res_ext_adjunction le_a_C_c
     by (smt (verit, best) B_leq_A C_le_B V_valid a_el c_elem d_ext dom_A dom_c ext_elem)
 qed
@@ -1053,12 +1065,16 @@ next
           using \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> local_completeness by blast 
         moreover have "Poset.is_inf (F (d_U)) ex_U e_U" using ex_U_def local_completeness
           by (metis \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> \<open>some_e_U = Some e_U\<close> calculation(3) some_e_U_def some_inf_is_inf)
+        moreover have "d i = d_U \<and> d (ex d_U u) = d_U"
+          using U V_valid \<open>d_U \<in> opens (OVA.space V)\<close> calculation(1) calculation(2) ex_def i_def by auto 
         moreover have "local_le V (d_U) i (ex d_U u)"
-          by (smt (verit, del_insts) F_def calculation(1) calculation(5) comp_apply ex_U_def i_def image_iff is_inf_def snd_conv)
-        moreover have "local_le V (d u) (pr (d u) i) u"
-          by (smt (verit) U V_valid \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) calculation(2) calculation(6) d_ext d_res elem_le_wrap ex_def fst_eqD galois_insertion ext_elem res_elem res_monotone i_def in_mono d_elem_is_open local_le pr_def subset_Un_eq sup.cobounded2 up_and_down valid_gc_poset valid_prealgebra)
-        moreover have i_is_lb: "le V i u"
-          by (smt (verit) U V_valid \<open>i \<in> el (poset V)\<close> calculation(1) calculation(2) calculation(7) elem_le_wrap fst_eqD i_def in_mono pr_def)
+          using F_def \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> calculation(1) calculation(3) calculation(5) calculation(6) ex_U_def i_def inf_smaller by fastforce 
+        moreover have "d u = d (pr (d u) i)"
+          using U V_valid \<open>i \<in> OVA.elems V\<close> calculation(1) calculation(2) calculation(6) d_elem_is_open d_res pr_def by blast 
+        moreover have "local_le V (d u) (pr (d u) i) u"  using res_ext_adjunction [where ?V=V]
+          using U V_valid \<open>i \<in> OVA.elems V\<close> calculation(1) calculation(2) calculation(6) calculation(7) ex_def pr_def by blast
+        moreover have i_is_lb: "le V i u"  using le_eq_local_le [where ?V=V]
+          by (smt (verit) Poset.valid_def U V_valid \<open>i \<in> OVA.elems V\<close> calculation(1) calculation(2) calculation(6) calculation(7) d_elem_is_open ex_def ext_elem galois_insertion id_le_res subset_eq valid_poset valid_semigroup) 
         ultimately show "le V i u"
           by blast
       qed
@@ -1079,7 +1095,8 @@ next
               = V and ?A = "d z" and ?a = z]
           using U \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) d_elem_is_open pr_def by blast
         moreover have "\<forall> v \<in> U . Poset.le (F (d v)) (e (pr (d v) z)) (e v)"
-          using F_def calculation(6) by presburger
+          using F_def calculation(6)
+          by (metis \<open>z \<in> OVA.elems V\<close> calculation(4) d_res lb2 pr_def) 
         define "z_U" where "z_U = res V d_U z"
         moreover have "\<forall> v \<in> U . pr d_U (ex (d z) v) = ex d_U v" using up_and_down
           by (smt (verit, ccfv_threshold) UN_subset_iff V_valid \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> calculation(3) calculation(4) calculation(5) d_U_def ex_def lb2 pr_def subset_eq)
@@ -1095,7 +1112,7 @@ next
           by (metis V_valid F_def \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(10) calculation(11) calculation(3) e_res z_U_def)
         moreover have "\<forall> v \<in> U . local_le V d_U z_U (ex d_U v)" using z_U_def calculation
          intermediate_extension [where ?V = V and ?B = d_U and ?a = z]
-          by (metis V_valid \<open>\<forall>u\<in>U. Poset.le (poset V) i u\<close> \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> d_antitone ex_def fst_conv i_def pr_def valid_gc_poset valid_prealgebra)
+          by (smt (verit) V_valid \<open>\<forall>u\<in>U. OVA.le V i u\<close> \<open>i \<in> OVA.elems V\<close> \<open>z \<in> OVA.elems V\<close> d_antitone ex_def fst_conv i_def pr_def valid_gc_poset valid_prealgebra) 
             moreover have "\<forall> v \<in> U . local_le V (d z) z (ext V (d z) v)" using
                 res_ext_adjunction [where ?V=V]
               using V_valid \<open>z \<in> OVA.elems V\<close> calculation(5) calculation(6) lb2 pr_def by blast
@@ -1117,7 +1134,7 @@ next
           moreover have "is_inf (F d_U) ex_U e_U"
             using \<open>Poset.valid (F d_U)\<close> \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> \<open>some_e_U = Some e_U\<close> some_e_U_def some_inf_is_inf by fastforce
           moreover have z_U_is_lb : "\<forall> v \<in> U . Poset.le (F d_U) (e (res V d_U z)) (e (ex d_U v))"
-            using F_def \<open>\<forall>v\<in>U. Poset.le (ob (prealgebra V) \<cdot> d_U) (e z_U) (e (ex d_U v))\<close> z_U_def by force
+            by (metis F_def V_valid \<open>\<forall>u\<in>U. OVA.le V i u\<close> \<open>\<forall>v\<in>U. if d_U = d z_U \<and> d_U = d (ex d_U v) then Poset.le (Prealgebra.ob (prealgebra V) \<cdot> d_U) (e z_U) (e (ex d_U v)) else OVA_local_le_undefined_domain_mismatch z_U (ex d_U v)\<close> \<open>\<forall>v\<in>U. v \<in> OVA.elems V\<close> \<open>d_U \<in> opens (OVA.space V)\<close> \<open>d_U \<subseteq> d z\<close> \<open>i \<in> OVA.elems V\<close> \<open>z \<in> OVA.elems V\<close> d_antitone d_ext d_res ex_def fst_conv i_def valid_gc_poset valid_prealgebra z_U_def)
           moreover have "\<forall> u \<in> ex_U. Poset.le (F d_U) (e (res V d_U z)) u"  using z_U_is_lb
             by (simp add: ex_U_def)
           moreover have "Poset.le_rel (F d_U) \<subseteq> le_rel (F d_U)"
@@ -1125,8 +1142,8 @@ next
           ultimately show ?thesis
             by (simp add: inf_is_glb)
         qed
-        moreover have "Poset.le (poset V) z i"
-          by (metis V_valid F_def \<open>d i \<subseteq> d z\<close> \<open>i \<in> Semigroup.elems (OVA.semigroup V)\<close> \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(18) elem_le_wrap fst_conv i_def snd_conv)
+        moreover have "Poset.le (poset V) z i" using le_eq_local_le [where ?V=V]
+          by (smt (verit) F_def V_valid \<open>i \<in> OVA.elems V\<close> \<open>z \<in> OVA.elems V\<close> calculation(10) calculation(11) calculation(12) calculation(18) fst_conv i_def id_le_res res_def snd_conv valid_poset valid_semigroup valid_transitivity z_U_def) 
         term ?thesis
         ultimately show "Poset.le (OVA.poset V) z i"
           by meson

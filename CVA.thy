@@ -142,13 +142,16 @@ proof -
      moreover have "A \<in> opens (space V) \<and> B \<in> opens (space V)"
        using A_open B_def CVA.valid_welldefined V_valid b_elem d_elem_is_open by blast 
     moreover have lhs:"local_le V A (ex A b) (ex' A b)" using valid_res [where ?V=V] OVA.res_ext_adjunction [where
-   ?V="seq_algebra V" and ?a="ex A b" and ?b=b]
-      by (metis (no_types, lifting) B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(1) calculation(2) d_ext ex'_def ex_def ext_elem pr_def valid_elems)
+   ?V="seq_algebra V" and ?a="ex A b" and ?b=b] B_def B_leq_A CVA.valid_welldefined V_valid b_elem
+ calculation(1) calculation(2) d_ext ex'_def ex_def ext_elem pr_def valid_elems
+      by (smt (z3)) 
     moreover have "local_le V B (pr B (ex' A b)) b"
       by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(1) calculation(2) ex'_def ex_def galois_insertion ext_elem pr_def valid_elems valid_res) 
     moreover have rhs:"local_le V A (ex' A b) (ex A b)" using valid_res [where ?V=V] OVA.res_ext_adjunction [where
-   ?V="par_algebra V" and ?a="(ex' A b)" and ?b=b]
-      by (metis (full_types) B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(2) calculation(4) d_ext ex'_def ex_def ext_elem pr_def valid_elems) 
+   ?V="par_algebra V" and ?a="(ex' A b)" and ?b=b] using  B_def B_leq_A CVA.valid_welldefined
+        V_valid b_elem calculation(2) calculation(4) d_ext ex'_def ex_def ext_elem pr_def
+        valid_elems le_eq_local_le
+      by (smt (verit)) 
     moreover have "ex' A b = ex A b" using calculation
       by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem d_ext e_ext ex'_def ex_def prod.collapse valid_antisymmetry valid_elems valid_ob valid_prealgebra)     
     ultimately show "ex A b = ex' A b"
