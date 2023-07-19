@@ -43,14 +43,14 @@ lemma gc_le_eq : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longri
   unfolding gc_def
   by fastforce
 
-lemma gc_el : "el (gc F) = { (A, a) . A \<in> opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)}"
-  unfolding gc_def 
-  by simp
-
 lemma gc_le_rel : "le_rel (gc F) = { ((A, a), (B, b)) .
  A \<in> opens (space F) \<and> B \<in> opens (space F) 
  \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
  \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (make_inc B A) \<star> a) b }" 
+  unfolding gc_def 
+  by simp
+
+lemma gc_el : "el (gc F) = { (A, a) . A \<in> opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)}"
   unfolding gc_def 
   by simp
 

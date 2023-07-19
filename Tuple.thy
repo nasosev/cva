@@ -1249,6 +1249,29 @@ next
     by (smt (verit, del_insts) Int_commute OVA.select_convs(3) Tuple.valid_space assms comp_apply inf_le1 rel_el_open rel_res_el rel_semigroup_cod valid_inter rel_ova_def)
 qed
 
+lemma rel_leD :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
+  defines "R \<equiv> rel_ova T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> elems R"
+  and b_el : "b \<in> elems R"
+  and le : "le R a b"
+shows "d b \<subseteq> d a \<and> (((Prealgebra.ar (prealgebra R) \<cdot> (make_inc (d b) (d a))) \<star> e a) \<subseteq> (e b))"  
+  using leD [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el le rel_ova_valid
+  by (metis OVA.select_convs(1) OVA.select_convs(3) comp_apply rel_ova_def rel_semigroup_cod relation_le_is_subseteq)  
+
+lemma rel_le_eq :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
+  defines "R \<equiv> rel_ova T"
+  assumes T_valid : "valid T" 
+  and a_el : "a \<in> elems R"
+  and b_el : "b \<in> elems R"
+  and le : "le R a b"
+shows "le R a b
+= (d b \<subseteq> d a \<and>  Poset.le (Prealgebra.ob (prealgebra R) \<cdot> d b) ((Prealgebra.ar (prealgebra R) \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b))"  
+  using le_eq [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el le rel_ova_valid
+  by blast 
+
 (* [Theorem 2 (2/4), CVA] *)
 theorem rel_ova_commutative :
   fixes T :: "('A, 'x) TupleSystem"
@@ -2029,6 +2052,15 @@ proof -
     by simp
 qed
 
+lemma  rel_comb_is_int_ext :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
+  defines "R \<equiv> rel_ova T" 
+  assumes T_valid : "valid T"
+  and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
+shows "e (comb R a b) = e (ext V (d a \<union> d b) a) \<inter> e (ext V (d a \<union> d b) b)"
+  using rel_comb_is_int_ext [where ?T=T] rel_comb_e [where ?T=T and ?a=a and ?b=b] rel_ext_e [where
+      ?T=T and ?A="d a \<union> d b"] intersection_def [where ?X="ob T \<cdot> (d a \<union> d b)"]
+
 (* [Proposition 5 (2/3), CVA] *)
 proposition rel_ova_is_complete :
   fixes T :: "('A, 'x) TupleSystem"
@@ -2038,10 +2070,61 @@ proposition rel_ova_is_complete :
   using locally_complete_imp_complete powerset_is_complete
   by (metis OVA.simps(1) assms(1) rel_ova_def rel_ova_valid rel_space relation_ob_value)
 
-lemma rel_comb_le1 : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longrightarrow> b \<in> elems (rel_ova T) 
-   \<Longrightarrow> le (rel_ova T) (comb (rel_ova T) a b) a"
-  apply (intro gc_leI)
+lemma rel_comb_le1 :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
+  defines "R \<equiv> rel_ova T" 
+  assumes T_valid : "valid T"
+  and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
+shows "le R(comb (rel_ova T) a b) a"
+proof (intro leI, safe, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: R_def T_valid rel_ova_valid) 
+next
+  case 2
+  then show ?case
+    using R_def T_valid a_el b_el rel_comb_el by blast 
+next
+  case 3
+  then show ?case
+    using a_el by blast 
+next
+  case (4 x)
+  then show ?case
+    by (metis R_def T_valid UnCI a_el b_el rel_comb_d) 
+next
+  case 5
+  then show ?case 
+  proof -
+    have "e (comb (rel_ova T) a b) = { t \<in> ob T \<cdot> (d a \<union> d b) . 
+                                (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a
+                              \<and> (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b }" using rel_comb_e
+      [where ?T=T and ?a=a and ?b=b]
+      using R_def T_valid a_el b_el by fastforce
+    moreover have "Prealgebra.ar (prealgebra R) \<cdot> \<lparr>Inclusion.dom = d a, cod = d (comb (rel_ova T) a
+ b)\<rparr> \<star> (e (comb (rel_ova T) a b))
+  = { (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t | t . t \<in> e (comb (rel_ova T) a b) }" using rel_res_e
+      [where ?T=T] R_def T_valid a_el b_el calculation rel_comb_d rel_comb_el rel_el_open rel_space
+      res_def snd_conv sup_ge1
+      by (smt (z3) Collect_cong) 
+    moreover have "... = { (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t | t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> 
+                                (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a
+                              \<and> (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b}"
+      using calculation(1) by auto 
+    moreover have "... \<subseteq> e a"
+      by blast 
+    ultimately show ?thesis
+      by (smt (verit) OVA.select_convs(1) R_def T_valid a_el powerset_el powerset_le rel_el_open rel_el_subset rel_ova_def relation_ob_value subset_trans) 
+  qed
+qed
 
+lemma rel_comb_le2 :
+  fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
+  defines "R \<equiv> rel_ova T" 
+  assumes T_valid : "valid T"
+  and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
+shows "le R (comb R a b) b"
+  by (metis R_def T_valid a_el b_el is_commutative_def rel_comb_le1 rel_ova_commutative)
 
 (* [Proposition 5 (3/3), CVA] *)
 proposition rel_comb_is_meet :
@@ -2051,25 +2134,49 @@ proposition rel_comb_is_meet :
   and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
 shows "is_inf (poset R) {a, b} (comb R a b)"
   unfolding R_def
-proof (simp add: is_inf_def, safe, goal_cases)
+proof (simp add: is_inf_def, intro conjI impI, goal_cases)
   case 1
-  then show ?case 
+  then show ?case
+    by (metis T_valid comp_apply rel_comb_le1) 
 next
   case 2
-  then show ?case sorry
+  then show ?case
+    by (metis T_valid comp_apply rel_comb_le2) 
 next
-  case (3 a b)
-  then show ?case sorry
+  case 3
+  then show ?case 
+  proof (intro ballI impI)
+   fix c
+   define "P" where "P = PosetMap.cod (mult (OVA.semigroup (rel_ova T)))"
+   assume "comb (rel_ova T) a b \<in> el P"
+   assume "b \<in> el P"
+   assume "a \<in> el P"
+   assume "c \<in> el P"
+   assume "(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P"
+
+   have "d a \<subseteq> d c"
+     by (metis (mono_tags, lifting) "3"(3) OVA.valid_welldefined P_def T_valid \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> \<open>c \<in> el P\<close> comp_apply d_antitone rel_ova_valid)  
+   moreover have "d b \<subseteq> d c"
+     by (metis (mono_tags, lifting) OVA.valid_welldefined P_def T_valid \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> \<open>b \<in> el P\<close> \<open>c \<in> el P\<close> comp_apply d_antitone rel_ova_valid) 
+   moreover have "d a \<union> d b \<subseteq> d c"
+     by (simp add: calculation(1) calculation(2)) 
+   moreover have "e (comb R a b) = 
+   show "(c, comb (rel_ova T) a b) \<in> le_rel P"
+sorry qed
 next
   case 4
-  then show ?case sorry
+  then show ?case
+    using R_def a_el by force   
 next
   case 5
-  then show ?case sorry
+  then show ?case
+    using R_def b_el by force 
 next
   case 6
-  then show ?case sorry
+  then show ?case
+    by (metis R_def T_valid a_el b_el comp_apply rel_comb_el) 
 qed
+
 
 
 end

@@ -181,49 +181,46 @@ lemma valid_gc_poset :
   using OVA.valid_welldefined assms by blast
 
 lemma valid_le :
-  fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a b :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA"  and a b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and A_open : "A \<in> opens (space V)" and B_open : "B \<in> opens (space V)"
   and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-  and a_dom : "d a = A" and b_dom : "d b = B"
   and a_le_b : "le V a b"
-  shows "B \<subseteq> A \<and> local_le V B (res V B a) b"
+  shows "d b \<subseteq> d a \<and> local_le V (d b) (res V (d b) a) b"
 proof
-  show "B \<subseteq> A" using assms
+  show "d b \<subseteq> d a" using assms
     by (metis d_antitone valid_gc_poset valid_prealgebra)
 next
-  define "i" where "i = make_inc B A"
+  define "i" where "i = make_inc (d b) (d a)"
   define "pr_B" where "pr_B = Prealgebra.ar (prealgebra V) \<cdot> i"
   define "ea_B" where "ea_B = pr_B \<star> (e a)"
-  define "FA" where "FA = Prealgebra.ob (prealgebra V) \<cdot> A"
-  define "FB" where "FB = Prealgebra.ob (prealgebra V) \<cdot> B"
+  define "FA" where "FA = Prealgebra.ob (prealgebra V) \<cdot> d a"
+  define "FB" where "FB = Prealgebra.ob (prealgebra V) \<cdot> d b"
   have "e a \<in> Poset.el FA"
-    by (metis V_valid FA_def a_dom a_el gc_elem_local valid_gc_poset valid_prealgebra)
-  moreover have  B_le_A: "B \<subseteq> A"
-    using V_valid a_dom a_el a_le_b b_dom b_el d_antitone valid_gc_poset valid_prealgebra
-    by metis 
+    by (metis FA_def V_valid a_el gc_elem_local valid_gc_poset valid_prealgebra)
+  moreover have  B_le_A: "d b \<subseteq> d a"
+    by (metis OVA.valid_welldefined V_valid a_el a_le_b b_el d_antitone)
   moreover have "i \<in> inclusions (space V)" using B_le_A V_valid
-    by (simp add: A_open B_open i_def inclusions_def) 
+    by (metis (no_types, lifting) CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) a_el b_el i_def inclusions_def local_dom valid_gc_poset valid_prealgebra)
   moreover have psh_valid : "Prealgebra.valid (prealgebra V)"
     by (simp add: V_valid valid_prealgebra)
   moreover have "Poset.valid_map pr_B"
     using calculation(3) pr_B_def psh_valid valid_ar by blast
   moreover have "Poset.dom pr_B = FA \<and> Poset.cod pr_B = FB"
-    by (simp add: A_open B_le_A B_open FA_def FB_def i_def pr_B_def psh_valid inclusions_def) 
+    using FA_def FB_def calculation(3) i_def pr_B_def psh_valid by auto
   moreover have "ea_B \<in> Poset.el FB"
     by (metis Poset.fun_app2 calculation(1) calculation(5) calculation(6) ea_B_def)
   moreover have "e b \<in> Poset.el FB"
-    by (metis FB_def OVA.valid_welldefined V_valid b_dom b_el gc_elem_local)
+    by (metis FB_def V_valid b_el gc_elem_local psh_valid valid_gc_poset)
   moreover have "Poset.le (poset V) a b"
     using a_le_b by blast
   moreover have "Poset.le FB ea_B (e b)" 
     using psh_valid a_el b_el a_le_b FB_def ea_B_def pr_B_def
-i_def V_valid a_dom b_dom valid_gc_poset valid_gc_le_unwrap [where ?Aa=a and ?Bb=b and ?F="prealgebra V"]
-    by force   (* or use "apply (rule valid_gc_le_unwrap)" to apply the rule explicitly *)
-  moreover have "B = d (res V B a) \<and> B = d b"
-    by (metis B_le_A B_open a_dom a_el b_dom fst_conv res_def)
-  ultimately show "local_le V B (res V B a) b"
-    by (metis B_le_A B_open FB_def \<open>Poset.le FB ea_B (e b)\<close> a_dom a_el ea_B_def res_def i_def pr_B_def snd_eqD)
+i_def V_valid  valid_gc_poset valid_gc_le_unwrap [where ?Aa=a and ?Bb=b and ?F="prealgebra V"]
+    by force
+  moreover have "d b = d (res V (d b) a) \<and> d b = d b"
+    by (metis B_le_A Inclusion.select_convs(1) a_el calculation(3) fstI i_def res_def valid_inc_dom)
+  ultimately show "local_le V (d b) (res V (d b) a) b"
+    by (metis FB_def Inclusion.simps(1) a_el ea_B_def i_def pr_B_def res_def snd_conv valid_inc_dom) 
 qed
 
 lemma valid_domain_law : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> d (comb V a b) = d a \<union> d b"
@@ -263,6 +260,23 @@ lemma leI : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in>
 \<Longrightarrow> Poset.le (ob (prealgebra V) \<cdot> d b) ((ar (prealgebra V) \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> le V a b" 
   using valid_gc_poset [where ?V=V] gc_leI [where ?a=a and ?b=b and ?F="prealgebra V"]
   by simp 
+
+lemma leD [dest] : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> le V a b
+\<Longrightarrow> d b \<subseteq> d a \<and> Poset.le (ob (prealgebra V) \<cdot> d b) ((ar (prealgebra V) \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b)" 
+using valid_prealgebra [where ?V=V] valid_le [where ?V=V]
+  by (smt (verit, ccfv_threshold) fst_conv local_dom res_def snd_conv valid_gc_poset) 
+
+lemma le_eq : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> le V a b
+= (d b \<subseteq> d a \<and>  Poset.le (ob (prealgebra V) \<cdot> d b) ((ar (prealgebra V) \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b))"
+using  gc_le_eq [where ?F="prealgebra V" and ?a=a and ?b=b] valid_gc_poset [where ?V=V]
+  by force 
+
+lemma le_rel : "le_rel (gc (prealgebra V)) = { ((A, a), (B, b)) .
+ A \<in> opens (space V) \<and> B \<in> opens (space V) 
+ \<and> a \<in> Poset.el (ob (prealgebra V) \<cdot> A) \<and> b \<in> Poset.el (ob (prealgebra V) \<cdot> B)
+ \<and> B \<subseteq> A \<and> Poset.le (ob (prealgebra V) \<cdot> B) (ar (prealgebra V) \<cdot> (make_inc B A) \<star> a) b }" 
+  using  gc_le_rel [where ?F="prealgebra V"] valid_gc_poset [where ?V=V]
+  by force
 
 lemma local_inclusion_element : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> e a \<in> el (ob (prealgebra V) \<cdot> d a)"
   by (metis OVA.valid_welldefined gc_elem_local)
@@ -439,12 +453,12 @@ next
     moreover have "A \<in> opens (space V)"
       by (simp add: "2"(2) "2"(6)) 
     moreover have "e a \<in> local_elems V A \<and> e a' \<in> local_elems V A"
-      by (metis "2"(3) "2"(4) "2"(5) "2"(6) calculation(1) local_inclusion_element)
-    ultimately show "OVA.le V a a'" using local_le_imp_le [where ?V=V and ?A=A and ?a="e a" and ?a'="e a'"]
-      by (metis prod.exhaust_sel)
+      by (metis "2"(5) "2"(6) calculation(1) calculation(2) gc_elem_local valid_gc_poset valid_prealgebra)
+    ultimately show "le V a a'"  
+      using local_le_imp_le [where ?V=V and ?A=A and ?a="e a" and ?a'="e a'"] by (metis prod.exhaust_sel)
   qed
 qed
-  
+
 lemma res_monotone :
   fixes V :: "('A,'a) OVA" and a1 a2 :: "('A, 'a) Valuation" and B :: "'A Open"
   assumes V_valid: "valid V"
@@ -797,7 +811,7 @@ proof -
    moreover have m1_el : "m1 \<in> elems V"
      using V_valid a'_elem a_el comb_is_element m1_def by blast
    moreover have "local_le V B m1_B m2" using V_valid A_open B_open m1_el m2_el d_m1 d_m2 m1_B_def  global_le valid_le
-       [where ?V = V and ?A = A and ?B = B and ?a = m1 and ?b = m2]
+       [where ?V = V and ?a = m1 and ?b = m2]
      by fastforce
   ultimately show ?thesis
     using m1_B_def m1_def m2_def by auto
@@ -1092,7 +1106,7 @@ next
          moreover have "\<forall> v \<in> U .v \<in> elems V"
            using U V_valid d_elem_is_open by blast
         moreover have "\<forall> v \<in> U . local_le V (d v) (pr (d v) z) v" using V_valid valid_le [where ?V
-              = V and ?A = "d z" and ?a = z]
+              = V and ?a = z]
           using U \<open>z \<in> Semigroup.elems (OVA.semigroup V)\<close> calculation(1) d_elem_is_open pr_def by blast
         moreover have "\<forall> v \<in> U . Poset.le (F (d v)) (e (pr (d v) z)) (e v)"
           using F_def calculation(6)
