@@ -750,7 +750,7 @@ proof -
     by (smt (verit) a_B_def d_res id_le_res valid_poset valid_semigroup valid_transitivity) 
 qed
 
-(* [Theorem 1 (1/2), TMCVA] *)
+(* [Theorem 1 (1/3), TMCVA] *)
 theorem res_ext_adjunction :
   fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and B_le_A : "d b \<subseteq> d a" 
@@ -910,7 +910,7 @@ proof -
     by presburger
 qed
 
-lemma ext_functorial_lhs_imp_rhs :
+lemma ext_functorial_trans_lhs_imp_rhs :
   fixes V :: "('A,'a) OVA" and A B:: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
   and c_el : "c \<in> elems V"
@@ -944,7 +944,7 @@ proof -
       by (smt (verit))
 qed
 
-lemma ext_functorial_rhs_imp_lhs :
+lemma ext_functorial_trans_rhs_imp_lhs :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and c :: "('A, 'a) Valuation"
   defines "ex \<equiv> ext V"
   and "pr \<equiv> res V"
@@ -965,11 +965,19 @@ proof -
   moreover have "local_le V A (ex A (ex B c)) (ex A c)" using res_ext_adjunction [where ?V=V]
     by (smt (z3) A_open B_le_A B_open C_le_B V_valid c_el calculation(4) d_ext dual_order.trans ex_def ext_elem pr_def) 
   ultimately show ?thesis
-    by (smt (verit) A_open B_le_A B_open C_le_B OVA.valid_welldefined V_valid c_el d_ext e_ext ex_def ext_functorial_lhs_imp_rhs local_elem_gc local_le prod.exhaust_sel subset_trans valid_antisymmetry valid_ob)
+    by (smt (verit) A_open B_le_A B_open C_le_B OVA.valid_welldefined V_valid c_el d_ext e_ext ex_def ext_functorial_trans_lhs_imp_rhs local_elem_gc local_le prod.exhaust_sel subset_trans valid_antisymmetry valid_ob)
 qed
 
-(* [Theorem 1 (2/2), TMCVA] *)
-theorem ext_functorial :
+(* [Theorem 1 (2/3), TMCVA] *)
+theorem ext_functorial_id :
+  fixes V :: "('A,'a) OVA" and c :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and c_el : "c \<in> elems V"
+shows "ext V (d c) c = c"
+  by (metis (no_types, lifting) V_valid c_el d_elem_is_open d_ext ext_elem galois_insertion res_functorial subsetI)
+
+(* [Theorem 1 (2/3), TMCVA] *)
+theorem ext_functorial_trans :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
   and c_el : "c \<in> elems V"
@@ -979,9 +987,9 @@ theorem ext_functorial :
   shows "ex A (ex B c) = ex A c"
 proof -
   have "le V (ex A (ex B c)) (ex A c)"
-    using A_open B_le_A B_open C_le_B V_valid c_el ex_def ext_functorial_rhs_imp_lhs by blast
+    using A_open B_le_A B_open C_le_B V_valid c_el ex_def ext_functorial_trans_rhs_imp_lhs by blast
   moreover have "le V (ex A c)  (ex A (ex B c))"
-    using A_open B_le_A B_open C_le_B V_valid c_el ex_def ext_functorial_lhs_imp_rhs by blast
+    using A_open B_le_A B_open C_le_B V_valid c_el ex_def ext_functorial_trans_lhs_imp_rhs by blast
   ultimately show ?thesis
     by (smt (verit, best) A_open B_le_A B_open C_le_B V_valid c_el d_ext dual_order.trans ex_def ext_elem valid_antisymmetry valid_poset valid_semigroup)
 qed
@@ -1003,7 +1011,7 @@ lemma up_and_down :
   and "A \<in> opens (space V)" and "B \<in> opens (space V)" and "C \<in> opens (space V)"
   and "d c \<subseteq> B" and "B \<subseteq> A"  and "c \<in> elems V"
 shows "res V B (ext V A c) = ext V B c"
-  by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) d_ext ext_elem ext_functorial galois_insertion)
+  by (metis V_valid assms(2) assms(3) assms(5) assms(6) assms(7) d_ext ext_elem ext_functorial_trans galois_insertion)
 
 lemma intermediate_extension :
   fixes V :: "('A,'a) OVA" and a c :: "('A, 'a) Valuation" and A B C :: "('A Open)"
@@ -1020,7 +1028,7 @@ proof -
   moreover have "local_le V C (res V C a) c" by fact
   moreover have "local_le V A a (ext V A c)" using res_ext_adjunction
     by (smt (z3) B_leq_A C_le_B a_el c_elem dom_A dom_c dual_order.trans ext_def ext_elem le_a_C_c d_elem_is_open V_valid)
-  moreover have "ext V A c = ext V A (ext V B c)" using ext_functorial
+  moreover have "ext V A c = ext V A (ext V B c)" using ext_functorial_trans
     by (metis B_leq_A C_le_B c_elem calculation(1) dom_c V_valid)
   moreover have "local_le V A a (ext V A (ext V B c))"
     by (metis calculation(3) calculation(4))
@@ -1348,19 +1356,19 @@ next
               e (ext V U a), 
               e (ext V U b)),
          e (ext V U c))"
-      by (metis (no_types, lifting) Prealgebra.valid_space U_def V_valid calculation(1) d_elem_is_open ext_functorial sup_ge1 sup_ge2 valid_prealgebra valid_union2) 
+      by (metis (no_types, lifting) Prealgebra.valid_space U_def V_valid calculation(1) d_elem_is_open ext_functorial_trans sup_ge1 sup_ge2 valid_prealgebra valid_union2) 
     moreover have "... = f \<cdot> U \<star> 
          (e (ext V U a),
           f \<cdot> U \<star> (
               e (ext V U b), 
               e (ext V U c)))" using local_assoc [where ?A=U]
-      by (smt (verit, best) "2"(1) "2"(2) "2"(3) OVA.valid_welldefined Prealgebra.valid_welldefined U_def V_valid d_elem_is_open d_ext e_ext ext_elem ext_functorial inf_sup_ord(3) inf_sup_ord(4) valid_union2)
+      by (smt (verit, best) "2"(1) "2"(2) "2"(3) OVA.valid_welldefined Prealgebra.valid_welldefined U_def V_valid d_elem_is_open d_ext e_ext ext_elem ext_functorial_trans inf_sup_ord(3) inf_sup_ord(4) valid_union2)
     moreover have "... = f \<cdot> U \<star> 
          (e (ext V U a),
           f \<cdot> U \<star> (
               e (ext V U (ext V (d b \<union> d c) b)), 
               e (ext V U (ext V (d b \<union> d c) c))))"
-      by (metis (no_types, lifting) "2"(1) "2"(2) "2"(3) U_def V_valid boolean_algebra_cancel.sup1 comb_is_element d_elem_is_open ext_functorial sup.cobounded1 sup.cobounded2 valid_domain_law)
+      by (metis (no_types, lifting) "2"(1) "2"(2) "2"(3) U_def V_valid boolean_algebra_cancel.sup1 comb_is_element d_elem_is_open ext_functorial_trans sup.cobounded1 sup.cobounded2 valid_domain_law)
     moreover have "... = f \<cdot> U \<star> 
          (e (ext V U a),
           e (ext V U (d b \<union> d c, f \<cdot> (d b \<union> d c) \<star> (
@@ -1378,4 +1386,68 @@ next
   qed
 qed
 
+(* [Lemma 2 (2/2), TMCVA] *)
+lemma local_assoc_units_imp_ext_comm:
+  fixes V :: "('A, 'a) OVA" and i :: "('A Open, 'a) Function"
+  and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
+  defines "comb' \<equiv> mul (ext_local V f)"
+  assumes V_valid : "valid V"
+  and f_valid : "Function.valid_map f" 
+  and f_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (f \<cdot> A)" 
+  and f_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (f \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
+  and f_cod : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.cod (f \<cdot> A) = ob V \<cdot> A" 
+  and units_valid : "Function.valid_map i \<and> Function.dom i = opens (space V)"
+  and units_el : "\<And>A. A \<in> opens (space V) \<Longrightarrow> i \<cdot> A \<in> el (ob V \<cdot> A)"
+  and local_assoc : "\<And>A a a' a''. A \<in> opens (space V) \<Longrightarrow> a \<in> el (ob V \<cdot> A)  \<Longrightarrow> a' \<in> el (ob V \<cdot> A) \<Longrightarrow> a'' \<in> el (ob V
+   \<cdot> A) \<Longrightarrow> f \<cdot> A \<star> (f \<cdot> A \<star> (a, a'), a'') = f \<cdot> A \<star> (a, f \<cdot> A \<star> (a', a''))"
+  and assoc : "\<And> a b c . a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> c \<in> elems V \<Longrightarrow> 
+  comb' (comb' a b) c = comb' a (comb' b c)"
+  and units : "\<And>A a. A \<in> opens (space V) \<Longrightarrow> a \<in> el (ob V \<cdot> A) \<Longrightarrow> f \<cdot> A \<star> (i \<cdot> A, a) = a \<and> f \<cdot> A \<star> (a, i \<cdot> A) = a "
+shows local_ext_comm : "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
+  b \<in> el (ob V \<cdot> B) \<Longrightarrow> b' \<in> el (ob V \<cdot> B)
+  \<Longrightarrow> e (ext V A (B, (f \<cdot> B) \<star> (b, b'))) = (f \<cdot> A) \<star> (e (ext V A (B, b)), e (ext V A (B, b')))"
+proof -
+  fix A B b b'
+  assume B_open: "B \<in> opens (space V)"
+  assume A_open : "A \<in> opens (space V)"
+  assume B_le_A : "B \<subseteq> A"
+  assume b_el : "b \<in> el (ob V \<cdot> B)" 
+  assume b'_el :"b' \<in> el (ob V \<cdot> B)"
+
+  have lem : "\<forall> b \<in> el (ob V \<cdot> B) . comb' (B, b) (A, i \<cdot> A) = ext V A (B, b)" 
+  proof 
+    fix b
+    assume "b \<in> el (ob V \<cdot> B)" 
+    have "comb' (B, b) (A, i \<cdot> A) = (A, f \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A (A, i \<cdot> A))))" using assms
+      by (smt (verit, del_insts) \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>b \<in> el (OVA.ob V \<cdot> B)\<close> d_ext_local e_ext_local fst_conv global_inclusion_element prod.expand snd_conv sup.absorb_iff2) 
+    moreover have "... =  (A, f \<cdot> A \<star> (e (ext V A (B, b)), i \<cdot> A))" 
+      using ext_functorial_id V_valid \<open>A \<in> opens (OVA.space V)\<close> global_inclusion_element units_el by fastforce 
+    moreover have "... = ext V A (B, b)"
+      by (metis V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>b \<in> el (OVA.ob V \<cdot> B)\<close> d_ext e_ext fst_conv global_inclusion_element prod.collapse units) 
+    ultimately show "comb' (B, b) (A, i \<cdot> A) = ext V A (B, b)"
+      by presburger
+  qed
+  moreover have "(b, b') \<in> el (Poset.dom (f \<cdot> B))" using product_def
+    by (metis (no_types, lifting) B_open Poset.Poset.select_convs(1) SigmaI assms(5) b'_el b_el) 
+  moreover have "(f \<cdot> B) \<star> (b, b') \<in> el (ob V \<cdot> B)" using f_cod [where ?A=B] f_dom [where ?A=B] b_el
+      b'_el B_open
+    by (metis Poset.fun_app Poset.valid_map_cod calculation(2) f_valid_val) 
+
+  moreover have "ext V A (B, (f \<cdot> B) \<star> (b, b')) = comb' (B, (f \<cdot> B) \<star> (b, b')) (A, i \<cdot> A)" using lem
+    by (simp add: calculation(3))
+  moreover have "... = comb' (comb' (B, b) (B, b')) (A, i \<cdot> A)"
+    by (smt (verit) B_open V_valid b'_el b_el comb'_def d_ext_local e_ext_local ext_functorial_id fst_conv global_inclusion_element prod.collapse snd_conv subset_refl sup.orderE) 
+  moreover have "... = comb' (comb' (B, b) (A, i \<cdot> A)) (B, b')"
+    by (smt (verit) A_open B_le_A B_open V_valid assoc b'_el b_el comb'_def d_ext_local e_ext e_ext_local ext_functorial_id fst_conv global_inclusion_element lem prod.collapse subset_Un_eq sup.orderE units_el) 
+  moreover have "... = comb' (comb' (B, b) (A, i \<cdot> A)) (comb' (B, b') (A, i \<cdot> A))"
+    by (smt (z3) A_open B_le_A B_open V_valid b'_el b_el comb'_def d_ext_local e_ext e_ext_local ext_functorial_id fst_conv global_inclusion_element lem prod.collapse subset_Un_eq subset_refl sup.orderE units_el) 
+  moreover have "... = comb' (ext V A (B, b)) (ext V A (B, b'))"
+    using b'_el b_el lem by auto
+  moreover have "... = (A, (f \<cdot> A) \<star> (e (ext V A (B, b)), e (ext V A (B, b'))))"
+    by (smt (z3) A_open B_le_A B_open V_valid b'_el b_el calculation(3) calculation(4) calculation(5) calculation(6) calculation(7) calculation(8) comb'_def d_ext d_ext_local e_ext_local eq_fst_iff ext_elem ext_functorial_id global_inclusion_element prod.exhaust_sel) 
+
+  ultimately show "e (ext V A (B, (f \<cdot> B) \<star> (b, b'))) = (f \<cdot> A) \<star> (e (ext V A (B, b)), e (ext V A
+    (B, b')))"
+    by (metis snd_conv) 
+qed
 end

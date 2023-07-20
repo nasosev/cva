@@ -26,7 +26,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 - [x] Remark 2 (res_functorial, stability)
 - [x] Remark 3 (local_mono_eq_global, id_le_res, laxity)
-- [x] Theorem 1 (res_ext_adjunction, ext_functorial)
+- [x] Theorem 1 (res_ext_adjunction, ext_functorial_id, ext_functorial-trans)
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
 - [x] Corollary 3 (locally_complete_imp_complete)
@@ -37,13 +37,15 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Proposition 2 (comparitor)
 - [x] Proposition 3 (hoare_concurrency_rule)
 
-### Section 3 - Tuple systems: Tuple.thy
+### Section 3 - Tuple systems
+
+#### Tuple systems: Tuple.thy
 
 - [x] Theorem 2 (rel_ova_valid, rel_ova_commutative, rel_ova_strongly_neutral, rel_ova_tuple_system)
 - [x] Lemma 1 (valid_lists, valid_ne_lists)
 - [x] Proposition 4 (rel_ext_preimage)
-- [x] Proposition 5 (rel_comb_is_int_ext, rel_ova_is_complete, rel_comb_is_meet)
-- [ ] Lemma 2 ()
+- [x] Proposition 5 (rel_comb_is_int_ext, rel_ova_is_complete, rel_comb_is_meet) (Note: this is now in OVA.thy)
+- [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm) (Note: this is now in OVA.thy)
 - [ ] Lemma 3 ()
 - [ ] Lemma 4 ()
 
