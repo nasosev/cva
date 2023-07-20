@@ -12,6 +12,12 @@ record ('A, 'a) CVA =
 abbreviation prealgebra :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Prealgebra" where
 "prealgebra V \<equiv> OVA.prealgebra (par_algebra V)"
 
+abbreviation ob :: "('A, 'a) CVA \<Rightarrow> ('A Open, 'a Poset) Function" where
+"ob V \<equiv> OVA.ob (par_algebra V)"
+
+abbreviation ar :: "('A, 'a) CVA \<Rightarrow> ('A Inclusion, ('a, 'a) PosetMap) Function" where
+"ar V \<equiv> OVA.ar (par_algebra V)"
+
 abbreviation elems :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation set" where
 "elems V \<equiv> OVA.elems (par_algebra V)"
 
@@ -170,7 +176,7 @@ lemma valid_comm : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> 
 
 (* Paper results *)
 
-(* [Proposition 1 (1/3), CVA] *)
+(* [Proposition 1 (1/3), TMCVA] *)
 proposition epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
@@ -230,7 +236,7 @@ proof -
     by metis
 qed
 
-(* [Proposition 1 (2/3), CVA] *)
+(* [Proposition 1 (2/3), TMCVA] *)
 proposition delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
@@ -245,7 +251,7 @@ proof -
     by (metis A_open CVA.valid_welldefined V_valid \<delta>A_def comb_is_element neutral_is_element valid_antisymmetry valid_elems valid_poset valid_semigroup)
 qed
 
-(* [Proposition 1 (3/3), CVA] *)
+(* [Proposition 1 (3/3), TMCVA] *)
 proposition epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
@@ -260,7 +266,7 @@ proof -
     by (metis A_open CVA.valid_welldefined V_valid \<epsilon>A_def comb_is_element neutral_is_element valid_antisymmetry valid_elems valid_poset valid_semigroup)
 qed
 
-(* [Proposition 2, CVA] *)
+(* [Proposition 2, TMCVA] *)
 proposition comparitor :
   fixes V :: "('A, 'a) CVA" and a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -422,7 +428,7 @@ next
   qed
 qed
 
-(* [Proposition 3, CVA] *)
+(* [Proposition 3, TMCVA] *)
 proposition hoare_concurrency_rule  :
   fixes V :: "('A, 'a) CVA" and p p' a a' q q' :: "('A,'a) Valuation"
   assumes V_valid : "valid V"

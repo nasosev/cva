@@ -8,7 +8,7 @@ begin
 
 record ('A, 'a) Prealgebra =
   space :: "'A Space"
-  ob :: "('A Open, 'a Poset) Function "
+  ob :: "('A Open, 'a Poset) Function"
   ar :: "('A Inclusion, ('a, 'a) PosetMap) Function"
 
 definition valid :: "('A, 'a) Prealgebra \<Rightarrow> bool" where

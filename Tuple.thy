@@ -1218,7 +1218,7 @@ proof (standard, goal_cases)
     qed
   qed
 
-(* [Theorem 2 (1/4), CVA] *)
+(* [Theorem 2 (1/4), TMCVA] *)
 theorem rel_ova_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"   
@@ -1271,14 +1271,14 @@ shows "(a,b) \<in> le_rel (poset R)
   using le_eq [where ?V=R and ?a=a and ?b=b]  R_def T_valid a_el b_el rel_ova_valid
   by (smt (verit, ccfv_SIG) OVA.select_convs(1) OVA.select_convs(3) comp_apply d_elem_is_open powerset_le rel_el_subset rel_ova_def rel_semigroup_cod rel_space relation_as_value relation_le_is_subseteq relation_ob_value subset_trans)
 
-(* [Theorem 2 (2/4), CVA] *)
+(* [Theorem 2 (2/4), TMCVA] *)
 theorem rel_ova_commutative :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "is_commutative (rel_ova T)"
   by (simp add: assms is_commutative_def rel_semigroup_cod rel_semigroup_mult_comm rel_ova_def)
 
-(* [Theorem 2 (3/4), CVA] *)
+(* [Theorem 2 (3/4), TMCVA] *)
 theorem rel_ova_strongly_neutral :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -1361,7 +1361,7 @@ lemma rel_idempotent_left :
   shows "OVA.comb R (OVA.res R B a) a = a"
   by (metis B_elem B_le_A OVA.select_convs(1) OVA.select_convs(3) R_def T_valid a_el rel_idempotent rel_ova_valid rel_res_el rel_semigroup_mult_comm rel_space valid_gc_poset rel_ova_def)
 
-(* [Theorem 2 (4/4), CVA] *)
+(* [Theorem 2 (4/4), TMCVA] *)
 theorem rel_ova_tuple_system :
   fixes T :: "('A, 'x) TupleSystem"
   defines "R \<equiv> rel_ova T"
@@ -1384,7 +1384,7 @@ next
     by (metis (no_types, lifting) Int_lower2 OVA.select_convs(1) R_def Tuple.valid_space assms(4) comb_is_element comb_law_left inf_le1 rel_el_open rel_idempotent rel_idempotent_left rel_ova_valid valid_comb_law_right valid_domain_law valid_inter valid_relation_space rel_ova_def)    fix a b
 qed
 
-(* [Proposition 4, CVA] *)
+(* [Proposition 4, TMCVA] *)
 proposition rel_ext_preimage : 
   fixes T :: "('A, 'x) TupleSystem" and A :: "'A Open" and b :: "('A, 'x) Relation"
   defines "R \<equiv> rel_ova T"
@@ -1636,7 +1636,7 @@ proof -
     by metis
 qed
 
-(* [Lemma 1 (1/2), CVA] *)
+(* [Lemma 1 (1/2), TMCVA] *)
 lemma valid_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -1867,7 +1867,7 @@ proof -
     by metis
 qed
 
-(* [Lemma 1 (2/2), CVA] *)
+(* [Lemma 1 (2/2), TMCVA] *)
 lemma valid_ne_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -1886,18 +1886,8 @@ next
     by (simp add: assms ne_lists_binary_gluing ne_lists_space) 
 qed     
 
-(* Extension of local operators *)
 
-definition ext_local :: "('A, 'a) OVA \<Rightarrow> ('A Open, ('a \<times> 'a,'a) PosetMap) Function 
-  \<Rightarrow> (('A, 'a) Valuation) Semigroup" where
-"ext_local V f = \<lparr> mult =
-  \<lparr> PosetMap.dom = OVA.poset V \<times>\<times> OVA.poset V, 
-    cod = OVA.poset V,
-    func = { ((a, b), (d a \<union> d b, (f \<cdot> (d a \<union> d b)) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b))))
-            |a b . (a,b) \<in> el (OVA.poset V \<times>\<times> OVA.poset V) } \<rparr>\<rparr>" 
-
-
-(* [Proposition 5 (1/3), CVA] *)
+(* [Proposition 5 (1/3), TMCVA] *)
 proposition rel_comb_is_int_ext :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -2073,7 +2063,7 @@ proof -
     by presburger
 qed
 
-(* [Proposition 5 (2/3), CVA] *)
+(* [Proposition 5 (2/3), TMCVA] *)
 proposition rel_ova_is_complete :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -2138,7 +2128,7 @@ lemma rel_comb_le2 :
 shows "le R (comb R a b) b"
   by (metis R_def T_valid a_el b_el is_commutative_def rel_comb_le1 rel_ova_commutative)
 
-(* [Proposition 5 (3/3), CVA] *)
+(* [Proposition 5 (3/3), TMCVA] *)
 proposition rel_comb_is_meet :
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
   defines "R \<equiv> rel_ova T" 
@@ -2252,5 +2242,6 @@ next
   then show ?case
     by (metis R_def T_valid a_el b_el comp_apply rel_comb_el) 
 qed
+
 
 end

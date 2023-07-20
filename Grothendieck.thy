@@ -113,6 +113,7 @@ qed
 
 (* Main result *) 
 
+(* [Definition 1, TMCVA] *)
 proposition valid_gc:  
   fixes F :: "('A, 'a) Prealgebra"
   assumes valid_F : "valid F"
