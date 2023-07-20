@@ -787,40 +787,27 @@ qed
 
 (* [Remark 3 (3/3), TMCVA] *)
 lemma laxity :
-  fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and a a' :: "('A, 'a) Valuation"
+  fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a a' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and  A_open : "A \<in> opens (space V)" and B_open :"B \<in> opens (space V)"  and B_le_A : "B \<subseteq> A"
-  and  a_el : "a \<in> elems V" and a_dom : "d a = A"
-  and a'_elem :  "a' \<in> elems V" and a_dom' : "d a' = A"
+  and B_open :"B \<in> opens (space V)"  and B_le_A : "B \<subseteq> d a"
+  and  a_el : "a \<in> elems V" and a_a'_dom : "d a' = d a"
+  and a'_elem :  "a' \<in> elems V"
 shows "local_le V B (res V B (comb V a a')) (comb V (res V B a) (res V B a'))"
 proof -
    define "m1" where "m1 = comb V a a'"
    define "m2" where "m2 = comb V (res V B a) (res V B a')"
    define "m1_B" where "m1_B = res V B m1"
    have "le V a (res V B a)"
-     using A_open B_le_A B_open a_el a_dom  id_le_res  V_valid by blast
+     using B_le_A B_open V_valid a_el id_le_res by blast
    moreover have "le V a' (res V B a')"
-     using A_open B_le_A B_open a'_elem a_dom' id_le_res V_valid by blast
+     by (metis B_le_A B_open V_valid a'_elem a_a'_dom id_le_res)
    moreover have global_le : "le V m1 m2"
-     by (smt (verit) B_le_A B_open V_valid a'_elem a_dom a_dom' a_el calculation(1) calculation(2) res_elem m1_def m2_def valid_comb_monotone)
-   moreover have d_m1 : "d m1 = A"
-     using V_valid a'_elem a_dom a_dom' a_el m1_def by auto 
-   moreover have d_m1_B : "d m1_B = B"
-     using B_le_A B_open V_valid a'_elem a_el comb_is_element d_res d_m1 m1_B_def m1_def by blast
-   moreover have d_m2 : "d m2 = B"
-     by (metis (no_types, lifting) B_le_A B_open Orderings.order_eq_iff Un_absorb2 V_valid a'_elem a_dom a_dom' a_el d_res res_elem m2_def valid_domain_law) 
-   moreover have pm1_el : "m1_B \<in> elems V"
-     using B_le_A B_open V_valid a'_elem a_el comb_is_element d_m1 res_elem m1_B_def m1_def by blast
-   moreover have m2_el : "m2 \<in> elems V"
-     by (metis B_le_A B_open V_valid a'_elem a_dom a_dom' a_el comb_is_element res_elem m2_def)
-   moreover have "valid V" by fact
-   moreover have m1_el : "m1 \<in> elems V"
-     using V_valid a'_elem a_el comb_is_element m1_def by blast
-   moreover have "local_le V B m1_B m2" using V_valid A_open B_open m1_el m2_el d_m1 d_m2 m1_B_def  global_le valid_le
+     by (smt (verit) B_le_A B_open V_valid a'_elem a_a'_dom a_el calculation(1) calculation(2) m1_def m2_def res_elem valid_comb_monotone)
+    moreover have "local_le V B m1_B m2" using V_valid  B_open   global_le valid_le
        [where ?V = V and ?a = m1 and ?b = m2]
-     by fastforce
+      by (smt (z3) B_le_A a'_elem a_a'_dom a_el comb_is_element d_neut d_res m1_B_def m1_def m2_def neutral_is_element res_elem valid_domain_law valid_neutral_law_right)
   ultimately show ?thesis
-    using m1_B_def m1_def m2_def by auto
+    using m1_B_def m1_def m2_def by force
 qed
 
 (* [Corollary 1 (1/2), TMCVA] *)
@@ -1450,4 +1437,16 @@ proof -
     (B, b')))"
     by (metis snd_conv) 
 qed
+
+(* Todo: unknown if this is true *)
+lemma laxity2 :
+  fixes V :: "('A,'a) OVA" and B B' :: "'A Open"  and a a' :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and B_open :"B \<in> opens (space V)"  and B_le_A : "B \<subseteq> d a"
+  and B_open :"B' \<in> opens (space V)"  and B'_le_A' : "B' \<subseteq> d a'"
+  and a_el : "a \<in> elems V"
+  and a'_elem :  "a' \<in> elems V"
+shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))"
+  oops
+
 end
