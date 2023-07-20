@@ -1283,7 +1283,7 @@ lemma local_ext_comm_imp_assoc:
   and f_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (f \<cdot> A)" 
   and f_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (f \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
   and f_cod : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.cod (f \<cdot> A) = ob V \<cdot> A" 
-  and local_assoc : "\<And>A. A \<in> opens (space V) \<Longrightarrow> a \<in> el (ob V \<cdot> A)  \<Longrightarrow> a' \<in> el (ob V \<cdot> A) \<Longrightarrow> a'' \<in> el (ob V
+  and local_assoc : "\<And>A a a' a''. A \<in> opens (space V) \<Longrightarrow> a \<in> el (ob V \<cdot> A)  \<Longrightarrow> a' \<in> el (ob V \<cdot> A) \<Longrightarrow> a'' \<in> el (ob V
    \<cdot> A) \<Longrightarrow> f \<cdot> A \<star> (f \<cdot> A \<star> (a, a'), a'') = f \<cdot> A \<star> (a, f \<cdot> A \<star> (a', a''))"
   and local_ext_comm : "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
   b \<in> el (ob V \<cdot> B) \<Longrightarrow> b' \<in> el (ob V \<cdot> B)
@@ -1322,12 +1322,6 @@ next
       using "2"(2) "2"(3) comb'_def d_ext_local by blast 
     moreover have "comb' b c \<in> elems V" using ext_local_el [where ?V=V and ?a=b and ?b=c]
       using "2"(2) "2"(3) V_valid comb'_def f_cod f_dom f_valid f_valid_val by blast 
-    moreover have 11: "d a \<union> d b \<in> opens (OVA.space V)"
-      by (metis V_valid calculation(2) calculation(3) d_elem_is_open) 
-    moreover have 22: "e (ext V (d a \<union> d b) a) \<in> el (OVA.ob V \<cdot> (d a \<union> d b))"
-      by (meson "2"(1) V_valid calculation(6) e_ext sup_ge1) 
-    moreover have 33: "e (ext V (d a \<union> d b) b) \<in> el (OVA.ob V \<cdot> (d a \<union> d b))"
-      by (meson "2"(2) V_valid calculation(6) e_ext sup_ge2) 
 
     moreover have "e (comb' (comb' a b) c) = f \<cdot> U \<star> (
         e (ext V U (comb' a b)),
@@ -1347,8 +1341,41 @@ next
               e (ext V U (ext V (d a \<union> d b) a)), 
               e (ext V U (ext V (d a \<union> d b) b))),
          e (ext V U c))" using local_ext_comm [where ?B="d a \<union> d b" and ?b="e (ext V (d a \<union> d b) a)"
-      and ?b'="e (ext V (d a \<union> d b) b)"] 11 22 33 
-
-qed 
+      and ?b'="e (ext V (d a \<union> d b) b)"]
+      by (smt (verit, ccfv_threshold) "2"(1) "2"(2) "2"(3) U_def V_valid comb_is_element d_elem_is_open d_ext e_ext inf_sup_aci(5) prod.exhaust_sel sup.cobounded2 valid_domain_law) 
+    moreover have "... = f \<cdot> U \<star> 
+          (f \<cdot> U \<star> (
+              e (ext V U a), 
+              e (ext V U b)),
+         e (ext V U c))"
+      by (metis (no_types, lifting) Prealgebra.valid_space U_def V_valid calculation(1) d_elem_is_open ext_functorial sup_ge1 sup_ge2 valid_prealgebra valid_union2) 
+    moreover have "... = f \<cdot> U \<star> 
+         (e (ext V U a),
+          f \<cdot> U \<star> (
+              e (ext V U b), 
+              e (ext V U c)))" using local_assoc [where ?A=U]
+      by (smt (verit, best) "2"(1) "2"(2) "2"(3) OVA.valid_welldefined Prealgebra.valid_welldefined U_def V_valid d_elem_is_open d_ext e_ext ext_elem ext_functorial inf_sup_ord(3) inf_sup_ord(4) valid_union2)
+    moreover have "... = f \<cdot> U \<star> 
+         (e (ext V U a),
+          f \<cdot> U \<star> (
+              e (ext V U (ext V (d b \<union> d c) b)), 
+              e (ext V U (ext V (d b \<union> d c) c))))"
+      by (metis (no_types, lifting) "2"(1) "2"(2) "2"(3) U_def V_valid boolean_algebra_cancel.sup1 comb_is_element d_elem_is_open ext_functorial sup.cobounded1 sup.cobounded2 valid_domain_law)
+    moreover have "... = f \<cdot> U \<star> 
+         (e (ext V U a),
+          e (ext V U (d b \<union> d c, f \<cdot> (d b \<union> d c) \<star> (
+              e (ext V (d b \<union> d c) b), 
+              e (ext V (d b \<union> d c) c)))))"
+      by (smt (verit, del_insts) "2"(2) "2"(3) Prealgebra.valid_space U_def V_valid calculation(2) calculation(3) d_elem_is_open d_ext e_ext local_ext_comm prod.collapse sup_assoc sup_commute sup_ge1 valid_prealgebra valid_union2) 
+    moreover have "... = f \<cdot> U \<star> 
+         (e (ext V U a),
+          e (ext V U (comb' b c)))"
+          by (metis "2"(2) "2"(3) calculation(4) comb'_def e_ext_local prod.exhaust_sel)
+    moreover have "... = e (comb' a (comb' b c))"
+      by (metis (no_types, lifting) U_def calculation(1) calculation(4) calculation(5) comb'_def e_ext_local sup_assoc)
+    ultimately show ?thesis
+      by presburger
+  qed
+qed
 
 end
