@@ -1599,10 +1599,15 @@ proof -
   define "B2" where "B2 = d b2"
   define "pr" where "pr = res V"
   define "ex" where "ex = ext V"
+  define "a1'" where "a1' = ex (A1 \<union> A2) a1"
+  define "a2'" where "a2' = ex (A1 \<union> A2) a2"
 
   have "B1 \<subseteq> A1 \<and> B2 \<subseteq> A2" using A1_def A2_def B1_def B2_def a1_le_b1 a2_le_b2 a1_el a2_el b1_el
       b2_el
     using V_valid by blast 
+
+  moreover have "B1 \<union> B2 \<in> opens (space V) \<and> A1 \<union> A2 \<in> opens (space V)"
+    by (metis A1_def A2_def B1_def B2_def Prealgebra.valid_space V_valid a1_el a2_el b1_el b2_el d_elem_is_open valid_prealgebra valid_union2) 
 
   moreover have "local_le V B1 (pr B1 a1) b1" using A1_def B1_def a1_le_b1 a1_el b1_el
       le_dest_res [where ?V=V and ?a=a1 and ?b=b1]
@@ -1613,35 +1618,41 @@ proof -
     using V_valid pr_def by fastforce
 
   moreover have "pr (B1 \<union> B2) (comb' a1 a2) =
-    pr (B1 \<union> B2) (A1 \<union> A2, (f \<cdot> (A1 \<union> A2) \<star> (e (ex (A1 \<union> A2) a1), e (ex (A1 \<union> A2) a2))))"
-    by (smt (verit, del_insts) A1_def A2_def a1_el a2_el comb'_def d_ext_local e_ext_local ex_def prod.collapse) 
+    pr (B1 \<union> B2) (A1 \<union> A2, (f \<cdot> (A1 \<union> A2) \<star> (e a1', e a2')))"
+    by (smt (verit, del_insts) A1_def A2_def a1_el a2_el a1'_def a2'_def comb'_def d_ext_local e_ext_local ex_def prod.collapse) 
+
+  moreover have a1'_local_el : "a1' \<in> local_elems V (A1 \<union> A2)"
+    by (smt (verit) A1_def A2_def CollectI Prealgebra.valid_space V_valid a1'_def a1_el a2_el d_elem_is_open d_ext e_ext ex_def prod.collapse sup_ge1 valid_prealgebra valid_union2)
+  
+  moreover have a2'_local_el : "a2' \<in> local_elems V (A1 \<union> A2)"
+    by (smt (verit, ccfv_threshold) A1_def A2_def Prealgebra.valid_space V_valid a1_el a2'_def a2_el d_elem_is_open d_ext e_ext ex_def inf_sup_aci(5) mem_Collect_eq prod.collapse sup_ge1 valid_prealgebra valid_union2) 
 
   moreover have "local_le V (B1 \<union> B2)
-    (pr (B1 \<union> B2) (A1 \<union> A2, (f \<cdot> (A1 \<union> A2) \<star> (e (ex (A1 \<union> A2) a1), e (ex (A1 \<union> A2) a2)))))
-    (B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (pr (B1 \<union> B2) (ex (A1 \<union> A2) a1)), e (pr (B1 \<union> B2) (ex (A1 \<union> A2)
-    a2))))" 
-    using local_mono_ext_comm_imp_laxity [where ?V=V and ?f=f] 
-      assms A1_def A2_def B1_def B2_def pr_def ex_def  calculation
+    (pr (B1 \<union> B2) (A1 \<union> A2, (f \<cdot> (A1 \<union> A2) \<star> (e a1', e a2'))))
+    (B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (pr (B1 \<union> B2) a1'), e (pr (B1 \<union> B2) a2')))" 
+    using local_mono_ext_comm_imp_laxity [where ?V=V and ?f=f and ?B="B1 \<union> B2" and ?A="A1 \<union> A2" and a=a1' and a'=a2']   a1'_def a2'_def A1_def A2_def B1_def B2_def a1_le_b1 a2_le_b2 a1_el a2_el b1_el pr_def ex_def
+      assms calculation le_sup_iff subsetI subset_antisym sup_ge1 sup.mono
+    apply clarsimp
+    by (smt (verit) le_supI1 le_supI2 snd_conv)
+
+  moreover have 1: "local_le V (B1 \<union> B2) (pr (B1 \<union> B2) a1') (ex (B1 \<union> B2) (pr B1 a1))" 
+    using B1_def B2_def a1'_def pr_def ex_def up_down_le_down_up [where ?V=V and ?A="A1 \<union> A2" and B'="B1 \<union> B2" and ?C=B1 and ?b=a1]
+    by (metis A1_def V_valid a1_el b1_el calculation(1) calculation(2) d_elem_is_open sup.mono sup_ge1)
+
+  moreover have 2: "local_le V (B1 \<union> B2) (pr (B1 \<union> B2) a2') (ex (B1 \<union> B2) (pr B2 a2))" 
+    using B1_def B2_def a2'_def pr_def ex_def up_down_le_down_up [where ?V=V and ?A="A1 \<union> A2" and B'="B1 \<union> B2" and ?C=B2 and ?b=a2]
+    by (metis A2_def V_valid a2_el b2_el calculation(1) calculation(2) d_elem_is_open sup.mono sup_ge2)
+
+  moreover have "pr (B1 \<union> B2) a1' \<in> local_elems V (B1 \<union> B2)"  using assms calculation pr_def ex_def
+      a1'_def
+
+  moreover have "local_le V (B1 \<union> B2)
+    (B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (pr (B1 \<union> B2) a1'), e (pr (B1 \<union> B2) a2')))
+    (B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (ex (B1 \<union> B2) (pr B1 a1)), e (ex (B1 \<union> B2) (pr B2 a1))))" 
+    using 1 2 local_mono [where ?A="B1 \<union> B2" and ?a1.0="pr (B1 \<union> B2) a1'" and ?a1'="ex (B1 \<union> B2) (pr B1 a1)"
+ and ?a2.0="pr (B1 \<union> B2) a2'" and ?a2'="ex (B1 \<union> B2) (pr B2 a2)"] 
 
   show "le V (comb' a1 a2) (comb' b1 b2)"
-
-(*(* [Lemma 3 (1/3), TMCVA] *)
-lemma local_mono_ext_comm_imp_laxity:
-  fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
-  assumes V_valid : "valid V"
-  and f_valid : "Function.valid_map f" 
-  and f_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (f \<cdot> A)" 
-  and f_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (f \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
-  and f_cod : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.cod (f \<cdot> A) = ob V \<cdot> A" 
-  and local_mono : "\<And>A a1 a1' a2 a2'. A \<in> opens (space V) \<Longrightarrow> a1 \<in> local_elems V A \<Longrightarrow> a1' \<in> local_elems V A
- \<Longrightarrow> a2 \<in> local_elems V A \<Longrightarrow> a2' \<in> local_elems V A
- \<Longrightarrow> local_le V A a1 a1' \<Longrightarrow> local_le V A a2 a2' \<Longrightarrow> local_le V A (A, (f \<cdot> A \<star> (e a1, e a2))) (A, (f \<cdot> A \<star> (e a1', e a2')))"
-  and local_ext_comm : "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
-  b \<in> local_elems V B \<Longrightarrow> b' \<in> local_elems V B
-  \<Longrightarrow> ext V A (B, f \<cdot> B \<star> (e b, e b')) = (A, f \<cdot> A \<star> (e (ext V A b), e (ext V A b')))"
-shows "\<And>A B a a'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
-  a \<in> local_elems V A \<Longrightarrow> a' \<in> local_elems V A
-\<Longrightarrow> local_le V B (res V B (A, f \<cdot> A \<star> (e a, e a'))) (B, (f \<cdot> B \<star> (e (res V B a), e (res V B a'))))"*)
 
 (* Todo: unknown if this is true *)
 lemma laxity2 :
