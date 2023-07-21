@@ -1497,6 +1497,37 @@ shows "\<And>A B a a'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (
   a \<in> el (ob V \<cdot> A) \<Longrightarrow> a' \<in> el (ob V \<cdot> A) 
 \<Longrightarrow> Poset.le (ob V \<cdot> B) (e (res V B (A, (f \<cdot> A) \<star> (a, a')))) ((f \<cdot> A) \<star> (e (res V B (A, a)), e (res V B (A, a'))))"
 proof -
+  fix A B a a'
+  assume "B \<in> opens (space V)"
+  assume "A \<in> opens (space V)"
+  assume "B \<subseteq> A"
+  assume "a \<in> el (ob V \<cdot> A)"
+  assume "a'\<in> el (ob V \<cdot> A)"
+
+  have "Poset.le (ob V \<cdot> A) 
+      a 
+      (e (ext V A (res V B (A, a))))" 
+    using galois_closure_extensive [where ?V=V]
+    by (metis (no_types, lifting) V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>a \<in> el (OVA.ob V \<cdot> A)\<close> d_ext d_res fst_conv global_inclusion_element res_elem snd_conv)
+  moreover have "Poset.le (ob V \<cdot> A) 
+      a' 
+      (e (ext V A (res V B (A, a'))))" 
+    using galois_closure_extensive [where ?V=V]
+    by (metis (no_types, lifting) V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>a' \<in> el (OVA.ob V \<cdot> A)\<close> d_ext d_res fst_conv global_inclusion_element res_elem snd_conv)
+
+  moreover have "Poset.le (ob V \<cdot> A) 
+      ((f \<cdot> A) \<star> (a, a')) 
+      ((f \<cdot> A) \<star> ((e (ext V A (res V B (A, a)))), (e (ext V A (res V B (A, a'))))))"
+    by (smt (verit) V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>a \<in> el (OVA.ob V \<cdot> A)\<close> \<open>a' \<in> el (OVA.ob V \<cdot> A)\<close> calculation(1) calculation(2) d_res e_ext fst_conv global_inclusion_element local_mono res_elem)
+
+  moreover have "Poset.le (ob V \<cdot> A) 
+      ((f \<cdot> A) \<star> (a, a')) 
+      ((f \<cdot> A) \<star> ((e (ext V A (res V B (A, a)))), (e (ext V A (res V B (A, a'))))))"
+    by (smt (verit) V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>a \<in> el (OVA.ob V \<cdot> A)\<close> \<open>a' \<in> el (OVA.ob V \<cdot> A)\<close> calculation(1) calculation(2) d_res e_ext fst_conv global_inclusion_element local_mono res_elem)
+
+  
+
+  show "Poset.le (ob V \<cdot> B) (e (res V B (A, (f \<cdot> A) \<star> (a, a')))) ((f \<cdot> A) \<star> (e (res V B (A, a)), e (res V B (A, a'))))"
   oops
 
 (* Todo: unknown if this is true *)
@@ -1507,7 +1538,7 @@ lemma laxity2 :
   and B_open :"B' \<in> opens (space V)"  and B'_le_A' : "B' \<subseteq> d a'"
   and a_el : "a \<in> elems V"
   and a'_elem :  "a' \<in> elems V"
-shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))"
+shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" try
   oops
 
 end
