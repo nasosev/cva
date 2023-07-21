@@ -2190,7 +2190,7 @@ next
         using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] rel_res_e [where ?T=T and ?a="res R (d a \<union> d b) c" and ?B="d a"]
         by (smt (z3) "1" "2" Collect_cong R_def a_el mem_Collect_eq rel_el_open rel_res_d rel_res_el sup_ge1)
       moreover have "e (res R (d a) (res R (d a \<union> d b) c)) = e (res R (d a) c)"
-        by (metis "1" "2" R_def a_el d_elem_is_open dual_order.eq_iff le_supI1 rel_ova_valid rel_space res_functorial)
+        by (metis "1" "2" R_def a_el d_elem_is_open dual_order.eq_iff le_supI1 rel_ova_valid rel_space res_functorial_trans)
      moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e (res R (d a) c)"
        using calculation(3) calculation(5) calculation(6) by blast 
      moreover have res_t_in_a : "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a"
@@ -2210,7 +2210,7 @@ next
         using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] rel_res_e [where ?T=T and ?a="res R (d a \<union> d b) c" and ?B="d b"]
         by (smt (z3) "1" "2" Collect_cong P_def R_def \<open>b \<in> el P\<close> comp_apply d_elem_is_open le_sup_iff mem_Collect_eq rel_ova_valid rel_res_d rel_res_el rel_space subsetI)
       moreover have "e (res R (d b) (res R (d a \<union> d b) c)) = e (res R (d b) c)"
-        by (metis "1" "2" R_def Un_upper2 b_el d_elem_is_open rel_ova_valid rel_space res_functorial)
+        by (metis "1" "2" R_def Un_upper2 b_el d_elem_is_open rel_ova_valid rel_space res_functorial_trans)
      moreover have "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e (res R (d b) c)"
        using b calculation(12) calculation(13) by blast
      moreover have res_t_in_b : "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b"

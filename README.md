@@ -24,7 +24,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 #### Ordered valution algebras (OVAs): OVA.thy
 
-- [x] Remark 2 (res_functorial, stability)
+- [x] Remark 2 (res_functorial_id, res_functorial_trans, stability)
 - [x] Remark 3 (local_mono_eq_global, id_le_res, laxity)
 - [x] Theorem 1 (res_ext_adjunction, ext_functorial_id, ext_functorial_trans)
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
