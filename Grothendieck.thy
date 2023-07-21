@@ -43,6 +43,12 @@ lemma gc_le_eq : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longri
   unfolding gc_def
   by fastforce
 
+lemma gc_le_eq2 : "valid F \<Longrightarrow> A \<in> opens(space F) \<Longrightarrow> B \<in> opens (space F) \<Longrightarrow> B \<subseteq> A \<Longrightarrow> 
+ a \<in> el (ob F \<cdot> A) \<Longrightarrow> b \<in> el (ob F \<cdot> B) \<Longrightarrow> 
+ Poset.le (gc F) (A, a) (B, b) = Poset.le (ob F \<cdot> B) ((ar F \<cdot> (make_inc B A)) \<star> a) b"
+  unfolding gc_def
+  by fastforce
+
 lemma gc_le_rel : "le_rel (gc F) = { ((A, a), (B, b)) .
  A \<in> opens (space F) \<and> B \<in> opens (space F) 
  \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
@@ -54,28 +60,32 @@ lemma gc_el : "el (gc F) = { (A, a) . A \<in> opens (space F) \<and> a \<in> Pos
   unfolding gc_def 
   by simp
 
-lemma local_dom : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F)
-\<Longrightarrow> d Aa \<in> opens (space F)"
+lemma local_dom : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> d Aa \<in> opens (space F)"
   by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
 
-lemma gc_elem_local : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> A = d Aa
-\<Longrightarrow> e Aa \<in> Poset.el (ob F \<cdot> (d Aa))"
+lemma gc_elem_local : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> A = d Aa 
+  \<Longrightarrow> e Aa \<in> Poset.el (ob F \<cdot> (d Aa))"
   by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
 
-lemma local_elem_gc : "valid F \<Longrightarrow> A \<in> opens (space F)
-\<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) \<Longrightarrow> (A, a) \<in> Poset.el (gc F)"
+lemma local_elem_gc : "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) 
+  \<Longrightarrow> (A, a) \<in> Poset.el (gc F)"
   unfolding gc_def
   by simp
 
 lemma d_antitone : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> Bb \<in> Poset.el (gc F) \<Longrightarrow>
-Poset.le (gc F) Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
+  Poset.le (gc F) Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
   unfolding gc_def
   by (smt (verit) Poset.Poset.select_convs(2) case_prod_conv case_prod_unfold mem_Collect_eq)
 
-lemma local_le : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> Aa' \<in> Poset.el (gc F) \<Longrightarrow>
-d Aa = d Aa' \<Longrightarrow> Poset.le (gc F) Aa Aa' \<Longrightarrow> Poset.le (ob F \<cdot> (d Aa)) (e Aa) (e Aa')"
-  unfolding gc_def
-  by (smt (z3) Poset.Poset.select_convs(2) Poset.ident_app valid_welldefined Product_Type.Collect_case_prodD Space.ident_def eq_fst_iff eq_snd_iff old.prod.case valid_identity)
+lemma le_eq_local_le : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> Aa' \<in> Poset.el (gc F) \<Longrightarrow>
+  d Aa = d Aa' \<Longrightarrow> Poset.le (gc F) Aa Aa' = Poset.le (ob F \<cdot> (d Aa)) (e Aa) (e Aa')" using gc_le_eq
+  [where ?F=F and ?a=Aa and ?b=Aa']
+  by (metis Poset.ident_app Prealgebra.valid_identity Space.ident_def gc_elem_local local_dom subset_refl valid_ob) 
+
+lemma local_le_eq_le : "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> a \<in> el (ob F \<cdot> A) \<Longrightarrow> a' \<in> el (ob F \<cdot> A)
+ \<Longrightarrow> Poset.le (ob F \<cdot> A) a a' = Poset.le (gc F) (A, a) (A, a')" using gc_le_eq
+  [where ?F=F and ?a="(A,a)" and ?b="(A,a')"]
+  by (metis fst_conv le_eq_local_le local_elem_gc snd_conv)
 
 lemma valid_gc_transitive :
   fixes F :: "('A,'a) Prealgebra" and A B C :: "'A Open" and a b c :: "'a"
@@ -149,7 +159,7 @@ next
   assume a3: "le (gc F) x y"
   assume a4: "le (gc F) y x "
   show "x = y" using gc_def  [where ?F = F] assms  a1 a2 a3 a4
-    by (smt (verit, del_insts) d_antitone gc_elem_local inf.absorb_iff2 le_boolE local_dom local_le prod.split_sel subset_antisym valid_antisymmetry valid_ob) 
+    by (smt (verit, del_insts) d_antitone gc_elem_local inf.absorb_iff2 le_boolE local_dom le_eq_local_le prod.split_sel subset_antisym valid_antisymmetry valid_ob) 
 next
   fix x y z
   assume a1: "x \<in> el (gc F)"
