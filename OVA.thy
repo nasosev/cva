@@ -1438,6 +1438,39 @@ proof -
     by (metis snd_conv) 
 qed
 
+lemma up_down_le_down_up : 
+  fixes V :: "('A, 'a) OVA" and A B B' C :: "'A Open" and b :: "('A, 'a) Valuation"
+  defines "B \<equiv> d b"
+  assumes V_valid : "valid V"
+  and C_le_B : "C \<subseteq> d b" and B_le_A : "d b \<subseteq> A" and C_le_B' : "C \<subseteq> B'" and B'_le_A : "B' \<subseteq> A"
+  and b_el : "b \<in> elems V"
+shows "local_le V B' (res V B' (ext V A b)) (ext V B' (res V C b))"
+proof -
+  have "B' = d (res V B' (ext V A b))" 
+    using d_res [where ?V=V and B=B' and ?a="ext V A b"] d_ext [where ?V=V and ?A=A and ?b=b] 
+ext_elem [where ?V=V and ?A=A and ?b=b] res_elem [where ?V=V and B=B' and ?a="ext V A b"] 
+
+(* [Lemma 3 (1/3), TMCVA] *)
+lemma local_mono_ext_comm_imp_laxity:
+  fixes V :: "('A, 'a) OVA" and i :: "('A Open, 'a) Function"
+  and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
+  defines "comb' \<equiv> mul (ext_local V f)"
+  assumes V_valid : "valid V"
+  and f_valid : "Function.valid_map f" 
+  and f_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (f \<cdot> A)" 
+  and f_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (f \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
+  and f_cod : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.cod (f \<cdot> A) = ob V \<cdot> A" 
+  and local_mono : "\<And>A a1 a1' a2 a2'. A \<in> opens (space V) \<Longrightarrow> a1 \<in> el (ob V \<cdot> A) \<Longrightarrow> a1' \<in> el (ob V \<cdot> A) \<Longrightarrow> a2 \<in> el (ob V \<cdot> A) \<Longrightarrow> a2' \<in> el (ob V \<cdot> A)
+ \<Longrightarrow> Poset.le (ob V \<cdot> A) a1 a1' \<Longrightarrow> Poset.le (ob V \<cdot> A) a2 a2' \<Longrightarrow> Poset.le (ob V \<cdot> A) ((f \<cdot> A) \<star> (a1, a2)) ((f \<cdot> A) \<star> (a1', a2')) "
+  and local_ext_comm : "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
+  b \<in> el (ob V \<cdot> B) \<Longrightarrow> b' \<in> el (ob V \<cdot> B)
+  \<Longrightarrow> e (ext V A (B, (f \<cdot> B) \<star> (b, b'))) = (f \<cdot> A) \<star> (e (ext V A (B, b)), e (ext V A (B, b')))"
+shows "\<And>A B a a'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
+  a \<in> el (ob V \<cdot> A) \<Longrightarrow> a' \<in> el (ob V \<cdot> A) 
+\<Longrightarrow> Poset.le (ob V \<cdot> B) (e (res V B (A, (f \<cdot> A) \<star> (a, a')))) ((f \<cdot> A) \<star> (e (res V B (A, a)), e (res V B (A, a'))))"
+proof -
+  oops
+
 (* Todo: unknown if this is true *)
 lemma laxity2 :
   fixes V :: "('A,'a) OVA" and B B' :: "'A Open"  and a a' :: "('A, 'a) Valuation"
