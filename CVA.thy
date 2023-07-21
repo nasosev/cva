@@ -144,7 +144,7 @@ proof -
     define "B" where "B = d b"
     define "pr" where "pr = res V"
     have "local_le V B (pr B (ex A b)) b"
-      by (metis A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le OVA.valid_welldefined V_valid b_elem ex_def galois_insertion pr_def valid_poset valid_reflexivity)
+      by (metis (no_types, lifting) A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le_eq_le V_valid b_elem d_elem_is_open elem_is_raw_elem ex_def galois_insertion pr_def prod.exhaust_sel valid_gc_poset valid_poset valid_prealgebra valid_reflexivity valid_semigroup)
      moreover have "A \<in> opens (space V) \<and> B \<in> opens (space V)"
        using A_open B_def CVA.valid_welldefined V_valid b_elem d_elem_is_open by blast 
     moreover have lhs:"local_le V A (ex A b) (ex' A b)" using valid_res [where ?V=V] OVA.res_ext_adjunction [where
