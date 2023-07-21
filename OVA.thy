@@ -1524,20 +1524,45 @@ proof -
       (e (ext V A a_B))" 
     using galois_closure_extensive [where ?V=V] a_B_def
     by (metis (no_types, lifting) A_open B_le_A B_open V_valid a_el calculation(1) d_ext d_res fst_conv global_inclusion_element prod.collapse snd_conv)
+  moreover have "Poset.le (ob V \<cdot> A) 
+      a' 
+      (e (ext V A a'_B))" 
+    using galois_closure_extensive [where ?V=V] a'_B_def
+    by (metis (no_types, lifting) A_open B_le_A B_open V_valid a'_el calculation(2) d_ext d_res fst_conv global_inclusion_element prod.collapse snd_conv) 
 
   moreover have "Poset.le (ob V \<cdot> A) 
       (f \<cdot> A \<star> (a, a')) 
-      (f \<cdot> A \<star> ((e (ext V A a_B)), (e (ext V A a'_B))))" using a_B_def a'_B_def local_mono [where
-    ?A=A] 
+      (f \<cdot> A \<star> (e (ext V A a_B), e (ext V A a'_B)))" using a_B_def a'_B_def local_mono [where
+    ?A=A and ?a1.0=a and ?a2.0=a' and ?a1'="e (ext V A a_B)" and ?a2'="e (ext V A a'_B)"]
+    by (smt (verit, del_insts) A_open B_le_A B_open V_valid a'_el a_el calculation(1) calculation(2) calculation(4) calculation(5) d_res e_ext fst_conv global_inclusion_element prod.collapse) 
 
-  moreover have " (f \<cdot> A \<star> ((e (ext V A a_B)), (e (ext V A a'_B)))) =
-      e (ext V A (B, (f \<cdot> B \<star> ((e a_B), (e a'_B)))))" using local_ext_comm [where ?B=B and ?A=A] a_B_def a'_B_def
-    by (smt (verit, ccfv_SIG) V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>B \<in> opens (OVA.space V)\<close> \<open>B \<subseteq> A\<close> \<open>a \<in> el (OVA.ob V \<cdot> A)\<close> \<open>a' \<in> el (OVA.ob V \<cdot> A)\<close> e_res fst_conv global_inclusion_element res_def snd_conv)
+  moreover have "(f \<cdot> A \<star> 
+      ((e (ext V A a_B)), 
+       (e (ext V A a'_B)))) =
+      e (ext V A (B, (f \<cdot> B \<star> (e a_B, e a'_B))))" using local_ext_comm [where ?B=B and ?A=A] a_B_def a'_B_def
+    by (metis A_open B_le_A B_open V_valid a'_el a_el calculation(1) calculation(2) d_res fst_conv global_inclusion_element prod.collapse)
 
-  moreover have 1: "Poset.le (ob V \<cdot> A) 
+  moreover have "Poset.le (ob V \<cdot> A) 
       (f \<cdot> A \<star> (a, a')) 
-      (e (ext V A (B, (f \<cdot> B \<star> (e a_B, (e a'_B))))))"
-    by (metis calculation(5) calculation(6))
+      (e (ext V A (B, (f \<cdot> B \<star> (e a_B, e a'_B)))))"
+    by (metis calculation(6) calculation(7)) 
+
+  moreover have 2: "local_le V A
+      (A, (f \<cdot> A \<star> (a, a'))) 
+      (ext V A (B, (f \<cdot> B \<star> (e a_B, e a'_B))))"
+    by (metis A_open B_le_A B_open Poset.fun_app Poset.valid_map_cod V_valid calculation(3) calculation(8) d_ext f_cod f_valid_val fst_eqD global_inclusion_element sndI)
+
+  moreover have 3: "local_le V A
+      (res V B (A, (f \<cdot> A \<star> (a, a'))))
+      (res V B (ext V A (B, (f \<cdot> B \<star> (e a_B, (e a'_B))))))"
+  using res_monotone_local [where ?V=V and ?B=B and ?a="(A, (f \<cdot> A \<star> (a, a')))" and a'="ext V A (B, (f \<cdot>
+          B \<star> ((e a_B), (e a'_B))))"]  le_eq_local_le [where ?V=V and ?A=A and ?a="res V B (A, (f \<cdot> A \<star> (a, a')))" and a'="res V B (ext V A (B, (f \<cdot> B \<star> ((e a_B), (e a'_B)))))"] 
+   le_eq_raw_le [where ?V=V and ?A=A] raw_le_eq_le [where ?V=V and ?A=A] a_B_def a'_B_def using
+    calculation assms 
+
+(*---- *)
+
+
 
   moreover have 2: "local_le V A
       (A, (f \<cdot> A \<star> (a, a'))) 
@@ -1547,18 +1572,24 @@ proof -
 
   moreover have "(f \<cdot> B \<star> (e a_B, (e a'_B))) \<in> el (ob V \<cdot> B)" using f_cod [where ?A=B] a_B_def
       a'_B_def
-  moreover have "(B, (f \<cdot> B \<star> (e a_B, (e a'_B)))) \<in> elems V" 
+    by (metis B_open Poset.fun_app2 calculation(3) f_valid_val) 
+
+  moreover have "(B, (f \<cdot> B \<star> (e a_B, (e a'_B)))) \<in> elems V"
+    by (meson B_open V_valid calculation(10) global_inclusion_element) 
   moreover have "d (ext V A (B, (f \<cdot> B \<star> (e a_B, (e a'_B)))) ) = A"
-    using d_ext [where ?V=V and ?A=A and ?b="(B, (f \<cdot> B \<star> (e a_B, (e a'_B))))"] f_cod [where ?A=B] 
+    using d_ext [where ?V=V and ?A=A and ?b="(B, (f \<cdot> B \<star> (e a_B, (e a'_B))))"] f_cod [where ?A=B]
+    by (metis A_open B_le_A V_valid calculation(11) fst_conv) 
 
   moreover have "ext V A (B, (f \<cdot> B \<star> (e a_B, (e a'_B)))) = (A, e(ext V A (B, (f \<cdot> B \<star> (e a_B, (e
  a'_B))))))" using d_ext [where ?V=V and ?A=A and ?b="(B, (f \<cdot> B \<star> (e a_B, (e a'_B))))"] and
     ext_elem [where ?V=V and ?A=A and ?b="(B, (f \<cdot> B \<star> (e a_B, (e a'_B))))"] 
     e_ext [where ?V=V and ?A=A and ?b="(B, (f \<cdot> B \<star> (e a_B, (e a'_B))))"]
+    by (metis calculation(12) prod.collapse)
 
   moreover have 3: "local_le V A
       (A, (f \<cdot> A \<star> (a, a'))) 
-      (ext V A (B, (f \<cdot> B \<star> (e a_B, (e a'_B)))))"  using 2 d_ext [where ?V=V and ?A=A] gc_elD
+      (ext V A (B, (f \<cdot> B \<star> (e a_B, (e a'_B)))))"  using 2 d_ext [where ?V=V and ?A=A] 
+    by (metis calculation(13))
 
   moreover have 3: "local_le V A
       (res V B (A, (f \<cdot> A \<star> (a, a'))))
