@@ -16,7 +16,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## Formalisation status
 
-### [ ] Section 2 - Concurrent valuation algebras
+### Section 2 - Concurrent valuation algebras
 
 #### (Covariant) Grothendieck construction: Grothendieck.thy
 
@@ -30,18 +30,18 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
 - [x] Corollary 3 (locally_complete_imp_complete)
-- [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm) (Note: this is now in OVA.thy) (in the paper this is in Section 3)
-- [x] Lemma 8 (up_down_le_down_up) (in the paper this is in Appendix 1)
-- [x] Lemma 3 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb) (in the paper this is in Section 3)
+- [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)                                         (in the paper this is in Section 3)
+- [x] Lemma 8 (up_down_le_down_up)                                                                               (in the paper this is in Appendix 1)
+- [x] Lemma 3 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)   (in the paper this is in Section 3)
+- [ ] Lemma 4 (local_weak_exchange_imp_weak_exchange)                                                            (in the paper this is in Section 3)
 
 #### Concurrent valution algebras (CVAs): CVA.thy
 
 - [x] Proposition 1 (epsilon_le_delta, delta_seq_delta_eq_delta, epsilon_par_epsilon_eq_epsilon)
 - [x] Proposition 2 (comparitor)
 - [x] Proposition 3 (hoare_concurrency_rule)
-- [ ] Lemma 4 (in the paper this is in Section 3)
 
-### [x] Section 3 - Tuple systems
+### Section 3 - Tuple systems
 
 #### Tuple systems: Tuple.thy
 
@@ -55,6 +55,8 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - Sections 4, 5, 6 (trace models)
 - Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles))
 - Improve readability of proofs
+- Make names more consistent
+- Develop a custom simp set to facilitate automation
 
 ## Design principles
 

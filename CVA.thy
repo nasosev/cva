@@ -66,7 +66,7 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
         commutativity = is_commutative (par_algebra V);
 
         weak_exchange = \<forall> a b c d. a \<in> elems V \<longrightarrow> b \<in> elems V \<longrightarrow> c \<in> elems V \<longrightarrow> d \<in> elems V \<longrightarrow>
-                         le (seq (par a b) (par c d)) (par (seq a c) (seq b d)) ;
+                         le (seq (par a b) (par c d)) (par (seq a c) (seq b d));
 
         neutral_law_par = (\<forall>A . A \<in> opens (space V) \<longrightarrow> le (seq (\<delta> A) (\<delta> A)) (\<delta> A));
 

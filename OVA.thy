@@ -2019,6 +2019,64 @@ proof (intro conjI, goal_cases)
 qed
  
 
+(* [Lemma 4, TMCVA] *)
+lemma local_weak_exchange_imp_weak_exchange:
+  fixes V :: "('A, 'a) OVA"
+  and p :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
+  and s :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
+  defines "par' \<equiv> mul (ext_local V p)" and "seq' \<equiv> mul (ext_local V s)"
+  assumes V_valid : "valid V"
+  and p_valid : "Function.valid_map p" 
+  and p_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (p \<cdot> A)" 
+  and p_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (p \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
+  and p_cod : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.cod (p \<cdot> A) = ob V \<cdot> A" 
+  and s_valid : "Function.valid_map s" 
+  and s_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (s \<cdot> A)" 
+  and s_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (s \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
+  and s_cod : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.cod (s \<cdot> A) = ob V \<cdot> A" 
+  and local_weak_exchange : "\<And> A a b c d. A \<in> opens (space V) \<Longrightarrow> a \<in> local_elems V A
+ \<Longrightarrow> b \<in> local_elems V A \<Longrightarrow> c \<in> local_elems V A \<Longrightarrow> d \<in> local_elems V A 
+ \<Longrightarrow> local_le V A 
+      (A, (s \<cdot> A \<star> (p \<cdot> A \<star> (e a, e b), p \<cdot> A \<star> (e c, e d)))) 
+      (A, (p \<cdot> A \<star> (s \<cdot> A \<star> (e a, e c), s \<cdot> A \<star> (e b, e d))))"
+shows "\<And>a b c d. a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> c \<in> elems V \<Longrightarrow> d \<in> elems V \<Longrightarrow>
+                         le V (seq' (par' a b) (par' c d)) (par' (seq' a c) (seq' b d))"
+proof -
+  fix a b c x
+  assume a_el : "a \<in> elems V"
+  assume b_el : "b \<in> elems V"
+  assume c_el : "c \<in> elems V"
+  assume x_el : "x \<in> elems V"
+
+  define "U" where "U = d a \<union> d b \<union> d c \<union> d x"
+
+  have "d (par' a b) = d a \<union> d b"
+    using a_el assms(1) b_el d_ext_local by blast
+  moreover have "d (par' c x) = d c \<union> d x"
+    using c_el x_el assms(1) d_ext_local by blast  
+  moreover have "d (seq' a c) = d a \<union> d c"
+    using a_el c_el d_ext_local seq'_def by blast 
+  moreover have "d (seq' b x) = d b \<union> d x"
+    using b_el x_el d_ext_local seq'_def by blast
+  moreover have "par' a b \<in> elems V" using par'_def ext_local_elem [where ?V=V and ?a=a and ?b=b and ?f=p]
+    using V_valid a_el b_el p_cod p_dom p_valid p_valid_val by fastforce
+  moreover have "par' c x \<in> elems V" using par'_def ext_local_elem [where ?V=V and ?a=c and ?b=x and ?f=p]
+    using V_valid c_el p_cod p_dom p_valid p_valid_val x_el by fastforce
+  moreover have "seq' a c \<in> elems V" using seq'_def ext_local_elem [where ?V=V and ?a=a and ?b=c and ?f=s]
+    using V_valid a_el c_el s_cod s_dom s_valid s_valid_val by fastforce
+  moreover have "seq' b x \<in> elems V" using seq'_def ext_local_elem [where ?V=V and ?a=b and ?b=x and ?f=s]
+    using V_valid b_el x_el s_cod s_dom s_valid s_valid_val by fastforce
+
+  moreover have "seq' (par' a b) (par' c x) =
+        (U, (s \<cdot> U \<star> (e (ext V U (par' a b)), e (ext V U (par' c x)))))" using U_def seq'_def e_ext_local [where ?V=V and
+    ?f=s and ?a="par' a b" and ?b="par' c x"]
+    by (metis (no_types, lifting) calculation(1) calculation(2) calculation(5) calculation(6) d_ext_local prod.collapse sup_assoc)  
+  oops
+    
+
+  
+
+
 (* Todo: unknown if this is true *)
 lemma laxity2 :
   fixes V :: "('A,'a) OVA" and B B' :: "'A Open"  and a a' :: "('A, 'a) Valuation"
