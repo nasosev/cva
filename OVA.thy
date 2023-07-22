@@ -300,6 +300,12 @@ lemma elem_is_local_elem : "valid V \<Longrightarrow> a \<in> elems V \<Longrigh
 lemma local_elem_is_elem : "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> a \<in> local_elems V A \<Longrightarrow> a \<in> elems V"
   using local_elem_gc valid_gc_poset valid_prealgebra by fastforce
 
+lemma raw_elem_is_local_elem : "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> a \<in> el (ob V \<cdot> A) \<Longrightarrow> (A, a) \<in> local_elems V A"
+  by blast
+
+lemma local_elem_is_raw_elem :  "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> a \<in> local_elems V A \<Longrightarrow> e a \<in> el (ob V \<cdot> A) "
+  by auto
+
 lemma d_elem_is_open : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> d a \<in> opens (space V)"
   by (metis local_dom valid_gc_poset valid_prealgebra)
 
@@ -580,6 +586,7 @@ shows "local_le V A (ext V A b) (ext V A b')" using ext_monotone [where ?V=V] lo
     [where ?V=V] local_le_def
     elem_is_local_elem [where ?V=V]
   by (smt (verit) Grothendieck.le_eq_local_le V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) d_ext e_ext fst_conv mem_Collect_eq prod.collapse raw_elem_is_elem valid_gc_poset valid_prealgebra)
+
 
 lemma local_le_refl :
   fixes V :: "('A,'a) OVA" and A :: "'A Open" and a :: "('A, 'a) Valuation"
@@ -1307,8 +1314,8 @@ qed
 
 lemma ext_local_el : 
   fixes V :: "('A, 'a) OVA"  and a b :: "('A,'a) Valuation" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
-assumes a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-  and V_valid : "valid V"
+  assumes V_valid : "valid V" 
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
   and f_valid : "Function.valid_map f" 
   and f_valid_val : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.valid_map (f \<cdot> A)" 
   and f_dom : "\<And>A. A \<in> opens (space V) \<Longrightarrow> Poset.dom (f \<cdot> A) = ob V \<cdot> A \<times>\<times> ob V \<cdot> A" 
@@ -1756,26 +1763,58 @@ proof -
     (B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (res V (B1 \<union> B2) a1'), e (res V (B1 \<union> B2) a2')))"
     using "0" "00" by presburger
 
-  moreover have "el (Poset.dom (mult (ext_local V f))) = elems V \<times> elems V" using ext_local_def [where
-        ?V=V and ?f=f] product_def
-    by (metis (no_types, lifting) Poset.Poset.select_convs(1) PosetMap.select_convs(1) Semigroup.select_convs(1) Sigma_cong)
+  moreover have "comb' a1 a2 \<in> elems V" using comb'_def  ext_local_el [where ?V=V and ?a=a1 and
+        ?b=a2 and ?f=f]
+    using V_valid a1_el a2_el f_cod f_dom f_valid f_valid_val by fastforce 
 
-  moreover have "el (Poset.cod (mult (ext_local V f))) = elems V" using ext_local_def [where
-        ?V=V and ?f=f]
-    by simp
+  moreover have "comb' b1 b2 \<in> elems V" using comb'_def  ext_local_el [where ?V=V and ?a=b1 and
+        ?b=b2 and ?f=f]
+    using V_valid b1_el b2_el f_cod f_dom f_valid f_valid_val by fastforce 
 
-  moreover have "(a1, a1) \<in> el (Poset.dom (mult (ext_local V f)))" using product_def a1_el a2_el
-    by (metis (no_types, lifting) Poset.Poset.select_convs(1) SigmaI calculation(25))
+  moreover have 7: "comb' b1 b2 \<in> local_elems V (B1 \<union> B2)" using elem_is_local_elem
+    by (smt (verit) "4" V_valid calculation(26) fst_conv mem_Collect_eq)
 
+  moreover have "res V (B1 \<union> B2) (comb' a1 a2) \<in> elems V" using res_elem [where ?V=V and
+        ?a="comb' a1 a2" and ?B="B1 \<union> B2"]
+    by (metis A1_def A2_def B1B2 V_valid a1_el a2_el calculation(1) calculation(25) comb'_def d_ext_local sup.mono)
 
-  moreover have "comb' a1 a2 \<in> elems V" using comb'_def calculation Poset.app_
+  moreover have 8: "res V (B1 \<union> B2) (comb' a1 a2) \<in> local_elems V (B1 \<union> B2)" using elem_is_local_elem
+    by (smt (verit) A1_def A2_def B1B2 CollectI V_valid a1_el a2_el calculation(1) calculation(28) calculation(25) comb'_def d_ext_local d_res elem_is_raw_elem res_def snd_conv sup.mono)
 
-  moreover have "local_le V (B1 \<union> B2) (res V (B1 \<union> B2) (comb' a1 a2)) (comb' b1 b2)" using 5 6 B1B2
+  moreover have "res V (B1 \<union> B2) a1' \<in> local_elems V (B1 \<union> B2)" using assms calculation
+    by meson 
+
+  moreover have "res V (B1 \<union> B2) a2' \<in> local_elems V (B1 \<union> B2)" using assms calculation
+    by meson       
+
+  moreover have "e (res V (B1 \<union> B2) a1') \<in> el (ob V \<cdot> (B1 \<union> B2))"
+    using el1 by auto 
+
+  moreover have "e (res V (B1 \<union> B2) a2') \<in> el (ob V \<cdot> (B1 \<union> B2))"
+    using el3 by force 
+
+  moreover have "(e (res V (B1 \<union> B2) a1'), e (res V (B1 \<union> B2) a2')) \<in> el (Poset.dom (f \<cdot> (B1 \<union>
+ B2)))" using assms calculation product_def [where ?P="ob V \<cdot> (B1 \<union> B2)" and ?Q="ob V \<cdot> (B1 \<union> B2)"] 
+local_elem_is_raw_elem [where ?V=V and ?A="B1 \<union> B2"]
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) SigmaI) 
+
+  moreover have "f \<cdot> (B1 \<union> B2) \<star> (e (res V (B1 \<union> B2) a1'), e (res V (B1 \<union> B2) a2')) \<in> el (ob V \<cdot> (B1
+    \<union> B2))" using assms calculation
+    by (metis (no_types, opaque_lifting) Poset.fun_app2) 
+
+  moreover have 9: "(B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (res V (B1 \<union> B2) a1'), e (res V (B1 \<union> B2) a2')))  \<in>
+ local_elems V (B1 \<union> B2)" using assms calculation
+    by blast 
+
+  moreover have 10: "local_le V (B1 \<union> B2) (res V (B1 \<union> B2) (comb' a1 a2)) (comb' b1 b2)" using 5 6 B1B2
       local_le_trans [where ?V=V and ?A="B1 \<union> B2" and a="res V (B1 \<union> B2) (comb' a1 a2)" 
 and a'="(B1 \<union> B2, f \<cdot> (B1 \<union> B2) \<star> (e (res V (B1 \<union> B2) a1'), e (res V (B1 \<union> B2) a2')))"
-and a''="comb' b1 b2"] 
+and a''="comb' b1 b2"] 7 8 9
+    using V_valid by blast
 
-  ultimately show "le V (comb' a1 a2) (comb' b1 b2)"
+  ultimately show "le V (comb' a1 a2) (comb' b1 b2)" using 10
+    by (smt (verit, ccfv_threshold) A1_def A2_def Un_absorb1 Un_upper1 V_valid a1_el a2_el comb'_def d_ext_local elem_le_wrap fst_conv inf_sup_aci(7) sup.orderE)
+qed
 
 (* Todo: unknown if this is true *)
 lemma laxity2 :
@@ -1788,5 +1827,4 @@ lemma laxity2 :
 shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" 
   oops
 
-*)
 end
