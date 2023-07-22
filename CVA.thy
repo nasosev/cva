@@ -103,7 +103,8 @@ lemma local_le :
   fixes V :: "('A, 'a) CVA"
   assumes "valid V"
   shows "local_le V = OVA.local_le (seq_algebra V)"
-  by (simp add: CVA.valid_welldefined assms valid_gc_poset)
+  unfolding OVA.local_le_def
+  by (simp add: CVA.valid_welldefined assms)
 
 lemma valid_weak_exchange: "valid V \<Longrightarrow> a1 \<in> elems V \<Longrightarrow> a2 \<in> elems V \<Longrightarrow> a3 \<in> elems V \<Longrightarrow> a4 \<in> elems V \<Longrightarrow>
                         le V (seq V (par V a1 a2) (par V a3 a4)) (par V (seq V a1 a3) (seq V a2 a4))"
@@ -142,26 +143,22 @@ proof -
     assume "B \<subseteq> A" 
 *)
     define "B" where "B = d b"
-    define "pr" where "pr = res V"
-    have "local_le V B (pr B (ex A b)) b"
-      by (metis (no_types, lifting) A_open B_def B_leq_A CVA.valid_welldefined Grothendieck.local_le_eq_le V_valid b_elem d_elem_is_open elem_is_raw_elem ex_def galois_insertion pr_def prod.exhaust_sel valid_gc_poset valid_poset valid_prealgebra valid_reflexivity valid_semigroup)
+    have "local_le V B (res V B (ex A b)) b"
+      by (metis A_open B_def B_leq_A CVA.valid_welldefined V_valid b_elem d_elem_is_open dual_order.eq_iff ex_def ext_functorial_id res_functorial_id up_down_le_down_up) 
      moreover have "A \<in> opens (space V) \<and> B \<in> opens (space V)"
        using A_open B_def CVA.valid_welldefined V_valid b_elem d_elem_is_open by blast 
     moreover have lhs:"local_le V A (ex A b) (ex' A b)" using valid_res [where ?V=V] OVA.res_ext_adjunction [where
    ?V="seq_algebra V" and ?a="ex A b" and ?b=b] B_def B_leq_A CVA.valid_welldefined V_valid b_elem
- calculation(1) calculation(2) d_ext ex'_def ex_def ext_elem pr_def valid_elems
-      by (smt (z3)) 
-    moreover have "local_le V B (pr B (ex' A b)) b"
-      by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(1) calculation(2) ex'_def ex_def galois_insertion ext_elem pr_def valid_elems valid_res) 
+ calculation(1) calculation(2) d_ext ex'_def ex_def ext_elem valid_elems
+      by (metis local_le) 
+    moreover have "local_le V B (res V B (ex' A b)) b"
+      by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem calculation(1) calculation(2) ex'_def ex_def ext_elem galois_insertion valid_elems valid_res)
     moreover have rhs:"local_le V A (ex' A b) (ex A b)" using valid_res [where ?V=V] OVA.res_ext_adjunction [where
    ?V="par_algebra V" and ?a="(ex' A b)" and ?b=b] using  B_def B_leq_A CVA.valid_welldefined
-        V_valid b_elem calculation(2) calculation(4) d_ext ex'_def ex_def ext_elem pr_def
-        valid_elems le_eq_local_le
+        V_valid b_elem calculation(2) calculation(4) d_ext ex'_def ex_def ext_elem valid_elems le_eq_local_le
       by (smt (verit)) 
-    moreover have "ex' A b = ex A b" using calculation
-      by (metis B_def B_leq_A CVA.valid_welldefined V_valid b_elem d_ext e_ext ex'_def ex_def prod.collapse valid_antisymmetry valid_elems valid_ob valid_prealgebra)     
-    ultimately show "ex A b = ex' A b"
-      by presburger 
+    ultimately show "ex A b = ex' A b"  
+      by (smt (verit) B_leq_A CVA.valid_welldefined Grothendieck.local_le_eq_le V_valid b_elem d_ext e_ext ex'_def ex_def local_elem_gc local_le_def prod.collapse valid_antisymmetry valid_gc_poset valid_poset valid_prealgebra valid_semigroup)
   qed
 
 (* To-do: can we actually prove ex = ex' with fun ext? *)
