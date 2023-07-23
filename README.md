@@ -30,10 +30,12 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
 - [x] Corollary 3 (locally_complete_imp_complete)
-- [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)                                         (in the paper this is in Section 3)
-- [x] Lemma 8 (up_down_le_down_up)                                                                               (in the paper this is in Appendix 1)
-- [x] Lemma 3 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)   (in the paper this is in Section 3)
-- [ ] Lemma 4 (local_weak_exchange_imp_weak_exchange)                                                            (in the paper this is in Section 3)
+- [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)
+- [x] Lemma 8 (up_down_le_down_up) (in the paper this is in Appendix 1)
+- [x] Lemma 3 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
+- [ ] Lemma 4 (local_weak_exchange_imp_weak_exchange)
+
+Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 
 #### Concurrent valution algebras (CVAs): CVA.thy
 
