@@ -135,13 +135,6 @@ lemma valid_ext:
   shows "ex A b = ex' A b"
   unfolding valid_def
 proof -
-(*
-    fix b
-    assume "b \<in> elems V" 
-    fix A
-    assume "A \<in> opens (space V)"
-    assume "B \<subseteq> A" 
-*)
     define "B" where "B = d b"
     have "local_le V B (res V B (ex A b)) b"
       by (metis A_open B_def B_leq_A CVA.valid_welldefined V_valid b_elem d_elem_is_open dual_order.eq_iff ex_def ext_functorial_id res_functorial_id up_down_le_down_up) 

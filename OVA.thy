@@ -2069,7 +2069,9 @@ proof -
 
   define "U" where "U = d a \<union> d b \<union> d c \<union> d x" 
 
-  have space_same : "space V = space V'"
+  have "U \<in> opens (space V)"
+    by (metis Prealgebra.valid_space U_def V_valid a_el b_el c_el d_elem_is_open valid_prealgebra valid_union2 x_el)
+  moreover have space_same : "space V = space V'"
     by (simp add: V_V'_prealg)
   moreover have elems_same : "elems V = elems V'"
     by (metis V'_valid V_valid V_V'_prealg valid_gc_poset)
@@ -2227,17 +2229,17 @@ proof -
   moreover have "seq (par a b) (par c x) =
         (U, (s \<cdot> U \<star> (e (ext V' U (par a b)), e (ext V' U (par c x)))))" (is "?L0 = ?R0")
     using U_def seq_def e_ext_local [where ?V=V' and ?f=s and ?a="par a b" and ?b="par c x"]
-    by (metis (no_types, lifting) calculation(4) calculation(5) calculation(8) calculation(9) d_ext_local elems_same prod.collapse sup_assoc) 
+    by (metis (no_types, lifting) calculation(11) calculation(7) calculation(6) calculation(10) d_ext_local elems_same prod.collapse sup_assoc)
 
   moreover have p0 : "par a b = (d a \<union> d b,  p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union>
     d b) b)))" using U_def par_def e_ext_local [where ?V=V and ?f=p and ?a=a and ?b=b]
-    by (metis a_el b_el calculation(4) prod.collapse)
+    by (metis a_el b_el calculation(6) prod.collapse)
 
   moreover have p1 : "par c x = (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x)))" 
     using U_def par_def e_ext_local [where ?V=V and ?f=p and ?a=c and ?b=x]
-    by (metis c_el calculation(5) prod.exhaust_sel x_el)
+    by (metis c_el calculation(7) surjective_pairing x_el)
 
-   moreover have "?R0 =
+  moreover have "?R0 =
         (U, s \<cdot> U \<star> 
        (e (ext V' U (d a \<union> d b, p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))), 
         e (ext V' U (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x))))))"  (is "?L1 = ?R1")
@@ -2245,34 +2247,117 @@ proof -
      by presburger
 
    moreover have p3: "d a \<union> d b \<in> opens (OVA.space V) \<and>  U \<in> opens (OVA.space V) \<and> d a \<union> d b \<subseteq> U"
-     by (metis Prealgebra.valid_space U_def V_valid c_el calculation(4) calculation(8) d_elem_is_open le_supI1 sup_ge1 valid_prealgebra valid_union2 x_el) 
+     by (metis Prealgebra.valid_space U_def Un_subset_iff V_valid c_el calculation(6) calculation(10) d_elem_is_open sup_ge1 valid_prealgebra valid_union2 x_el)
 
    moreover have p4: "e (ext V (d a \<union> d b) a) \<in> el (ob V \<cdot> (d a \<union> d b)) \<and> e (ext V (d a \<union> d b) b) \<in> el
      (ob V \<cdot> (d a \<union> d b))"
      by (meson V_valid a_el b_el e_ext inf_sup_ord(3) p3 sup_ge2)  
 
-   moreover have p2 : "ext V U (d a \<union> d b, p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))
+   moreover have p5 : "ext V U (d a \<union> d b, p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))
    = (U, p \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d b) a)), e (ext V U (ext V (d a \<union> d b) b))))"
      using p3 p4 local_ext_comm_par [where ?A=U and ?B="d a \<union> d b" and ?b="e (ext V (d a \<union> d b) a)" and ?b'="e
-    (ext V (d a \<union> d b) b)"]
-     
+    (ext V (d a \<union> d b) b)"] ext_is_ext'
+     by (metis Un_upper1 Un_upper2 V_valid a_el b_el d_ext prod.collapse)
 
-   moreover have "... =
+   moreover have p6: "d c \<union> d x \<in> opens (OVA.space V) \<and> U \<in> opens (OVA.space V) \<and> d c \<union> d x \<subseteq> U"
+     by (metis (no_types, opaque_lifting) U_def V_valid calculation(11) calculation(7) d_elem_is_open p3 sup_commute sup_ge2 sup_left_commute) 
+
+   moreover have p7 : "e (ext V (d c \<union> d x) c) \<in> el (ob V \<cdot> (d c \<union> d x)) \<and> e (ext V (d c \<union> d x)
+ x) \<in> el (ob V \<cdot> (d c \<union> d x))"
+     by (meson V_valid c_el e_ext p6 sup.cobounded2 sup_ge1 x_el) 
+
+   moreover have p8 : "ext V U (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x)))
+   = (U, p \<cdot> U \<star> (e (ext V U (ext V (d c \<union> d x) c)), e (ext V U (ext V (d c \<union> d x) x))))"
+     using p6 p7 local_ext_comm_par [where ?A=U and ?B="d c \<union> d x" and ?b="e (ext V (d c \<union> d x) c)" and ?b'="e
+    (ext V (d c \<union> d x) x)"] ext_is_ext'
+     by (metis Un_upper1 Un_upper2 V_valid c_el x_el d_ext prod.collapse)
+
+   moreover have "?R1 =
         (U, s \<cdot> U \<star> 
        (p \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d b) a)), e (ext V U (ext V (d a \<union> d b) b))), 
-        p \<cdot> U \<star> (e (ext V U (ext V (d c \<union> d x) c)), e (ext V U (ext V (d c \<union> d x) x)))))"  
-     using local_ext_comm_par [where ?A=U and ?B="d a \<union> d b" and ?b="e (ext V (d a \<union> d b) a)" and ?b'="e (ext V (d a \<union> d b) b)"]
-      local_ext_comm_par [where ?A=U and ?B="d c \<union> d x" and ?b="e (ext V (d c \<union> d x) c)" and ?b'="e
-        (ext V (d c \<union> d x) c)"] assms calculation
-
-
+        p \<cdot> U \<star> (e (ext V U (ext V (d c \<union> d x) c)), e (ext V U (ext V (d c \<union> d x) x)))))"  (is "?L2 = ?R2")
+     using p5 p8 ext_is_ext'
+     using calculation(10) calculation(11) p0 p1 p3 p6 by fastforce
 
    moreover have "... =
         (U, s \<cdot> U \<star> 
        (p \<cdot> U \<star> (e (ext V U a), e (ext V U b)), 
-        p \<cdot> U \<star> (e (ext V U c), e (ext V U x))))"  
-     using p0 p1 
-  oops
+        p \<cdot> U \<star> (e (ext V U c), e (ext V U x))))" (is "?L3 = ?R3")
+     using ext_functorial_trans [where ?V=V] V_valid a_el b_el c_el p3 p6 x_el by auto
+
+   moreover have p10: "ext V U a \<in> local_elems V U" using a_el U_def elem_is_local_elem [where ?V=V and
+         ?a="ext V U a"] ext_elem [where ?V=V and ?A=U and ?b=a]
+     using V_valid p3 by fastforce 
+
+   moreover have p11: "ext V U b \<in> local_elems V U" using b_el U_def elem_is_local_elem [where ?V=V and
+         ?a="ext V U b"] ext_elem [where ?V=V and ?A=U and ?b=b]
+     using V_valid p3 by fastforce 
+
+   moreover have p12: "ext V U c \<in> local_elems V U" using c_el U_def elem_is_local_elem [where ?V=V and
+         ?a="ext V U c"] ext_elem [where ?V=V and ?A=U and ?b=c]
+     using V_valid p6 by fastforce
+
+   moreover have p13: "ext V U x \<in> local_elems V U" using x_el U_def elem_is_local_elem [where ?V=V and
+         ?a="ext V U x"] ext_elem [where ?V=V and ?A=U and ?b=x]
+     using V_valid p6 by fastforce 
+
+   moreover have lhs_le_rhs : "local_le V U
+      (U, (s \<cdot> U \<star> (p \<cdot> U \<star> (e (ext V U a), e (ext V U b)), p \<cdot> U \<star> (e (ext V U c), e (ext V U x))))) 
+      (U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U a), e (ext V U c)), s \<cdot> U \<star> (e (ext V U b), e (ext V U x)))))" 
+     using local_weak_exchange [where ?A=U and ?a="ext V U a" and ?b="ext V U b" and ?c="ext
+     V U c" and ?d="ext V U x"] p10 p11 p12 p13
+     using calculation(1) by blast
+
+   moreover have s1: "ext V U (ext V (d a \<union> d c) a) = ext V U a"
+     by (metis Un_subset_iff V_valid a_el calculation(12) calculation(8) d_elem_is_open ext_functorial_trans p3 p6 sup_ge1)
+   moreover have s2: "ext V U (ext V (d a \<union> d c) c) = ext V U c"
+     by (metis Un_subset_iff V_valid c_el calculation(12) calculation(8) d_elem_is_open ext_functorial_trans p3 p6 sup_ge2) 
+   moreover have s3: "ext V U (ext V (d b \<union> d x) b) = ext V U b"
+     by (meson Prealgebra.valid_space Un_upper1 V_valid b_el d_elem_is_open ext_functorial_trans le_sup_iff p3 p6 valid_prealgebra valid_union2 x_el) 
+   moreover have s4: "ext V U (ext V (d b \<union> d x) x) = ext V U x"
+     by (meson Prealgebra.valid_space Un_subset_iff V_valid b_el d_elem_is_open ext_functorial_trans p3 p6 sup_ge2 valid_prealgebra valid_union2 x_el)
+
+   moreover have "(U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U a), e (ext V U c)), s \<cdot> U \<star> (e (ext V U b), e (ext V U x)))))
+      = (U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d c) a)), e (ext V U (ext V (d a \<union> d c) c))), s \<cdot> U \<star> (e (ext V U (ext V (d b \<union> d x) b)), e (ext V U
+ (ext V (d b \<union> d x) x))))))" (is "?L4 = ?R4")
+     using s1 s2 s3 s4
+     by presburger 
+
+   moreover have s5: "d a \<union> d c \<in> opens (space V') \<and> U \<in> opens (space V') \<and>  d a \<union> d c \<subseteq> U"
+     by (metis Un_subset_iff V_V'_prealg V_valid calculation(12) calculation(8) d_elem_is_open p3 p6)
+
+   moreover have s6: "e (ext V (d a \<union> d c) a) \<in> el (ob V' \<cdot> (d a \<union> d c)) \<and> e (ext V (d a \<union> d c) c) \<in>
+ el (ob V' \<cdot> (d a \<union> d c))"
+     by (metis V_V'_prealg V_valid a_el c_el calculation(46) e_ext sup_ge1 sup_ge2) 
+
+   moreover have s7: "(U, s \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d c) a)), e (ext V U (ext V (d a \<union> d c) c))))
+    = ext V' U (d a \<union> d c, s \<cdot> (d a \<union> d c) \<star> (e (ext V (d a \<union> d c) a), e (ext V (d a \<union> d c) c)))"
+     using local_ext_comm_seq [where ?A=U and ?B="d a \<union> d c" and ?b="e (ext V (d a \<union> d c) a)" and
+         ?b'="e (ext V (d a \<union> d c) c)"] s5 s6 ext_is_ext'
+     by (metis V_V'_prealg V_valid a_el c_el d_ext ext_elem prod.collapse sup_ge1 sup_ge2) 
+
+   moreover have s8: "d b \<union> d x \<in> opens (space V') \<and> U \<in> opens (space V') \<and>  d b \<union> d x \<subseteq> U"
+     by (metis Un_subset_iff V'_valid \<open>seq b x \<in> OVA.elems V\<close> calculation(9) d_elem_is_open elems_same p3 p6 s5)
+
+   moreover have s9: "e (ext V (d b \<union> d x) b) \<in> el (ob V' \<cdot> (d b \<union> d x)) \<and> e (ext V (d b \<union> d x) x) \<in>
+ el (ob V' \<cdot> (d b \<union> d x))"
+     by (metis V_V'_prealg V_valid b_el e_ext s8 sup_ge1 sup_ge2 x_el)
+
+   moreover have s10: "(U, s \<cdot> U \<star> (e (ext V U (ext V (d b \<union> d x) b)), e (ext V U (ext V (d b \<union> d x) x))))
+    = ext V' U (d b \<union> d x, s \<cdot> (d b \<union> d x) \<star> (e (ext V (d b \<union> d x) b), e (ext V (d b \<union> d x) x)))"
+     using local_ext_comm_seq [where ?A=U and ?B="d b \<union> d x" and ?b="e (ext V (d b \<union> d x) b)" and
+         ?b'="e (ext V (d b \<union> d x) x)"] s5 s6 ext_is_ext'
+     by (metis V_V'_prealg V_valid b_el d_ext ext_elem prod.collapse s8 s9 sup_ge1 sup_ge2 x_el)
+
+   moreover have "?R4 = (U, (p \<cdot> U \<star> 
+  (e (ext V' U (d a \<union> d c, s \<cdot> (d a \<union> d c) \<star> (e (ext V (d a \<union> d c) a), e (ext V (d a \<union> d c) c)))), 
+   e (ext V' U (d b \<union> d x, s \<cdot> (d b \<union> d x) \<star> (e (ext V (d b \<union> d x) b), e (ext V (d b \<union> d x)
+     x)))))))" (is "?L5 = ?R5")
+     using s7 s10
+     by (metis snd_conv)  
+     
+
+
 
 
   oops
