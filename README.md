@@ -33,7 +33,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)
 - [x] Lemma 8 (up_down_le_down_up) (in the paper this is in Appendix 1)
 - [x] Lemma 3 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
-- [ ] Lemma 4 (local_weak_exchange_imp_weak_exchange)
+- [x] Lemma 4 (local_weak_exchange_imp_weak_exchange)
 
 Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 

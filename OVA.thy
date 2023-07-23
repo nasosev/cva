@@ -2226,7 +2226,7 @@ proof -
         seq_def
     by blast  
 
-  moreover have "seq (par a b) (par c x) =
+  moreover have a0: "seq (par a b) (par c x) =
         (U, (s \<cdot> U \<star> (e (ext V' U (par a b)), e (ext V' U (par c x)))))" (is "?L0 = ?R0")
     using U_def seq_def e_ext_local [where ?V=V' and ?f=s and ?a="par a b" and ?b="par c x"]
     by (metis (no_types, lifting) calculation(11) calculation(7) calculation(6) calculation(10) d_ext_local elems_same prod.collapse sup_assoc)
@@ -2239,7 +2239,7 @@ proof -
     using U_def par_def e_ext_local [where ?V=V and ?f=p and ?a=c and ?b=x]
     by (metis c_el calculation(7) surjective_pairing x_el)
 
-  moreover have "?R0 =
+  moreover have a1: "?R0 =
         (U, s \<cdot> U \<star> 
        (e (ext V' U (d a \<union> d b, p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))), 
         e (ext V' U (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x))))))"  (is "?L1 = ?R1")
@@ -2272,14 +2272,14 @@ proof -
     (ext V (d c \<union> d x) x)"] ext_is_ext'
      by (metis Un_upper1 Un_upper2 V_valid c_el x_el d_ext prod.collapse)
 
-   moreover have "?R1 =
+   moreover have a2: "?R1 =
         (U, s \<cdot> U \<star> 
        (p \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d b) a)), e (ext V U (ext V (d a \<union> d b) b))), 
         p \<cdot> U \<star> (e (ext V U (ext V (d c \<union> d x) c)), e (ext V U (ext V (d c \<union> d x) x)))))"  (is "?L2 = ?R2")
      using p5 p8 ext_is_ext'
      using calculation(10) calculation(11) p0 p1 p3 p6 by fastforce
 
-   moreover have "... =
+   moreover have a3: "... =
         (U, s \<cdot> U \<star> 
        (p \<cdot> U \<star> (e (ext V U a), e (ext V U b)), 
         p \<cdot> U \<star> (e (ext V U c), e (ext V U x))))" (is "?L3 = ?R3")
@@ -2301,7 +2301,7 @@ proof -
          ?a="ext V U x"] ext_elem [where ?V=V and ?A=U and ?b=x]
      using V_valid p6 by fastforce 
 
-   moreover have lhs_le_rhs : "local_le V U
+   moreover have a4 : "local_le V U
       (U, (s \<cdot> U \<star> (p \<cdot> U \<star> (e (ext V U a), e (ext V U b)), p \<cdot> U \<star> (e (ext V U c), e (ext V U x))))) 
       (U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U a), e (ext V U c)), s \<cdot> U \<star> (e (ext V U b), e (ext V U x)))))" 
      using local_weak_exchange [where ?A=U and ?a="ext V U a" and ?b="ext V U b" and ?c="ext
@@ -2317,7 +2317,7 @@ proof -
    moreover have s4: "ext V U (ext V (d b \<union> d x) x) = ext V U x"
      by (meson Prealgebra.valid_space Un_subset_iff V_valid b_el d_elem_is_open ext_functorial_trans p3 p6 sup_ge2 valid_prealgebra valid_union2 x_el)
 
-   moreover have "(U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U a), e (ext V U c)), s \<cdot> U \<star> (e (ext V U b), e (ext V U x)))))
+   moreover have a5: "(U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U a), e (ext V U c)), s \<cdot> U \<star> (e (ext V U b), e (ext V U x)))))
       = (U, (p \<cdot> U \<star> (s \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d c) a)), e (ext V U (ext V (d a \<union> d c) c))), s \<cdot> U \<star> (e (ext V U (ext V (d b \<union> d x) b)), e (ext V U
  (ext V (d b \<union> d x) x))))))" (is "?L4 = ?R4")
      using s1 s2 s3 s4
@@ -2349,22 +2349,37 @@ proof -
          ?b'="e (ext V (d b \<union> d x) x)"] s5 s6 ext_is_ext'
      by (metis V_V'_prealg V_valid b_el d_ext ext_elem prod.collapse s8 s9 sup_ge1 sup_ge2 x_el)
 
-   moreover have "?R4 = (U, (p \<cdot> U \<star> 
+   moreover have a6: "?R4 = (U, (p \<cdot> U \<star> 
   (e (ext V' U (d a \<union> d c, s \<cdot> (d a \<union> d c) \<star> (e (ext V (d a \<union> d c) a), e (ext V (d a \<union> d c) c)))), 
    e (ext V' U (d b \<union> d x, s \<cdot> (d b \<union> d x) \<star> (e (ext V (d b \<union> d x) b), e (ext V (d b \<union> d x)
      x)))))))" (is "?L5 = ?R5")
      using s7 s10
-     by (metis snd_conv)  
-     
+     by (metis snd_conv) 
 
+   moreover have a7: "... = (U, (p \<cdot> U \<star> 
+  (e (ext V' U (seq a c)), 
+   e (ext V' U (seq b x)))))" (is "?L6 = ?R6")
+     using seq_def e_ext_local [where ?V=V']
+     by (smt (z3) UnCI a_el b_el c_el calculation(2) calculation(46) calculation(49) d_ext_local elems_same ext_is_ext' prod.collapse subsetI x_el)
 
+   moreover have a8: "... = (U, (p \<cdot> U \<star> 
+  (e (ext V U (seq a c)), 
+   e (ext V U (seq b x)))))" (is "?L7 = ?R7")
+     using \<open>seq b x \<in> OVA.elems V\<close> calculation(12) calculation(8) calculation(9) ext_is_ext' p3 s5 s8 by presburger 
 
+   moreover have s11 : "seq a c \<in> elems V \<and> seq b x \<in> elems V"
+     using \<open>seq b x \<in> OVA.elems V\<close> calculation(12) by linarith 
 
-  oops
-    
+   moreover have s12 : "U = d (seq a c) \<union> d (seq b x)"
+     using U_def calculation(8) calculation(9) by auto 
 
-  
+   moreover have a9: "?R7 = par (seq a c) (seq b x)" using s11 s12 par_def e_ext_local [where ?V=V and ?f=p and ?a="seq a c" and ?b="seq b x"]
+     by (metis d_ext_local prod.collapse) 
 
+   show "le V (seq (par a b) (par c x)) (par (seq a c) (seq b x))"
+     using a1 a2 a3 a4 a5 a6 a7 a8 local_le_eq_le [where ?V=V and ?A=U]
+     by (smt (z3) OVA.le_eq_local_le V'_valid V_valid a9 assms(15) calculation(10) calculation(11) calculation(24) calculation(28) calculation(55) comb_is_element elems_same fst_conv seq) 
+ qed
 
 (* Todo: unknown if this is true *)
 lemma laxity2 :
