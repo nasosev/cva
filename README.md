@@ -55,6 +55,7 @@ Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 ## To-do
 
 - Sections 4, 5, 6 (trace models).
+- Use infix syntax; see [here!](https://isabelle.zulipchat.com/#narrow/stream/238552-Beginner-Questions/topic/local.20infix.20operator.20definition/near/377738757)
 - Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles)).
 - Improve readability of proofs.
 - Make names more consistent.
