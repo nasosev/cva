@@ -54,11 +54,11 @@ Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 
 ## To-do
 
-- Sections 4, 5, 6 (trace models)
-- Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles))
-- Improve readability of proofs
-- Make names more consistent
-- Develop a custom simp set to facilitate automation
+- Sections 4, 5, 6 (trace models).
+- Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles)).
+- Improve readability of proofs.
+- Make names more consistent.
+- Develop a custom simp set to facilitate automation.
 
 ## Design principles
 
@@ -70,6 +70,10 @@ Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 - A cleaner approach may be to use subtypes with `typedef`, but we got stuck with this: see the subdirectory [experiments/subtypes](experiments/subtypes) for details. If you can help with this please let us know!
 
 ## Setup
+
+### Prerequisites
+
+- [Isabelle2022](https://isabelle.in.tum.de/website-Isabelle2022/index.html)
 
 ### (Optional) Building an image and loading it in Isabelle/jEdit
 

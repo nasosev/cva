@@ -1499,7 +1499,7 @@ lemma local_assoc_units_imp_ext_comm:
   and units : "\<And>A a. A \<in> opens (space V) \<Longrightarrow> a \<in> el (ob V \<cdot> A) \<Longrightarrow> f \<cdot> A \<star> (i \<cdot> A, a) = a \<and> f \<cdot> A \<star> (a, i \<cdot> A) = a"
 shows local_ext_comm : "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
   b \<in> el (ob V \<cdot> B) \<Longrightarrow> b' \<in> el (ob V \<cdot> B)
-  \<Longrightarrow> e (ext V A (B, f \<cdot> B \<star> (b, b'))) = f \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A (B, b')))"
+  \<Longrightarrow> ext V A (B, f \<cdot> B \<star> (b, b')) = (A, f \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A (B, b'))))"
 proof -
   fix A B b b'
   assume B_open: "B \<in> opens (space V)"
@@ -1540,9 +1540,9 @@ proof -
   moreover have "... = (A, f \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A (B, b'))))"
     by (smt (z3) A_open B_le_A B_open V_valid b'_el b_el calculation(3) calculation(4) calculation(5) calculation(6) calculation(7) calculation(8) comb'_def d_ext d_ext_local e_ext_local eq_fst_iff ext_elem ext_functorial_id raw_elem_is_elem prod.exhaust_sel) 
 
-  ultimately show "e (ext V A (B, f \<cdot> B \<star> (b, b'))) = f \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A
-    (B, b')))"
-    by (metis snd_conv) 
+  ultimately show "ext V A (B, f \<cdot> B \<star> (b, b')) = (A, f \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A
+    (B, b'))))"
+    by simp
 qed
 
 (* [Lemma 8, TMCVA] *)
@@ -2075,6 +2075,26 @@ proof -
     by (metis V'_valid V_valid V_V'_prealg valid_gc_poset)
   moreover have local_elems_same : "\<And> A . local_elems V A = local_elems V' A"
     using V_V'_prealg by presburger
+  moreover have ext_is_ext': "\<And> A b . b \<in> elems V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> d b \<subseteq> A \<Longrightarrow> ext V A b = ext V' A b" 
+  proof -
+    fix A b
+    assume "b \<in> elems V"
+    assume "A \<in> opens (space V)"
+    assume "d b \<subseteq> A"
+
+    have "local_le V (d b) (res V (d b) (ext V A b)) b" using galois_insertion [where ?V=V and ?A=A and ?b=b]
+      by (metis V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>b \<in> OVA.elems V\<close> \<open>d b \<subseteq> A\<close> res_functorial_id valid_le valid_poset valid_reflexivity valid_semigroup)
+    moreover have lhs: "local_le V A (ext V A b) (ext V' A b)"
+      by (smt (verit, best) OVA.le_eq_local_le V'_valid V_V'_prealg V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>b \<in> OVA.elems V\<close> \<open>d b \<subseteq> A\<close> d_elem_is_open d_ext ext_elem galois_insertion id_le_res res_ext_adjunction valid_gc_poset valid_le)
+    moreover have "local_le V' (d b) (res V' (d b) (ext V' A b)) b" using galois_insertion [where ?V=V' and ?A=A and ?b=b]
+      by (metis OVA.valid_welldefined V'_valid V_V'_prealg \<open>A \<in> opens (OVA.space V)\<close> \<open>b \<in> OVA.elems V\<close> \<open>d b \<subseteq> A\<close> elems_same res_functorial_id valid_le valid_poset valid_reflexivity)
+    moreover have rhs : "local_le V' A (ext V' A b) (ext V A b)"
+      by (smt (verit, ccfv_threshold) OVA.le_eq_local_le V'_valid V_V'_prealg V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>b \<in> OVA.elems V\<close> \<open>d b \<subseteq> A\<close> d_elem_is_open d_ext ext_elem galois_insertion id_le_res res_ext_adjunction valid_gc_poset valid_le) 
+    moreover have rhs' : "local_le V A (ext V' A b) (ext V A b)"
+      by (metis V_V'_prealg local_le_def rhs) 
+    ultimately show "ext V A b = ext V' A b"
+      by (smt (verit) V'_valid V_V'_prealg V_valid \<open>A \<in> opens (OVA.space V)\<close> \<open>b \<in> OVA.elems V\<close> \<open>d b \<subseteq> A\<close> d_ext e_ext elems_same local_le_def prod.expand valid_antisymmetry valid_ob valid_prealgebra)
+  qed
 
   moreover have "d (par a b) = d a \<union> d b"
     using a_el assms(1) b_el d_ext_local by blast
@@ -2121,44 +2141,129 @@ proof -
     = a \<and> p \<cdot> A \<star> (a, delta \<cdot> A) = a" unfolding delta_def
   proof -
     fix A a
-    assume "A \<in> opens (OVA.space V) "
-    assume "a \<in> el (ob V \<cdot> A)"
+    assume A_open : "A \<in> opens (OVA.space V) "
+    assume a_el : "a \<in> el (ob V \<cdot> A)"
 
+    have "(A, a) = par (neut V A) (A, a)"
+      by (metis A_open V_valid a_el fst_conv local_elem_gc par valid_gc_poset valid_neutral_law_left valid_prealgebra) 
+    moreover have "... = (A, p \<cdot> A \<star> (e (ext V A (neut V A)), e (ext V A (A, a))))"
+      by (smt (verit, ccfv_threshold) A_open V_valid \<open>(A, a) = par (neut V A) (A, a)\<close> a_el e_ext_local fst_conv neutral_is_element par par_def raw_elem_is_elem snd_conv valid_domain_law)                      
+    moreover have "... = (A, p \<cdot> A \<star> (e (neut V A), a))"
+      using A_open V_valid a_el ext_functorial_id neutral_is_element raw_elem_is_elem by fastforce 
+    moreover have "... = (A, p \<cdot> A \<star> (delta \<cdot> A, a))"
+      using A_open Function.fun_app_iff delta_def delta_valid by fastforce
+    ultimately have "a = p \<cdot> A \<star> (delta \<cdot> A, a)"
+      by (metis prod.inject) 
 
-    have "p \<cdot> A \<star> (delta \<cdot> A, a) = e (par (neut V A) (A, a))"                      
-    
+    have "(A, a) = par (A, a) (neut V A)"
+      by (metis A_open V_valid a_el fst_conv local_elem_gc par valid_gc_poset valid_neutral_law_right valid_prealgebra)
+    moreover have "... = (A, p \<cdot> A \<star> (e (ext V A (A, a)), e (ext V A (neut V A))))"
+      by (smt (verit) A_open V_valid a_el calculation e_ext_local fst_conv neutral_is_element par par_def raw_elem_is_elem snd_conv valid_domain_law) 
+    moreover have "... = (A, p \<cdot> A \<star> (a, e (neut V A)))"
+      using A_open V_valid a_el ext_functorial_id neutral_is_element raw_elem_is_elem by fastforce 
+    moreover have "... = (A, p \<cdot> A \<star> (a, delta \<cdot> A))"
+      using A_open Function.fun_app_iff delta_def delta_valid by fastforce
+    ultimately have "a = p \<cdot> A \<star> (a, delta \<cdot> A)"
+      by (metis prod.inject) 
 
+    show "p \<cdot> A \<star> (\<lparr>Function.cod = UNIV, func = {(A, e (neut V A)) |A. A \<in> opens (OVA.space V)}\<rparr> \<cdot> A, a) = a \<and>
+           p \<cdot> A \<star> (a, \<lparr>Function.cod = UNIV, func = {(A, e (neut V A)) |A. A \<in> opens (OVA.space V)}\<rparr>
+ \<cdot> A) = a"
+      using \<open>a = p \<cdot> A \<star> (a, delta \<cdot> A)\<close> \<open>a = p \<cdot> A \<star> (delta \<cdot> A, a)\<close> delta_def by force 
+  qed
 
-  moreover have local_ext_comm_par : "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
-  b \<in> local_elems V B \<Longrightarrow> b' \<in> local_elems V B
-  \<Longrightarrow> ext V A (B, p \<cdot> B \<star> (e b, e b')) = (A, p \<cdot> A \<star> (e (ext V A b), e (ext V A b')))" 
+  moreover have units_seq : "\<And>A a. A \<in> opens (space V') \<Longrightarrow> a \<in> el (ob V' \<cdot> A) \<Longrightarrow> s \<cdot> A \<star> (epsilon \<cdot> A, a)
+    = a \<and> s \<cdot> A \<star> (a, epsilon \<cdot> A) = a" unfolding epsilon_def
+  proof -
+    fix A a
+    assume A_open : "A \<in> opens (space V') "
+    assume a_el : "a \<in> el (ob V' \<cdot> A)"
+
+    have "(A, a) = seq (neut V' A) (A, a)"
+      by (metis A_open V'_valid a_el fst_conv local_elem_gc seq valid_gc_poset valid_neutral_law_left valid_prealgebra) 
+    moreover have "... = (A, s \<cdot> A \<star> (e (ext V' A (neut V' A)), e (ext V' A (A, a))))"
+      by (smt (verit, ccfv_threshold) A_open V'_valid \<open>(A, a) = seq (neut V' A) (A, a)\<close> a_el e_ext_local fst_conv neutral_is_element seq seq_def raw_elem_is_elem snd_conv valid_domain_law)                      
+    moreover have "... = (A, s \<cdot> A \<star> (e (neut V' A), a))"
+      using A_open V'_valid a_el ext_functorial_id neutral_is_element raw_elem_is_elem by fastforce 
+    moreover have "... = (A, s \<cdot> A \<star> (epsilon \<cdot> A, a))"
+      using A_open Function.fun_app_iff epsilon_def epsilon_valid by fastforce
+    ultimately have "a = s \<cdot> A \<star> (epsilon \<cdot> A, a)"
+      by (metis prod.inject) 
+
+    have "(A, a) = seq (A, a) (neut V' A)"
+      by (metis A_open V'_valid a_el fst_conv local_elem_gc seq valid_gc_poset valid_neutral_law_right valid_prealgebra)
+    moreover have "... = (A, s \<cdot> A \<star> (e (ext V' A (A, a)), e (ext V' A (neut V' A))))"
+      by (smt (verit) A_open V'_valid a_el calculation e_ext_local fst_conv neutral_is_element seq seq_def raw_elem_is_elem snd_conv valid_domain_law) 
+    moreover have "... = (A, s \<cdot> A \<star> (a, e (neut V' A)))"
+      using A_open V'_valid a_el ext_functorial_id neutral_is_element raw_elem_is_elem by fastforce 
+    moreover have "... = (A, s \<cdot> A \<star> (a, epsilon \<cdot> A))"
+      using A_open Function.fun_app_iff epsilon_def epsilon_valid by fastforce
+    ultimately have "a = s \<cdot> A \<star> (a, epsilon \<cdot> A)"
+      by (metis prod.inject) 
+
+    show "s \<cdot> A \<star> (\<lparr>Function.cod = UNIV, func = {(A, e (neut V' A)) |A. A \<in> opens (space V')}\<rparr> \<cdot> A, a) = a \<and>
+           s \<cdot> A \<star> (a, \<lparr>Function.cod = UNIV, func = {(A, e (neut V' A)) |A. A \<in> opens (space V')}\<rparr>
+ \<cdot> A) = a"
+      using \<open>a = s \<cdot> A \<star> (a, epsilon \<cdot> A)\<close> \<open>a = s \<cdot> A \<star> (epsilon \<cdot> A, a)\<close> epsilon_def by force 
+  qed
+
+  moreover have local_ext_comm_par :  "\<And>A B b b'. B \<in> opens (space V) \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
+  b \<in> el (ob V \<cdot> B) \<Longrightarrow> b' \<in> el (ob V \<cdot> B)
+  \<Longrightarrow> ext V A (B, p \<cdot> B \<star> (b, b')) = (A, p \<cdot> A \<star> (e (ext V A (B, b)), e (ext V A (B, b'))))" 
     using local_assoc_units_imp_ext_comm [where ?V=V and ?f=p and ?i=delta] 
-        V_valid  delta_valid assoc_par units_el_par
+        V_valid  assoc_par units_el_par units_par p_valid p_valid_val p_dom p_cod
+        par_def
+    by blast  
+
+  moreover have local_ext_comm_seq :  "\<And>A B b b'. B \<in> opens (space V') \<Longrightarrow> A \<in> opens (space V') \<Longrightarrow> B \<subseteq> A \<Longrightarrow>
+  b \<in> el (ob V' \<cdot> B) \<Longrightarrow> b' \<in> el (ob V' \<cdot> B)
+  \<Longrightarrow> ext V' A (B, s \<cdot> B \<star> (b, b')) = (A, s \<cdot> A \<star> (e (ext V' A (B, b)), e (ext V' A (B, b'))))" (* use
+ `apply (subst local_assoc_units_imp_ext_comm)` to check that the goal actually matches *)
+    using local_assoc_units_imp_ext_comm [where ?V=V' and ?f=s and ?i=epsilon] 
+        V'_valid  assoc_seq units_el_seq units_seq s_valid s_valid_val s_dom s_cod
+        seq_def
+    by blast  
 
   moreover have "seq (par a b) (par c x) =
-        (U, (s \<cdot> U \<star> (e (ext V' U (par a b)), e (ext V' U (par c x)))))" (is "?L = ?R0")
+        (U, (s \<cdot> U \<star> (e (ext V' U (par a b)), e (ext V' U (par c x)))))" (is "?L0 = ?R0")
     using U_def seq_def e_ext_local [where ?V=V' and ?f=s and ?a="par a b" and ?b="par c x"]
-    by (metis (no_types, lifting) calculation(3) calculation(4) calculation(7) calculation(8) d_ext_local elems_same prod.exhaust_sel sup.assoc) 
+    by (metis (no_types, lifting) calculation(4) calculation(5) calculation(8) calculation(9) d_ext_local elems_same prod.collapse sup_assoc) 
 
   moreover have p0 : "par a b = (d a \<union> d b,  p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union>
     d b) b)))" using U_def par_def e_ext_local [where ?V=V and ?f=p and ?a=a and ?b=b]
-    by (metis a_el b_el calculation(3) prod.collapse) 
+    by (metis a_el b_el calculation(4) prod.collapse)
 
   moreover have p1 : "par c x = (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x)))" 
     using U_def par_def e_ext_local [where ?V=V and ?f=p and ?a=c and ?b=x]
-    by (metis c_el calculation(4) prod.collapse x_el) 
+    by (metis c_el calculation(5) prod.exhaust_sel x_el)
 
    moreover have "?R0 =
         (U, s \<cdot> U \<star> 
        (e (ext V' U (d a \<union> d b, p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))), 
-        e (ext V' U (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x))))))"  
+        e (ext V' U (d c \<union> d x, p \<cdot> (d c \<union> d x) \<star> (e (ext V (d c \<union> d x) c), e (ext V (d c \<union> d x) x))))))"  (is "?L1 = ?R1")
      using p0 p1
      by presburger
+
+   moreover have p3: "d a \<union> d b \<in> opens (OVA.space V) \<and>  U \<in> opens (OVA.space V) \<and> d a \<union> d b \<subseteq> U"
+     by (metis Prealgebra.valid_space U_def V_valid c_el calculation(4) calculation(8) d_elem_is_open le_supI1 sup_ge1 valid_prealgebra valid_union2 x_el) 
+
+   moreover have p4: "e (ext V (d a \<union> d b) a) \<in> el (ob V \<cdot> (d a \<union> d b)) \<and> e (ext V (d a \<union> d b) b) \<in> el
+     (ob V \<cdot> (d a \<union> d b))"
+     by (meson V_valid a_el b_el e_ext inf_sup_ord(3) p3 sup_ge2)  
+
+   moreover have p2 : "ext V U (d a \<union> d b, p \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))
+   = (U, p \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d b) a)), e (ext V U (ext V (d a \<union> d b) b))))"
+     using p3 p4 local_ext_comm_par [where ?A=U and ?B="d a \<union> d b" and ?b="e (ext V (d a \<union> d b) a)" and ?b'="e
+    (ext V (d a \<union> d b) b)"]
+     
 
    moreover have "... =
         (U, s \<cdot> U \<star> 
        (p \<cdot> U \<star> (e (ext V U (ext V (d a \<union> d b) a)), e (ext V U (ext V (d a \<union> d b) b))), 
         p \<cdot> U \<star> (e (ext V U (ext V (d c \<union> d x) c)), e (ext V U (ext V (d c \<union> d x) x)))))"  
+     using local_ext_comm_par [where ?A=U and ?B="d a \<union> d b" and ?b="e (ext V (d a \<union> d b) a)" and ?b'="e (ext V (d a \<union> d b) b)"]
+      local_ext_comm_par [where ?A=U and ?B="d c \<union> d x" and ?b="e (ext V (d c \<union> d x) c)" and ?b'="e
+        (ext V (d c \<union> d x) c)"] assms calculation
 
 
 
