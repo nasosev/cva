@@ -82,6 +82,7 @@ sublocale op_poset: poset carrier "\<lambda>y x. le x y"
    apply (erule (4) local.p_trans)
   apply (erule (3) local.p_antisym)
   done
+
 end
 
 lemma discrete_leq_iff: "(discrete.witness \<Ztypecolon> x \<sqsubseteq> x) \<longleftrightarrow> x = x"
@@ -212,6 +213,7 @@ sublocale product_poset: poset "S \<times> S'" "(\<lambda>x y. le (fst x) (fst y
   using A.op_poset.p_antisym B.op_poset.p_antisym by force
   
 end
+
 
 interpretation two_posets "el P" "el P'" "leq P" "leq P'"
   by (standard)
