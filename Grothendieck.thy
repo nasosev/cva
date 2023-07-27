@@ -1,316 +1,234 @@
-(*
- Theory      :  Grothendieck.thy
-
- This theory formalizes the covariant Grothendieck construction, which is a fundamental
- construction in category theory. The main goal of this theory is to define and prove
- properties of the Grothendieck construction for a given presheaf.
-
- The covariant Grothendieck construction takes a presheaf \<Phi> and constructs a poset P,
- where the elements of P are pairs (A, a), where A is an open set in the space of \<Phi> and
- a is an element in the presheaf value at A. The ordering relation in P is determined by
- the inclusion relations between open sets and the ordering relation in the presheaf.
-
---------------------------------------------------------------------------------
-*)
+section \<open> Grothendieck.thy \<close>
 
 theory Grothendieck
-imports Main Presheaf Poset
+imports Main Poset Prealgebra
 begin
 
-(*
-   The function d takes a pair (A, a) and returns the first component A.
-   It extracts the open set from the pair.
-*)
 abbreviation d :: "('A set \<times> 'a)  \<Rightarrow> 'A set" where
 "d Aa \<equiv> fst Aa"
 
-(*
-   The function e takes a pair (A, a) and returns the second component a.
-   It extracts the element from the pair.
-*)
 abbreviation e :: "('A set \<times> 'a)  \<Rightarrow> 'a" where
 "e Aa \<equiv> snd Aa"
 
-(*
-   The function gc takes a presheaf \<Phi> and constructs a poset P, which represents
-   the covariant Grothendieck construction for \<Phi>. The elements of P are pairs (A, a),
-   where A is an open set in the space of \<Phi> and a is an element in the presheaf value at A.
-   The construction involves defining a set el of pairs (A, a), where A \<in> opens and
-   a \<in> Poset.el (\<Phi>0 $ A), and a relation le_rel that defines the ordering relation
-   between elements in P based on the inclusion relations between open sets and the
-   ordering relation in the presheaf.
-*)
-definition gc :: "('A, 'a) Presheaf \<Rightarrow> ('A set \<times> 'a) Poset" where
-  "gc \<Phi> \<equiv>
-    let
-        \<Phi>0 = Presheaf.ob \<Phi>;
-        \<Phi>1 = Presheaf.ar \<Phi>;
-        T = Presheaf.space \<Phi>;
-        opens = Space.opens T;
-        el = { (A, a) .  A \<in> opens \<and> a \<in> Poset.el (\<Phi>0 $ A) };
-        inc = Space.make_inclusion T;
-        le_rel  = { ((A, a), (B, b)) . A \<in> opens \<and> B \<in> opens \<and> a \<in> Poset.el ((\<Phi>0 $ A)) \<and> b \<in> Poset.el ((\<Phi>0 $ B))
-                     \<and> B \<subseteq> A \<and> Poset.le (\<Phi>0 $ B) ((\<Phi>1 $ (inc B A)) $$ a) b }
-    in
-    \<lparr> Poset.el = el, Poset.le_rel = le_rel \<rparr>"
+definition gc :: "('A, 'a) Prealgebra \<Rightarrow> ('A set \<times> 'a) Poset" where
+  "gc F \<equiv>
+    \<lparr> Poset.el = { (A, a) . A \<in> opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)},
+      Poset.le_rel = { ((A, a), (B, b)) . 
+                     A \<in> opens (space F) \<and> B \<in> opens (space F) 
+                     \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
+                     \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (make_inc B A) \<star> a) b } \<rparr>"
 
-(* LEMMAS *)
+lemma gc_elD [dest] : "a \<in> el (gc F) \<Longrightarrow> a = (d a, e a)"
+  by simp 
 
-(*
-   The lemma local_dom states that if \<Phi> is a valid presheaf, P = gc \<Phi>, and Aa is an element in Poset.el P,
-   then A = d Aa is an open set in the space of \<Phi>.
-*)
-lemma local_dom : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa
-\<Longrightarrow> T = Presheaf.space \<Phi>  \<Longrightarrow>  A \<in> opens T"
-  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
-
-(*
-   The lemma gc_elem_local states that if \<Phi> is a valid presheaf, P = gc \<Phi>, and Aa is an element in Poset.el P,
-   then A = d Aa and P_A = Presheaf.ob \<Phi> $ A, then a = snd Aa \<in> Poset.el P_A.
-*)
-lemma gc_elem_local : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> A = d Aa
-\<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = snd Aa \<Longrightarrow> a \<in> Poset.el P_A"
-  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
-
-(*
-   The lemma local_elem_gc states that if \<Phi> is a valid presheaf, P = gc \<Phi>, A is an open set in the space of \<Phi>,
-   and P_A = Presheaf.ob \<Phi> $ A, and a is an element in Poset.el P_A, then (A, a) \<in> Poset.el P.
-*)
-lemma local_elem_gc : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> A \<in> opens (Presheaf.space \<Phi>)
-\<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a \<in> Poset.el P_A \<Longrightarrow> (A,a) \<in> Poset.el P"
+lemma gc_leI_raw : "A \<in> opens (space F) \<Longrightarrow> B \<in> opens (space F) \<Longrightarrow> B \<subseteq> A
+\<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) \<Longrightarrow> b \<in> Poset.el (ob F \<cdot> B)
+\<Longrightarrow> Poset.le (ob F \<cdot> B) ((ar F \<cdot> (make_inc B A)) \<star> a) b \<Longrightarrow> Poset.le (gc F) (A,a) (B,b)"
   unfolding gc_def
-  by (simp add: Let_def)
+  by simp
 
-(*
-   The lemma d_antitone states that if \<Phi> is a valid presheaf, P = gc \<Phi>,
-   and Aa and Bb are elements in Poset.el P, and Poset.le P Aa Bb, then d Bb \<subseteq> d Aa.
-*)
-lemma d_antitone : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Bb \<in> Poset.el P \<Longrightarrow>
-Poset.le P Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
+lemma gc_leI [intro] : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> d
+ b \<subseteq> d a \<Longrightarrow> Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b) \<Longrightarrow> Poset.le (gc F) a b" 
+  unfolding gc_def
+  apply clarsimp
+  by force
+
+lemma gc_leD [dest] : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
+\<Longrightarrow> d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b)" 
+  unfolding gc_def 
+  by force
+
+lemma gc_le_eq : "a \<in> el (gc F) \<Longrightarrow> b \<in> el (gc F) \<Longrightarrow> Poset.le (gc F) a b
+= (d b \<subseteq> d a \<and>  Poset.le (ob F \<cdot> d b) ((ar F \<cdot> (make_inc (d b) (d a))) \<star> e a) (e b))"
+  unfolding gc_def
+  by fastforce
+
+lemma gc_le_eq2 : "valid F \<Longrightarrow> A \<in> opens(space F) \<Longrightarrow> B \<in> opens (space F) \<Longrightarrow> B \<subseteq> A \<Longrightarrow> 
+ a \<in> el (ob F \<cdot> A) \<Longrightarrow> b \<in> el (ob F \<cdot> B) \<Longrightarrow> 
+ Poset.le (gc F) (A, a) (B, b) = Poset.le (ob F \<cdot> B) ((ar F \<cdot> (make_inc B A)) \<star> a) b"
+  unfolding gc_def
+  by fastforce
+
+lemma gc_le_rel : "le_rel (gc F) = { ((A, a), (B, b)) .
+ A \<in> opens (space F) \<and> B \<in> opens (space F) 
+ \<and> a \<in> Poset.el (ob F \<cdot> A) \<and> b \<in> Poset.el (ob F \<cdot> B)
+ \<and> B \<subseteq> A \<and> Poset.le (ob F \<cdot> B) (ar F \<cdot> (make_inc B A) \<star> a) b }" 
+  unfolding gc_def 
+  by simp
+
+lemma gc_el : "el (gc F) = { (A, a) . A \<in> opens (space F) \<and> a \<in> Poset.el (ob F \<cdot> A)}"
+  unfolding gc_def 
+  by simp
+
+lemma local_dom : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> d Aa \<in> opens (space F)"
+  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
+
+lemma gc_elem_local : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> A = d Aa 
+  \<Longrightarrow> e Aa \<in> Poset.el (ob F \<cdot> (d Aa))"
+  by (metis (no_types, lifting) Poset.Poset.select_convs(1) Product_Type.Collect_case_prodD gc_def)
+
+lemma local_elem_gc : "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> a \<in> Poset.el (ob F \<cdot> A) 
+  \<Longrightarrow> (A, a) \<in> Poset.el (gc F)"
+  unfolding gc_def
+  by simp
+
+lemma d_antitone : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> Bb \<in> Poset.el (gc F) \<Longrightarrow>
+  Poset.le (gc F) Aa Bb \<Longrightarrow> d Bb \<subseteq> d Aa"
   unfolding gc_def
   by (smt (verit) Poset.Poset.select_convs(2) case_prod_conv case_prod_unfold mem_Collect_eq)
 
-(*
-   The lemma local_le states that if \<Phi> is a valid presheaf, P = gc \<Phi>, Aa and Aa' are elements in Poset.el P,
-   and d Aa = d Aa', and Poset.le P Aa Aa', then A = d Aa, P_A = Presheaf.ob \<Phi> $ A, a = snd Aa,
-   a' = snd Aa', then Poset.le P_A a a'.
-*)
-lemma local_le : "Presheaf.valid \<Phi> \<Longrightarrow> P = gc \<Phi> \<Longrightarrow> Aa \<in> Poset.el P \<Longrightarrow> Aa' \<in> Poset.el P \<Longrightarrow>
-d Aa = d Aa' \<Longrightarrow> Poset.le P Aa Aa' \<Longrightarrow> A = d Aa \<Longrightarrow> P_A = Presheaf.ob \<Phi> $ A \<Longrightarrow> a = e Aa \<Longrightarrow> a' = e Aa' \<Longrightarrow>
- Poset.le P_A a a' "
-  unfolding gc_def
-  by (smt (verit) Poset.Poset.select_convs(2) Poset.ident_app Presheaf.valid_welldefined Product_Type.Collect_case_prodD case_prod_conv make_inclusion_ident prod.collapse valid_identity)
+lemma le_eq_local_le : "valid F \<Longrightarrow> Aa \<in> Poset.el (gc F) \<Longrightarrow> Aa' \<in> Poset.el (gc F) \<Longrightarrow>
+  d Aa = d Aa' \<Longrightarrow> Poset.le (gc F) Aa Aa' = Poset.le (ob F \<cdot> (d Aa)) (e Aa) (e Aa')" using gc_le_eq
+  [where ?F=F and ?a=Aa and ?b=Aa']
+  by (metis Poset.ident_app Prealgebra.valid_identity Space.ident_def gc_elem_local local_dom subset_refl valid_ob) 
 
-(*
-   The lemma valid_gc_1 states that if \<Phi> is a valid presheaf and A is an open set in the space of \<Phi>,
-   then (ar \<Phi> $ (Space.ident (space \<Phi>) A)) = (Poset.ident (ob \<Phi> $ A)).
-*)
-lemma valid_gc_1 :
-  fixes \<Phi> :: "('A,'a) Presheaf" and A :: "'A Open"
-  assumes "valid \<Phi>" and "A \<in> opens (space \<Phi>)"
-  shows "(ar \<Phi> $ (Space.ident (space \<Phi>) A)) = (Poset.ident (ob \<Phi> $ A))"
-  by (simp add: assms(1) assms(2) valid_identity)
+lemma local_le_eq_le : "valid F \<Longrightarrow> A \<in> opens (space F) \<Longrightarrow> a \<in> el (ob F \<cdot> A) \<Longrightarrow> a' \<in> el (ob F \<cdot> A)
+ \<Longrightarrow> Poset.le (ob F \<cdot> A) a a' = Poset.le (gc F) (A, a) (A, a')" using gc_le_eq
+  [where ?F=F and ?a="(A,a)" and ?b="(A,a')"]
+  by (metis fst_conv le_eq_local_le local_elem_gc snd_conv)
 
-(*
-   The lemma valid_gc_transitive states that if \<Phi> is a valid presheaf and A, B, C are open sets in the space of \<Phi>,
-   and a, b, c are elements in the presheaf values at A, B, C respectively, then if C \<subseteq> B, B \<subseteq> A,
-   A \<in> Space.opens T, B \<in> Space.opens T, C \<in> Space.opens T, a \<in> el \<Phi>_A, b \<in> el \<Phi>_B, c \<in> el \<Phi>_C,
-   le \<Phi>_B (prj_AB $$ a) b, and le \<Phi>_C (prj_BC $$ b) c, then le \<Phi>_C (prj_AC $$ a) c.
-*)
 lemma valid_gc_transitive :
-  fixes \<Phi> :: "('A,'a) Presheaf" and A B C :: "'A Open" and a b c :: "'a"
-  defines "\<Phi>0 \<equiv> (ob \<Phi>)"
-  defines "\<Phi>1 \<equiv> (ar \<Phi>)"
-  defines "T \<equiv> Presheaf.space \<Phi>"
-  defines "\<Phi>_A \<equiv> \<Phi>0 $ A"
-  defines "\<Phi>_B \<equiv> \<Phi>0 $ B"
-  defines "\<Phi>_C \<equiv> \<Phi>0 $ C"
-  defines "i_BA \<equiv> \<lparr>Inclusion.space = T, dom = B, cod = A\<rparr>"
-  defines "i_CB \<equiv> \<lparr>Inclusion.space = T, dom = C, cod = B\<rparr>"
-  defines "i_CA \<equiv> \<lparr>Inclusion.space = T, dom = C, cod = A\<rparr>"
-  defines "prj_AB \<equiv> (\<Phi>1 $ i_BA)"
-  defines "prj_BC \<equiv> (\<Phi>1 $ i_CB)"
-  defines "prj_AC \<equiv> (\<Phi>1 $ i_CA)"
-  assumes "valid \<Phi>" and "C \<subseteq> B" and "B \<subseteq> A"
-  and "A \<in> Space.opens T" and "B \<in> Space.opens T" and "C \<in> Space.opens T"
-  and "a \<in> el \<Phi>_A" and "b \<in> el \<Phi>_B" and "c \<in> el \<Phi>_C"
-  and "le \<Phi>_B (prj_AB $$ a) b"
-  and "le \<Phi>_C (prj_BC $$ b) c"
-shows "le \<Phi>_C (prj_AC $$ a) c"
-proof -
-  have "valid \<Phi> "
-    by (simp add: assms(13))
- moreover have "le \<Phi>_B (prj_AB $$ a) b"
-   by (simp add: assms(22))
-   moreover have "a \<in> el \<Phi>_A"
-     by (simp add: assms(19))
-  moreover have "b \<in> el \<Phi>_B"
-    using assms(20) by blast
-  moreover have "Space.valid T"
-    using T_def calculation(1) valid_space by blast 
-  moreover have "Space.valid_inclusion i_BA"
-    by (simp add: assms(15) assms(16) assms(17) calculation(5) i_BA_def valid_inclusion_def)
-  moreover have "Poset.valid_map prj_AB"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Presheaf.valid_welldefined T_def \<Phi>1_def calculation(1) calculation(6) i_BA_def inclusions_def mem_Collect_eq prj_AB_def) 
-  moreover have "Poset.cod prj_AB = \<Phi>_B"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def calculation(1) calculation(6) cod_proj i_BA_def inclusions_def mem_Collect_eq prj_AB_def)
-    moreover have "(prj_AB $$ a) \<in> el \<Phi>_B"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def \<Phi>_B_def calculation(1) calculation(3) calculation(6) i_BA_def image inclusions_def mem_Collect_eq prj_AB_def)
-  moreover have "Space.valid_inclusion i_CB"
-    by (simp add: assms(14) assms(17) assms(18) calculation(5) i_CB_def valid_inclusion_def)
-moreover have "Poset.valid_map prj_BC"
-  by (metis (mono_tags, lifting) Inclusion.select_convs(1) Presheaf.valid_welldefined T_def \<Phi>1_def calculation(1) calculation(10) i_CB_def inclusions_def mem_Collect_eq prj_BC_def) 
-  moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$  a)) (prj_BC $$  b)"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def calculation(1) calculation(10) calculation(11) calculation(2) calculation(4) calculation(9) cod_proj dom_proj i_CB_def inclusions_def mem_Collect_eq prj_BC_def valid_map_monotone)
-   moreover have "le \<Phi>_C (prj_BC $$ b) c"
-     by (simp add: assms(23))
-   moreover have "le \<Phi>_C (prj_BC $$ (prj_AB $$ a)) c"
-     by (smt (verit, best) Inclusion.simps(1) Inclusion.simps(2) Inclusion.simps(3) T_def \<Phi>0_def \<Phi>1_def \<Phi>_B_def \<Phi>_C_def assms(18) assms(21) calculation(1) calculation(10) calculation(12) calculation(13) calculation(4) calculation(9) i_CB_def image inclusions_def mem_Collect_eq prj_BC_def valid_ob valid_transitivity) 
-    ultimately show ?thesis
-      by (smt (z3) Inclusion.select_convs(1) Inclusion.select_convs(2) Inclusion.select_convs(3) Presheaf.valid_welldefined Space.compose_def T_def \<Phi>0_def \<Phi>1_def \<Phi>_A_def compose_app i_BA_def i_CA_def i_CB_def inclusions_def mem_Collect_eq prj_AB_def prj_AC_def prj_BC_def valid_composition) 
-  qed
+  fixes F :: "('A,'a) Prealgebra" and A B C :: "'A Open" and a b c :: "'a"
+  defines "T \<equiv> space F"
+  defines "i_BA \<equiv> make_inc B A"
+  defines "i_CB \<equiv> make_inc C B"
+  defines "i_CA \<equiv> make_inc C A"
+  defines "prj_AB \<equiv> ar F \<cdot> i_BA"
+  defines "prj_BC \<equiv> ar F \<cdot> i_CB"
+  defines "prj_AC \<equiv> ar F \<cdot> i_CA"
+  assumes F_valid : "valid F" and C_le_B : "C \<subseteq> B" and B_le_A : "B \<subseteq> A"
+  and A_open : "A \<in> opens T" and B_open : "B \<in> opens T" and C_open "C \<in> opens T"
+  and A_el : "a \<in> el (ob F \<cdot> A)" and b_el : "b \<in> el (ob F \<cdot> B)" and c_el : "c \<in> el (ob F \<cdot> C)"
+  and le_prj_a_b : "le (ob F \<cdot> B) (prj_AB \<star> a) b"
+  and le_prj_b_c : "le (ob F \<cdot> C) (prj_BC \<star> b) c"
+shows "le (ob F \<cdot> C) (prj_AC \<star> a) c"
+proof - 
+  have "Poset.valid_map prj_AB" using assms inclusions_def valid_ar
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) mem_Collect_eq)
+  moreover have "Poset.valid_map prj_BC" using assms calculation inclusions_def valid_ar
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) mem_Collect_eq) 
+  moreover have "Poset.valid_map prj_AC" using assms calculation
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_ar inclusions_def mem_Collect_eq subsetD subsetI) 
+  moreover have "le (ob F \<cdot> C) (prj_BC \<star> (prj_AB \<star>  a)) (prj_BC \<star>  b)"
+    by (metis (no_types, lifting) inclusions_def A_el A_open B_le_A B_open C_le_B F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.fun_app2 valid_welldefined T_def assms(14) b_el i_BA_def i_CB_def le_prj_a_b mem_Collect_eq prj_AB_def prj_BC_def valid_map_monotone)
+  moreover have "le (ob F \<cdot> C) (prj_BC \<star> (prj_AB \<star> a)) c"
+    by (smt (z3) inclusions_def A_el A_open B_le_A B_open C_le_B F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.fun_app2 valid_welldefined T_def assms(14) b_el c_el calculation(4) i_BA_def i_CB_def le_prj_b_c mem_Collect_eq prj_AB_def prj_BC_def valid_transitivity)
+  moreover have "prj_BC \<diamondop> prj_AB = prj_AC" using assms calculation
+    by (metis (no_types, lifting) inclusions_def Inclusion.select_convs(1) Inclusion.select_convs(2) compose_inc_def mem_Collect_eq valid_composition) 
+  moreover have "prj_BC \<star> (prj_AB \<star> a) = prj_AC \<star> a" using assms calculation inclusions_def
+    by (smt (verit, ccfv_threshold) Poset.ident_app Prealgebra.diamond_rule Prealgebra.valid_identity Space.ident_def dual_order.refl subset_trans valid_ob)
+  ultimately show ?thesis
+    by metis
+qed
 
-(* THEOREM *)
+(* Main result *) 
 
-(*
-   The theorem valid_gc states that if \<Phi> is a valid presheaf, then (gc \<Phi>) is a valid poset.
-*)
-
-theorem valid_gc:  
-  fixes \<Phi> :: "('A, 'a) Presheaf"
-  assumes valid_\<Phi> : "valid \<Phi>"
-  shows "Poset.valid (gc \<Phi>)"
+(* [Definition 1, TMCVA] *)
+proposition valid_gc:  
+  fixes F :: "('A, 'a) Prealgebra"
+  assumes valid_F : "valid F"
+  shows "Poset.valid (gc F)"
 proof (intro Poset.validI)
   fix x y
-  assume a1: "(x, y) \<in> le_rel (gc \<Phi>)" 
-
-   show "x \<in> el (gc \<Phi>) \<and> y \<in> el (gc \<Phi>)" using assms a1 gc_def [where ?\<Phi>=\<Phi>]
-     by (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) case_prod_unfold fst_conv mem_Collect_eq snd_conv) 
+  assume a1: "(x, y) \<in> le_rel (gc F)" 
+   show "x \<in> el (gc F) \<and> y \<in> el (gc F)" using assms a1 gc_def [where ?F=F]
+     by (smt (verit) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD case_prod_unfold fst_conv local_elem_gc prod.collapse snd_conv)
 next 
   fix x
-  assume "x \<in> el (gc \<Phi>)"
-  define "T" where "T = Presheaf.space \<Phi>" 
-  define "i" where "i = Space.ident T (d x)"
-  have "e x = ((Presheaf.ar \<Phi>) $ i) $$ (e x)"
-    by (metis Poset.ident_app T_def \<open>x \<in> el (gc \<Phi>)\<close> gc_elem_local i_def local_dom valid_\<Phi> valid_identity valid_ob) 
-  moreover have "d x \<in> opens (Presheaf.space \<Phi>)"
-    using \<open>x \<in> el (gc \<Phi>)\<close> local_dom valid_\<Phi> by blast 
+  assume "x \<in> el (gc F)"
+  define "T" where "T = space F" 
+  define "i" where "i = Space.ident (d x)"
+  have "e x = ((ar F) \<cdot> i) \<star> (e x)"
+    by (metis Poset.ident_app T_def \<open>x \<in> el (gc F)\<close> gc_elem_local i_def local_dom valid_F valid_identity valid_ob) 
+  moreover have "d x \<in> opens (space F)"
+    using \<open>x \<in> el (gc F)\<close> local_dom valid_F by blast 
 
-  moreover have "e x \<in> Poset.el ((Presheaf.ob \<Phi>) $ (d x))"
-    by (meson \<open>x \<in> el (gc \<Phi>)\<close> gc_elem_local valid_\<Phi>) 
-  moreover have "Poset.le ((Presheaf.ob \<Phi>) $ (d x)) (((Presheaf.ar \<Phi>) $ i) $$ (e x)) (e x)"
-    by (metis calculation(1) calculation(2) calculation(3) valid_\<Phi> valid_ob valid_reflexivity) 
+  moreover have "e x \<in> Poset.el (ob F \<cdot> (d x))"
+    by (meson \<open>x \<in> el (gc F)\<close> gc_elem_local valid_F) 
+  moreover have "Poset.le (ob F \<cdot> (d x)) (((ar F) \<cdot> i) \<star> (e x)) (e x)"
+    by (metis calculation(1) calculation(2) calculation(3) valid_F valid_ob valid_reflexivity) 
 
-  moreover have "(x,x) \<in> le_rel (gc \<Phi>)"  using  calculation i_def T_def gc_def [where ?\<Phi> = \<Phi>]
-    by (smt (verit, best) Poset.Poset.select_convs(2) case_prodI case_prod_unfold dual_order.refl make_inclusion_ident mem_Collect_eq valid_\<Phi> valid_space) 
-    
-  show "le (gc \<Phi>) x x"
-    by (simp add: \<open>(x, x) \<in> le_rel (gc \<Phi>)\<close> \<open>x \<in> el (gc \<Phi>)\<close>)
+  moreover have "(x,x) \<in> le_rel (gc F)"  using  calculation i_def T_def gc_def [where ?F = F]
+    by (smt (verit) Poset.Poset.select_convs(2) Space.ident_def case_prod_conv mem_Collect_eq prod.collapse subsetI) 
+  show "le (gc F) x x"
+    by (simp add: \<open>(x, x) \<in> le_rel (gc F)\<close> \<open>x \<in> el (gc F)\<close>)
 next
   fix x y
-  assume a1: "x \<in> el (gc \<Phi>)"
-  assume a2: "y \<in> el (gc \<Phi>)"
-  assume a3: "le (gc \<Phi>) x y"
-  assume a4: "le (gc \<Phi>) y x "
-  show "x = y" using gc_def  [where ?\<Phi> = \<Phi>] assms  a1 a2 a3 a4
-    by (smt (z3) Poset.Poset.select_convs(2) Poset.ident_app Product_Type.Collect_case_prodD case_prodD case_prodE' fst_conv make_inclusion_ident snd_conv subset_antisym valid_antisymmetry valid_identity valid_ob valid_space)
+  assume a1: "x \<in> el (gc F)"
+  assume a2: "y \<in> el (gc F)"
+  assume a3: "le (gc F) x y"
+  assume a4: "le (gc F) y x "
+  show "x = y" using gc_def  [where ?F = F] assms  a1 a2 a3 a4
+    by (smt (verit, del_insts) d_antitone gc_elem_local inf.absorb_iff2 le_boolE local_dom le_eq_local_le prod.split_sel subset_antisym valid_antisymmetry valid_ob) 
 next
   fix x y z
-  assume a1: "x \<in> el (gc \<Phi>)"
-  assume a2: "y \<in> el (gc \<Phi>)"
-  assume a3: "z \<in> el (gc \<Phi>)"
-  assume a4: "le (gc \<Phi>) x y"
-  assume a5: "le (gc \<Phi>) y z "
-  show "le (gc \<Phi>) x z" using gc_def [where ?\<Phi> = \<Phi>] assms a1 a2 a3 a4 a5 
-valid_gc_transitive [where ?\<Phi> = \<Phi> and ?a="e x" and ?b="e y" and ?c="e z" and ?A="d x" and ?B="d y"
+  assume a1: "x \<in> el (gc F)"
+  assume a2: "y \<in> el (gc F)"
+  assume a3: "z \<in> el (gc F)"
+  assume a4: "le (gc F) x y"
+  assume a5: "le (gc F) y z "
+  show "le (gc F) x z" using gc_def [where ?F = F] assms a1 a2 a3 a4 a5 
+valid_gc_transitive [where ?F = F and ?a="e x" and ?b="e y" and ?c="e z" and ?A="d x" and ?B="d y"
   and ?C="d z"]
-    by (smt (verit, del_insts) Poset.Poset.select_convs(2) case_prod_conv make_inclusion_def mem_Collect_eq prod.collapse subset_trans) 
+    by (smt (verit, del_insts) Poset.Poset.select_convs(2) case_prod_conv  mem_Collect_eq prod.collapse subset_trans) 
 qed
 
-(*
-   The lemma valid_gc_le_wrap states that if \<Phi> is a valid presheaf, Aa and Bb are pairs of the form (A, a),
-   where A is an open set in the space of \<Phi> and a is an element in the presheaf value at A, and
-   i is the inclusion map from B to A, pr is the map from \<Phi>1 i to \<Phi>0 B, \<Phi>A is the presheaf value at A,
-   and \<Phi>B is the presheaf value at B, and d Bb \<subseteq> d Aa, and le \<Phi>B (pr $$ (e Aa)) (e Bb),
-   then Aa is less than or equal to Bb in the poset gc \<Phi>.
-*)
+(* Local to global ordering *)
+
 lemma valid_gc_le_wrap :
-  fixes \<Phi> :: "('A, 'a) Presheaf" and Aa Bb :: "('A set \<times> 'a)"
+  fixes F :: "('A, 'a) Prealgebra" and Aa Bb :: "('A set \<times> 'a)"
 
-  defines "i \<equiv> Space.make_inclusion (Presheaf.space \<Phi>) (d Bb) (d Aa)"
-  defines "pr \<equiv>  (Presheaf.ar \<Phi>) $ i"
-  defines "\<Phi>A \<equiv>  (Presheaf.ob \<Phi>) $ (d Aa)"
-  defines "\<Phi>B \<equiv>  (Presheaf.ob \<Phi>) $ (d Bb)"
+  defines "i \<equiv> make_inc (d Bb) (d Aa)"
+  defines "pr \<equiv>  (ar F) \<cdot> i"
+  defines "FA \<equiv>  ob F \<cdot> (d Aa)"
+  defines "FB \<equiv>  ob F \<cdot> (d Bb)"
 
-  assumes  "Presheaf.valid \<Phi>"
-  assumes "d Aa \<in> Space.opens (Presheaf.space \<Phi>)"
-  assumes "d Bb \<in> Space.opens (Presheaf.space \<Phi>)"
-  assumes "e Aa \<in> Poset.el \<Phi>A"
-  assumes "e Bb \<in> Poset.el \<Phi>B"
+  assumes  "valid F"
+  assumes "d Aa \<in> opens (space F)"
+  assumes "d Bb \<in> opens (space F)"
+  assumes "e Aa \<in> Poset.el FA"
+  assumes "e Bb \<in> Poset.el FB"
   assumes "d Bb \<subseteq> d Aa"
+  assumes "Poset.le FB (pr \<star> (e Aa)) (e Bb) "
 
-  assumes "Poset.le \<Phi>B (pr $$ (e Aa)) (e Bb) "
-  shows "le (gc \<Phi>) Aa (Bb)"
+  shows "le (gc F) Aa (Bb)"
   unfolding gc_def
-  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) \<Phi>A_def \<Phi>B_def assms(10) assms(11) assms(6) assms(7) assms(8) assms(9) case_prod_conv i_def mem_Collect_eq pr_def prod.collapse)
+  by (smt (verit) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) FA_def FB_def assms(10) assms(11) assms(6) assms(7) assms(8) assms(9) case_prod_conv i_def mem_Collect_eq pr_def prod.collapse)
 
-  
-(*
-   The lemma valid_gc_le_unwrap states that if \<Phi> is a valid presheaf, Aa and Bb are pairs of the form (A, a),
-   where A is an open set in the space of \<Phi> and a is an element in the presheaf value at A, and
-   i is the inclusion map from B to A, pr is the map from \<Phi>1 i to \<Phi>0 B, \<Phi>A is the presheaf value at A,
-   and \<Phi>B is the presheaf value at B, and gc\<Phi> is the poset gc \<Phi>,
-   and Aa is less than or equal to Bb in gc\<Phi>, then \<Phi>B is less than or equal to (pr $$ (e Aa)) in \<Phi>B,
-   d Bb is a subset of d Aa, e Bb is an element in \<Phi>B, and e Aa is an element in \<Phi>A.
-*)
 lemma valid_gc_le_unwrap :
-  fixes \<Phi> :: "('A, 'a) Presheaf" and Aa Bb :: "('A set \<times> 'a)"
-
-  defines "i \<equiv> Space.make_inclusion (Presheaf.space \<Phi>) (d Bb) (d Aa)"
-  defines "pr \<equiv>  (Presheaf.ar \<Phi>) $ i"
-  defines "\<Phi>A \<equiv>  (Presheaf.ob \<Phi>) $ (d Aa)"
-  defines "\<Phi>B \<equiv>  (Presheaf.ob \<Phi>) $ (d Bb)"
-  defines "gc\<Phi> \<equiv> gc \<Phi>"
-
-assumes  valid: "Presheaf.valid \<Phi>"
-and "Aa \<in> Poset.el gc\<Phi> " and "Bb \<in> Poset.el (gc \<Phi>)"
-and le_gc: "le gc\<Phi> Aa Bb"
-
-shows "Poset.le \<Phi>B (pr $$ (e Aa)) (e Bb) \<and> d Bb \<subseteq> d Aa \<and> e Bb \<in> Poset.el \<Phi>B \<and> e Aa \<in> Poset.el \<Phi>A"
-proof -
-  have a1: "le gc\<Phi> Aa Bb"
-    by (simp add: le_gc)
-  moreover have "d Bb \<subseteq> d Aa"
-    using assms(7) assms(8) d_antitone gc\<Phi>_def le_gc valid by blast
-  moreover have "e Bb \<in> Poset.el \<Phi>B \<and> e Aa \<in> Poset.el \<Phi>A"
-    by (metis \<Phi>A_def \<Phi>B_def assms(7) assms(8) gc\<Phi>_def gc_elem_local valid)
-  moreover have "Space.valid_inclusion i"
-    by (metis assms(7) assms(8) calculation(2) gc\<Phi>_def i_def local_dom valid valid_make_inclusion valid_space) 
-  moreover have "Presheaf.valid \<Phi>"
-    by (simp add: valid)
-  moreover have "i \<in> Space.inclusions (space \<Phi>)"
-    by (metis (mono_tags, lifting) Inclusion.select_convs(1) calculation(4) i_def inclusions_def make_inclusion_def mem_Collect_eq)
-  moreover have "Poset.valid_map pr"
-    using calculation(6) pr_def valid valid_ar by auto  
-  define "a_B" where "a_B = (pr $$ (e Aa))"
-  moreover have "Poset.dom pr = \<Phi>A \<and> Poset.cod pr = \<Phi>B"
-    by (metis Inclusion.simps(2) Inclusion.simps(3) \<Phi>A_def \<Phi>B_def calculation(6) cod_proj dom_proj i_def make_inclusion_def pr_def valid)
-  moreover have "a_B \<in> Poset.el \<Phi>B"
-    using Poset.fun_app2 \<open>Poset.valid_map pr\<close> a_B_def calculation(3) calculation(8) by fastforce
-  moreover have " Poset.valid gc\<Phi>"
-    by (simp add: gc\<Phi>_def valid valid_gc)
-  moreover have "Poset.valid \<Phi>B"
-    using Poset.valid_cod \<open>Poset.valid_map pr\<close> calculation(8) by blast 
-  moreover have "Poset.le \<Phi>B a_B (e Bb)" using gc_def a1
-    apply (simp_all add: Let_def)
-    unfolding gc\<Phi>_def gc_def
-    apply auto
-      apply (simp_all add: Let_def)
-    apply (smt (verit) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD \<Phi>A_def \<Phi>B_def a_B_def assms(7) assms(8) calculation(3) case_prod_conv case_prod_unfold gc\<Phi>_def i_def local_dom pr_def valid)
-    using calculation(9) apply force
-    using calculation(3) by blast
-  ultimately show ?thesis
-    by blast
-qed
+  fixes F :: "('A, 'a) Prealgebra" and Aa Bb :: "('A set \<times> 'a)"
+  defines "i \<equiv> make_inc (d Bb) (d Aa)"
+  defines "pr \<equiv> ar F \<cdot> i"
+  defines "FA \<equiv> ob F \<cdot> (d Aa)"
+  defines "FB \<equiv> ob F \<cdot> (d Bb)"
+  
+  assumes  F_valid : "valid F"
+  and Aa_el : "Aa \<in> Poset.el (gc F) " and Bb_el : "Bb \<in> Poset.el (gc F)"
+  and le_gc: "le (gc F) Aa Bb"
+  
+  shows "Poset.le FB (pr \<star> (e Aa)) (e Bb) \<and> d Bb \<subseteq> d Aa \<and> e Bb \<in> Poset.el FB \<and> e Aa \<in> Poset.el FA"
+  proof -
+    have "e Bb \<in> Poset.el FB \<and> e Aa \<in> Poset.el FA"
+      by (simp add: Aa_el Bb_el FA_def FB_def gc_elem_local F_valid) 
+    moreover have "Space.valid_inc i"
+      by (metis Aa_el Inclusion.select_convs(1) Inclusion.select_convs(2) assms(7) d_antitone i_def le_gc F_valid) 
+  moreover have "Poset.valid_map pr" using assms calculation
+    by (metis (no_types, lifting) Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_welldefined inclusions_def local_dom mem_Collect_eq)
+    define "a_B" where "a_B = (pr \<star> (e Aa))"
+    moreover have "Poset.dom pr = FA \<and> Poset.cod pr = FB"
+      by (metis (no_types, lifting) Aa_el Bb_el FA_def FB_def F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.valid_welldefined calculation(2) i_def inclusions_def local_dom mem_Collect_eq pr_def)
+    moreover have "a_B \<in> Poset.el FB"
+      by (metis Poset.fun_app2 \<open>Poset.valid_map pr\<close> a_B_def calculation(1) calculation(4)) 
+    moreover have " Poset.valid (gc F)"
+      by (simp add: F_valid valid_gc) 
+    moreover have "Poset.valid FB"
+      using Poset.valid_map_welldefined_cod \<open>Poset.valid_map pr\<close> calculation(4) by blast 
+    moreover have " d Bb \<subseteq> d Aa \<and> e Bb \<in> Poset.el FB \<and> e Aa \<in> Poset.el FA"
+      using Aa_el Bb_el F_valid calculation(1) d_antitone le_gc by blast 
+    moreover have "Poset.le FB a_B (e Bb)" using assms calculation gc_def [where ?F=F]
+      by (smt (z3) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD eq_fst_iff old.prod.case snd_def)
+    ultimately show ?thesis                                                                      
+      by blast
+  qed
 
 end

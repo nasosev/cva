@@ -1,145 +1,416 @@
-(*
- Theory      :  Function.thy
-
- This theory provides a formalization of mathematical functions as mappings between sets, including
- definitions of a function's domain, codomain, and application, as well as the definition of a 
- constant function. It also introduces the concept of a 'valid' function that satisfies conditions 
- of well-definedness, determinism, and totality. A number of lemmas are provided that specify properties 
- of these valid functions.
---------------------------------------------------------------------------------
-*)
+section \<open> Function.thy \<close>
 
 theory Function
-imports Main
+  imports Main
 begin
 
-(* 
-   This record introduces a type for mapping between sets. It contains two fields: 'cod' representing
-   the codomain of the function, and 'func' encapsulating the set of tuples each of which corresponds
-   to a mapping from a domain element to a codomain element. 
-*)
-record ('a, 'b) Function =
-  cod :: "'b set"
-  func :: "('a \<times> 'b) set"
+(* Types *)
 
-(* 
-   This definition establishes the domain of a function. It returns the set of all 'a' such that there exists 
-   a 'b' for which the tuple (a, b) exists in the function mapping.
-*)
-definition dom :: "('a, 'b) Function \<Rightarrow> 'a set" where
-"dom f \<equiv> {a. \<exists>b. (a, b) \<in> func f}"
+record ('x, 'y) Function =
+  cod :: "'y set"
+  func :: "('x \<times> 'y) set"
 
-(* 
-   This predicate checks the well-definedness of a function by verifying three conditions:
-     - 'welldefined': every (a, b) in the function mapping is valid, with 'a' in the domain and 'b' in the codomain.
-     - 'deterministic': the function is deterministic, i.e., every 'a' maps to exactly one 'b'.
-     - 'total': the function is total, i.e., every 'a' in the domain has a corresponding 'b' in the function mapping.
-*)
-definition valid_map :: "('a, 'b) Function \<Rightarrow> bool" where
+definition dom :: "('x, 'y) Function \<Rightarrow> 'x set" where
+ "dom f \<equiv> {x. \<exists>y. (x, y) \<in> func f}"
+
+definition valid_map :: "('x, 'y) Function \<Rightarrow> bool" where
 "valid_map f \<equiv>
-  let welldefined = (\<forall>a b. (a, b) \<in> func f \<longrightarrow> a \<in> dom f \<and> b \<in> cod f);
-      deterministic = (\<forall>a b b'. (a, b) \<in> func f \<and> (a, b') \<in> func f \<longrightarrow> b = b');                    
-      total = (\<forall>a. a \<in> dom f \<longrightarrow> (\<exists>b. (a, b) \<in> func f))
+  let
+      welldefined = \<forall>x y. (x, y) \<in> func f \<longrightarrow> y \<in> cod f;
+      deterministic = \<forall>x y y'. (x, y) \<in> func f \<and> (x, y') \<in> func f \<longrightarrow> y = y'
+  in welldefined \<and> deterministic"
 
-  in welldefined \<and> deterministic \<and> total"
+(* Validity *)
 
-(* 
-   This definition models the application of a function to an element. If the element belongs to the domain, 
-   it returns the unique 'b' that 'a' maps to; otherwise, it returns 'undefined'.
-*)
-definition "Function_app_undefined_arg_not_in_domain a \<equiv> undefined"
+lemma dom : "(x, y) \<in> func f \<Longrightarrow> x \<in> dom f" 
+  unfolding dom_def
+  by blast
 
-definition app :: "('a, 'b) Function \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "$" 998) where
-"app f a \<equiv> 
-  if a \<in> dom f
-   then (THE b. (a, b) \<in> func f) 
-  else Function_app_undefined_arg_not_in_domain a"
+lemma map_total : "x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func f"
+  by (simp add: Function.dom_def)
 
-(* 
-   This definition creates a constant function over a given domain 'A' and codomain 'B', mapping every element 'a' 
-   in 'A' to a fixed element 'b' in 'B'. If `b` is not in the codomain, it returns `undefined`.
-*)
-definition "Function_const_undefined_arg_not_in_codomain b \<equiv> undefined"
+lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> y \<in> cod f"
+  by (simp add: valid_map_def) 
 
-definition const :: "'a set \<Rightarrow>  'b set  \<Rightarrow> 'b \<Rightarrow>  ('a, 'b) Function" where
-"const A B b \<equiv> 
-  if b \<in> B
-  then  \<lparr>cod = B, func = { (a, b) | a. a \<in> A }\<rparr> 
-  else Function_const_undefined_arg_not_in_codomain b"
+lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y'"
+  by (simp add: valid_map_def) 
 
-(*
-   This section includes various lemmas that specify properties of valid functions.
-*)
+lemma valid_mapI [intro] : "((\<And>x y. (x, y) \<in> func f \<Longrightarrow> y \<in> cod f) \<Longrightarrow>
+                   (\<And>x y y'. (x, y) \<in> func f \<Longrightarrow> (x, y') \<in> func f \<Longrightarrow> y = y')
+                   \<Longrightarrow> valid_map f) "
+  by (metis valid_map_def)
 
-(* 
-   This lemma asserts that if a function 'f' is valid, then any pair (a, b) in its function mapping implies 
-   that 'a' is in the domain and 'b' is in the codomain.
-*)
-lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> a \<in> dom f \<and> b \<in> cod f"
-  unfolding valid_map_def by (simp add: Let_def)
+lemma valid_map_eqI: "cod f = cod g \<Longrightarrow> dom f = dom g \<Longrightarrow> func f = func g \<Longrightarrow> (f :: ('x, 'y) Function) = g"
+  by simp
 
-(* 
-   This lemma asserts that if a function 'f' is valid, then for any 'a' in its domain, there is exactly 
-   one 'b' such that (a, b) is in the function mapping.
-*)
-lemma valid_map_deterministic : "valid_map f \<Longrightarrow> (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b'"
-  unfolding valid_map_def by (simp add: Let_def)
+(* Function application *)
 
-(* 
-   This lemma asserts that if a function 'f' is valid, then for any 'a' in its domain, there exists 
-   a 'b' such that (a, b) is in the function mapping.
-*)
-lemma valid_map_total : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> \<exists>b. (a, b) \<in> func f"
-  unfolding valid_map_def by (simp add: Let_def)
+definition "Function_app_undefined_arg_not_in_domain _ \<equiv> undefined"
 
-(* 
-   This lemma asserts that for a valid function 'f', if 'a' is in its domain, then applying 'f' to 'a' results 
-   in a pair (a, b) in the function mapping.
-*)
-lemma fun_app : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> (a, f $ a) \<in> func f"
-  by (metis app_def theI' valid_map_deterministic valid_map_total)
+definition app :: "('x, 'y) Function \<Rightarrow> 'x \<Rightarrow> 'y" (infixr "\<cdot>" 998) where
+"app f x \<equiv> 
+   if x \<in> dom f
+   then (THE y. (x, y) \<in> func f)
+  else Function_app_undefined_arg_not_in_domain x" 
 
-(* 
-   This lemma asserts that for a valid function 'f', if 'a' is in its domain, then applying 'f' to 'a' results 
-   in a value in the codomain.
-*)
-lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> dom f \<Longrightarrow> fa = f $ a \<Longrightarrow> fa \<in> cod f"
+lemma fun_app : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> (x, f \<cdot> x) \<in> func f"
+  by (metis app_def map_total theI' valid_map_deterministic)
+
+lemma fun_app2 : "valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> f \<cdot> x  \<in> cod f"
   by (meson fun_app valid_map_welldefined)
 
-(* 
-   This lemma asserts that if two valid functions 'f' and 'g' have the same domain and codomain, and they map 
-   every 'a' in the domain to the same 'b', then their function mappings are equal.
-*)
-lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> func f = func g"
-  unfolding  dom_def 
-  apply (simp_all add: Let_def)
-  apply auto
-  apply (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
-  by (metis Function.dom_def fun_app valid_map_deterministic valid_map_welldefined)
+lemma fun_app3 [simp] : "x \<in> dom f \<Longrightarrow> f \<cdot> x = (THE y. (x, y) \<in> func f) "
+  by (simp add: app_def)
 
-(* 
-   This lemma asserts that if two valid functions 'f' and 'g' have the same domain and codomain, and they map 
-   every 'a' in the domain to the same 'b', then the functions 'f' and 'g' are equal.
-*)
-lemma fun_ext2 : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> dom f \<Longrightarrow> f $ a = g $ a) \<Longrightarrow> f = g"
-  apply simp
-  apply (frule fun_ext)
-      apply auto
-  done
+lemma fun_ext_raw : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> func f = func g"
+  by (metis dom fun_app pred_equals_eq2 valid_map_deterministic)
 
-(* 
-   This lemma asserts that the constant function, when applied to any 'a' in its domain, will return 
-   the fixed value 'b'.
-*)
-lemma const_app [simp] : "a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> ((const A B b) $ a) = b"
-  unfolding const_def
-  by (simp add: Function.dom_def app_def)
+lemma fun_ext : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>x. x \<in> dom f \<Longrightarrow> f \<cdot> x = g \<cdot> x) \<Longrightarrow> f = g"
+  by (metis (full_types) equality fun_ext_raw old.unit.exhaust)
 
-(* 
-   This lemma asserts that the constant function is a valid function, assuming 'b' is in 'B'.
-*)
-lemma const_valid : "b \<in> B \<Longrightarrow> valid_map (const A B b)"
+lemma fun_app_iff : "valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> (f \<cdot> x) = y"
+  by (meson valid_map_deterministic fun_app dom) 
+
+(* Composition of functions *)
+
+definition "Function_compose_undefined_incomposable _ _ \<equiv> undefined"
+
+definition compose :: "('y, 'z) Function \<Rightarrow> ('x, 'y) Function \<Rightarrow> ('x, 'z) Function"  (infixl "\<bullet>" 55) 
+  where
+  "compose g f \<equiv>
+    if dom g = cod f
+    then \<lparr> cod = cod g, func = relcomp (func f) (func g) \<rparr>
+    else Function_compose_undefined_incomposable g f"
+
+lemma compose_welldefined_cod : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> y \<in> cod g"
+  by (metis compose_def relcompEpair select_convs(2) valid_map_def)
+
+lemma compose_welldefined_dom : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> x \<in> dom f"
+  by (metis compose_def dom relcomp.cases select_convs(2))
+
+lemma compose_welldefined : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> x \<in> dom f \<and> y \<in> cod g"
+  by (simp add: compose_welldefined_cod compose_welldefined_dom)
+
+lemma compose_deterministic : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> (x, y) \<in> func (g \<bullet> f) \<Longrightarrow> (x, y') \<in> func (g \<bullet> f) \<Longrightarrow> y = y'"
+  by (smt (verit, ccfv_threshold) compose_def valid_map_deterministic relcomp.simps select_convs(2))
+
+lemma compose_total : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> x \<in> dom f \<Longrightarrow> \<exists>y. (x, y) \<in> func (g \<bullet> f)"
+  by (metis (no_types, lifting) compose_def fun_app fun_app2 relcomp.simps select_convs(2))
+
+lemma compose_valid : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<bullet> f)"
+  by (smt (verit) CollectD Function.dom_def compose_def compose_deterministic compose_welldefined_cod select_convs(1) valid_map_def)
+
+lemma cod_compose [simp] : "dom g = cod f \<Longrightarrow> cod (g \<bullet> f) = cod g"
+  by (simp add: compose_def)
+
+lemma dom_compose [simp] : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<bullet> f) = dom f"
+  by (smt (verit) Collect_cong Function.dom_def compose_total compose_welldefined_dom mem_Collect_eq)
+  
+lemma compose_assoc : "valid_map h \<Longrightarrow> valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> dom h = cod g \<Longrightarrow> dom g = cod f \<Longrightarrow> (h \<bullet> g) \<bullet> f = h \<bullet> (g \<bullet> f)"
+  by (smt (verit, ccfv_SIG) O_assoc cod_compose cod_compose compose_def compose_def compose_def compose_def dom_compose select_convs(2) select_convs(2))
+
+lemma compose_app [simp] : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow> (y, z) \<in> func g 
+ \<Longrightarrow> (g \<bullet> f) \<cdot> x = z"
+  unfolding valid_map_def compose_def dom_def app_def
+  apply (simp add: Let_def)
+  apply clarsimp
+  apply safe
+  apply (smt (verit) relcomp.simps the_equality)
+  by (meson relcomp.relcompI)
+
+lemma compose_app_assoc : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> x = g \<cdot> (f \<cdot> x)"
+  by (metis compose_app fun_app fun_app2)
+
+(* Properties *)
+
+definition is_surjective :: "('x, 'y) Function \<Rightarrow> bool" where
+"is_surjective f \<equiv> \<forall> y . y \<in> cod f \<longrightarrow> (\<exists> x . x \<in> dom f \<and> f \<cdot> x = y)"
+
+definition is_injective :: "('x, 'y) Function \<Rightarrow> bool" where
+"is_injective f \<equiv> \<forall> x x' . x \<in> dom f \<longrightarrow> x' \<in> dom f \<longrightarrow> f \<cdot> x = f \<cdot> x' \<longrightarrow> x = x'"
+
+definition is_bijective :: "('x, 'y) Function \<Rightarrow> bool" where
+"is_bijective f \<equiv> is_surjective f \<and> is_injective f"
+
+lemma surjection_is_right_cancellative : "valid_map h \<Longrightarrow> valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> is_surjective f \<Longrightarrow> cod f = dom g \<Longrightarrow> cod f = dom h
+ \<Longrightarrow> g \<bullet> f = h \<bullet> f \<Longrightarrow> g = h"
+  by (metis cod_compose compose_app_assoc fun_ext is_surjective_def)
+
+lemma injection_is_left_cancellative : "valid_map h \<Longrightarrow> valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> is_injective f \<Longrightarrow> cod g = dom f \<Longrightarrow> cod h = dom f 
+ \<Longrightarrow> f \<bullet> g = f \<bullet> h \<Longrightarrow> g = h"
+  by (smt (verit) compose_app_assoc dom_compose fun_app2 fun_ext is_injective_def)
+
+(* Identity functions *)
+
+definition ident :: "'x set \<Rightarrow> ('x, 'x) Function" where
+"ident X \<equiv>  \<lparr> cod = X, func = Id_on X \<rparr>"
+
+lemma ident_valid : "valid_map (ident X)"
+  by (simp add: dom_def Id_on_iff ident_def valid_map_def) 
+
+lemma ident_dom [simp] : "dom (ident X) = X" 
+  by (simp add: Id_on_iff dom_def ident_def)
+
+lemma ident_cod [simp] : "cod (ident X) = X"
+  by (simp add: ident_def)
+
+lemma ident_func [simp] : "func (ident X) = Id_on X"
+  by (simp add: ident_def)
+
+lemma ident_app [simp] : "x \<in> X \<Longrightarrow> ident X \<cdot> x = x"
+  by (metis Id_onI fun_app_iff ident_def ident_valid select_convs(2)) 
+
+lemma compose_ident_left [simp] : "valid_map f \<Longrightarrow> ident (cod f) \<bullet> f = f"
+  by (smt (verit) cod_compose compose_app_assoc compose_valid dom_compose fun_app2 fun_ext ident_app ident_cod ident_dom ident_valid)
+
+lemma compose_ident_right [simp] : "valid_map f \<Longrightarrow> f \<bullet> ident (dom f) = f"
+  by (smt (verit, best) cod_compose compose_app_assoc compose_def compose_ident_left compose_valid dom_compose ext_inject fun_ext ident_app ident_def ident_dom ident_valid) 
+
+(* Constant functions *)
+
+definition "Function_const_undefined_arg_not_in_codomain _ \<equiv> undefined"
+
+definition const :: "'x set \<Rightarrow>  'y set  \<Rightarrow> 'y \<Rightarrow>  ('x, 'y) Function" where
+"const X Y y \<equiv> 
+  if y \<in> Y
+  then \<lparr> cod = Y, func = { (x, y) | x. x \<in> X }\<rparr>
+  else Function_const_undefined_arg_not_in_codomain y" 
+
+lemma const_dom [simp] : "y \<in> Y \<Longrightarrow> dom (const X Y y) = X"  
+  by (simp add: const_def dom_def)
+
+lemma const_cod [simp] : "y \<in> Y \<Longrightarrow> cod (const X Y y) = Y"
+  by (simp add: const_def)
+
+lemma const_app [simp] : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> (const X Y y) \<cdot> x = y"
+  by (smt (verit) CollectD Pair_inject const_cod const_def const_dom fun_app select_convs(2) valid_mapI)
+
+lemma const_valid : "x \<in> X \<Longrightarrow> y \<in> Y \<Longrightarrow> valid_map (const X Y y)"
   unfolding valid_map_def const_def
-  by (simp add: Function.dom_def app_def)
+  by clarsimp
+
+lemma const_func : "y \<in> Y \<Longrightarrow> func (const X Y y) = {(x, y) | x . x \<in> X }"
+  by (simp add: const_def)
+
+(* Lists functor *)
+
+definition lists :: "'x set \<Rightarrow> ('x list) set" where
+"lists X \<equiv> { xs . set xs \<subseteq> X }"
+
+definition lists_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
+"lists_map f \<equiv> 
+  \<lparr> cod = lists (cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> lists (dom f) } \<rparr>"
+
+lemma lists_map_valid : "valid_map f \<Longrightarrow> valid_map (lists_map f)" 
+  unfolding lists_map_def lists_def
+  apply (intro valid_mapI)
+  apply clarsimp
+  apply (meson fun_app2 subsetD)
+  by force
+
+lemma lists_map_cod : "cod (lists_map f) = lists (cod f)"
+  by (simp add: lists_map_def)
+
+lemma lists_map_dom : "dom (lists_map f) = lists (dom f)"
+  unfolding lists_map_def app_def dom_def
+  by simp
+
+lemma lists_map_length : "xs \<in> dom (lists_map f) \<Longrightarrow> length xs = length (lists_map f \<cdot> xs) "
+  unfolding lists_map_def app_def
+  using map_total by fastforce 
+
+lemma lists_map_el : "xs \<in> dom (lists_map f) \<Longrightarrow> 0 \<le> k \<and> k < length xs 
+\<Longrightarrow> (lists_map f \<cdot> xs) ! k = f \<cdot> (xs ! k)"
+  unfolding lists_map_def app_def
+  apply clarsimp
+  using map_total by fastforce
+
+lemma lists_map_elI : "(\<And>k. 0 \<le> k \<and> k < length xs \<Longrightarrow> (xs ! k) \<in> X) \<Longrightarrow> xs \<in> lists X"
+  unfolding lists_def
+  apply clarsimp
+  by (metis in_set_conv_nth)
+
+lemma lists_map_ident : "lists_map (ident X) = ident (lists X)"
+proof -
+  fix X :: "'x set" 
+  have "cod (lists_map (ident X)) = lists X"
+    by (simp add: lists_map_cod)
+  moreover have "dom (lists_map (ident X)) = lists X"
+    by (simp add: lists_map_dom)
+  moreover have "func (lists_map (ident X)) = { (ts, ts) | ts . ts \<in> lists X }" unfolding
+      lists_map_def lists_def  ident_cod ident_dom ident_func Id_on_def
+    apply clarsimp
+    by (metis (no_types, lifting) ident_app list.map_ident_strong subsetD)
+  ultimately show "lists_map (ident X) = ident (lists X)"
+    by (smt (verit, best) Collect_cong Function.dom_def Id_onE Id_onI Id_on_def' ident_cod ident_func mem_Collect_eq valid_map_eqI)
+qed
+
+lemma lists_map_trans :
+  fixes g :: "('y, 'z) Function" and f :: "('x , 'y) Function"
+  assumes f_valid : "valid_map f"
+  and g_valid : "valid_map g"
+  and cod_eq_dom : "cod f = dom g"
+shows "lists_map g \<bullet> lists_map f = lists_map (g \<bullet> f)"
+proof (rule fun_ext, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: cod_eq_dom compose_valid f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+next
+  case 2
+  then show ?case
+    by (simp add: cod_eq_dom compose_valid f_valid g_valid lists_map_valid) 
+next
+  case 3
+  then show ?case
+    by (simp add: cod_eq_dom f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+next
+  case 4
+  then show ?case
+    by (simp add: cod_eq_dom lists_map_cod lists_map_dom) 
+next
+  case (5 x)
+  then show ?case 
+  proof -
+    fix xs
+    assume "xs \<in> dom (lists_map g \<bullet> lists_map f)"
+    have "xs \<in> dom (lists_map f)"
+      by (metis \<open>xs \<in> dom (lists_map g \<bullet> lists_map f)\<close> cod_eq_dom dom_compose f_valid g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    define "Lf_xs" where "Lf_xs = map (\<lambda> x . f \<cdot> x) xs" 
+    moreover have "Lf_xs = (lists_map f) \<cdot> xs" unfolding Lf_xs_def lists_map_def
+      by (smt (z3) Collect_cong Pair_inject \<open>xs \<in> dom (lists_map f)\<close> f_valid fun_app lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "Lf_xs \<in> dom (lists_map g)" unfolding Lf_xs_def lists_map_def
+      by (metis Lf_xs_def \<open>xs \<in> dom (lists_map f)\<close> calculation(2) cod_eq_dom f_valid fun_app2 lists_map_cod lists_map_def lists_map_dom lists_map_valid)
+    define "LgLf_xs" where "LgLf_xs = map (\<lambda> x . g \<cdot> x) Lf_xs" 
+    moreover have "LgLf_xs = (lists_map g) \<cdot> Lf_xs" unfolding Lf_xs_def lists_map_def
+      by (smt (verit) Collect_cong Lf_xs_def LgLf_xs_def Pair_inject \<open>Lf_xs \<in> dom (lists_map g)\<close> fun_app g_valid lists_map_def lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "LgLf_xs = (lists_map g \<bullet> lists_map f) \<cdot> xs"
+      by (metis \<open>Lf_xs \<in> dom (lists_map g)\<close> \<open>xs \<in> dom (lists_map f)\<close> calculation(2) calculation(4) cod_eq_dom compose_app f_valid fun_app g_valid lists_map_cod lists_map_dom lists_map_valid) 
+    moreover have "LgLf_xs = map (\<lambda> x . g \<cdot> (f  \<cdot> x)) xs" unfolding LgLf_xs_def Lf_xs_def
+      by clarsimp
+    moreover have "\<forall> x . x \<in> dom f \<longrightarrow> g \<cdot> (f  \<cdot> x) = (g \<bullet> f)  \<cdot> x"  using compose_app_assoc [where ?g=g and ?f=f]
+      using cod_eq_dom f_valid g_valid by presburger
+    moreover have "\<forall> x . x \<in> set xs \<longrightarrow> x \<in> dom f"
+      using lists_def \<open>xs \<in> dom (lists_map f)\<close> lists_map_dom by fastforce 
+    moreover have "LgLf_xs = map (\<lambda> x . (g \<bullet> f)  \<cdot> x) xs" using LgLf_xs_def calculation assms
+      by simp 
+    moreover have "LgLf_xs = lists_map (g \<bullet> f) \<cdot> xs" using lists_map_def [where ?f="g \<bullet> f"]
+      by (smt (verit, del_insts) \<open>xs \<in> dom (lists_map f)\<close> calculation(9) cod_eq_dom compose_valid dom_compose f_valid fun_app_iff g_valid lists_map_dom lists_map_valid mem_Collect_eq select_convs(2))
+    ultimately show "(lists_map g \<bullet> lists_map f) \<cdot> xs = lists_map (g \<bullet> f) \<cdot> xs"
+      by presburger 
+  qed
+qed
+
+(* Nonempty-lists functor *)
+
+definition ne_lists :: "'x set \<Rightarrow> ('x list) set" where
+"ne_lists X \<equiv> { xs . set xs \<subseteq> X \<and> length xs \<noteq> 0 }" 
+
+definition ne_lists_map :: "('x, 'y) Function \<Rightarrow> ('x list, 'y list) Function" where
+"ne_lists_map f \<equiv> 
+  \<lparr> cod = ne_lists (cod f), 
+    func = { (ts, map (\<lambda> t . f \<cdot> t) ts) | ts . ts \<in> ne_lists (dom f) } \<rparr>"
+
+lemma ne_lists_map_valid : "valid_map f \<Longrightarrow> valid_map (ne_lists_map f)" 
+  unfolding ne_lists_map_def ne_lists_def
+  apply (intro valid_mapI)
+  apply clarsimp
+  apply (meson fun_app2 subsetD)
+  by force
+
+lemma ne_lists_map_cod : "cod (ne_lists_map f) = ne_lists (cod f)"
+  by (simp add: ne_lists_map_def)
+
+lemma ne_lists_map_dom : "dom (ne_lists_map f) = ne_lists (dom f)"
+  unfolding ne_lists_map_def app_def dom_def
+  by simp
+
+lemma ne_lists_map_length : "xs \<in> dom (ne_lists_map f) \<Longrightarrow> length xs = length (ne_lists_map f \<cdot> xs) "
+  unfolding ne_lists_map_def app_def
+  using map_total by fastforce 
+
+lemma ne_lists_map_el : "xs \<in> dom (ne_lists_map f) \<Longrightarrow> 0 \<le> k \<and> k < length xs 
+\<Longrightarrow> (ne_lists_map f \<cdot> xs) ! k = f \<cdot> (xs ! k)"
+  unfolding ne_lists_map_def app_def
+  apply clarsimp
+  using map_total by fastforce
+
+lemma ne_lists_map_elI : "xs \<noteq> [] \<Longrightarrow> (\<And>k. 0 \<le> k \<and> k < length xs \<Longrightarrow> (xs ! k) \<in> X) \<Longrightarrow> xs \<in> ne_lists X"
+  unfolding ne_lists_def
+  apply clarsimp
+  by (metis in_set_conv_nth)
+
+lemma ne_lists_map_ident : "ne_lists_map (ident X) = ident (ne_lists X)"
+proof -
+  fix X :: "'x set" 
+  have "cod (ne_lists_map (ident X)) = ne_lists X"
+    by (simp add: ne_lists_map_cod)
+  moreover have "dom (ne_lists_map (ident X)) = ne_lists X"
+    by (simp add: ne_lists_map_dom)
+  moreover have "func (ne_lists_map (ident X)) = { (ts, ts) | ts . ts \<in> ne_lists X }" unfolding
+      ne_lists_map_def ne_lists_def  ident_cod ident_dom ident_func Id_on_def
+    apply clarsimp
+    by (metis (no_types, lifting) ident_app list.map_ident_strong subsetD)
+  ultimately show "ne_lists_map (ident X) = ident (ne_lists X)"
+    by (smt (verit, best) Collect_cong Function.dom_def Id_onE Id_onI Id_on_def' ident_cod ident_func mem_Collect_eq valid_map_eqI)
+qed
+
+lemma ne_lists_map_trans :
+  fixes g :: "('y, 'z) Function" and f :: "('x , 'y) Function"
+  assumes f_valid : "valid_map f"
+  and g_valid : "valid_map g"
+  and cod_eq_dom : "cod f = dom g"
+shows "ne_lists_map g \<bullet> ne_lists_map f = ne_lists_map (g \<bullet> f)"
+proof (rule fun_ext, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: cod_eq_dom compose_valid f_valid g_valid ne_lists_map_cod ne_lists_map_dom ne_lists_map_valid) 
+next
+  case 2
+  then show ?case
+    by (simp add: cod_eq_dom compose_valid f_valid g_valid ne_lists_map_valid) 
+next
+  case 3
+  then show ?case
+    by (simp add: cod_eq_dom f_valid g_valid ne_lists_map_cod ne_lists_map_dom ne_lists_map_valid) 
+next
+  case 4
+  then show ?case
+    by (simp add: cod_eq_dom ne_lists_map_cod ne_lists_map_dom) 
+next
+  case (5 x)
+  then show ?case 
+  proof -
+    fix xs
+    assume "xs \<in> dom (ne_lists_map g \<bullet> ne_lists_map f)"
+    have "xs \<in> dom (ne_lists_map f)"
+      by (metis \<open>xs \<in> dom (ne_lists_map g \<bullet> ne_lists_map f)\<close> cod_eq_dom dom_compose f_valid g_valid ne_lists_map_cod ne_lists_map_dom ne_lists_map_valid) 
+    define "Lf_xs" where "Lf_xs = map (\<lambda> x . f \<cdot> x) xs" 
+    moreover have "Lf_xs = (ne_lists_map f) \<cdot> xs" unfolding Lf_xs_def ne_lists_map_def
+      by (smt (z3) Collect_cong Pair_inject \<open>xs \<in> dom (ne_lists_map f)\<close> f_valid fun_app ne_lists_map_def ne_lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "Lf_xs \<in> dom (ne_lists_map g)" unfolding Lf_xs_def ne_lists_map_def
+      by (metis Lf_xs_def \<open>xs \<in> dom (ne_lists_map f)\<close> calculation(2) cod_eq_dom f_valid fun_app2 ne_lists_map_cod ne_lists_map_def ne_lists_map_dom ne_lists_map_valid)
+    define "LgLf_xs" where "LgLf_xs = map (\<lambda> x . g \<cdot> x) Lf_xs" 
+    moreover have "LgLf_xs = (ne_lists_map g) \<cdot> Lf_xs" unfolding Lf_xs_def ne_lists_map_def
+      by (smt (verit) Collect_cong Lf_xs_def LgLf_xs_def Pair_inject \<open>Lf_xs \<in> dom (ne_lists_map g)\<close> fun_app g_valid ne_lists_map_def ne_lists_map_valid mem_Collect_eq select_convs(2))
+    moreover have "LgLf_xs = (ne_lists_map g \<bullet> ne_lists_map f) \<cdot> xs"
+      by (metis \<open>Lf_xs \<in> dom (ne_lists_map g)\<close> \<open>xs \<in> dom (ne_lists_map f)\<close> calculation(2) calculation(4) cod_eq_dom compose_app f_valid fun_app g_valid ne_lists_map_cod ne_lists_map_dom ne_lists_map_valid) 
+    moreover have "LgLf_xs = map (\<lambda> x . g \<cdot> (f  \<cdot> x)) xs" unfolding LgLf_xs_def Lf_xs_def
+      by clarsimp
+    moreover have "\<forall> x . x \<in> dom f \<longrightarrow> g \<cdot> (f  \<cdot> x) = (g \<bullet> f)  \<cdot> x"  using compose_app_assoc [where ?g=g and ?f=f]
+      using cod_eq_dom f_valid g_valid by presburger
+    moreover have "\<forall> x . x \<in> set xs \<longrightarrow> x \<in> dom f"
+      using ne_lists_def \<open>xs \<in> dom (ne_lists_map f)\<close> ne_lists_map_dom
+      by (smt (verit) CollectD subsetD)  
+    moreover have "LgLf_xs = map (\<lambda> x . (g \<bullet> f)  \<cdot> x) xs" using LgLf_xs_def calculation assms
+      by simp 
+    moreover have "LgLf_xs = ne_lists_map (g \<bullet> f) \<cdot> xs" using ne_lists_map_def [where ?f="g \<bullet> f"]
+      by (smt (verit, del_insts) \<open>xs \<in> dom (ne_lists_map f)\<close> calculation(9) cod_eq_dom compose_valid dom_compose f_valid fun_app_iff g_valid ne_lists_map_dom ne_lists_map_valid mem_Collect_eq select_convs(2))
+    ultimately show "(ne_lists_map g \<bullet> ne_lists_map f) \<cdot> xs = ne_lists_map (g \<bullet> f) \<cdot> xs"
+      by presburger 
+  qed
+qed
+
+
 
 end
