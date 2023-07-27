@@ -443,6 +443,7 @@ end
 
 interpretation functor_composition "from_cat A" "to_cat A" "to_cat B" "ob_map A" "ar_map A" "ob_map B" "ar_map B"
   apply (unfold_locales)
+  oops
 
 
 interpretation cat: category "UNIV :: ('a, 'b) category set" "UNIV :: ('a, 'b, 'a ,'b) functor set" "(\<lambda>x!. from_cat x)" "(\<lambda>x!. to_cat x)" _ "(\<lambda>x!. identity_functor.f_witness x) "
