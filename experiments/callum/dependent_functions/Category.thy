@@ -336,6 +336,8 @@ end
 lemma (in category) in_hom_from_to[simp]:  "a \<in> arrows \<Longrightarrow> in_hom a (a |> from) (a |> to)"
   using local.from_arrow_in_objects local.in_hom_iff local.to_arrow_in_objects by presburger
 
+thm in_hom_from_to
+
 lemma (in category) codomain_id_arrow[simp]: "codomain id_arrow = arrows"
   by (metis (no_types, lifting) codomain_typ_iff id_type)
 
