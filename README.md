@@ -16,7 +16,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## Formalisation status
 
-### Section 2 - Concurrent valuation algebras
+### Section 2 - Ordered valuation algebras
 
 #### (Covariant) Grothendieck construction: Grothendieck.thy
 
@@ -37,13 +37,15 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 
+### Section 3 - Concurrent valuation algebras
+
 #### Concurrent valution algebras (CVAs): CVA.thy
 
 - [x] Proposition 1 (epsilon_le_delta, delta_seq_delta_eq_delta, epsilon_par_epsilon_eq_epsilon)
 - [x] Proposition 2 (comparitor)
 - [x] Proposition 3 (hoare_concurrency_rule)
 
-### Section 3 - Tuple systems
+### Section 4 - Tuple systems
 
 #### Tuple systems: Tuple.thy
 
