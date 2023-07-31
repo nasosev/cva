@@ -36,11 +36,11 @@ abbreviation le :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 abbreviation local_le :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "local_le V \<equiv> OVA.local_le (par_algebra V)"
 
-abbreviation neut_par :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
-"neut_par V \<equiv> OVA.neut (par_algebra V)"
+abbreviation nil :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
+"nil V \<equiv> OVA.neut (par_algebra V)"
 
-abbreviation neut_seq :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
-"neut_seq V \<equiv> OVA.neut (seq_algebra V)"
+abbreviation skip :: "('A, 'a) CVA \<Rightarrow> ('A Open \<Rightarrow> ('A, 'a) Valuation)" where
+"skip V \<equiv> OVA.neut (seq_algebra V)"
 
 abbreviation res :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "res V \<equiv> OVA.res (par_algebra V)"
@@ -111,12 +111,12 @@ lemma valid_weak_exchange: "valid V \<Longrightarrow> a1 \<in> elems V \<Longrig
   unfolding valid_def
   by presburger
 
-lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow>  \<delta>A = (neut_par V A)
+lemma valid_neutral_law_par: "valid V \<Longrightarrow> A \<in> opens (space V) \<Longrightarrow>  \<delta>A = (nil V A)
   \<Longrightarrow> le V (seq V \<delta>A \<delta>A) \<delta>A"
   unfolding valid_def
   by meson
 
-lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens (space V) \<Longrightarrow> \<epsilon>A = (neut_seq V A)
+lemma valid_neutral_law_seq: "valid V \<Longrightarrow>  A \<in> opens (space V) \<Longrightarrow> \<epsilon>A = (skip V A)
   \<Longrightarrow> le V \<epsilon>A (par V \<epsilon>A \<epsilon>A)"
   unfolding valid_def
   by meson
@@ -170,7 +170,7 @@ lemma valid_comm : "valid V \<Longrightarrow> a \<in> elems V \<Longrightarrow> 
 proposition epsilon_le_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  defines "\<delta>A \<equiv> nil V A" and "\<epsilon>A \<equiv> skip V A"
   shows "le V \<epsilon>A \<delta>A"
 proof -
   have "\<epsilon>A = seq V \<epsilon>A \<epsilon>A" using assms valid_welldefined [where ?V=V] valid_neutral_law_left
@@ -200,7 +200,7 @@ qed
 lemma epsilon_par_epsilon_le_epsilon :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  defines "\<delta>A \<equiv> nil V A" and "\<epsilon>A \<equiv> skip V A"
   shows "le V (par V \<epsilon>A \<epsilon>A) \<epsilon>A" 
 proof -
   have "le V (par V \<epsilon>A \<epsilon>A) (par V \<epsilon>A \<delta>A)" using assms valid_comb_monotone 
@@ -214,7 +214,7 @@ qed
 lemma delta_le_delta_seq_delta :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  defines "\<delta>A \<equiv> nil V A" and "\<epsilon>A \<equiv> skip V A"
   shows "le V \<delta>A (seq V \<delta>A \<delta>A)"
 proof -
   have "le V (seq V \<epsilon>A \<delta>A) (seq V \<delta>A \<delta>A)" using assms OVA.valid_comb_monotone
@@ -230,7 +230,7 @@ qed
 proposition delta_seq_delta_eq_delta [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<delta>A \<equiv> neut_par V A"
+  defines "\<delta>A \<equiv> nil V A"
   shows "(seq V \<delta>A \<delta>A) = \<delta>A"
 proof -
   have "le V \<delta>A (seq V \<delta>A \<delta>A)" using assms delta_le_delta_seq_delta
@@ -245,7 +245,7 @@ qed
 proposition epsilon_par_epsilon_eq_epsilon [simp] :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<epsilon>A \<equiv> neut_seq V A"
+  defines "\<epsilon>A \<equiv> skip V A"
   shows "(par V \<epsilon>A \<epsilon>A) = \<epsilon>A"
 proof -
   have "le V (par V \<epsilon>A \<epsilon>A) \<epsilon>A" using assms epsilon_par_epsilon_le_epsilon
@@ -261,7 +261,7 @@ proposition comparitor :
   fixes V :: "('A, 'a) CVA" and a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
-  and neutral_collapse : "neut_par V = neut_seq V"
+  and neutral_collapse : "nil V = skip V"
   and strongly_neutral_seq: "is_strongly_neutral (seq_algebra V)" 
   shows "le V (seq V a b) (par V a b)"
 proof -
@@ -269,7 +269,7 @@ proof -
   define "B" where "B = d b"
   define "pc" where "pc = par V"
   define "sc" where "sc = seq V"
-  define "\<gamma>" where "\<gamma> = neut_par V"
+  define "\<gamma>" where "\<gamma> = nil V"
   have "A \<union> B \<in> opens (space V)" using A_def B_def CVA.valid_welldefined V_valid a_elem b_elem d_elem_is_open strongly_neutral_seq 
     by (metis Prealgebra.valid_space valid_prealgebra valid_union2) 
   moreover have "a = pc a (\<gamma> A)" 
@@ -324,12 +324,12 @@ qed
 lemma neutral_collapse_strongly_neutral :
   fixes V :: "('A, 'a) CVA"
   assumes V_valid : "valid V"
-  and neutral_collapse : "neut_par V = neut_seq V"
+  and neutral_collapse : "nil V = skip V"
 shows "is_strongly_neutral (par_algebra V) \<longleftrightarrow> is_strongly_neutral (seq_algebra V)"
 proof
   define "pc" where "pc = par V"
   define "sc" where "sc = seq V"
-  define "\<gamma>" where "\<gamma> = neut_par V"
+  define "\<gamma>" where "\<gamma> = nil V"
 
   assume "is_strongly_neutral (par_algebra V)" 
   show "is_strongly_neutral (seq_algebra V)"
@@ -358,13 +358,13 @@ proof
       by (metis B_open CVA.valid_welldefined Un_upper2 V_valid \<gamma>_def \<open>is_strongly_neutral (par_algebra V)\<close> calculation(1) strongly_neutral_covariance)
     ultimately have "sc (\<gamma> A) (\<gamma> B) = \<gamma> (A \<union> B)"
       by presburger 
-    thus "seq V (neut_seq V A) (neut_seq V B) = neut_seq V (A \<union> B)"  unfolding sc_def
+    thus "seq V (skip V A) (skip V B) = skip V (A \<union> B)"  unfolding sc_def
         \<gamma>_def neutral_collapse .
   qed
 next
   define "pc" where "pc = par V"
   define "sc" where "sc = seq V"
-  define "\<gamma>" where "\<gamma> = neut_par V"
+  define "\<gamma>" where "\<gamma> = nil V"
 
   assume "is_strongly_neutral (seq_algebra V)" 
   show "is_strongly_neutral (par_algebra V)"
@@ -413,13 +413,15 @@ next
       by (metis B_open CVA.valid_welldefined V_valid \<gamma>_def \<open>is_strongly_neutral (seq_algebra V)\<close> calculation(1) d_neut neutral_collapse neutral_is_element strongly_neutral_covariance sup_ge2 valid_ext)
     ultimately have "pc (\<gamma> A) (\<gamma> B) = \<gamma> (A \<union> B)"
       by presburger 
-    thus "par V (neut_par V A) (neut_par V B) = neut_par V (A \<union> B)"  unfolding pc_def
+    thus "par V (nil V A) (nil V B) = nil V (A \<union> B)"  unfolding pc_def
         \<gamma>_def .
   qed
 qed
 
+(* Hoare logic rules: https://en.wikipedia.org/wiki/Hoare_logic#Rules *)
+
 (* [Proposition 3, TMCVA] *)
-proposition hoare_concurrency_rule  :
+proposition hoare_concurrency_rule :
   fixes V :: "('A, 'a) CVA" and p p' a a' q q' :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "p' \<in> elems V" and "a \<in> elems V" and "a' \<in> elems V" and "q \<in> elems V" and "q' \<in> elems V"
@@ -440,5 +442,41 @@ moreover have "gl (pc (sc p a) (sc p' a')) (pc q q')"
   ultimately show ?thesis
     by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) comb_is_element gl_def pc_def sc_def valid_elems valid_poset valid_semigroup valid_transitivity) 
 qed
+
+proposition hoare_skip_rule :
+  fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V"
+  shows "hoare V p (skip V (d p)) p"
+  by (metis CVA.valid_welldefined V_valid assms(2) valid_elems valid_neutral_law_right valid_poset valid_reflexivity valid_semigroup)
+
+proposition hoare_composition_rule :
+  fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+  and "hoare V p a q" and "hoare V q b r"
+shows "hoare V p (seq V a b) r"
+proof - 
+  have "le V (seq V p a) q"
+    using assms(7) by blast  
+  moreover have "le V (seq V (seq V p a) b) (seq V q b)"
+    by (smt (verit, best) CVA.valid_welldefined V_valid assms(2) assms(3) assms(5) assms(6) calculation comb_is_element valid_comb_monotone valid_gc_poset valid_poset valid_reflexivity valid_semigroup)
+  moreover have "le V (seq V p (seq V a b)) (seq V q b)"
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(5) assms(6) calculation(2) valid_associative valid_elems valid_semigroup) 
+  moreover have "le V (seq V q b) r"
+    using assms(8) by blast
+  moreover have "le V (seq V p (seq V a b)) r"
+    by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) calculation(3) calculation(4) comb_is_element valid_elems valid_poset valid_semigroup valid_transitivity) 
+  ultimately show ?thesis
+    by meson
+qed
+
+proposition hoare_consequence_rule :
+  fixes V :: "('A, 'a) CVA" and p p' q q' a :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "p' \<in> elems V" and "q \<in> elems V" and "q' \<in> elems V" and "a \<in> elems V"
+  and "le V p' p" and "le V q q'" and "hoare V p a q"
+shows "hoare V p' a q'"
+  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element valid_gc_poset valid_monotone valid_poset valid_reflexivity valid_semigroup valid_transitivity)  
 
 end
