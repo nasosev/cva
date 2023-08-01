@@ -1062,7 +1062,7 @@ theorem ext_functorial_id :
 shows "ext V (d c) c = c"
   by (metis (no_types, lifting) V_valid c_el d_elem_is_open d_ext ext_elem galois_insertion res_functorial_trans subsetI)
 
-(* [Theorem 1 (2/3), TMCVA] *)
+(* [Theorem 1 (3/3), TMCVA] *)
 theorem ext_functorial_trans :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"  and c :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
