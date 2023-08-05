@@ -1379,6 +1379,12 @@ shows "mul (ext_local V f) a b \<in> local_elems V (d a \<union> d b)"
       ?a=a]
   by (smt (verit) CollectI V_valid a_el b_el d_ext_local elem_is_raw_elem f_cod f_dom f_valid f_valid_val prod.collapse)
 
+lemma ext_local_value : 
+  fixes V :: "('A, 'a) OVA"  and a b :: "('A,'a) Valuation" and op :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
+  assumes a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+  shows "mul (ext_local V f) a b =  (d a \<union> d b, f \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))"
+  by (metis a_el b_el d_ext_local e_ext_local prod.collapse)
+
 (* [Lemma 2 (1/2), TMCVA] *)
 lemma local_ext_comm_imp_assoc:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
@@ -1863,7 +1869,6 @@ lemma local_mono_ext_comm_imp_lax_comb:
   b \<in> local_elems V B \<Longrightarrow> b' \<in> local_elems V B
   \<Longrightarrow> ext V A (B, f \<cdot> B \<star> (e b, e b')) = (A, f \<cdot> A \<star> (e (ext V A b), e (ext V A b')))"
 shows "\<And>a b. a \<in> elems V \<Longrightarrow> b \<in> elems V 
-\<Longrightarrow> le V a b 
 \<Longrightarrow> le V (res V (d a) (comb' a b)) (comb' a (res V (d a \<inter> d b) b))
 \<and> le V (res V (d b) (comb' a b)) (comb' (res V (d a \<inter> d b) a) b)"
 proof (intro conjI, goal_cases)
@@ -1873,12 +1878,11 @@ proof (intro conjI, goal_cases)
     fix a b
     assume a_el : "a \<in> elems V"
     assume b_el : "b \<in> elems V"
-    assume a_le_b : "le V a b" 
 
     have "comb' a b
       = (d a \<union> d b , f \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a),  e (ext V (d a \<union> d b) b)))" 
       using comb'_def e_ext_local [where ?V=V and ?f=f and ?a=a and ?b=b]
- d_ext_local [where ?V=V and ?f=f  and ?a=a and ?b=b] a_el b_el a_le_b
+ d_ext_local [where ?V=V and ?f=f  and ?a=a and ?b=b] a_el b_el 
       by (metis prod.collapse) 
 
     moreover have "res V (d a) (comb' a b) 
@@ -1886,10 +1890,10 @@ proof (intro conjI, goal_cases)
       using comb'_def e_ext_local d_ext_local calculation by presburger     
 
     moreover have a'_el : "ext V (d a \<union> d b) a \<in> local_elems V (d a \<union> d b)"
-      by (smt (verit, best) CollectI V_valid a_el a_le_b b_el elem_is_raw_elem ext_functorial_id prod.collapse sup.orderE valid_le) 
+      by (smt (verit) Un_upper1 V_valid a_el b_el comb_is_element d_elem_is_open d_ext e_ext mem_Collect_eq prod.exhaust_sel valid_domain_law)
     
     moreover have b'_el : "ext V (d a \<union> d b) b \<in> local_elems V (d a \<union> d b)"
-      by (smt (verit) CollectI V_valid a_el a_le_b b_el d_elem_is_open d_ext e_ext prod.collapse sup.orderE valid_le) 
+      by (smt (verit) CollectI V_valid a_el b_el comb_is_element d_elem_is_open d_ext e_ext prod.exhaust_sel sup_ge2 valid_domain_law) 
 
     moreover have doms: "d b \<in> opens (space V) \<and> d a \<union> d b \<in> opens (space V) \<and> d b \<subseteq> d a \<union> d b"
       by (meson Prealgebra.valid_space V_valid a_el b_el d_elem_is_open sup_ge2 valid_prealgebra valid_union2) 
@@ -1904,49 +1908,77 @@ proof (intro conjI, goal_cases)
     moreover have a: "(res V (d a) (ext V (d a \<union> d b) a)) = a"
       by (meson V_valid a_el doms galois_insertion sup_ge1) 
 
-    moreover have b: "local_le V (d a) (res V (d a) (ext V (d a \<union> d b) b)) (ext V (d a) (res V (d a \<inter> d
- b) b))"
-      by (metis V_valid a_el a_le_b b_el calculation(5) dual_order.refl inf.absorb2 sup.orderE up_down_le_down_up valid_le) 
+    moreover have b: "local_le V (d a) (res V (d a) (ext V (d a \<union> d b) b)) (ext V (d a) (res V (d a \<inter> d b) b))"
+      by (metis Prealgebra.valid_space Space.valid_def V_valid a_el b_el calculation(5) d_elem_is_open inf_le2 inf_sup_ord(1) sup_ge1 up_down_le_down_up valid_prealgebra) 
 
     moreover have "local_le V (d a)
       (d a, (f \<cdot> (d a) \<star> (e (res V (d a) (ext V (d a \<union> d b) a)), e (res V (d a) (ext V (d a \<union> d b) b)))))
-      (d a, (f \<cdot> (d a) \<star> (e a, e (ext V (d a) (res V (d a \<inter> d b) b)))))" using a b
-      by (smt (verit) OVA.valid_welldefined V_valid a_el a_le_b b_el d_elem_is_open d_ext elem_is_raw_elem ext_elem ext_functorial_id galois_insertion inf.absorb2 local_mono mem_Collect_eq prod.collapse sup.orderE valid_le valid_poset valid_reflexivity)
-     
+      (d a, (f \<cdot> (d a) \<star> (e a, e (ext V (d a) (res V (d a \<inter> d b) b)))))" using a b 
+local_mono [where ?A="d a" and ?a1.0="res V (d a) (ext V (d a \<union> d b) a)" and ?a1'=a
+  and ?a2.0="res V (d a) (ext V (d a \<union> d b) b)" and ?a2'="ext V (d a) (res V (d a \<inter> d b) b)"]
+      by (smt (verit) CollectI Int_lower1 Int_lower2 OVA.le_eq_local_le OVA.valid_welldefined Prealgebra.valid_welldefined Space.valid_def Un_upper1 V_valid a_el b_el d_elem_is_open d_ext d_res doms e_ext e_res ext_elem prod.exhaust_sel res_elem valid_poset valid_reflexivity)
+
     moreover have "(d a, (f \<cdot> (d a) \<star> (e a, e (ext V (d a) (res V (d a \<inter> d b) b)))))
-      = comb' a (res V (d a \<inter> d b) b)"
-      by (metis Un_Int_eq(4) V_valid a_el a_le_b b_el calculation(1) calculation(5) ext_functorial_id galois_insertion inf_sup_aci(1) subset_refl sup.orderE valid_le) 
+      = comb' a (res V (d a \<inter> d b) b)" using comb'_def ext_local_value [where
+      ?V=V] a_el b_el res_elem [where ?V=V] and ext_elem [where ?V=V]
+      by (simp add: Prealgebra.valid_space V_valid d_elem_is_open ext_functorial_id valid_inter valid_prealgebra)
 
     moreover have 1: "local_le V (d a)
-      (d a, (f \<cdot> (d a) \<star> (e (res V (d a) (ext V (d a \<union> d b) a)), e (res V (d a) (ext V (d a \<union> d b) b)))))
+      (d a, (f \<cdot> (d a) \<star> (e (res V (d a) (ext V (d a \<union> d b) a)), 
+                          e (res V (d a) (ext V (d a \<union> d b) b)))))
       (comb' a (res V (d a \<inter> d b) b))"
       using calculation(10) calculation(9) by presburger  
 
     moreover have 2: "local_le V (d a)
       (res V (d a) (comb' a b))
-      (d a, (f \<cdot> (d a) \<star> (e (res V (d a) (ext V (d a \<union> d b) a)), e (res V (d a) (ext V (d a \<union> d b)
-      b)))))"
-      using calculation(1) calculation(6) by presburger 
+      (d a, (f \<cdot> (d a) \<star> (e a,  e (res V (d a) (ext V (d a \<union> d b) b)))))"
+      using calculation(1) calculation(6) a
+      by fastforce   
 
     moreover have 3: "local_le V (d a)
+      (d a, (f \<cdot> (d a) \<star> (e a,  e (res V (d a) (ext V (d a \<union> d b) b)))))
+      (d a, (f \<cdot> (d a) \<star> (e a,  e (ext V (d a) (res V (d a \<inter> d b) b)))))" using b
+      local_ext_comm
+      using "1" a calculation(10) by auto
+
+    moreover have 4: "(d a, (f \<cdot> (d a) \<star> (e a,  e (ext V (d a) (res V (d a \<inter> d b) b))))) = comb' a
+ (res V (d a \<inter> d b) b)"
+      using calculation(10) by blast 
+
+    moreover have 41 : "res V (d a) (comb' a b) \<in> local_elems V (d a)" using comb'_def ext_local_elem
+        [where ?V=V and ?f=f]
+      by (smt (z3) CollectI V_valid a_el b_el calculation(1) d_elem_is_open e_res f_cod f_dom f_valid f_valid_val fst_conv res_def snd_conv sup_ge1) 
+
+    moreover have 421 : "e (res V (d a) (ext V (d a \<union> d b) b)) \<in> el (ob V \<cdot> d a)"
+      by (metis V_valid a_el b_el d_elem_is_open d_ext doms e_res ext_elem sup_ge1) 
+
+    moreover have 422 : "e a \<in> el (ob V \<cdot> d a)"
+      using V_valid a_el elem_is_raw_elem by blast
+
+    moreover have "(e a, e (res V (d a) (ext V (d a \<union> d b) b))) \<in> el (Poset.dom (f \<cdot> d a))" using
+        421
+        422  f_dom [where ?A="d a"] product_def
+      by (metis (no_types, lifting) Poset.Poset.select_convs(1) SigmaI V_valid a_el d_elem_is_open) 
+
+    moreover have 42: "(d a, f \<cdot> d a \<star> (e a, e (res V (d a) (ext V (d a \<union> d b) b)))) \<in> local_elems V (d
+ a)" using f_cod [where ?A="d a"] f_valid_val [where ?A="d a"] f_dom [where ?A="d a"]
+      by (metis (mono_tags, lifting) Poset.fun_app2 V_valid a_el calculation(18) d_elem_is_open mem_Collect_eq)  
+
+    moreover have 43 : "comb' a (res V (d a \<inter> d b) b) \<in> local_elems V (d a)"  using comb'_def
+        ext_local_local_elem [where ?V=V and ?f=f and ?a=a and ?b="res V (d a \<inter> d b) b"] assms
+      by (smt (z3) "4" Prealgebra.valid_space a_el b_el d_elem_is_open fst_conv inf_le2 mem_Collect_eq res_elem valid_inter valid_prealgebra)
+       
+    moreover have 5: "local_le V (d a)
       (res V (d a) (comb' a b))
-      (comb' a (res V (d a \<inter> d b) b))"
-      by (metis "2" V_valid a_el a_le_b b_el calculation(1) calculation(5) d_ext ext_elem ext_functorial_id inf.orderE inf_commute res_functorial_id sup.absorb1 valid_le)
+      (comb' a (res V (d a \<inter> d b) b))" using 2 3 4 local_le_trans [where ?V=V and ?A="d a"
+  and ?a="res V (d a) (comb' a b)" and ?a'="(d a, (f \<cdot> (d a) \<star> (e a,  e (res V (d a) (ext V (d a \<union> d
+  b) b)))))" and ?a''="comb' a (res V (d a \<inter> d b) b)"] 41 42 43
+      by (metis (no_types, lifting) V_valid a_el d_elem_is_open)
 
-    moreover have "comb' a b \<in> elems V" using comb'_def using ext_local_elem [where ?V=V and ?f=f and
-          ?a=a and ?b=b]
-      using V_valid a_el b_el f_cod f_dom f_valid f_valid_val by fastforce
-
-    moreover have "res V (d a) (comb' a b) \<in> elems V"
-      by (metis V_valid a_el calculation(1) calculation(14) d_elem_is_open fst_conv res_elem sup_ge1)  
-
-    moreover have "comb' a (res V (d a \<inter> d b) b) \<in> elems V"
-      by (metis Un_Int_eq(4) V_valid a_el a_le_b b_el calculation(14) inf_sup_aci(1) res_functorial_id sup.orderE valid_le) 
-    
     ultimately show "le V (res V (d a) (comb' a b)) (comb' a (res V (d a \<inter> d b) b))" using 3
         local_le_eq_le [where ?V=V and ?A="d a" and ?a="res V (d a) (comb' a b)" and ?a'="comb' a (res V (d a \<inter> d b) b)"]
         V_valid
-      by (metis (no_types, lifting) OVA.le_eq_local_le a_el a_le_b b_el fst_conv res_functorial_id sup.orderE valid_le) 
+      using a_el d_elem_is_open by blast  
   qed
   next
   case (2 a b)
@@ -1955,12 +1987,11 @@ proof (intro conjI, goal_cases)
     fix a b
     assume a_el : "a \<in> elems V"
     assume b_el : "b \<in> elems V"
-    assume a_le_b : "le V a b" 
 
     have "comb' a b
       = (d a \<union> d b , f \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a),  e (ext V (d a \<union> d b) b)))" 
       using comb'_def e_ext_local [where ?V=V and ?f=f and ?a=a and ?b=b]
- d_ext_local [where ?V=V and ?f=f  and ?a=a and ?b=b] a_el b_el a_le_b
+ d_ext_local [where ?V=V and ?f=f  and ?a=a and ?b=b] a_el b_el 
       by (metis prod.collapse) 
 
     moreover have "res V (d b) (comb' a b) 
@@ -1968,10 +1999,10 @@ proof (intro conjI, goal_cases)
       using comb'_def e_ext_local d_ext_local calculation by presburger     
 
     moreover have a'_el : "ext V (d a \<union> d b) a \<in> local_elems V (d a \<union> d b)"
-      by (smt (verit, best) CollectI V_valid a_el a_le_b b_el elem_is_raw_elem ext_functorial_id prod.collapse sup.orderE valid_le) 
+      by (smt (verit) Un_upper1 V_valid a_el b_el comb_is_element d_elem_is_open d_ext e_ext mem_Collect_eq prod.exhaust_sel valid_domain_law)
     
     moreover have b'_el : "ext V (d a \<union> d b) b \<in> local_elems V (d a \<union> d b)"
-      by (smt (verit) CollectI V_valid a_el a_le_b b_el d_elem_is_open d_ext e_ext prod.collapse sup.orderE valid_le) 
+      by (smt (verit) CollectI V_valid a_el b_el comb_is_element d_elem_is_open d_ext e_ext prod.exhaust_sel sup_ge2 valid_domain_law) 
 
     moreover have doms: "d b \<in> opens (space V) \<and> d a \<union> d b \<in> opens (space V) \<and> d b \<subseteq> d a \<union> d b"
       by (meson Prealgebra.valid_space V_valid a_el b_el d_elem_is_open sup_ge2 valid_prealgebra valid_union2) 
@@ -1984,56 +2015,81 @@ proof (intro conjI, goal_cases)
       by (smt (z3) V_valid a_el d_elem_is_open f_cod f_dom f_valid f_valid_val local.local_ext_comm local_mono sup_ge1)
 
     moreover have a: "(res V (d b) (ext V (d a \<union> d b) b)) = b"
-      by (meson V_valid b_el doms galois_insertion sup_ge2) 
+      by (meson V_valid b_el doms galois_insertion sup_ge1) 
 
-    moreover have b: "local_le V (d b) (res V (d b) (ext V (d a \<union> d b) a)) (ext V (d b) (res V (d a \<inter> d
- b) a))"
-      by (metis V_valid a_el a_le_b b_el calculation(5) dual_order.refl inf.absorb2 sup.orderE up_down_le_down_up valid_le) 
+    moreover have b: "local_le V (d b) (res V (d b) (ext V (d a \<union> d b) b)) (ext V (d b) (res V (d a
+      \<inter> d b) b))"
+      by (meson Prealgebra.valid_space V_valid a_el b_el calculation(5) d_elem_is_open inf_sup_ord(2) up_down_le_down_up valid_inter valid_prealgebra) 
 
     moreover have "local_le V (d b)
       (d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), e (res V (d b) (ext V (d a \<union> d b) b)))))
-      (d b, (f \<cdot> (d b) \<star> (e (ext V (d b) (res V (d a \<inter> d b) a)), e b)))" using a b
-      by (smt (z3) Un_Int_eq(4) V_valid a_el a_le_b b_el calculation(5) d_ext d_res elem_is_raw_elem ext_elem id_le_res inf_sup_aci(1) local_mono mem_Collect_eq prod.collapse res_elem subset_refl sup.orderE valid_le)
-     
-    moreover have "(d b, (f \<cdot> (d b) \<star> (e (ext V (d b) (res V (d a \<inter> d b) a)), e b)))
-      = comb' (res V (d a \<inter> d b) a) b"
-      by (smt (z3) Int_Un_eq(4) Int_absorb1 V_valid a_el a_le_b b_el calculation(5) comb'_def d_ext_local d_res e_ext_local ext_functorial_id prod.collapse res_elem valid_le)
+      (d b, (f \<cdot> (d b) \<star> (e (ext V (d b) (res V (d a \<inter> d b) a)), e b)))" using a b 
+local_mono [where ?A="d b" and ?a1.0="res V (d b) (ext V (d a \<union> d b) a)" and ?a1'="ext V (d b) (res V (d a \<inter> d b) a)"
+  and ?a2.0="res V (d b) (ext V (d a \<union> d b) b)" and ?a2'=b]
+      by (smt (verit) CollectI OVA.valid_welldefined Prealgebra.valid_welldefined V_valid a_el b_el d_elem_is_open d_ext d_res doms dual_order.eq_iff e_ext e_res ext_elem inf.cobounded1 inf_le2 inf_sup_ord(3) prod.exhaust_sel res_elem up_and_down up_down_le_down_up valid_inter) 
+
+    moreover have "(d a, (f \<cdot> (d a) \<star> (e a, e (ext V (d a) (res V (d a \<inter> d b) b)))))
+      = comb' a (res V (d a \<inter> d b) b)" using comb'_def ext_local_value [where
+      ?V=V] a_el b_el res_elem [where ?V=V] and ext_elem [where ?V=V]
+      by (simp add: Prealgebra.valid_space V_valid d_elem_is_open ext_functorial_id valid_inter valid_prealgebra)
 
     moreover have 1: "local_le V (d b)
-      (d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), e (res V (d b) (ext V (d a \<union> d b) b)))))
+      (d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), 
+                          e (res V (d b) (ext V (d a \<union> d b) b)))))
       (comb' (res V (d a \<inter> d b) a) b)"
-      using calculation(10) calculation(9) by presburger  
+      by (smt (verit, ccfv_threshold) Int_Un_eq(2) Int_lower1 Prealgebra.valid_space V_valid a_el b_el calculation(9) comb'_def d_elem_is_open d_res ext_functorial_id ext_local_value res_elem valid_inter valid_prealgebra)
 
     moreover have 2: "local_le V (d b)
       (res V (d b) (comb' a b))
-      (d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), e (res V (d b) (ext V (d a \<union> d b)
-      b)))))"
-      using calculation(1) calculation(6) by presburger 
+      (d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), e b)))"
+      using calculation(1) calculation(6) a
+      by fastforce   
 
     moreover have 3: "local_le V (d b)
+      (d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), e b)))
+      (d b, (f \<cdot> (d b) \<star> (e (ext V (d b) (res V (d a \<inter> d b) a)), e b)))" using b
+      local_ext_comm  "1" a calculation(10) calculation(9) by presburger  
+
+    moreover have 4: "(d b, (f \<cdot> (d b) \<star> (e (ext V (d b) (res V (d a \<inter> d b) a)), e b))) = comb' (res V (d a \<inter> d b) a) b"
+      using calculation(10)
+      by (smt (verit, ccfv_threshold) Int_Un_eq(2) Int_lower1 Prealgebra.valid_space V_valid a_el b_el comb'_def d_elem_is_open d_res ext_functorial_id ext_local_value res_elem valid_inter valid_prealgebra)  
+
+    moreover have 41 : "res V (d b) (comb' a b) \<in> local_elems V (d b)" using comb'_def ext_local_elem
+        [where ?V=V and ?f=f]
+      by (smt (verit) V_valid a_el b_el calculation(1) d_res doms e_res f_cod f_dom f_valid f_valid_val fst_conv mem_Collect_eq prod.collapse) 
+
+    moreover have 421 : "e (res V (d b) (ext V (d a \<union> d b) a)) \<in> el (ob V \<cdot> d b)" 
+      by (metis V_valid a_el d_elem_is_open d_ext doms e_res ext_elem sup_ge1) 
+
+    moreover have 422 : "e b \<in> el (ob V \<cdot> d b)"
+      using V_valid b_el elem_is_raw_elem by blast
+
+    moreover have "(e (res V (d b) (ext V (d a \<union> d b) a)), e b) \<in> el (Poset.dom (f \<cdot> d b))" using
+        421
+        422  f_dom [where ?A="d b"] product_def
+      by (metis (no_types, lifting) Poset.Poset.select_convs(1) SigmaI doms) 
+
+    moreover have 42: "(d b, f \<cdot> d b \<star> (e (res V (d b) (ext V (d a \<union> d b) a)), e b)) \<in> local_elems V (d
+ b)" using f_cod [where ?A="d b"] f_valid_val [where ?A="d b"] f_dom [where ?A="d b"]
+      using Poset.fun_app Poset.valid_map_cod calculation(18) doms by fastforce 
+
+    moreover have 43 : "comb' (res V (d a \<inter> d b) a) b \<in> local_elems V (d b)"  using comb'_def
+        ext_local_local_elem [where ?V=V and ?f=f and ?a="res V (d a \<inter> d b) a" and ?b=b] assms
+      Int_lower2 Prealgebra.valid_welldefined a_el b_el d_elem_is_open fst_conv inf_sup_aci(1) mem_Collect_eq res_elem valid_inter valid_prealgebra
+      by (smt (verit) Int_Un_eq(2) d_res)
+
+    moreover have 5: "local_le V (d b)
       (res V (d b) (comb' a b))
-      (comb' (res V (d a \<inter> d b) a) b)"
-      by (metis "2" Un_Int_eq(4) V_valid a a_el a_le_b b_el calculation(10) d_res doms ext_functorial_id inf_sup_aci(1) res_elem sup.orderE valid_le)
-
-    moreover have "comb' a b \<in> elems V" using comb'_def using ext_local_elem [where ?V=V and ?f=f and
-          ?a=a and ?b=b]
-      using V_valid a_el b_el f_cod f_dom f_valid f_valid_val by fastforce
-
-    moreover have "res V (d b) (comb' a b) \<in> elems V"
-      by (metis V_valid calculation(1) calculation(14) doms fst_conv res_elem)
-
-    moreover have "res V (d a \<inter> d b) a \<in> elems V"
-      by (meson Int_lower1 OVA.valid_welldefined Prealgebra.valid_space V_valid a_el d_elem_is_open doms res_elem valid_inter)
-
-    moreover have "comb' (res V (d a \<inter> d b) a) b \<in> elems V" using comb'_def using ext_local_elem [where ?V=V and ?f=f and
-          ?a="res V (d a \<inter> d b) a" and ?b=b]
-      using V_valid b_el calculation(16) f_cod f_dom f_valid f_valid_val by fastforce
+      (comb' (res V (d a \<inter> d b) a) b)" using 2 3 4 local_le_trans [where ?V=V and ?A="d b"
+  and ?a="res V (d b) (comb' a b)" and ?a'="(d b, (f \<cdot> (d b) \<star> (e (res V (d b) (ext V (d a \<union> d
+  b) a)), e b)))" and ?a''="comb' (res V (d a \<inter> d b) a) b"] 41 42 43
+      by (metis V_valid doms) 
 
     ultimately show "le V (res V (d b) (comb' a b)) (comb' (res V (d a \<inter> d b) a) b)" using 3
         local_le_eq_le [where ?V=V and ?A="d b" and ?a="res V (d b) (comb' a b)" and ?a'="comb' (res V (d a \<inter> d b) a) b"]
         V_valid
-      by (smt (verit) OVA.le_eq_local_le d_res fst_conv)
-    qed
+      using a_el d_elem_is_open by blast  
+  qed
 qed
 
 (* [Lemma 4, TMCVA] *)
