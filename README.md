@@ -11,6 +11,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
       primaryClass={cs.LO},
       url={<https://arxiv.org/abs/2305.18017>}
 }
+(v3 on arXiv)
 
 ---
 
@@ -30,12 +31,11 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
 - [x] Corollary 3 (locally_complete_imp_complete)
-- [x] Lemma 2 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)
-- [x] Lemma 8 (up_down_le_down_up) (in the paper this is in Appendix 1)
-- [x] Lemma 3 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
+- [x] Lemma 1 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)
+- [x] Lemma 9 (up_down_le_down_up) (in the paper this is in Appendix 1)
+- [x] Lemma 2 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
+- [x] Lemma 3 (ova_comb_local)
 - [x] Lemma 4 (local_weak_exchange_imp_weak_exchange)
-
-Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 
 ### Section 3 - Concurrent valuation algebras
 
@@ -50,14 +50,13 @@ Note: in the paper Lemmas 2, 8, 3, 4 are currently in Section 3.
 #### Tuple systems: Tuple.thy
 
 - [x] Theorem 2 (rel_ova_valid, rel_ova_commutative, rel_ova_strongly_neutral, rel_ova_tuple_system)
-- [x] Lemma 1 (valid_lists, valid_ne_lists)
 - [x] Proposition 4 (rel_ext_preimage)
 - [x] Proposition 5 (rel_comb_is_int_ext, rel_ova_is_complete, rel_comb_is_meet)
+- [x] Lemma 5 (valid_lists, valid_ne_lists)
 
 ## To-do
 
-- Update numbering of theorems/lemmas/etc. to match publication version.
-- Sections 4, 5, 6 (trace models).
+- Sections 5, 6, 7 (trace models).
 - Use infix syntax; see [here!](https://isabelle.zulipchat.com/#narrow/stream/238552-Beginner-Questions/topic/local.20infix.20operator.20definition/near/377738757)
 - Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles)).
 - Improve readability of proofs.

@@ -1385,7 +1385,7 @@ lemma ext_local_value :
   shows "mul (ext_local V f) a b =  (d a \<union> d b, f \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))"
   by (metis a_el b_el d_ext_local e_ext_local prod.collapse)
 
-(* [Lemma 2 (1/2), TMCVA] *)
+(* [Lemma 1 (1/2), TMCVA] *)
 lemma local_ext_comm_imp_assoc:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"
@@ -1489,7 +1489,7 @@ next
   qed
 qed
 
-(* [Lemma 2 (2/2), TMCVA] *)
+(* [Lemma 1 (2/2), TMCVA] *)
 lemma local_assoc_units_imp_ext_comm:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   and i :: "('A Open, 'a) Function"
@@ -1551,7 +1551,7 @@ proof -
     by simp
 qed
 
-(* [Lemma 8, TMCVA] *)
+(* [Lemma 9, TMCVA] *)
 lemma up_down_le_down_up : 
   fixes V :: "('A, 'a) OVA" and A B B' C :: "'A Open" and b :: "('A, 'a) Valuation"
   defines "B \<equiv> d b"
@@ -1583,7 +1583,7 @@ proof -
     by (metis A_open B'_le_A B'_open B_le_A C_le_B' C_open V_valid b_el d_ext ext_elem galois_closure_extensive res_elem)
 qed
 
-(* [Lemma 3 (1/3), TMCVA] *)
+(* [Lemma 2 (1/3), TMCVA] *)
 lemma local_mono_ext_comm_imp_laxity:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   assumes V_valid : "valid V"
@@ -1663,7 +1663,7 @@ proof -
     by (metis (no_types, lifting) a'_B_def a_B_def)
 qed
 
-(* [Lemma 3 (2/3), TMCVA] *)
+(* [Lemma 2 (2/3), TMCVA] *)
 lemma local_mono_ext_comm_imp_mono:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"
@@ -1853,7 +1853,7 @@ and a''="comb' b1 b2"] 7 8 9
     by (smt (verit, ccfv_threshold) A1_def A2_def Un_absorb1 Un_upper1 V_valid a1_el a2_el comb'_def d_ext_local elem_le_wrap fst_conv inf_sup_aci(7) sup.orderE)
 qed
 
-(* [Lemma 3 (3/3), TMCVA] *)
+(* [Lemma 2 (3/3), TMCVA] *)
 lemma local_mono_ext_comm_imp_lax_comb:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"
@@ -1899,6 +1899,27 @@ next
   qed
 qed
 
+(* [Lemma 3, TMCVA] *)
+lemma ova_comb_local:
+  fixes V :: "('A, 'a) OVA"  and a b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+shows "comb V a b = comb V (ext V (d a \<union> d b) a) (ext V (d a \<union> d b) b)"
+proof -
+  define "mul" (infixl \<open>\<otimes>\<close> 55) where "a \<otimes> b = comb V a b" for a b
+  define "\<epsilon>" where "\<epsilon> = neut V"
+  define "AB" where "AB = d a \<union> d b"
+
+  have "a \<otimes> b = (\<epsilon> AB) \<otimes> (\<epsilon> AB) \<otimes> (a \<otimes> b)"
+    by (metis (no_types, lifting) AB_def V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element valid_domain_law valid_neutral_law_left)
+  moreover have "... = (\<epsilon> AB \<otimes> a) \<otimes> (\<epsilon> AB \<otimes> b)"
+    by (smt (verit, del_insts) AB_def Un_Int_eq(1) V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element sup_inf_absorb valid_comb_associative valid_domain_law valid_neutral_law_right)
+  moreover have "... = (ext V AB a) \<otimes> (ext V AB b)" unfolding ext_def AB_def mul_def \<epsilon>_def 
+    using assms
+    by (simp add: Prealgebra.valid_space d_elem_is_open valid_prealgebra valid_union2)
+  ultimately show ?thesis
+    by (simp add: AB_def mul_def) 
+qed
 
 (* [Lemma 4, TMCVA] *)
 lemma local_weak_exchange_imp_weak_exchange:
