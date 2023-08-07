@@ -1276,6 +1276,27 @@ qed
 
 (* Extension of local operators *)
 
+lemma ova_comb_local:
+  fixes V :: "('A, 'a) OVA"  and a b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+shows "comb V a b = comb V (ext V (d a \<union> d b) a) (ext V (d a \<union> d b) b)"
+proof -
+  define "mul" (infixl \<open>\<otimes>\<close> 55) where "a \<otimes> b = comb V a b" for a b
+  define "\<epsilon>" where "\<epsilon> = neut V"
+  define "AB" where "AB = d a \<union> d b"
+
+  have "a \<otimes> b = (\<epsilon> AB) \<otimes> (\<epsilon> AB) \<otimes> (a \<otimes> b)"
+    by (metis (no_types, lifting) AB_def V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element valid_domain_law valid_neutral_law_left)
+  moreover have "... = (\<epsilon> AB \<otimes> a) \<otimes> (\<epsilon> AB \<otimes> b)"
+    by (smt (verit, del_insts) AB_def Un_Int_eq(1) V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element sup_inf_absorb valid_comb_associative valid_domain_law valid_neutral_law_right)
+  moreover have "... = (ext V AB a) \<otimes> (ext V AB b)" unfolding ext_def AB_def mul_def \<epsilon>_def 
+    using assms
+    by (simp add: Prealgebra.valid_space d_elem_is_open valid_prealgebra valid_union2)
+  ultimately show ?thesis
+    by (simp add: AB_def mul_def) 
+qed
+
 definition ext_local :: "('A, 'a) OVA \<Rightarrow> ('A Open, ('a \<times> 'a,'a) PosetMap) Function 
   \<Rightarrow> (('A, 'a) Valuation) Semigroup" where
 "ext_local V f = \<lparr> mult =
@@ -1900,28 +1921,6 @@ next
 qed
 
 (* [Lemma 3, TMCVA] *)
-lemma ova_comb_local:
-  fixes V :: "('A, 'a) OVA"  and a b :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V"
-  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-shows "comb V a b = comb V (ext V (d a \<union> d b) a) (ext V (d a \<union> d b) b)"
-proof -
-  define "mul" (infixl \<open>\<otimes>\<close> 55) where "a \<otimes> b = comb V a b" for a b
-  define "\<epsilon>" where "\<epsilon> = neut V"
-  define "AB" where "AB = d a \<union> d b"
-
-  have "a \<otimes> b = (\<epsilon> AB) \<otimes> (\<epsilon> AB) \<otimes> (a \<otimes> b)"
-    by (metis (no_types, lifting) AB_def V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element valid_domain_law valid_neutral_law_left)
-  moreover have "... = (\<epsilon> AB \<otimes> a) \<otimes> (\<epsilon> AB \<otimes> b)"
-    by (smt (verit, del_insts) AB_def Un_Int_eq(1) V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element sup_inf_absorb valid_comb_associative valid_domain_law valid_neutral_law_right)
-  moreover have "... = (ext V AB a) \<otimes> (ext V AB b)" unfolding ext_def AB_def mul_def \<epsilon>_def 
-    using assms
-    by (simp add: Prealgebra.valid_space d_elem_is_open valid_prealgebra valid_union2)
-  ultimately show ?thesis
-    by (simp add: AB_def mul_def) 
-qed
-
-(* [Lemma 4, TMCVA] *)
 lemma local_weak_exchange_imp_weak_exchange:
   fixes V V' :: "('A, 'a) OVA"
   and p :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
