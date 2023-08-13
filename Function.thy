@@ -111,12 +111,7 @@ lemma compose_assoc : "valid_map h \<Longrightarrow> valid_map g \<Longrightarro
 
 lemma compose_app [simp] : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> (x, y) \<in> func f \<Longrightarrow> dom g = cod f \<Longrightarrow> (y, z) \<in> func g 
  \<Longrightarrow> (g \<bullet> f) \<cdot> x = z"
-  unfolding valid_map_def compose_def dom_def app_def
-  apply (simp add: Let_def)
-  apply clarsimp
-  apply safe
-  apply (smt (verit) relcomp.simps the_equality)
-  by (meson relcomp.relcompI)
+  by (smt (verit, del_insts) compose_def compose_valid fun_app_iff relcomp.relcompI select_convs(2))
 
 lemma compose_app_assoc : "valid_map g \<Longrightarrow> valid_map f \<Longrightarrow> x \<in> dom f \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<bullet> f) \<cdot> x = g \<cdot> (f \<cdot> x)"
   by (metis compose_app fun_app fun_app2)

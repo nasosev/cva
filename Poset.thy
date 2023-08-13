@@ -190,7 +190,7 @@ lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrigh
   by (simp add: Let_def)
 
 lemma compose_app_assoc: "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> dom g = cod f \<Longrightarrow> (g \<diamondop> f) \<star> a = g \<star> (f \<star> a)"
-  apply (clarsimp simp: app_def, safe; clarsimp?)
+  apply (clarsimp simp: app_def, safe)
   apply (smt (z3) Poset.fun_app PosetMap.select_convs(3) compose_def compose_deterministic fun_app_iff relcomp.relcompI theI')
   by (metis app_def fun_app2)
                    
@@ -201,14 +201,7 @@ lemma compose_monotone :
   and le_aa' : "le (dom f) a a'"
   and dom_cod : "dom g = cod f"
 shows "le (cod g) ((g \<diamondop> f) \<star> a) ((g \<diamondop> f) \<star> a')"
-proof -
-  have "le (cod f) (f \<star> a) (f \<star> a')" using valid_map_monotone
-    by (metis a'_elem a_elem f_valid le_aa')
-  moreover have  "le (cod g) (g \<star> (f \<star> a)) (g \<star> (f \<star> a'))" using valid_map_monotone
-    by (metis a'_elem a_elem calculation dom_cod f_valid fun_app2 g_valid)
-  ultimately show ?thesis using compose_app_assoc
-    by (metis a'_elem a_elem dom_cod f_valid g_valid)
-qed
+  by (metis (no_types, opaque_lifting) Poset.compose_app_assoc Poset.fun_app2 a'_elem a_elem dom_cod f_valid g_valid le_aa' valid_map_monotone)
 
 lemma compose_valid : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> valid_map (g \<diamondop> f)"
 proof (intro valid_mapI, safe, goal_cases)
@@ -441,7 +434,7 @@ lemma complete_inf_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Lo
 lemma cocomplete_sup_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
   by (simp add: is_sup_def is_cocomplete_def sup_def)
 
-lemma complete_equiv_cocomplete : "is_complete P \<longleftrightarrow> is_cocomplete P"
+lemma complete_equiv_cocomplete : "valid P \<Longrightarrow> is_complete P = is_cocomplete P"
 proof
   assume "is_complete P"
   fix U
@@ -733,14 +726,11 @@ lemma preimage_cod : "cod (preimage f) = powerset (Function.dom f)"
 
 lemma preimage_app : "Function.valid_map f \<Longrightarrow> b \<subseteq> Function.cod f \<Longrightarrow> (preimage f) \<star> b = {x . x \<in> Function.dom f \<and> f \<cdot> x \<in> b}"
   unfolding Function.valid_map_def app_def preimage_def
-  apply (simp add: Let_def)
-  by (simp add: powerset_def)
+  by (simp add: powerset_el)
 
 lemma preimage_mono_raw: "Function.valid_map f \<Longrightarrow> b \<subseteq> Function.cod f \<Longrightarrow> b' \<subseteq> Function.cod f
  \<Longrightarrow> b \<subseteq> b' \<Longrightarrow> (preimage f) \<star> b \<subseteq> (preimage f) \<star> b'"
-  unfolding Function.valid_map_def app_def preimage_def
-  apply (simp add: Let_def)
-  by (smt (verit, del_insts) Collect_mono_iff Poset.Poset.select_convs(1) PowI powerset_def subset_eq)
+  using preimage_app by fastforce
 
 (* Example debug with bad definition of preimage: *)
 (*

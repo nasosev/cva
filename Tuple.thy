@@ -542,21 +542,7 @@ lemma rel_semigroup_mult_el :
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
 shows "join \<star> (a, b) \<in> el (gc R)"
-proof - 
-  define "dc" where "dc = d a \<union> d b"
-  define "ec" where "ec = { t \<in> ob T \<cdot> dc . (ar T \<cdot> (make_inc (d a) dc)) \<cdot> t \<in> e a     
-                                        \<and> (ar T \<cdot> (make_inc (d b) dc)) \<cdot> t \<in> e b }"
-  define "c" where "c = (dc, ec)"
-  have "(a,b) \<in> el (PosetMap.dom join)" using assms  Poset.product_def
-    by (smt (verit) Poset.Poset.select_convs(1) SigmaI rel_semigroup_dom)
-  moreover have "join \<star> (a, b) = c" using assms calculation rel_semigroup_def [where ?T=T] Poset.app_def
-      [where ?f=join and ?a="(a,b)"] rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
-    using c_def dc_def ec_def by fastforce 
-  moreover have "ec \<subseteq> ob T \<cdot> dc"
-    using ec_def by blast 
-  ultimately show ?thesis
-    by (metis R_def T_valid Tuple.valid_space a_el b_el c_def dc_def local_dom local_elem_gc relation_as_value valid_rel_prealg valid_relation_space valid_union2)
-qed
+  by (metis R_def T_valid Tuple.valid_space a_el b_el join_def local_dom local_elem_gc prod.collapse rel_semigroup_mult_d rel_semigroup_mult_local_el valid_rel_prealg valid_relation_space valid_union2)
 
 lemma rel_semigroup_mult_welldefined_cod :  
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x) Relation"
@@ -1116,21 +1102,7 @@ shows "res (rel_ova T) (d a) (comb (rel_ova T) a b) = comb (rel_ova T) a (res (r
 proof (standard, goal_cases)
   case 1
   then show ?case
-  proof -
-    have "d (comb (rel_ova T) a b) = d a \<union> d b"
-      using T_valid V_def a_el b_el rel_semigroup_cod rel_ova_def
-      by (simp add: rel_comb_d)  
-    moreover have "d (res (rel_ova T) (d a) (comb (rel_ova T) a b)) = d a" using d_res [where ?V=V and ?B="d a"]
-      by (metis T_valid V_def a_el b_el calculation rel_comb_el rel_el_open rel_res_d sup.cobounded1)
-    moreover have "d (res (rel_ova T) (d a \<inter> d b) b) = d a \<inter> d b"
-      by (metis Int_lower2 T_valid Tuple.valid_space V_def a_el b_el rel_el_open rel_res_d valid_inter)
-    moreover have "(res (rel_ova T) (d a \<inter> d b) b) \<in> elems V"
-      by (metis Int_lower2 T_valid Tuple.valid_space V_def a_el b_el rel_el_open rel_res_el valid_inter) 
-    moreover have "d (comb (rel_ova T) a (res (rel_ova T) (d a \<inter> d b) b)) = d a"
-      by (metis Int_Un_eq(3) T_valid V_def a_el calculation(3) calculation(4) rel_comb_d) 
-    ultimately show ?thesis
-      by blast
-  qed
+    by (metis (no_types, lifting) T_valid Tuple.valid_space Un_Int_eq(1) V_def a_el b_el inf.absorb_iff2 inf_sup_ord(2) rel_comb_d rel_comb_el rel_el_open rel_res_d rel_res_el sup_inf_absorb valid_inter)
   next
   case 2
   then show ?case 
@@ -1282,12 +1254,13 @@ theorem rel_ova_commutative :
 theorem rel_ova_strongly_neutral :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
-  shows "is_strongly_neutral (rel_ova T)"
-  unfolding is_strongly_neutral_def
+  shows "is_strongly_neutral (rel_ova T)" 
+  unfolding is_strongly_neutral_def 
 proof safe
   fix A B
   assume "A \<in> opens (OVA.space (rel_ova T))"
   assume "B \<in> opens (OVA.space (rel_ova T))"
+  assume "B \<subseteq> A"
 
   define "lhs" where "lhs = comb (rel_ova T) (neut (rel_ova T) A) (neut (rel_ova T) B)"
   define "rhs" where "rhs = neut (rel_ova T) (A \<union> B)"
@@ -1307,8 +1280,8 @@ proof safe
     using calculation(2) calculation(3) by auto
   ultimately have "lhs = rhs"
     by fastforce 
-  thus "comb (rel_ova T) (neut (rel_ova T) A) (neut (rel_ova T) B) = neut (rel_ova T) (A \<union> B)"
-    using lhs_def rhs_def by force
+  thus " ext (rel_ova T) A (neut (rel_ova T) B) = neut (rel_ova T) A"
+    by (smt (verit, del_insts) \<open>A \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<in> opens (OVA.space (rel_ova T))\<close> \<open>B \<subseteq> A\<close> assms d_ext eq_fst_iff ext_elem ext_functorial_id lhs_def neutral_is_element ova_comb_local rel_neutral_law_left rel_ova_valid rel_space rhs_def sup.orderE) 
 qed    
 
 lemma rel_idempotent : 
@@ -1886,7 +1859,6 @@ next
     by (simp add: assms ne_lists_binary_gluing ne_lists_space) 
 qed     
 
-
 (* [Proposition 5 (1/3), TMCVA] *)
 proposition rel_comb_is_int_ext :
   fixes T :: "('A, 'x) TupleSystem"
@@ -2046,7 +2018,6 @@ lemma  rel_comb_is_int_e :
   assumes T_valid : "valid T"
   and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
 shows "e (comb R a b) = e (ext R (d a \<union> d b) a) \<inter> e (ext R (d a \<union> d b) b)"
-
 proof -
   have "e (comb R a b) = { t \<in> ob T \<cdot> (d a \<union> d b) . 
                                 (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a
@@ -2077,7 +2048,7 @@ lemma rel_comb_le1 :
   defines "R \<equiv> rel_ova T" 
   assumes T_valid : "valid T"
   and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
-shows "le R(comb (rel_ova T) a b) a"
+shows "le R (comb (rel_ova T) a b) a"
 proof (intro leI, safe, goal_cases)
   case 1
   then show ?case
@@ -2146,89 +2117,8 @@ next
     by (metis T_valid comp_apply rel_comb_le2) 
 next
   case 3
-  then show ?case 
-  proof (intro ballI impI)
-   fix c
-   define "P" where "P = PosetMap.cod (mult (OVA.semigroup (rel_ova T)))"
-   assume "comb (rel_ova T) a b \<in> el P"
-   assume "b \<in> el P"
-   assume "a \<in> el P"
-   assume "c \<in> el P"
-   assume "(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P"
-
-   have "d a \<subseteq> d c"
-     by (metis (mono_tags, lifting) "3"(3) OVA.valid_welldefined P_def T_valid \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> \<open>c \<in> el P\<close> comp_apply d_antitone rel_ova_valid)  
-   moreover have "d b \<subseteq> d c"
-     by (metis (mono_tags, lifting) OVA.valid_welldefined P_def T_valid \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> \<open>b \<in> el P\<close> \<open>c \<in> el P\<close> comp_apply d_antitone rel_ova_valid) 
-   moreover have 1: "d a \<union> d b \<subseteq> d c"
-     by (simp add: calculation(1) calculation(2)) 
-   moreover have 2  : "valid T \<and> d a \<union> d b \<in> opens (space T) \<and> c \<in> elems R"
-     by (metis "3"(2) "3"(3) P_def R_def T_valid Tuple.valid_space \<open>c \<in> el P\<close> comp_apply rel_el_open valid_union2)
-   moreover have ca : "e (res R (d a) c) \<subseteq> e a" using rel_le_eq [where ?T=T and ?a=c and ?b=a]
-     by (smt (verit, ccfv_threshold) "2" P_def R_def \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> a_el comp_apply rel_el_open rel_space res_def snd_conv)
-   moreover have cb : "e (res R (d b) c) \<subseteq> e b" using rel_le_eq [where ?T=T and ?a=c and ?b=b]
-     by (smt (verit, del_insts) "2" P_def R_def \<open>(c, a) \<in> le_rel P \<and> (c, b) \<in> le_rel P\<close> b_el comp_apply rel_el_open rel_space res_def snd_conv)
-
-   moreover have 3 : "e (res R (d a \<union> d b) c) \<subseteq> e (comb (rel_ova T) a b)" 
-   proof 
-     fix t
-     assume "t \<in> e (res R (d a \<union> d b) c)"
-     have "e (res R (d a \<union> d b) c) =  { (ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t | t . t \<in> e c}" 
-       using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] 1 2  R_def
-       by fastforce
-     moreover have "t \<in> { (ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t | t . t \<in> e c}"
-       using \<open>t \<in> e (res R (d a \<union> d b) c)\<close> calculation by blast 
-     moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> 
-                       { (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
-       using calculation(2) by blast
-     moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> 
-                       { (ar T \<cdot> make_inc (d a) (d c)) \<cdot> t | t . t \<in> e c}" using
-       Presheaf.valid_composition [where ?F="presheaf T"]
-       by (smt (z3) "1" "2" CollectD CollectI Function.ident_app P_def Presheaf.diamond_rule Presheaf.valid_identity Space.ident_def Tuple.valid_welldefined \<open>a \<in> el P\<close> \<open>c \<in> el P\<close> calculation(3) comp_apply inf_sup_ord(3) rel_el_open rel_el_subset subset_eq)   
-     moreover have "e (res R (d a) (res R (d a \<union> d b) c)) 
-        = { (ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
-        using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] rel_res_e [where ?T=T and ?a="res R (d a \<union> d b) c" and ?B="d a"]
-        by (smt (z3) "1" "2" Collect_cong R_def a_el mem_Collect_eq rel_el_open rel_res_d rel_res_el sup_ge1)
-      moreover have "e (res R (d a) (res R (d a \<union> d b) c)) = e (res R (d a) c)"
-        by (metis "1" "2" R_def a_el d_elem_is_open dual_order.eq_iff le_supI1 rel_ova_valid rel_space res_functorial_trans)
-     moreover have "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e (res R (d a) c)"
-       using calculation(3) calculation(5) calculation(6) by blast 
-     moreover have res_t_in_a : "(ar T \<cdot> make_inc (d a) (d a \<union> d b)) \<cdot> t \<in> e a"
-       using ca calculation(7) by blast
-
-     moreover have b:"(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> 
-                       { (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
-       using calculation(2) by blast
-     moreover have "{ (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot>
- t) | t . t \<in> e c} = { (ar T \<cdot> make_inc (d b) (d c)) \<cdot> t | t . t \<in> e c}"
-       by (smt (verit) "1" "2" Collect_cong Function.ident_app P_def Presheaf.diamond_rule Presheaf.valid_identity R_def Space.ident_def Tuple.valid_welldefined \<open>b \<in> el P\<close> comp_apply equalityE le_sup_iff rel_el_open rel_el_subset subsetD)
-     moreover have "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> 
-                       { (ar T \<cdot> make_inc (d b) (d c)) \<cdot> t | t . t \<in> e c}"
-       using b calculation(10) by blast  
-       moreover have "e (res R (d b) (res R (d a \<union> d b) c))
-        = { (ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> ((ar T \<cdot> make_inc (d a \<union> d b) (d c)) \<cdot> t) | t . t \<in> e c}" 
-        using rel_res_e [where ?T=T and ?a=c and ?B="d a \<union> d b"] rel_res_e [where ?T=T and ?a="res R (d a \<union> d b) c" and ?B="d b"]
-        by (smt (z3) "1" "2" Collect_cong P_def R_def \<open>b \<in> el P\<close> comp_apply d_elem_is_open le_sup_iff mem_Collect_eq rel_ova_valid rel_res_d rel_res_el rel_space subsetI)
-      moreover have "e (res R (d b) (res R (d a \<union> d b) c)) = e (res R (d b) c)"
-        by (metis "1" "2" R_def Un_upper2 b_el d_elem_is_open rel_ova_valid rel_space res_functorial_trans)
-     moreover have "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e (res R (d b) c)"
-       using b calculation(12) calculation(13) by blast
-     moreover have res_t_in_b : "(ar T \<cdot> make_inc (d b) (d a \<union> d b)) \<cdot> t \<in> e b"
-       using calculation(14) cb by blast
-
-     ultimately show "t \<in> e (comb (rel_ova T) a b)" using rel_comb_e [where ?T=T and ?a=a and ?b=b]
-       by (smt (verit) "1" "2" CollectI R_def a_el b_el in_mono rel_el_subset rel_res_d rel_res_el)
-   qed
-   moreover have 4: "Prealgebra.ar (prealgebra (rel_ova T)) \<cdot> \<lparr>Inclusion.dom = d (comb (rel_ova T) a
- b), cod = d c\<rparr> \<star> e c = e (res R (d a \<union> d b) c)"
-     by (metis (no_types, lifting) "1" "2" R_def a_el b_el rel_comb_d rel_space res_def snd_conv) 
-   moreover have "le R c (comb (rel_ova T) a b)" using 1 2 3 4 rel_le_eq [where ?T=T and ?a=c and
-         ?b="comb (rel_ova T) a b"]
-     by (metis P_def R_def \<open>comb (rel_ova T) a b \<in> el P\<close> a_el b_el comp_apply rel_comb_d) 
-   thus "(c, comb (rel_ova T) a b) \<in> le_rel P" using R_def rel_le_rel_eq [where ?T=T and ?a=c and
-         ?b="comb (rel_ova T) a b"]
-     using "2" P_def \<open>comb (rel_ova T) a b \<in> el P\<close> by auto
- qed
+  then show ?case
+    by (smt (verit, del_insts) T_valid comp_apply d_elem_is_open rel_idempotent rel_le_rel_eq rel_ova_valid res_functorial_id valid_comb_monotone valid_map_welldefined_cod valid_reflexivity valid_semigroup valid_welldefined_map)
 next
   case 4
   then show ?case

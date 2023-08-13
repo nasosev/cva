@@ -200,22 +200,7 @@ lemma valid_map_image :
   and A_open : "A \<in> opens (map_space f)"
   and a_dom : "a \<in> Poset.el FA"
 shows "fA \<star> a \<in> Poset.el F'A"
-proof -
-  have "valid_map f"
-    using f_valid by force
-  moreover have "A \<in> opens (map_space f)"
-    using A_open by blast
-  moreover have "a \<in> Poset.el FA"
-    using a_dom by blast
-  moreover have "Poset.dom fA = FA"
-    by (metis A_open Prealgebra.valid_map_welldefined FA_def f_valid fA_def)
-  moreover have "Poset.valid_map fA"
-    by (metis A_open Prealgebra.valid_map_welldefined f_valid fA_def)
-  moreover have "Poset.cod fA = F'A"
-    by (metis A_open Prealgebra.valid_map_welldefined F'A_def f_valid fA_def)
-  ultimately show ?thesis
-    by (meson Poset.fun_app2)
-qed
+  by (metis A_open F'A_def FA_def Poset.fun_app2 Prealgebra.valid_map_welldefined a_dom fA_def f_valid)
 
 (* Application *)
 
@@ -239,8 +224,7 @@ lemma restricted_element :
   and x_el : "a \<in> el (ob F \<cdot> A)"
 defines "i \<equiv> make_inc B A"
 shows "(ar F \<cdot> i) \<star> a \<in> el (ob F \<cdot> B)"
-  using valid_ar [where ?F=F and ?i=i]
-  by (metis (no_types, lifting) inclusions_def A_open B_le_A B_open CollectI F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) i_def image x_el)
+  by (metis (no_types, lifting) A_open B_le_A B_open F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Prealgebra.image i_def inclusions_def mem_Collect_eq x_el) 
 
 lemma res_dom [simp] : "valid F \<Longrightarrow> i \<in> inclusions (space F) \<Longrightarrow> Poset.dom (ar F \<cdot> i) = ob F \<cdot> (Space.cod i)"
   using valid_dom by blast
@@ -273,23 +257,7 @@ lemma diamond_rule :
   and "i_DB \<equiv> make_inc D B"
   and "i_DC \<equiv> make_inc D C"
 shows "(ar F \<cdot> i_DB) \<star> ((ar F \<cdot> i_BA) \<star> a) = (ar F \<cdot> i_DC) \<star> ((ar F \<cdot> i_CA) \<star> a)"
-proof -
-  define "i" where "i \<equiv> make_inc D A"
-  have "i \<in> inclusions (space F)"
-    using A_open B_le_A D_le_B D_open i_def inclusions_def by fastforce
-   moreover have "i_BA \<in> inclusions (space F) \<and> i_CA \<in> inclusions (space F) \<and> i_DB \<in> inclusions (space F) \<and> i_DC \<in> inclusions (space F)"
-     by (simp add: A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open i_BA_def i_CA_def i_DB_def i_DC_def inclusions_def)
-  moreover have "i = i_BA \<propto> i_DB"
-    by (simp add: i_BA_def i_DB_def i_def) 
-  moreover have "i = i_CA \<propto> i_DC"
-    by (simp add: i_CA_def i_DC_def i_def)
-  moreover have "(ar F \<cdot> i_DB) \<star> ((ar F \<cdot> i_BA) \<star>  a) = (ar F \<cdot> i) \<star> a"
-    by (metis F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_app_assoc Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_composition Prealgebra.valid_dom a_el calculation(2) calculation(3) i_BA_def i_DB_def)
-  moreover have "(ar F \<cdot> i_DC) \<star> ((ar F \<cdot> i_CA) \<star>  a) = (ar F \<cdot> i) \<star> a"
-    by (metis F_valid Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_app_assoc Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_composition Prealgebra.valid_dom a_el calculation(2) calculation(4) i_CA_def i_DC_def) 
-  ultimately show ?thesis
-    by presburger 
-qed
+  by (smt (verit) A_open B_le_A B_open C_le_A C_open D_le_B D_le_C D_open F_valid Inclusion.equality Inclusion.select_convs(1) Inclusion.select_convs(2) Poset.compose_app_assoc Prealgebra.valid_ar Prealgebra.valid_cod Prealgebra.valid_composition Prealgebra.valid_dom a_el cod_compose_inc dom_compose_inc i_BA_def i_CA_def i_DB_def i_DC_def inclusions_def mem_Collect_eq old.unit.exhaust)
 
 (* Forgetful functor from [T, Pos] to [T, Set] *)
 
