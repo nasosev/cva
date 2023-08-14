@@ -76,7 +76,10 @@ definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
 
 abbreviation hoare :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "hoare V p a q \<equiv> le V (seq V p a) q" 
- 
+
+abbreviation rg :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
+"rg V r p a q g \<equiv> hoare V p (par V a r) q \<and> le V a g" 
+
 (* Validity *)
 
 lemma valid_welldefined: "valid V \<Longrightarrow> OVA.valid (par_algebra V) \<and> OVA.valid (seq_algebra V) \<and> (OVA.prealgebra (par_algebra V) = OVA.prealgebra (seq_algebra V))"
@@ -259,18 +262,17 @@ proof -
     using calculation(1) by force
   moreover have "pc (sc a (\<gamma> B)) (sc (\<gamma> A) b) = pc (pc a (\<gamma> (A \<union> B))) ( pc (\<gamma> (A \<union> B)) b)"
     using calculation(10) calculation(11) calculation(12) calculation(13) calculation(14) calculation(15) calculation(16) calculation(17) calculation(7) calculation(8) calculation(9) by presburger
-  moreover have "... =   pc a (pc (\<gamma> (A \<union> B)) ( pc (\<gamma> (A \<union> B)) b))" using valid_comb_associative
+  moreover have "... =  pc a (pc (\<gamma> (A \<union> B)) ( pc (\<gamma> (A \<union> B)) b))" using valid_comb_associative
     by (metis (no_types, lifting) CVA.valid_welldefined V_valid \<gamma>_def a_elem b_elem calculation(1) comb_is_element neutral_is_element pc_def) 
-  moreover have "... =   pc a (pc (\<gamma> (A \<union> B)) b)"
+  moreover have "... =  pc a (pc (\<gamma> (A \<union> B)) b)"
     by (metis B_def CVA.valid_welldefined V_valid \<gamma>_def b_elem calculation(1) calculation(17) d_ext ext_elem inf_sup_ord(4) pc_def valid_neutral_law_left)   
-  moreover have "... =   pc a (pc b (\<gamma> (A \<union> B)))"
+  moreover have "... =  pc a (pc b (\<gamma> (A \<union> B)))"
     by (metis CVA.valid_welldefined V_valid \<gamma>_def b_elem calculation(1) neutral_is_element pc_def valid_comm)
-moreover have "... =   pc a b"
+moreover have "... =  pc a b"
   by (metis (no_types, lifting) A_def B_def CVA.valid_welldefined V_valid \<gamma>_def assms(2) b_elem calculation(1) comb_is_element neutral_is_element pc_def valid_comb_associative valid_domain_law valid_neutral_law_right) 
   ultimately show ?thesis
     by (metis pc_def sc_def) 
 qed
-
 
 (* Hoare logic rules: https://en.wikipedia.org/wiki/Hoare_logic#Rules *)
 
@@ -282,19 +284,48 @@ proposition hoare_concurrency_rule :
   and "hoare V p a q" and "hoare V p' a' q'"
   shows "hoare V (par V p p') (par V a a') (par V q q')"
 proof -
-  define "sc" where "sc = seq V"
-  define "pc" where "pc = par V"
-  define "gl" where "gl = le V"
-  have "gl (sc p a) q"
-    using assms(8) gl_def sc_def by blast 
-  moreover have "gl (sc p' a') q'"
-    using assms(9) gl_def sc_def by blast 
-  moreover have "gl  (sc (pc p p') (pc a a')) (pc (sc p a) (sc p' a'))"
-    using V_valid assms(2) assms(3) assms(4) assms(5) gl_def pc_def sc_def valid_weak_exchange by blast
-moreover have "gl (pc (sc p a) (sc p' a')) (pc q q')"
-  by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element gl_def pc_def sc_def valid_elems valid_monotone valid_semigroup) 
+  define "gl" (infixl \<open>\<preceq>\<close> 55) where "a \<preceq> b = le V a b" for a b
+  define "sc" (infixl \<open>\<Zsemi>\<close> 55) where "a \<Zsemi> b = seq V a b" for a b
+  define "pc" (infixl \<open>\<parallel>\<close> 55) where "a \<parallel> b = par V a b" for a b
+
+  have "(p \<Zsemi> a) \<preceq> q"
+    using assms(8) gl_def sc_def
+    by simp 
+  moreover have "(p' \<Zsemi> a') \<preceq> q'"
+    using assms(9) gl_def sc_def by simp 
+  moreover have "((p \<parallel> p') \<Zsemi> (a \<parallel> a')) \<preceq> ((p \<Zsemi> a) \<parallel> (p' \<Zsemi> a'))" 
+    using V_valid assms(2) assms(3) assms(4) assms(5) gl_def pc_def sc_def valid_weak_exchange
+    by (metis (no_types, lifting))  
+  moreover have "((p \<Zsemi> a) \<parallel> (p' \<Zsemi> a')) \<preceq> (q \<parallel> q')" 
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element gl_def pc_def sc_def valid_elems valid_monotone valid_semigroup) 
   ultimately show ?thesis
     by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) comb_is_element gl_def pc_def sc_def valid_elems valid_poset valid_semigroup valid_transitivity) 
+qed
+
+(* To recover the ordinary frame rule, we must constrain so that 'par V a (neut_seq V (d f) = a' *)
+proposition hoare_frame_rule :
+  fixes V :: "('A, 'a) CVA" and p f a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
+  and "hoare V p a q" 
+shows "hoare V (par V f p) (par V a (neut_seq V (d f))) (par V f q)" 
+proof - 
+  define "gl" (infixl \<open>\<preceq>\<close> 55) where "a \<preceq> b = le V a b" for a b
+  define "sc" (infixl \<open>\<Zsemi>\<close> 55) where "a \<Zsemi> b = seq V a b" for a b
+  define "pc" (infixl \<open>\<parallel>\<close> 55) where "a \<parallel> b = par V a b" for a b
+
+  have "(p \<Zsemi> a) \<preceq> q"
+    using assms(6) gl_def sc_def by presburger 
+  moreover have "(f \<parallel> (p \<Zsemi> a)) \<preceq> (f \<parallel> q)" 
+    using gl_def sc_def pc_def
+    by (smt (verit, best) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) comb_is_element valid_elems valid_monotone valid_poset valid_reflexivity valid_semigroup) 
+  moreover have "(f \<parallel> (p \<Zsemi> a)) = (f \<parallel> (p \<Zsemi> a))" 
+    using V_valid assms(2) assms(3) assms(4) assms(5) gl_def pc_def sc_def valid_weak_exchange
+    by (metis (no_types, lifting))  
+  moreover have "((f \<parallel> p) \<Zsemi> ((neut_seq V (d f)) \<parallel> a)) \<preceq> (f \<parallel> (p \<Zsemi> a))" using assms gl_def pc_def sc_def valid_weak_exchange
+    by (metis (no_types, lifting) CVA.valid_welldefined d_elem_is_open neutral_is_element valid_elems valid_neutral_law_right) 
+  ultimately show ?thesis
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) comb_is_element d_elem_is_open gl_def neutral_is_element pc_def sc_def valid_comm valid_elems valid_poset valid_semigroup valid_transitivity)
 qed
 
 proposition hoare_neut_seq_rule :
@@ -332,5 +363,21 @@ proposition hoare_consequence_rule :
   and "le V p' p" and "le V q q'" and "hoare V p a q"
 shows "hoare V p' a q'"
   by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element valid_gc_poset valid_monotone valid_poset valid_reflexivity valid_semigroup valid_transitivity)  
+
+(* Rely-guarantee logic rules: 
+
+1. van Staden, Stephan. "On rely-guarantee reasoning." Mathematics of Program Construction: 12th International Conference, MPC 2015, Königswinter, Germany, June 29--July 1, 2015. Proceedings 12. Springer International Publishing, 2015.
+2. Hoare, CAR Tony, et al. "Concurrent kleene algebra." CONCUR 2009-Concurrency Theory: 20th International Conference, CONCUR 2009, Bologna, Italy, September 1-4, 2009. Proceedings 20. Springer Berlin Heidelberg, 2009.
+3. Hoare, Tony, et al. "Concurrent Kleene algebra and its foundations." The Journal of Logic and Algebraic Programming 80.6 (2011): 266-296. 
+
+ Todo: this will need to constrain relies to be invariants as in the CKA papers above *)
+
+proposition rg_sequential_rule :
+  fixes V :: "('A, 'a) CVA" and r g p p' p'' a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "r \<in> elems V" and "g \<in> elems V" and "p \<in> elems V" and "p' \<in> elems V" and "p'' \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+  and "rg V r p a p' g" and "rg V r p' a p'' g"
+shows "rg V r p (seq V a b) p'' g"
+  oops
 
 end
