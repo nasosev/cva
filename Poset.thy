@@ -390,6 +390,12 @@ definition inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 definition sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 "sup P U \<equiv> if (\<exists>s. s \<in> el P \<and> is_sup P U s) then Some (SOME s. s \<in> el P \<and> is_sup P U s) else None"
 
+definition meet :: "'a Poset \<Rightarrow> 'a \<Rightarrow> 'a  \<Rightarrow> 'a " where
+"meet P a b \<equiv> SOME i. i \<in> el P \<and> is_inf P {a,b} i"
+
+definition join :: "'a Poset \<Rightarrow> 'a \<Rightarrow> 'a  \<Rightarrow> 'a " where
+"join P a b \<equiv> SOME i. i \<in> el P \<and> is_sup P {a,b} i"
+
 definition is_complete :: "'a Poset \<Rightarrow> bool" where
 "is_complete P \<equiv> valid P \<and> (\<forall>U. U \<subseteq> el P \<longrightarrow> (\<exists>i. is_inf P U i))"
 
@@ -428,19 +434,100 @@ lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longright
   unfolding sup_def
   by (metis (no_types, lifting) sup_unique option.distinct(1) option.inject some_equality)
 
-lemma complete_inf_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_complete P \<Longrightarrow> inf P U \<noteq> None"
+lemma complete_inf_not_none : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> inf P U \<noteq> None"
   by (simp add: inf_def is_complete_def is_inf_def)
 
-lemma cocomplete_sup_not_none : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_cocomplete P \<Longrightarrow> sup P U \<noteq> None"
+lemma cocomplete_sup_not_none : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U \<noteq> None"
   by (simp add: is_sup_def is_cocomplete_def sup_def)
 
-lemma complete_equiv_cocomplete : "valid P \<Longrightarrow> is_complete P = is_cocomplete P"
-proof
-  assume "is_complete P"
-  fix U
-  define "s" where "s = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
-  have "s = sup P U"
-    oops
+lemma complete_inf_exists : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> \<exists>i \<in> el P. is_inf P U i"
+  by (meson complete_inf_not_none inf_def)
+
+lemma cocomplete_sup_exists : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> \<exists>s \<in> el P. is_sup P U s"
+  by (meson cocomplete_sup_not_none sup_def)
+
+lemma complete_meet_is_some_inf : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> Some (meet P a b) = inf P {a, b}"
+proof -
+  assume a1: "is_complete P"
+  assume a2: "a \<in> el P"
+  assume "b \<in> el P"
+  then have "\<exists>aa. aa \<in> el P \<and> is_inf P {a, b} aa"
+    using a2 a1 by (metis (full_types) bot.extremum complete_inf_exists insert_subset)
+  then show ?thesis
+    by (simp add: inf_def meet_def)
+qed
+
+lemma cocomplete_join_is_some_sup : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> Some (join P a b) = sup P {a, b}"
+proof -
+  assume a1: "is_cocomplete P"
+  assume a2: "a \<in> el P"
+  assume "b \<in> el P"
+  then have "\<exists>aa. aa \<in> el P \<and> is_sup P {a, b} aa"
+    using a2 a1 by (metis (no_types) bot.extremum cocomplete_sup_exists insert_subset)
+  then show ?thesis
+    by (simp add: join_def sup_def)
+qed
+
+lemma complete_meet_is_inf : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> is_inf P {a, b} (meet P a b)"
+  by (metis (mono_tags, lifting) complete_meet_is_some_inf inf_def meet_def option.simps(3) someI_ex)
+
+lemma cocomplete_join_is_sup: "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> is_sup P {a, b} (join P a b)"
+  by (simp add: cocomplete_join_is_some_sup is_cocomplete_def some_sup_is_sup)
+
+lemma meet_smaller1 : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P (meet P a b) a"
+  by (smt (verit) complete_meet_is_inf insertCI is_inf_def) 
+
+lemma meet_smaller2 : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P (meet P a b) b"
+  by (smt (verit, ccfv_threshold) complete_meet_is_inf insertCI is_inf_def)
+
+lemma join_greater1 : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P a (join P a b)"
+  by (smt (verit) cocomplete_join_is_sup insertCI is_sup_def)
+
+lemma join_greater2 : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P b (join P a b)"
+  by (smt (verit, ccfv_threshold) cocomplete_join_is_sup insertCI is_sup_def)
+
+lemma meet_el : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> meet P a b \<in> el P"
+proof -
+  assume a1: "is_complete P"
+  assume a2: "a \<in> el P"
+  assume "b \<in> el P"
+  then have "\<And>a. a \<notin> el P \<or> is_inf P {a, b} (meet P a b)"
+    using a1 by (simp add: complete_meet_is_inf)
+  then show ?thesis
+    using a2 by (simp add: is_inf_def)
+qed
+
+lemma join_el : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> join P a b \<in> el P"
+proof -
+  assume a1: "is_cocomplete P"
+  assume a2: "a \<in> el P"
+  assume "b \<in> el P"
+  then have "\<exists>A. is_sup P A (join P a b)"
+    using a2 a1 by (meson cocomplete_join_is_sup)
+  then show ?thesis
+    using is_sup_def by force
+qed
+
+lemma complete_equiv_cocomplete : "is_complete P = is_cocomplete P"
+  oops
+(*
+proof (safe, goal_cases)
+  case 1
+  then show ?case 
+  proof - 
+    assume "is_complete P"
+    fix U
+    define "s" where "s = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
+    
+    have "s = sup P U" unfolding sup_def is_sup_def  sorry
+
+    show "is_cocomplete P" sorry
+    qed
+next
+  case 2
+  then show ?case sorry
+qed
+*)
 
 (* Powerset *)
 
@@ -922,13 +1009,13 @@ lemma forget_map_valid : "valid_map f \<Longrightarrow> Function.valid_map (forg
 (* Examples *)
 
 definition naturals :: "nat Poset" where
-  "naturals \<equiv> \<lparr>  el = UNIV , le_rel = {(x,y). x \<le> y}  \<rparr>"
+  "naturals \<equiv> \<lparr> el = UNIV , le_rel = {(x,y). x \<le> y} \<rparr>"
 
 lemma naturals_valid : "valid naturals"
   by (smt (verit, best) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD UNIV_I case_prodI naturals_def fst_conv linorder_linear mem_Collect_eq order_antisym order_trans snd_conv validI)
 
 definition divisibility :: "nat Poset" where
-  "divisibility \<equiv> \<lparr>  el = UNIV , le_rel = {(x,y). x dvd y }  \<rparr>"
+  "divisibility \<equiv> \<lparr> el = UNIV , le_rel = {(x,y). x dvd y } \<rparr>"
 
 lemma divisibility_valid : "valid divisibility"
   by (smt (verit, del_insts) Poset.Poset.select_convs(1) Poset.Poset.select_convs(2) Product_Type.Collect_case_prodD UNIV_I case_prodI dvd_antisym divisibility_def fst_conv gcd_nat.refl gcd_nat.trans mem_Collect_eq snd_conv valid_def)

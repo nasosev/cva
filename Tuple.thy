@@ -453,63 +453,63 @@ qed
 
 lemma rel_semigroup_mult_tup_proj_el1 : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natnatjoin \<equiv> mult (rel_semigroup T)"
   defines "i_A \<equiv> make_inc (d a) (d a \<union> d b)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "t \<in> e (join \<star> (a, b)) \<Longrightarrow> (ar T \<cdot> i_A) \<cdot> t \<in> e a"
+shows "t \<in> e (natnatjoin \<star> (a, b)) \<Longrightarrow> (ar T \<cdot> i_A) \<cdot> t \<in> e a"
 proof -
   fix t
-  assume "t \<in> e (join \<star> (a, b))"
-  have "(a,b) \<in> el (Poset.dom join)"
-    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el join_def rel_semigroup_dom)
-  moreover have "e (join \<star> (a, b)) = {  t \<in> ob T \<cdot> (d a \<union> d b) . (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+  assume "t \<in> e (natnatjoin \<star> (a, b))"
+  have "(a,b) \<in> el (Poset.dom natnatjoin)"
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el natnatjoin_def rel_semigroup_dom)
+  moreover have "e (natnatjoin \<star> (a, b)) = {  t \<in> ob T \<cdot> (d a \<union> d b) . (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
   ultimately show "(ar T \<cdot> i_A) \<cdot> t \<in> e a" using  assms
-    using \<open>t \<in> e (join \<star> (a, b))\<close> by blast
+    using \<open>t \<in> e (natnatjoin \<star> (a, b))\<close> by blast
 qed
 
 lemma rel_semigroup_mult_tup_proj_el2 : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   defines "i_B \<equiv> make_inc (d b) (d a \<union> d b)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "t \<in> e (join \<star> (a, b)) \<Longrightarrow> (ar T \<cdot> i_B) \<cdot> t \<in> e b"
+shows "t \<in> e (natjoin \<star> (a, b)) \<Longrightarrow> (ar T \<cdot> i_B) \<cdot> t \<in> e b"
 proof -
   fix t
-  assume "t \<in> e (join \<star> (a, b))"
-  have "(a,b) \<in> el (Poset.dom join)"
-    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el join_def rel_semigroup_dom)
-  moreover have "e (join \<star> (a, b)) = { t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+  assume "t \<in> e (natjoin \<star> (a, b))"
+  have "(a,b) \<in> el (Poset.dom natjoin)"
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el natjoin_def rel_semigroup_dom)
+  moreover have "e (natjoin \<star> (a, b)) = { t . t \<in> ob T \<cdot> (d a \<union> d b) \<and> (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
   ultimately show "(ar T \<cdot> i_B) \<cdot> t \<in> e b" using  assms
-    using \<open>t \<in> e (join \<star> (a, b))\<close> by blast 
+    using \<open>t \<in> e (natjoin \<star> (a, b))\<close> by blast 
 qed
 
 lemma rel_semigroup_mult_d [simp] : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "d (join \<star> (a, b)) = d a \<union> d b"
+shows "d (natjoin \<star> (a, b)) = d a \<union> d b"
   using rel_semigroup_def [where ?T=T] assms rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
   by simp 
 
 lemma rel_semigroup_mult_e [simp] : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "e (join \<star> (a, b)) = { t \<in> ob T \<cdot> (d a \<union> d b) .
+shows "e (natjoin \<star> (a, b)) = { t \<in> ob T \<cdot> (d a \<union> d b) .
                                       (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
   using rel_semigroup_def [where ?T=T] assms rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
@@ -517,32 +517,32 @@ shows "e (join \<star> (a, b)) = { t \<in> ob T \<cdot> (d a \<union> d b) .
 
 lemma rel_semigroup_mult_local_subset : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "e (join \<star> (a, b)) \<subseteq> ob T \<cdot> (d a \<union> d b)" 
+shows "e (natjoin \<star> (a, b)) \<subseteq> ob T \<cdot> (d a \<union> d b)" 
   using rel_semigroup_def [where ?T=T] assms rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
   by simp 
 
 lemma rel_semigroup_mult_local_el : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "e (join \<star> (a, b)) \<in> el (Prealgebra.ob R \<cdot> (d a \<union> d b))"
+shows "e (natjoin \<star> (a, b)) \<in> el (Prealgebra.ob R \<cdot> (d a \<union> d b))"
   using rel_semigroup_def [where ?T=T] assms rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
   by (metis (no_types, lifting) Tuple.valid_space local_dom rel_semigroup_mult_local_subset relation_as_value valid_rel_prealg valid_relation_space valid_union2) 
 
 lemma rel_semigroup_mult_el : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "join \<star> (a, b) \<in> el (gc R)"
-  by (metis R_def T_valid Tuple.valid_space a_el b_el join_def local_dom local_elem_gc prod.collapse rel_semigroup_mult_d rel_semigroup_mult_local_el valid_rel_prealg valid_relation_space valid_union2)
+shows "natjoin \<star> (a, b) \<in> el (gc R)"
+  by (metis R_def T_valid Tuple.valid_space a_el b_el natjoin_def local_dom local_elem_gc prod.collapse rel_semigroup_mult_d rel_semigroup_mult_local_el valid_rel_prealg valid_relation_space valid_union2)
 
 lemma rel_semigroup_mult_welldefined_cod :  
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x) Relation"
@@ -654,61 +654,61 @@ shows "(ar T \<cdot> i) \<cdot> t \<in> (Prealgebra.ar R \<cdot> i) \<star> ea"
 
 lemma rel_semigroup_mult_monotone : 
   fixes T :: "('A, 'x) TupleSystem" and a b a' b' :: "('A, 'x) Relation"
-  defines "join \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
-  and ab_el : "(a,b) \<in> el (PosetMap.dom join)" 
-  and a'b'_el : "(a',b') \<in> el (PosetMap.dom join)" 
-  and "Poset.le (PosetMap.dom join) (a,b) (a',b')"
-shows "Poset.le (gc R) (join \<star> (a, b)) (join \<star> (a', b'))"
+  and ab_el : "(a,b) \<in> el (PosetMap.dom natjoin)" 
+  and a'b'_el : "(a',b') \<in> el (PosetMap.dom natjoin)" 
+  and "Poset.le (PosetMap.dom natjoin) (a,b) (a',b')"
+shows "Poset.le (gc R) (natjoin \<star> (a, b)) (natjoin \<star> (a', b'))"
 proof (intro gc_leI, goal_cases)
   case 1
   then show ?case
-    by (metis R_def T_valid ab_el join_def product_el_1 product_el_2 rel_semigroup_dom rel_semigroup_mult_el) 
+    by (metis R_def T_valid ab_el natjoin_def product_el_1 product_el_2 rel_semigroup_dom rel_semigroup_mult_el) 
 next
   case 2
   then show ?case
-    by (metis R_def T_valid a'b'_el join_def product_el_1 product_el_2 rel_semigroup_dom rel_semigroup_mult_el) 
+    by (metis R_def T_valid a'b'_el natjoin_def product_el_1 product_el_2 rel_semigroup_dom rel_semigroup_mult_el) 
 next
   case 3
   then show ?case
-    by (smt (verit) Poset.Poset.select_convs(2) Poset.product_def Product_Type.Collect_case_prodD T_valid Un_mono a'b'_el ab_el assms(6) d_antitone fst_conv join_def rel_semigroup_dom rel_semigroup_mult_d snd_conv valid_rel_prealg) 
+    by (smt (verit) Poset.Poset.select_convs(2) Poset.product_def Product_Type.Collect_case_prodD T_valid Un_mono a'b'_el ab_el assms(6) d_antitone fst_conv natjoin_def rel_semigroup_dom rel_semigroup_mult_d snd_conv valid_rel_prealg) 
 next
   case 4
   then show ?case 
   proof - 
     have "a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)"
-      by (metis R_def T_valid a'b'_el ab_el join_def product_el_1 product_el_2 rel_semigroup_dom) 
+      by (metis R_def T_valid a'b'_el ab_el natjoin_def product_el_1 product_el_2 rel_semigroup_dom) 
     moreover have "d a \<union> d b \<in> opens (space T)"
-      by (metis T_valid Tuple.valid_space ab_el join_def local_dom product_el_1 product_el_2 rel_semigroup_dom valid_rel_prealg valid_relation_space valid_union2) 
+      by (metis T_valid Tuple.valid_space ab_el natjoin_def local_dom product_el_1 product_el_2 rel_semigroup_dom valid_rel_prealg valid_relation_space valid_union2) 
     moreover have "d (mul (rel_semigroup T) a b) = d a \<union> d b" using calculation assms rel_semigroup_mult_d [where ?T=T and ?a=a
           and ?b=b]
       by fastforce 
-    moreover have "Prealgebra.ob R \<cdot> d (join \<star> (a, b)) = powerset (ob T \<cdot> (d a \<union> d b))" using
+    moreover have "Prealgebra.ob R \<cdot> d (natjoin \<star> (a, b)) = powerset (ob T \<cdot> (d a \<union> d b))" using
         assms calculation  relation_ob_value [where ?T=T and ?A="d a \<union> d b"]
       by presburger
     define "i" where "i = make_inc (d a' \<union> d b') (d a \<union> d b)"
 
-    moreover have "(Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))) \<subseteq> (e (join \<star> (a', b')))"
+    moreover have "(Prealgebra.ar R \<cdot> i \<star> e (natjoin \<star> (a, b))) \<subseteq> (e (natjoin \<star> (a', b')))"
     proof
       fix t
-      assume "t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))"
+      assume "t \<in> Prealgebra.ar R \<cdot> i \<star> e (natjoin \<star> (a, b))"
 
       define "eab" where "eab = { t \<in> ob T \<cdot> (d a \<union> d b) .
                                        (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                      \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }"
 
-      have "e (join \<star> (a, b)) = eab"
-        using R_def T_valid calculation(1) join_def eab_def by fastforce 
+      have "e (natjoin \<star> (a, b)) = eab"
+        using R_def T_valid calculation(1) natjoin_def eab_def by fastforce 
       moreover have "d a' \<union> d b' \<in> opens (space T)"
         by (metis Presheaf.valid_space R_def T_valid Tuple.valid_welldefined \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> local_dom valid_rel_prealg valid_relation_space valid_union2)  
       moreover have "d a' \<union> d b' \<subseteq> d a \<union> d b"
-        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) d_antitone join_def product_le_1 product_le_2 rel_semigroup_dom sup.mono valid_gc valid_rel_prealg) 
+        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) d_antitone natjoin_def product_le_1 product_le_2 rel_semigroup_dom sup.mono valid_gc valid_rel_prealg) 
       moreover have "i \<in> inclusions (space T)"
         using \<open>d a \<union> d b \<in> opens (Tuple.space T)\<close> calculation(2) calculation(3) i_def inclusions_def
         by fastforce 
       moreover have "t \<in> Prealgebra.ar R \<cdot> i \<star> eab"
-        using \<open>t \<in> Prealgebra.ar R \<cdot> i \<star> e (join \<star> (a, b))\<close> calculation(1) by auto
+        using \<open>t \<in> Prealgebra.ar R \<cdot> i \<star> e (natjoin \<star> (a, b))\<close> calculation(1) by auto
       moreover have "\<exists> t' . t' \<in> eab \<and> (ar T \<cdot> i) \<cdot> t' = t" using calculation assms relation_ar_value
           [where ?T=T and ?i=i] fibre_from_image [where ?f="ar T \<cdot> i" and ?a=eab]
         by (smt (verit, del_insts) Inclusion.select_convs(2) Presheaf.valid_ar Presheaf.valid_dom Tuple.valid_welldefined \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> i_def mem_Collect_eq rel_semigroup_mult_local_subset) 
@@ -719,14 +719,14 @@ next
       define "t'_B" where "t'_B = (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t'" 
 
       moreover have t'_A : "t'_A \<in> e a"
-        using R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> calculation(1) join_def t'_A_def by auto  
+        using R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> calculation(1) natjoin_def t'_A_def by auto  
       moreover have "t'_B \<in> e b"
-        using R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> calculation(1) join_def t'_B_def by auto 
+        using R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> calculation(1) natjoin_def t'_B_def by auto 
 
       moreover have "Poset.le (gc R) a a'"
-        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) join_def product_le_1 rel_semigroup_dom valid_gc valid_rel_prealg) 
+        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) natjoin_def product_le_1 rel_semigroup_dom valid_gc valid_rel_prealg) 
       moreover have "Poset.le (gc R) b b'"
-        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) join_def product_le_2 rel_semigroup_dom valid_gc valid_rel_prealg)
+        by (metis R_def T_valid \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> a'b'_el ab_el assms(6) natjoin_def product_le_2 rel_semigroup_dom valid_gc valid_rel_prealg)
 
       define "i_A'_A" where "i_A'_A = make_inc (d a') (d a)"
       define "i_B'_B" where "i_B'_B = make_inc (d b') (d b)"
@@ -777,15 +777,15 @@ next
       moreover have "t \<in> ea'b'"
         by (smt (verit, ccfv_SIG) CollectD CollectI Inclusion.select_convs(1) Inclusion.select_convs(2) Presheaf.image T_valid Tuple.valid_welldefined \<open>s_B' = t'_B'\<close> \<open>t' \<in> eab \<and> (Tuple.ar T \<cdot> i) \<cdot> t' = t\<close> \<open>t'_B' \<in> e b'\<close> calculation(15) calculation(19) calculation(4) ea'b'_def eab_def i_def j_A'_def j_B'_def s_A'_def s_B'_def) 
 
-      moreover have "e (join \<star> (a', b')) = ea'b'" using rel_semigroup_mult_e [where ?T=T and ?a=a' and ?b=b' ]
-          join_def ea'b'_def assms calculation
+      moreover have "e (natjoin \<star> (a', b')) = ea'b'" using rel_semigroup_mult_e [where ?T=T and ?a=a' and ?b=b' ]
+          natjoin_def ea'b'_def assms calculation
         using \<open>a \<in> el (gc R) \<and> b \<in> el (gc R) \<and> a' \<in> el (gc R) \<and> b' \<in> el (gc R)\<close> by presburger 
 
-      ultimately show "t \<in> e (join \<star> (a', b'))"
+      ultimately show "t \<in> e (natjoin \<star> (a', b'))"
         by fastforce 
     qed
     ultimately show ?thesis
-      by (smt (verit, best) R_def T_valid join_def local_dom powerset_le rel_semigroup_mult_d rel_semigroup_mult_el rel_semigroup_mult_local_subset relation_as_value relation_ob_value subset_trans valid_rel_prealg valid_relation_space) 
+      by (smt (verit, best) R_def T_valid natjoin_def local_dom powerset_le rel_semigroup_mult_d rel_semigroup_mult_el rel_semigroup_mult_local_subset relation_as_value relation_ob_value subset_trans valid_rel_prealg valid_relation_space) 
   qed
 qed
 

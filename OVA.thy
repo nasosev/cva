@@ -927,11 +927,11 @@ next
     moreover have "ex_U \<subseteq> el (F (d_U))"
       by (smt (verit) Sup_upper UN_subset_iff Union_least F_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_ext ex_U_def ex_def image_subsetI in_mono d_elem_is_open V_valid)
     moreover have "some_e_U \<noteq> None" using Poset.complete_inf_not_none
-      using calculation(1) calculation(2) local_completeness some_e_U_def F_def V_valid valid_ob valid_prealgebra
+      using calculation(1) calculation(2) local_completeness some_e_U_def F_def V_valid
       by metis
 
     obtain e_U where "some_e_U = Some e_U" using \<open>some_e_U \<noteq> None\<close> by auto
-   
+  
     moreover have "e_U \<in> el (F d_U)"
       by (metis (mono_tags, lifting) \<open>some_e_U \<noteq> None\<close> calculation(3) inf_def option.inject someI_ex some_e_U_def)
     define "i" where "i = (d_U, e_U)"
@@ -2021,7 +2021,6 @@ proof -
      using a1 a2 a3 a4 a5 a6 a7 a8 local_le_eq_le [where ?V=V and ?A=U]
      by (smt (z3) OVA.le_eq_local_le V'_valid V_valid a9 assms(15) calculation(10) calculation(11) calculation(24) calculation(28) calculation(55) comb_is_element elems_same fst_conv seq) 
  qed
-
 
 (* Todo: unknown if this is true *)
 lemma laxity2 :
