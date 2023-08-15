@@ -453,23 +453,23 @@ qed
 
 lemma rel_semigroup_mult_tup_proj_el1 : 
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A, 'x) Relation"
-  defines "natnatjoin \<equiv> mult (rel_semigroup T)"
+  defines "natjoin \<equiv> mult (rel_semigroup T)"
   defines "i_A \<equiv> make_inc (d a) (d a \<union> d b)"
   and "R \<equiv> rel_prealg T"
   assumes T_valid : "valid T" 
   and a_el : "a \<in> el (gc R)" and b_el : "b \<in> el (gc R)" 
-shows "t \<in> e (natnatjoin \<star> (a, b)) \<Longrightarrow> (ar T \<cdot> i_A) \<cdot> t \<in> e a"
+shows "t \<in> e (natjoin \<star> (a, b)) \<Longrightarrow> (ar T \<cdot> i_A) \<cdot> t \<in> e a"
 proof -
   fix t
-  assume "t \<in> e (natnatjoin \<star> (a, b))"
-  have "(a,b) \<in> el (Poset.dom natnatjoin)"
-    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el natnatjoin_def rel_semigroup_dom)
-  moreover have "e (natnatjoin \<star> (a, b)) = {  t \<in> ob T \<cdot> (d a \<union> d b) . (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
+  assume "t \<in> e (natjoin \<star> (a, b))"
+  have "(a,b) \<in> el (Poset.dom natjoin)"
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def R_def SigmaI T_valid a_el b_el natjoin_def rel_semigroup_dom)
+  moreover have "e (natjoin \<star> (a, b)) = {  t \<in> ob T \<cdot> (d a \<union> d b) . (ar T \<cdot> (make_inc (d a) (d a \<union> d b))) \<cdot> t \<in> e a     
                                          \<and> (ar T \<cdot> (make_inc (d b) (d a \<union> d b))) \<cdot> t \<in> e b }" 
     using assms calculation rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
     by simp  
   ultimately show "(ar T \<cdot> i_A) \<cdot> t \<in> e a" using  assms
-    using \<open>t \<in> e (natnatjoin \<star> (a, b))\<close> by blast
+    using \<open>t \<in> e (natjoin \<star> (a, b))\<close> by blast
 qed
 
 lemma rel_semigroup_mult_tup_proj_el2 : 
