@@ -85,7 +85,7 @@ lemma valid_reflexivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarr
 lemma valid_transitivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> le P x y \<Longrightarrow> le P y z \<Longrightarrow> le P x z"
   by (smt (verit, ccfv_threshold) valid_def)
 
-lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P\<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
+lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
   by (smt (verit, ccfv_threshold) valid_def)
 
 
