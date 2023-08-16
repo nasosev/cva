@@ -509,7 +509,7 @@ proposition rg_concurrency_rule :
   and rg1 : "rg V r1 p1 a1 q1 g1" and rg2 : "rg V r2 p2 a2 q2 g2"
   and inv_r1 : "invariant V r1" and inv_g1 : "invariant V g1" and inv_r2 : "invariant V r2" and inv_g2 : "invariant V g2"
   and g1_le_r2 : "le V g1 r2" and g2_le_r1 : "le V g2 r1"
-shows "rg V (meet V r1 r2) (meet V p1 p2) (par V a1 a2) (meet V q1 g2) (par V g1 g2)"
+shows "rg V (meet V r1 r2) (meet V p1 p2) (par V a1 a2) (meet V q1 q2) (par V g1 g2)"
 proof -
   have "le V (par V a1 a2) (par V g1 g2)"
     using V_valid assms(12) assms(5) assms(7) assms(10) rg1 rg2 valid_par_mono by blast 
@@ -546,48 +546,51 @@ valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V]
   moreover have meet_p1p2 : "le V (meet V p1 p2) p1 \<and> le V (meet V p1 p2) p2"
     using V_complete meet_smaller1 [where ?P="poset V" and ?a=p1 and ?b=p2] meet_smaller2 [where ?P="poset V" and ?a=p1 and ?b=p2] assms
     by (metis CVA.is_complete_def CVA.meet_def)
+
   moreover have meet_r1r2 : "le V (meet V r1 r2) r1 \<and> le V (meet V r1 r2) r2"
     using V_complete meet_smaller1 [where ?P="poset V" and ?a=r1 and ?b=r2] meet_smaller2 [where ?P="poset V" and ?a=r1 and ?b=r2] assms
     by (metis CVA.is_complete_def CVA.meet_def)
 
-  moreover have meet_elems : "meet V p1 p2 \<in> elems V \<and> meet V r1 r2 \<in> elems V"
-    by (metis CVA.is_complete_def CVA.meet_def V_complete assms(3) assms(4) assms(8) assms(9) meet_el) 
+  moreover have meet_elems : "meet V p1 p2 \<in> elems V \<and> meet V r1 r2 \<in> elems V \<and> meet V q1 q2 \<in> elems V"
+    by (metis CVA.is_complete_def CVA.meet_def V_complete assms(11) assms(3) assms(4) assms(6) assms(8) assms(9) meet_el)
 
-  moreover have 0: "le V (par V (meet V r1 r2) (par V a1 a2)) ((par V r1 (par V a1 a2)))" 
-    using assms valid_elems [where ?V=V] valid_le_reflexive [where ?V=V] valid_par_mono [where ?V=V] valid_par_elem [where ?V=V]
-valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V] valid_le_transitive [where ?V=V] meet_p1p2 meet_r1r2 meet_el [where ?P="poset V"]
-     is_complete_def meet_def comp_apply
-  proof -
-    have "CVA.meet V r1 r2 \<in> el (PosetMap.cod (mult (OVA.semigroup (seq_algebra V))))"
-      by (metis (no_types) CVA.is_complete_def CVA.meet_def V_complete \<open>\<And>b a. \<lbrakk>Poset.is_complete (CVA.poset V); a \<in> CVA.elems V; b \<in> CVA.elems V\<rbrakk> \<Longrightarrow> Poset.meet (CVA.poset V) a b \<in> CVA.elems V\<close> \<open>r1 \<in> CVA.elems V\<close> \<open>r2 \<in> CVA.elems V\<close> comp_apply)
-    then show ?thesis
-      using V_valid \<open>\<And>a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V\<rbrakk> \<Longrightarrow> CVA.le V a a\<close> \<open>\<And>b a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; b \<in> CVA.elems V\<rbrakk> \<Longrightarrow> par V a b \<in> CVA.elems V\<close> \<open>\<And>b' b a' a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; a' \<in> CVA.elems V; b \<in> CVA.elems V; b' \<in> CVA.elems V; CVA.le V a a'; CVA.le V b b'\<rbrakk> \<Longrightarrow> CVA.le V (par V a b) (par V a' b')\<close> \<open>a1 \<in> CVA.elems V\<close> \<open>a2 \<in> CVA.elems V\<close> \<open>r1 \<in> CVA.elems V\<close> meet_r1r2 by auto
-  qed
+  moreover have "le V (par V (meet V r1 r2) (par V a1 a2)) ((par V r1 (par V a1 a2)))"
+    by (smt (verit) CVA.valid_welldefined V_valid assms(10) assms(3) assms(5) calculation(13) calculation(14) comb_is_element valid_elems valid_le_reflexive valid_par_mono) 
 
-  moreover have 00: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) (seq V p1 (par V (meet V r1 r2) (par V a1 a2)))" 
-    using assms valid_elems [where ?V=V] valid_le_reflexive [where ?V=V] valid_par_mono [where ?V=V] valid_par_elem [where ?V=V]
-valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V] valid_le_transitive [where ?V=V] meet_p1p2 meet_r1r2 calculation
-  proof -
-    assume "\<And>a a' b b'. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; a' \<in> CVA.elems V; b \<in> CVA.elems V; b' \<in> CVA.elems V; CVA.le V a a'; CVA.le V b b'\<rbrakk> \<Longrightarrow> hoare V a b (seq V a' b')"
-    then show ?thesis
-      using V_valid \<open>CVA.meet V p1 p2 \<in> CVA.elems V \<and> CVA.meet V r1 r2 \<in> CVA.elems V\<close> \<open>\<And>a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V\<rbrakk> \<Longrightarrow> CVA.le V a a\<close> \<open>\<And>b a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; b \<in> CVA.elems V\<rbrakk> \<Longrightarrow> par V a b \<in> CVA.elems V\<close> \<open>\<And>b a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; b \<in> CVA.elems V\<rbrakk> \<Longrightarrow> seq V a b \<in> CVA.elems V\<close> \<open>a1 \<in> CVA.elems V\<close> \<open>a2 \<in> CVA.elems V\<close> \<open>p1 \<in> CVA.elems V\<close> meet_p1p2 by auto
-  qed
+  moreover have 0: "le V (seq V p1 (par V (meet V r1 r2) (par V a1 a2))) (seq V p1 (par V r1 (par V a1 a2)))"
+    by (smt (verit) CVA.valid_welldefined V_valid assms(10) assms(3) assms(4) assms(5) calculation(14) calculation(15) valid_le_reflexive valid_monotone valid_par_elem valid_semigroup) 
 
-  moreover have 000: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2)))  (seq V p1 (par V r1 (par V a1 a2)))" using assms valid_elems [where ?V=V] valid_le_reflexive [where ?V=V] valid_par_mono [where ?V=V] valid_par_elem [where ?V=V]
-valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V] valid_le_transitive [where ?V=V] meet_p1p2 meet_r1r2 meet_elems checkpoint 00 0 
+  moreover have 00: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) (seq V p1 (par V (meet V r1 r2) (par V a1 a2)))"
+    by (smt (verit) V_valid assms(10) assms(4) assms(5) meet_elems meet_p1p2 valid_le_reflexive valid_par_elem valid_seq_mono) 
 
- moreover have 0000: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) q1" using assms valid_elems [where ?V=V] valid_le_reflexive [where ?V=V] valid_par_mono [where ?V=V] valid_par_elem [where ?V=V]
-valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V] valid_le_transitive [where ?V=V] meet_p1p2 meet_r1r2 meet_elems checkpoint 000 00 0 
+  moreover have 000: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2)))  (seq V p1 (par V r1 (par V a1 a2)))" using  meet_p1p2 meet_r1r2 meet_elems checkpoint 00 0 
+valid_le_transitive [where ?V=V and ?a="(seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2)))" 
+and ?b="(seq V p1 (par V (meet V r1 r2) (par V a1 a2)))" and ?c="(seq V p1 (par V r1 (par V a1 a2)))"]
+    by (smt (verit, best) V_valid assms(10) assms(3) assms(4) assms(5) valid_par_elem valid_seq_elem)
 
-  moreover have 1: "le V (par V (meet V r1 r2) (par V a1 a2)) ((par V r2 (par V a1 a2)))" 
-    using assms valid_elems [where ?V=V] valid_le_reflexive [where ?V=V] valid_par_mono [where ?V=V] valid_par_elem [where ?V=V]
-valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V] valid_le_transitive [where ?V=V] meet_p1p2 meet_r1r2 meet_elems
-     is_complete_def meet_def comp_apply
-  proof -
-    have "CVA.meet V r1 r2 \<in> el (PosetMap.cod (mult (OVA.semigroup (seq_algebra V))))"
-      by (metis (no_types) CVA.is_complete_def CVA.meet_def V_complete \<open>\<And>b a. \<lbrakk>Poset.is_complete (CVA.poset V); a \<in> CVA.elems V; b \<in> CVA.elems V\<rbrakk> \<Longrightarrow> Poset.meet (CVA.poset V) a b \<in> CVA.elems V\<close> \<open>r1 \<in> CVA.elems V\<close> \<open>r2 \<in> CVA.elems V\<close> comp_apply)
-    then show ?thesis
-      using V_valid \<open>\<And>a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V\<rbrakk> \<Longrightarrow> CVA.le V a a\<close> \<open>\<And>b a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; b \<in> CVA.elems V\<rbrakk> \<Longrightarrow> par V a b \<in> CVA.elems V\<close> \<open>\<And>b' b a' a. \<lbrakk>CVA.valid V; a \<in> CVA.elems V; a' \<in> CVA.elems V; b \<in> CVA.elems V; b' \<in> CVA.elems V; CVA.le V a a'; CVA.le V b b'\<rbrakk> \<Longrightarrow> CVA.le V (par V a b) (par V a' b')\<close> \<open>a1 \<in> CVA.elems V\<close> \<open>a2 \<in> CVA.elems V\<close> \<open>r2 \<in> CVA.elems V\<close> meet_r1r2 by auto
+ moreover have 0000: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) q1" using  checkpoint 000 00 0
+   by (smt (verit, ccfv_threshold) V_valid assms(10) assms(3) assms(4) assms(5) assms(6) meet_elems valid_le_transitive valid_par_elem valid_seq_elem) 
+
+  moreover have "le V (par V (meet V r1 r2) (par V a1 a2)) ((par V r2 (par V a1 a2)))"
+    by (smt (verit, del_insts) V_valid assms(10) assms(5) assms(8) meet_elems meet_r1r2 valid_le_reflexive valid_par_elem valid_par_mono)
+
+  moreover have 1: "le V (seq V p2 (par V (meet V r1 r2) (par V a1 a2))) (seq V p2 (par V r2 (par V a1 a2)))"
+    by (smt (verit, ccfv_threshold) V_valid assms(10) assms(5) assms(8) assms(9) calculation(20) meet_elems valid_elems valid_le_reflexive valid_par_elem valid_seq_mono)
+
+  moreover have 11: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) (seq V p2 (par V (meet V r1 r2) (par V a1 a2)))"
+    by (smt (verit) V_valid assms(10) assms(5) assms(9) meet_elems meet_p1p2 valid_le_reflexive valid_par_elem valid_seq_mono)
+
+  moreover have 111: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2)))  (seq V p2 (par V r2 (par V a1 a2)))"
+    by (smt (verit, del_insts) V_valid assms(10) assms(5) assms(8) assms(9) calculation(20) meet_elems meet_p1p2 valid_par_elem valid_seq_mono)  
+
+ moreover have 1111: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) q2" using  checkpoint 111 11 1
+   by (smt (verit, ccfv_threshold) V_valid assms(10) assms(11) assms(5) assms(8) assms(9) hoare_consequence_rule meet_elems meet_p1p2 valid_par_elem valid_seq_elem) 
+
+  moreover have "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) (meet V q1 q2)" using meet_property 1111 0000
+    by (smt (verit, ccfv_SIG) CVA.is_complete_def CVA.meet_def V_complete V_valid assms(10) assms(11) assms(5) assms(6) meet_elems valid_par_elem valid_seq_elem) 
+
+  ultimately show ?thesis
+    by force 
   qed
 
 

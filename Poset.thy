@@ -486,7 +486,7 @@ lemma join_greater1 : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrigh
 lemma join_greater2 : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P b (join P a b)"
   by (smt (verit, ccfv_threshold) cocomplete_join_is_sup insertCI is_sup_def)
 
-lemma meet_el : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> meet P a b \<in> el P"
+lemma meet_el : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> meet P a b \<in> el P" 
 proof -
   assume a1: "is_complete P"
   assume a2: "a \<in> el P"
@@ -507,6 +507,14 @@ proof -
   then show ?thesis
     using is_sup_def by force
 qed
+
+lemma meet_property : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> c \<in> el P \<Longrightarrow> le P c a \<Longrightarrow> le P c b \<Longrightarrow> le P c (meet P a b)"
+  using complete_meet_is_inf is_inf_def
+  by (smt (verit, ccfv_threshold) insert_iff meet_el singleton_iff) 
+
+lemma join_property : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> c \<in> el P \<Longrightarrow> le P a c \<Longrightarrow> le P b c \<Longrightarrow> le P (join P a b) c"
+  using cocomplete_join_is_sup is_sup_def
+  by (smt (verit, ccfv_threshold) insert_iff singleton_iff)
 
 lemma complete_equiv_cocomplete : "is_complete P = is_cocomplete P"
   oops
