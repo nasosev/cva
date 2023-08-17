@@ -456,7 +456,8 @@ Todo : - identify minimal invariance property
        - assume completeness for infima/suprema/iteration rules
 *)
 
-(* Note Thm 8.5 of [2] has a more general form of this *)
+(* Note Thm 8.5 of [2] has a more general form of this, but it is probably not applicable here as its proof
+relies on the property a ; b \<preceq> a \<parallel> b *)
 proposition rg_sequential_rule :
   fixes V :: "('A, 'a) CVA" and r g p p' p'' a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
