@@ -49,7 +49,7 @@ abbreviation res :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Va
 "res V \<equiv> OVA.res (seq_algebra V)"
 
 abbreviation ext :: "('A,'a) CVA \<Rightarrow> 'A Open \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"ext V \<equiv>  OVA.ext (seq_algebra V)"
+"ext V \<equiv> OVA.ext (seq_algebra V)"
 
 definition valid :: "('A, 'a) CVA \<Rightarrow> bool" where
   "valid V \<equiv>
@@ -301,70 +301,39 @@ lemma neutral_collapse_strongly_neutral :
 shows "is_strongly_neutral (par_algebra V) = is_strongly_neutral (seq_algebra V)"
   by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid fst_conv is_strongly_neutral_def neutral_collapse neutral_is_element valid_ext) 
 
+
 (* [Proposition 2, TMCVA] *)
 proposition comparitor :
   fixes V :: "('A, 'a) CVA" and a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and a_elem : "a \<in> elems V" and b_elem : "b \<in> elems V"
   and neutral_collapse : "neut_par V = neut_seq V"
-  and strongly_neutral_seq: "is_strongly_neutral (seq_algebra V)" 
-  shows "le V (seq V a b) (par V a b)"
+shows "le V (seq V a b) (par V a b)"
 proof -
-  define "A" where "A = d a"
-  define "B" where "B = d b"
-  define "pc" where "pc = par V"
-  define "sc" where "sc = seq V"
-  define "\<gamma>" where "\<gamma> = neut_par V"
-  have "A \<union> B \<in> opens (space V)" using A_def B_def CVA.valid_welldefined V_valid a_elem b_elem d_elem_is_open strongly_neutral_seq 
-    by (metis Prealgebra.valid_space valid_prealgebra valid_union2) 
-  moreover have "a = pc a (\<gamma> A)"
-    by (metis A_def CVA.valid_welldefined V_valid \<gamma>_def a_elem pc_def valid_elems valid_neutral_law_right) 
-  moreover have "b = pc (\<gamma> B) b" using pc_def B_def CVA.valid_welldefined V_valid \<gamma>_def b_elem
-    by (metis (no_types, lifting) valid_elems valid_neutral_law_left)
-  moreover have "sc a b = sc (pc a (\<gamma> A)) (pc (\<gamma> B) b)"
-    using \<open>b = pc (\<gamma> B) b\<close> calculation by presburger
-  moreover have "le V (sc (pc a (\<gamma> A)) (pc (\<gamma> B) b)) (pc (sc a (\<gamma> B)) (sc (\<gamma> A) b))"
-    by (metis (no_types, lifting) A_def B_def CVA.valid_welldefined V_valid \<gamma>_def a_elem b_elem d_elem_is_open neutral_is_element pc_def sc_def valid_elems valid_weak_exchange)
-  moreover have "d (sc a (\<gamma> B)) = A \<union> B"
-    by (metis (no_types, lifting) A_def B_def CVA.valid_welldefined V_valid \<gamma>_def a_elem b_elem d_elem_is_open fst_conv neutral_is_element sc_def valid_domain_law valid_elems) 
-  moreover have "sc a (\<gamma> B) = sc (sc a (\<gamma> B)) (\<gamma> (A \<union> B))"using assms valid_neutral_law_right
-    by (metis (no_types, lifting) B_def CVA.valid_welldefined \<gamma>_def calculation(6) comb_is_element d_elem_is_open neutral_is_element sc_def)
-  moreover have "... = sc a (sc (\<gamma> B) (\<gamma> (A \<union> B)))"
-    by (metis (no_types, lifting) B_def CVA.valid_welldefined V_valid \<gamma>_def a_elem b_elem calculation(1) d_elem_is_open neutral_is_element sc_def valid_comb_associative valid_elems)
-  moreover have "... = sc a (\<gamma> (A \<union> B))" using  B_def CVA.valid_welldefined Int_Un_eq(2)
-      Un_Int_eq(4) V_valid \<gamma>_def assms(5) b_elem calculation(1) d_elem_is_open neutral_collapse sc_def
-    by (metis (no_types, lifting) strongly_neutral_combination)
-  moreover have "... = OVA.ext (seq_algebra V) (A \<union> B) a"  using assms calculation OVA.symmetric_ext [where ?V="seq_algebra V"]
-    by (simp add: A_def CVA.valid_welldefined \<gamma>_def sc_def)
-  moreover have "... = pc a (\<gamma> (A \<union> B))"
-    by (smt (verit, best) CVA.valid_welldefined Un_upper1 V_valid \<gamma>_def a_elem calculation(1) calculation(10) calculation(6) calculation(7) calculation(8) calculation(9) ext_elem ext_functorial_id ova_comb_local pc_def sc_def valid_domain_law valid_elems valid_ext valid_neut_par_elem valid_neutral_law_right)
-  moreover have "sc (\<gamma> A) b = sc (\<gamma> (A \<union> B)) (sc (\<gamma> A) b)"  using assms valid_neutral_law_left
-      [where ?V="seq_algebra V"]
-    by (smt (verit) A_def B_def CVA.valid_welldefined \<gamma>_def comb_is_element d_elem_is_open d_neut neutral_is_element sc_def valid_domain_law valid_elems) 
-  moreover have "... = sc (sc (\<gamma> (A \<union> B)) (\<gamma> A)) b"
-    by (metis (no_types, lifting) A_def CVA.valid_welldefined V_valid \<gamma>_def a_elem b_elem calculation(1) d_elem_is_open neutral_is_element sc_def valid_comb_associative valid_elems)
-  moreover have "... = sc (\<gamma> (A \<union> B)) b"
-    by (metis A_def CVA.valid_welldefined Un_ac(3) V_valid \<gamma>_def a_elem calculation(1) d_elem_is_open neutral_collapse sc_def strongly_neutral_combination strongly_neutral_seq subset_Un_eq sup.cobounded1) 
-  moreover have "... =   OVA.ext (seq_algebra V) (A \<union> B) b"
-    by (metis B_def \<gamma>_def b_elem calculation(1) ext_def neutral_collapse sc_def sup_ge2)
-  moreover have "... = ext V (A \<union> B) b"
-    by (metis B_def V_valid b_elem calculation(1) sup_ge2 valid_ext)
-  moreover have "... = pc (\<gamma> (A \<union> B)) b" using pc_def \<gamma>_def A_def B_def b_elem OVA.ext_def [where
-        ?V="par_algebra V" and ?A="A \<union> B" and ?b=b] 
-    using calculation(1)
-    by (metis (no_types, lifting) CVA.valid_welldefined Un_upper2 V_valid valid_elems valid_ext) 
-  moreover have "pc (sc a (\<gamma> B)) (sc (\<gamma> A) b) = pc (pc a (\<gamma> (A \<union> B))) ( pc (\<gamma> (A \<union> B)) b)"
-    using calculation(10) calculation(11) calculation(12) calculation(13) calculation(14) calculation(15) calculation(16) calculation(17) calculation(7) calculation(8) calculation(9) by presburger
-  moreover have "... =  pc a (pc (\<gamma> (A \<union> B)) ( pc (\<gamma> (A \<union> B)) b))" using valid_comb_associative
-    by (metis (no_types, lifting) CVA.valid_welldefined V_valid \<gamma>_def a_elem b_elem calculation(1) comb_is_element neutral_is_element pc_def valid_elems)
-  moreover have "... =  pc a (pc (\<gamma> (A \<union> B)) b)"
-    by (metis B_def CVA.valid_welldefined V_valid \<gamma>_def b_elem calculation(1) calculation(17) d_ext ext_elem pc_def sup_ge2 valid_elems valid_neutral_law_left)
-  moreover have "... =  pc a (pc b (\<gamma> (A \<union> B)))"
-    by (metis V_valid \<gamma>_def b_elem calculation(1) pc_def valid_neut_par_elem valid_par_comm)
-moreover have "... =  pc a b"
-  by (metis A_def B_def CVA.valid_welldefined V_valid a_elem b_elem calculation(1) calculation(11) calculation(17) calculation(19) calculation(20) calculation(21) ova_comb_local pc_def sup_ge1 sup_ge2 valid_elems valid_ext)
+  define "U" where "U = d a \<union> d b"
+  define "e" where "e = neut_seq V U"
+  have "e = neut_par V U"
+    by (metis e_def neutral_collapse)
+  moreover have "ext V U a = par V e a" using valid_ext [where ?V=V and ?A=U and ?b=a] ext_def [where ?V="par_algebra V" and ?A=U]
+    by (metis CVA.valid_welldefined Prealgebra.valid_space U_def V_valid a_elem b_elem calculation d_elem_is_open sup_ge1 valid_elems valid_prealgebra valid_union2)
+  moreover have "ext V U b = par V b e" using valid_ext [where ?V=V and ?A=U and ?b=b] ext_def [where ?V="par_algebra V" and ?A=U]
+    by (metis CVA.valid_welldefined Prealgebra.valid_space U_def V_valid a_elem b_elem calculation(1) d_elem_is_open neutral_is_element sup_ge2 valid_elems valid_par_comm valid_prealgebra valid_union2)
+  moreover have "ext V U a = seq V a e" using ext_def [where ?V="seq_algebra V" and ?A=U]
+    by (smt (verit) CVA.valid_welldefined U_def V_valid a_elem b_elem calculation(1) d_elem_is_open e_def fst_conv ova_comb_local subset_Un_eq sup_ge1 valid_domain_law valid_elems valid_neut_par_elem valid_neutral_law_right valid_par_comm valid_seq_elem)
+  moreover have "ext V U b = seq V e b" using ext_def [where ?V="seq_algebra V" and ?A=U]
+    by (metis CVA.valid_welldefined OVA.valid_welldefined Prealgebra.valid_space U_def V_valid a_elem b_elem d_elem_is_open e_def sup_ge2 valid_union2)
+  moreover have "seq V a b = seq V (ext V U a) (ext V U b)"
+    by (metis CVA.valid_welldefined U_def V_valid a_elem b_elem ova_comb_local)
+  moreover have " ... = seq V (par V e a) (par V b e)"
+    using calculation(2) calculation(3) by presburger 
+  moreover have "le V (seq V (par V e a) (par V b e)) (par V (seq V a e) (seq V e b))"
+    by (smt (verit) CVA.valid_welldefined U_def V_valid a_elem b_elem calculation(1) calculation(4) d_elem_is_open neutral_is_element valid_domain_law valid_elems valid_par_comm valid_seq_elem valid_weak_exchange)
+  moreover have "par V (seq V a e) (seq V e b) = par V (ext V U a) (ext V U b)"
+    using calculation(4) calculation(5) by presburger 
+  moreover have "... = par V a b"
+    by (metis (no_types, lifting) CVA.valid_welldefined U_def Un_upper1 Un_upper2 V_valid a_elem b_elem d_elem_is_open ova_comb_local valid_domain_law valid_ext valid_gc_poset valid_seq_elem)
   ultimately show ?thesis
-    by (metis pc_def sc_def) 
+    by metis
 qed
 
 (* Hoare logic rules: https://en.wikipedia.org/wiki/Hoare_logic#Rules *)
