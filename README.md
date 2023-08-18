@@ -55,6 +55,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ## To-do
 
+- The assumptions of section 2.1 of the paper were weakened to rely on only a prealgebra with right-adjoints existing for its restriction maps instead of an OVA. We should update the formalisation to reflect this, and the 2.1 results can then be moved from OVA.thy to Prealgebra.thy .
 - Sections 5, 6, 7 (trace models).
 - Use infix syntax; see [here!](https://isabelle.zulipchat.com/#narrow/stream/238552-Beginner-Questions/topic/local.20infix.20operator.20definition/near/377738757)
 - Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles)).
