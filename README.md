@@ -31,10 +31,9 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
 - [x] Corollary 3 (locally_complete_imp_complete)
-- [x] Lemma 1 (local_ext_comm_imp_assoc, local_assoc_units_imp_ext_comm)
-- [x] Lemma 9 (up_down_le_down_up) (in the paper this is in Appendix 1)
-- [x] Lemma 2 (local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
-- [x] Lemma 3 (local_weak_exchange_imp_weak_exchange)
+- [x] Lemma 1 (local_mono_ext_comm_imp_assoc, local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
+- [x] Lemma 7 (up_down_le_down_up) (in the paper this is in Appendix 1)
+- [x] Lemma 2 (local_weak_exchange_imp_weak_exchange)
 
 ### Section 3 - Concurrent valuation algebras
 
@@ -51,7 +50,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Theorem 2 (rel_ova_valid, rel_ova_commutative, rel_ova_strongly_neutral, rel_ova_tuple_system)
 - [x] Proposition 4 (rel_ext_preimage)
 - [x] Proposition 5 (rel_comb_is_int_ext, rel_ova_is_complete, rel_comb_is_meet)
-- [x] Lemma 4 (valid_lists, valid_ne_lists)
+- [x] Lemma 3 (valid_lists, valid_ne_lists)
 
 ## To-do
 

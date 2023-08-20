@@ -1609,7 +1609,7 @@ proof -
     by metis
 qed
 
-(* [Lemma 4 (1/2), TMCVA] *)
+(* [Lemma 3 (1/2), TMCVA] *)
 lemma valid_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
@@ -1840,7 +1840,7 @@ proof -
     by metis
 qed
 
-(* [Lemma 4 (2/2), TMCVA] *)
+(* [Lemma 3 (2/2), TMCVA] *)
 lemma valid_ne_lists : 
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
