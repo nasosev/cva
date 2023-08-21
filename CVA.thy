@@ -376,6 +376,8 @@ proof -
 qed
 
 (* To recover the ordinary frame rule, we must constrain so that 'par V a (neut_seq V (d f) = a' *)
+(* See https://en.wikipedia.org/wiki/Separation_logic#Reasoning_about_programs:_triples_and_proof_rules 
+ where there is an additional condition mod(C) \<inter> fv(R) = \<emptyset> *)
 proposition hoare_frame_rule :
   fixes V :: "('A, 'a) CVA" and p f a q :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -390,6 +392,7 @@ proof -
   ultimately show ?thesis
     by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open neutral_is_element valid_neutral_law_right valid_par_comm valid_par_elem valid_poset valid_semigroup valid_seq_elem valid_transitivity valid_weak_exchange)
 qed
+
 
 proposition hoare_neut_seq_rule :
   fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
