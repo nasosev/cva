@@ -80,7 +80,7 @@ abbreviation hoare :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow
 "hoare V p a q \<equiv> le V (seq V p a) q" 
 
 abbreviation rg :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
-"rg V r p a q g \<equiv> hoare V p (par V r a) q \<and> le V a g" 
+"rg V p r a g q \<equiv> hoare V p (par V r a) q \<and> le V a g" 
 
 (* C.f. Def 7.2 2. Hoare, CAR Tony, et al. "Concurrent kleene algebra." CONCUR 2009-Concurrency Theory: 20th International Conference, CONCUR 2009, Bologna, Italy, September 1-4, 2009. Proceedings 20. Springer Berlin Heidelberg, 2009. *)
 (* i \<Zsemi> i = i \<and> i \<parallel> i = i \<and> i \<parallel> (a \<Zsemi> b) \<preceq> (i \<parallel> a) \<Zsemi> (i \<parallel> b) *)
@@ -432,9 +432,9 @@ proposition rg_sequential_rule :
   fixes V :: "('A, 'a) CVA" and r g p p' p'' a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and r_el : "r \<in> elems V" and g_el : "g \<in> elems V" and p_el : "p \<in> elems V" and p'_el : "p' \<in> elems V" and p''_el : "p'' \<in> elems V" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-  and rg1 : "rg V r p a p' g" and rg2 : "rg V r p' b p'' g"
+  and rg1 : "rg V p r a g p'" and rg2 : "rg V p' r b g p''"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
-shows "rg V r p (seq V a b) p'' g"
+shows "rg V p r (seq V a b) g p''"
 proof - 
   define "gl" (infixl \<open>\<preceq>\<close> 54) where "a \<preceq> b = le V a b" for a b
   define "sc" (infixl \<open>\<Zsemi>\<close> 55) where "a \<Zsemi> b = seq V a b" for a b
@@ -469,8 +469,6 @@ proof -
     using \<open>(\<Zsemi>) \<equiv> seq V\<close> \<open>(\<parallel>) \<equiv> par V\<close> gl_def by blast 
 qed
 
-
-
 (* Note Thm 8.4 of [2,3] in a CKA parallel restricted to invariants corresponds to supremum in the
  lattice of invariants, since the natural order defined a \<le> b \<longleftrightarrow> a \<parallel> b = b coincides with the ambient
 order (and the meet of both orders coincide). This is not the case here. *)
@@ -480,10 +478,10 @@ proposition rg_concurrency_rule :
   and V_complete : "is_complete V"
   and "r1 \<in> elems V" and "p1 \<in> elems V" and "a1 \<in> elems V" and "q1 \<in> elems V" and "g1 \<in> elems V"
   and "r2 \<in> elems V" and "p2 \<in> elems V" and "a2 \<in> elems V" and "q2 \<in> elems V" and "g2 \<in> elems V" 
-  and rg1 : "rg V r1 p1 a1 q1 g1" and rg2 : "rg V r2 p2 a2 q2 g2"
+  and rg1 : "rg V p1 r1 a1 g1 q1" and rg2 : "rg V p2 r2 a2 g2 q2"
   and inv_r1 : "invariant V r1" and inv_g1 : "invariant V g1" and inv_r2 : "invariant V r2" and inv_g2 : "invariant V g2"
   and g1_le_r2 : "le V g1 r2" and g2_le_r1 : "le V g2 r1"
-shows "rg V (meet V r1 r2) (meet V p1 p2) (par V a1 a2) (meet V q1 q2) (par V g1 g2)"
+shows "rg V (meet V p1 p2) (meet V r1 r2) (par V a1 a2) (par V g1 g2) (meet V q1 q2) "
 proof -
   have "le V (par V a1 a2) (par V g1 g2)"
     using V_valid assms(12) assms(5) assms(7) assms(10) rg1 rg2 valid_par_mono by blast 
