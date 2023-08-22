@@ -668,7 +668,7 @@ proof -
     by (metis (no_types, opaque_lifting) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def)
 qed
 
-(* [Remark 3 (1/3), TMCVA] *)
+(* [Remark 3, TMCVA] *)
 lemma local_mono_eq_global :
   fixes V :: "('A,'a) OVA" and A B :: "'A Open" and a1 a1' a2 a2' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -680,7 +680,6 @@ lemma local_mono_eq_global :
 shows "le V (comb V a1 a1') (comb V a2 a2') = local_le V A (comb V a1 a1') (comb V a2 a2')"
   by (metis A_open OVA.le_eq_local_le V_valid a1'_d a1'_el a1_d a1_el a2'_d a2'_el a2_d a2_el comb_is_element fst_conv neutral_is_element valid_domain_law valid_neutral_law_right)
 
-(* [Remark 3 (2/3), TMCVA] *)
 lemma id_le_res :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -769,7 +768,6 @@ next
     by (metis V_valid a_B_def b_el valid_neutral_law_left)
 qed
 
-(* [Remark 3 (3/3), TMCVA] *)
 lemma laxity :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a a' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -818,7 +816,7 @@ corollary strongly_neutral_monoid :
 shows "comb V (neut V {}) a = a \<and> comb V a (neut V {}) = a"
   by (smt (verit, ccfv_threshold) Prealgebra.valid_space Space.valid_def V_valid a_el d_elem_is_open neutral_is_element strongly_neutral strongly_neutral_combination sup_bot.right_neutral sup_bot_left valid_comb_associative valid_neutral_law_left valid_neutral_law_right valid_prealgebra) 
 
-(* [Corollary 2 (1/3), TMCVA] *)
+(* [Corollary 2 (1/2), TMCVA] *)
 corollary galois_insertion :
   fixes V :: "('A,'a) OVA" and A :: "'A Open" and b :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and b_el : "b \<in> elems V"
@@ -826,7 +824,7 @@ corollary galois_insertion :
   shows "res V (d b) (ext V A b) = b"
   by (smt (verit, best) A_open B_le_A V_valid b_el d_elem_is_open d_ext d_neut ext_comm ext_elem inf.absorb_iff2 neutral_is_element ova_comb_local stability subset_Un_eq sup.absorb_iff1 sup_ge2 valid_comb_law_right valid_neutral_law_left)
 
-(* [Corollary 2 (2/3), TMCVA] *)
+(* [Corollary 2 (2/2), TMCVA] *)
 corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and "a \<in> elems V" 
@@ -870,7 +868,6 @@ theorem ext_functorial_trans :
   shows "ext V A (ext V B c) = ext V A c"
   by (smt (verit, ccfv_threshold) A_open B_le_A B_open C_le_B V_valid c_el d_ext dual_order.trans ext_elem ext_functorial_trans_lhs_imp_rhs ext_functorial_trans_rhs_imp_lhs valid_antisymmetry valid_poset valid_semigroup)
 
-(* [Corollary 2 (3/3), TMCVA] *)
 corollary galois_closure_idempotent :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
@@ -1163,7 +1160,7 @@ lemma ext_local_value :
   shows "mul (ext_local V f) a b =  (d a \<union> d b, f \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b)))"
   by (metis a_el b_el d_ext_local e_ext_local prod.collapse)
 
-(* [Lemma 1 (1/4), TMCVA] *)
+(* [Lemma 1 (1/2), TMCVA] *)
 lemma local_mono_ext_comm_imp_assoc:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"
@@ -1331,7 +1328,6 @@ proof -
     by simp
 qed
 
-(* [Lemma 7, TMCVA] *)
 lemma up_down_le_down_up : 
   fixes V :: "('A, 'a) OVA" and A B B' C :: "'A Open" and b :: "('A, 'a) Valuation"
   defines "B \<equiv> d b"
@@ -1363,7 +1359,6 @@ proof -
     by (metis A_open B'_le_A B'_open B_le_A C_le_B' C_open V_valid b_el d_ext ext_elem galois_closure_extensive res_elem)
 qed
 
-(* [Lemma 1 (2/4), TMCVA] *)
 lemma local_mono_ext_comm_imp_laxity:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"
@@ -1446,7 +1441,7 @@ proof -
     by (metis (no_types, lifting) a'_B_def a_B_def)
 qed
 
-(* [Lemma 1 (3/4), TMCVA] *)
+(* [Lemma 1 (2/2), TMCVA] *)
 lemma local_mono_ext_comm_imp_mono:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"
@@ -1638,7 +1633,6 @@ and a''="comb' b1 b2"] 7 8 9
     by (smt (verit, ccfv_threshold) A1_def A2_def Un_absorb1 Un_upper1 V_valid a1_el a2_el comb'_def d_ext_local elem_le_wrap fst_conv inf_sup_aci(7) sup.orderE)
 qed
 
-(* [Lemma 1 (4/4), TMCVA] *)
 lemma local_mono_ext_comm_imp_lax_comb:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
   defines "comb' \<equiv> mul (ext_local V f)"

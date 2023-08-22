@@ -4,7 +4,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 @misc{evangelouoost2023trace,
       title={Trace models of concurrent valuation algebras},
-      author={Nasos Evangelou-Oost and Callum Bannister and Larissa Meinicke and Ian J. Hayes},
+      author={Naso Evangelou-Oost and Larissa Meinicke and Callum Bannister and Ian J. Hayes},
       year={2023},
       eprint={2305.18017},
       archivePrefix={arXiv},
@@ -26,13 +26,12 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 #### Ordered valution algebras (OVAs): OVA.thy
 
 - [x] Remark 2 (res_functorial_id, res_functorial_trans, stability)
-- [x] Remark 3 (local_mono_eq_global, id_le_res, laxity)
+- [x] Remark 3 (local_mono_eq_global)
 - [x] Theorem 1 (res_ext_adjunction, ext_functorial_id, ext_functorial_trans)
 - [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
-- [x] Corollary 2 (galois_insertion, galois_closure_extensive, galois_closure_idempotent)
+- [x] Corollary 2 (galois_insertion, galois_closure_extensive)
 - [x] Corollary 3 (locally_complete_imp_complete)
-- [x] Lemma 1 (local_mono_ext_comm_imp_assoc, local_mono_ext_comm_imp_laxity, local_mono_ext_comm_imp_mono, local_mono_ext_comm_imp_lax_comb)
-- [x] Lemma 7 (up_down_le_down_up) (in the paper this is in Appendix 1)
+- [x] Lemma 1 (local_mono_ext_comm_imp_assoc, local_mono_ext_comm_imp_mono)
 - [x] Lemma 2 (local_weak_exchange_imp_weak_exchange)
 
 ### Section 3 - Concurrent valuation algebras
@@ -56,8 +55,8 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 - The assumptions of section 2.1 of the paper were weakened to rely on only a prealgebra with right-adjoints existing for its restriction maps instead of an OVA. We should update the formalisation to reflect this, and the 2.1 results can then be moved from OVA.thy to Prealgebra.thy .
 - Sections 5, 6, 7 (trace models).
-- Use infix syntax; see [here!](https://isabelle.zulipchat.com/#narrow/stream/238552-Beginner-Questions/topic/local.20infix.20operator.20definition/near/377738757)
-- Remove unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles)).
+- Use infix syntax where appropriate; see [here!](https://isabelle.zulipchat.com/#narrow/stream/238552-Beginner-Questions/topic/local.20infix.20operator.20definition/near/377738757)
+- Remove possible unnecessary assumptions from theorems/lemmas/etc. (e.g. `valid`/`valid_map`; see [Design principles](#design-principles)).
 - Improve readability of proofs.
 - Make names more consistent.
 - Develop a custom simp set to facilitate automation.
