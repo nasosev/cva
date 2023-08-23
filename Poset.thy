@@ -390,6 +390,12 @@ definition inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 definition sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a option" where
 "sup P U \<equiv> if (\<exists>s. s \<in> el P \<and> is_sup P U s) then Some (SOME s. s \<in> el P \<and> is_sup P U s) else None"
 
+definition inf' :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a " where
+"inf' P U \<equiv> SOME i. i \<in> el P \<and> is_inf P U i"
+
+definition sup' :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a " where
+"sup' P U \<equiv> SOME s. s \<in> el P \<and> is_sup P U s"
+
 definition meet :: "'a Poset \<Rightarrow> 'a \<Rightarrow> 'a  \<Rightarrow> 'a " where
 "meet P a b \<equiv> SOME i. i \<in> el P \<and> is_inf P {a,b} i"
 
@@ -536,6 +542,16 @@ next
   then show ?case sorry
 qed
 *)
+
+
+(* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
+
+definition lfp :: "('a , 'a) PosetMap \<Rightarrow> 'a \<Rightarrow> 'a" where
+"lfp f a \<equiv> inf' (cod f) {x \<in> el (dom f) . le (cod f) (f \<star> x) x}" 
+
+definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a \<Rightarrow> 'a" where
+"gfp f a \<equiv> sup' (cod f) {x \<in> el (dom f) . le (cod f) x (f \<star> x)}" 
+
 
 (* Powerset *)
 

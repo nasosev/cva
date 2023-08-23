@@ -94,6 +94,7 @@ definition meet :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 definition join :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "join V a b = Poset.join (poset V) a b"
 
+
 (* Properties *)
 
 (* Todo: prove Poset.complete_equiv_cocomplete to remove redundancy here *)
