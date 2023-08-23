@@ -86,7 +86,7 @@ abbreviation rg :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 (* i \<Zsemi> i = i \<and> i \<parallel> i = i \<and> i \<parallel> (a \<Zsemi> b) \<preceq> (i \<parallel> a) \<Zsemi> (i \<parallel> b) *)
 (* for recursion, we should also assume neut_skip \<le> i *)
 definition invariant :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
-"invariant V i \<equiv> seq V i i = i \<and> par V i i = i \<and> (\<forall> a b . a \<in> elems V \<and> b \<in> elems V \<longrightarrow> le V (par V i (seq V a b)) (seq V (par V i a) (par V i b)))"
+"invariant V i \<equiv> le V (neut_seq V (d i)) i \<and>  seq V i i = i \<and> par V i i = i \<and> (\<forall> a b . a \<in> elems V \<and> b \<in> elems V \<longrightarrow> le V (par V i (seq V a b)) (seq V (par V i a) (par V i b)))"
 
 definition meet :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "meet V a b = Poset.meet (poset V) a b"
@@ -94,12 +94,23 @@ definition meet :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 definition join :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "join V a b = Poset.join (poset V) a b"
 
+definition inf :: "('A,'a) CVA \<Rightarrow> (('A, 'a) Valuation) set \<Rightarrow> ('A, 'a) Valuation" where
+"inf V U = Poset.inf' (poset V) U"
+
+definition sup :: "('A,'a) CVA \<Rightarrow> (('A, 'a) Valuation) set \<Rightarrow> ('A, 'a) Valuation" where
+"sup V U = Poset.sup' (poset V) U"
 
 (* Properties *)
 
 (* Todo: prove Poset.complete_equiv_cocomplete to remove redundancy here *)
 definition is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_complete V \<equiv> Poset.is_complete (OVA.poset (seq_algebra V)) \<and> Poset.is_cocomplete (OVA.poset (seq_algebra V))"
+
+definition is_quantalic :: "('A,'a) CVA \<Rightarrow> bool" where
+"is_quantalic V \<equiv> \<forall> a U . U \<subseteq> elems V \<longrightarrow> a \<in> elems V \<longrightarrow>
+  par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
+  seq V a (sup V U) = sup V {seq V a u | u . u \<in> U} \<and>
+  seq V (sup V U) a = sup V {seq V u a | u . u \<in> U}"
 
 (* Validity *)
 
@@ -240,6 +251,42 @@ lemma valid_neut_par_elem:
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)" 
   shows "neut_par V A \<in> elems V"
   by (metis A_open CVA.valid_welldefined V_valid neutral_is_element valid_elems)
+
+
+lemma quantalic_par_com :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
+  assumes "valid V" and "is_complete V" and "is_quantalic V"
+  and "a \<in> elems V" and "U \<subseteq> elems V"
+shows "par V (sup V U) a = sup V {par V u a | u . u \<in> U}"
+proof -
+  have "par V (sup V U) a = par V a (sup V U)"
+    by (metis CVA.is_complete_def CVA.sup_def assms(1) assms(2) assms(4) assms(5) sup_el valid_par_comm) 
+  moreover have "{par V u a | u . u \<in> U} = {par V a u | u . u \<in> U}"
+    using assms(1) assms(4) assms(5) valid_par_comm by blast
+  ultimately show ?thesis
+  proof -
+    have "par V a (CVA.sup V U) = CVA.sup V {par V a p |p. p \<in> U}"
+      using assms(3) assms(4) assms(5) is_quantalic_def by blast
+    then show ?thesis
+      using \<open>par V (CVA.sup V U) a = par V a (CVA.sup V U)\<close> \<open>{par V u a |u. u \<in> U} = {par V a u |u. u \<in> U}\<close> by presburger
+  qed 
+qed
+
+(*
+lemma binary_quantalic : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> is_quantalic V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> b' \<in> elems V
+ \<Longrightarrow> par V a (join V b b') = join V (par V a b) (par V a b')"
+proof -
+  assume "valid V" 
+  define "U" where "U = {b,b'}" 
+  have "join V b b' = sup V U" unfolding U_def sup_def Poset.sup'_def join_def Poset.join_def
+    by force 
+  moreover have "join V (par V a b) (par V a b') = sup V {par V a b, par V a b'}"
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def sup'_def) 
+  moreover have "{b,b'} \<subseteq> elems V" 
+  moreover have "par V a (sup V U) = sup V {par V a u | u . u \<in> U}" 
+  ultimately show ?thesis using is_quantalic_def [where ?V=V ]
+
+*)
 
 (* Paper results *)
 
@@ -394,7 +441,6 @@ proof -
     by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open neutral_is_element valid_neutral_law_right valid_par_comm valid_par_elem valid_poset valid_semigroup valid_seq_elem valid_transitivity valid_weak_exchange)
 qed
 
-
 proposition hoare_neut_seq_rule :
   fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -482,7 +528,7 @@ proposition rg_concurrency_rule :
   and rg1 : "rg V p1 r1 a1 g1 q1" and rg2 : "rg V p2 r2 a2 g2 q2"
   and inv_r1 : "invariant V r1" and inv_g1 : "invariant V g1" and inv_r2 : "invariant V r2" and inv_g2 : "invariant V g2"
   and g1_le_r2 : "le V g1 r2" and g2_le_r1 : "le V g2 r1"
-shows "rg V (meet V p1 p2) (meet V r1 r2) (par V a1 a2) (par V g1 g2) (meet V q1 q2) "
+shows "rg V (meet V p1 p2) (meet V r1 r2) (par V a1 a2) (par V g1 g2) (meet V q1 q2)"
 proof -
   have "le V (par V a1 a2) (par V g1 g2)"
     using V_valid assms(12) assms(5) assms(7) assms(10) rg1 rg2 valid_par_mono by blast 
@@ -564,6 +610,33 @@ and ?b="(seq V p1 (par V (meet V r1 r2) (par V a1 a2)))" and ?c="(seq V p1 (par 
 
   ultimately show ?thesis
     by force 
-  qed
+qed
+
+proposition rg_neut_par_rule :
+  fixes V :: "('A, 'a) CVA" and p r g q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "r \<in> elems V" and "g \<in> elems V" and "q \<in> elems V"
+  and inv_r : "invariant V r" and inv_g : "invariant V g"
+  and "rg V p r (neut_par V (d r)) g q" 
+shows "hoare V p r q"
+  by (metis CVA.valid_welldefined V_valid assms(3) assms(8) valid_elems valid_neutral_law_right) 
+
+(*
+proposition rg_choice_rule :
+  fixes V :: "('A, 'a) CVA" and p r g q :: "('A,'a) Valuation" and U :: "(('A,'a) Valuation) set"
+  assumes V_valid : "valid V"
+  and V_complete : "is_complete V"
+  and V_quantale : "is_quantalic V"
+  and "p \<in> elems V" and "r \<in> elems V" and "U \<subseteq> elems V" and "g \<in> elems V" and "q \<in> elems V"
+  and inv_r : "invariant V r" and inv_g : "invariant V g"
+shows "rg V p r (sup V U) g q = (\<forall> u. u \<in> U \<longrightarrow> rg V p r u g q)"
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case 
+next
+  case 2
+  then show ?case 
+qed
+*)
 
 end

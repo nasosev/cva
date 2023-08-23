@@ -436,7 +436,7 @@ lemma some_inf_is_inf : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrigh
   unfolding inf_def
   by (metis (no_types, lifting) option.distinct(1) option.inject someI_ex)
 
-lemma some_sup_is_sup : "valid P\<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
+lemma some_sup_is_sup : "valid P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = Some s \<Longrightarrow> is_sup P U s"
   unfolding sup_def
   by (metis (no_types, lifting) sup_unique option.distinct(1) option.inject some_equality)
 
@@ -513,6 +513,12 @@ proof -
   then show ?thesis
     using is_sup_def by force
 qed
+
+lemma sup_el : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup' P U \<in> el P"
+  by (smt (verit, del_insts) is_cocomplete_def is_sup_def some_sup_is_sup sup'_def sup_def)
+
+lemma inf_el : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> inf' P U \<in> el P" using inf'_def
+  by (metis (no_types, lifting) complete_inf_exists tfl_some) 
 
 lemma meet_property : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> c \<in> el P \<Longrightarrow> le P c a \<Longrightarrow> le P c b \<Longrightarrow> le P c (meet P a b)"
   using complete_meet_is_inf is_inf_def
