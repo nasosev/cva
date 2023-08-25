@@ -488,6 +488,7 @@ lemma join_property : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrigh
   using cocomplete_join_is_sup is_sup_def
   by (smt (verit, ccfv_threshold) insert_iff singleton_iff)
 
+
 lemma complete_equiv_cocomplete : "is_complete P = is_cocomplete P"
 proof (safe, goal_cases)
   case 1
@@ -595,6 +596,13 @@ proof (safe, goal_cases)
   qed
 qed
 
+
+lemma inf_as_sup : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
+  oops
+
+lemma sup_as_inf : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> inf P U = sup P {a \<in> el P . (\<forall> u \<in> U . le P a u)}"
+  oops
+
 (* Constants *)
 
 definition top :: "'a Poset \<Rightarrow> 'a" where
@@ -609,11 +617,11 @@ lemma top_max : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow
 lemma bot_min : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> le P (bot P) a"
   by (simp add: bot_def sup_is_lub)
 
-lemma top_as_inf : "is_complete P \<Longrightarrow> is_cocomplete P \<Longrightarrow> top P = inf P {}"
-  oops
+lemma top_as_inf : "is_complete P \<Longrightarrow> top P = inf P {}"
+  by (smt (verit) Poset.inf_unique complete_equiv_cocomplete dual_order.refl empty_iff empty_subsetI inf_def is_complete_def is_inf_def someI_ex sup_el sup_greater top_def)
 
-lemma bot_as_inf : "is_complete P \<Longrightarrow> is_cocomplete P \<Longrightarrow> top P = inf P (el P)" 
-  oops
+lemma bot_as_inf : "is_complete P \<Longrightarrow> bot P = inf P (el P)"
+  by (smt (verit) Poset.sup_unique bot.extremum bot_def dual_order.refl empty_iff inf_smaller is_complete_def is_sup_def someI_ex sup_def) 
 
 (* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
 
