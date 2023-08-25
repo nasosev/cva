@@ -482,19 +482,61 @@ proof -
 qed
 
 proposition hoare_neut_seq_rule :
+  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "q \<in> elems V"
+  shows "hoare V p (neut_seq V (d p)) q = le V p q"
+  by (metis CVA.valid_welldefined V_valid assms(2) valid_neutral_law_right) 
+
+proposition hoare_neut_seq_rule' :
   fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V"
   shows "hoare V p (neut_seq V (d p)) p"
   by (metis CVA.valid_welldefined V_valid assms(2) valid_le_reflexive valid_neutral_law_right)
 
-proposition hoare_composition_rule :
+proposition hoare_antitony_rule :
+  fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "a \<in> elems V" and "b \<in> elems V"
+  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . (hoare V p a q \<longrightarrow> hoare V p b q)) = le V b a"
+proof (rule iffI[rotated], goal_cases)
+  case 1
+  then show ?case 
+by (smt (verit) V_valid assms(2) assms(3) valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
+next
+  case 2
+  then show ?case oops
+
+proposition hoare_extensionality_rule :
+  fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "a \<in> elems V" and "b \<in> elems V"
+  shows "(\<forall> p q . p \<in> elems V \<and> q \<in> elems V \<and> (hoare V p a q = hoare V p b q)) = (a = b)"
+proof (rule iffI[rotated], goal_cases) oops
+
+proposition hoare_composition_rule' :
   fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
   and "hoare V p a q" and "hoare V q b r"
 shows "hoare V p (seq V a b) r"
   by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) valid_comb_associative valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
+
+proposition hoare_composition_rule :
+  fixes V :: "('A, 'a) CVA" and p r a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V"  and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+shows "(\<exists> q \<in> elems V . hoare V p a q \<and> hoare V q b r) =  hoare V p (seq V a b) r"
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case
+    using V_valid assms(2) assms(3) assms(4) assms(5) hoare_composition_rule' by blast 
+next
+  case 2
+  then show ?case
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(4) assms(5) valid_comb_associative valid_le_reflexive valid_seq_elem) 
+qed
 
 proposition hoare_consequence_rule :
   fixes V :: "('A, 'a) CVA" and p p' q q' a :: "('A,'a) Valuation"
@@ -504,7 +546,6 @@ proposition hoare_consequence_rule :
 shows "hoare V p' a q'"
   by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element valid_gc_poset valid_monotone valid_poset valid_reflexivity valid_semigroup valid_transitivity)  
 
-(*
 proposition hoare_failure_rule :
   fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
@@ -513,22 +554,16 @@ shows "hoare V p (bot V) q"
 proof -
   have "seq V p (bot V) = sup V {seq V p u | u.  u \<in> {}}" using is_quantalic_def [where ?V=V]
   proof -
-    have f1: "\<And>c. sup (CVA.poset (c::('A, 'a) CVA)) {} = CVA.bot c"
-      by (simp add: CVA.bot_def Poset.bot_def)
-    have f2: "\<And>p P. p \<notin> CVA.elems V \<or> \<not> P \<subseteq> CVA.elems V \<or> sup (CVA.poset V) {seq V p pa |pa. pa \<in> P} = seq V p (sup (CVA.poset V) P)"
-      by (smt (z3) CVA.sup_def V_quantalic \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
-    have "p \<in> CVA.elems V \<and> {} \<subseteq> CVA.elems V"
-      using assms(3) by blast
-    then have "sup (CVA.poset V) {seq V p pa |pa. pa \<in> {}} = seq V p (CVA.bot V)"
-      using f2 f1 by presburger
+    have "\<forall>p P. \<not> is_quantalic V \<or> p \<notin> CVA.elems V \<or> seq V p (Poset.sup (CVA.poset V) P) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> P} \<or> \<not> P \<subseteq> CVA.elems V"
+      by (smt (z3) CVA.sup_def \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
+    then have "seq V p (Poset.sup (CVA.poset V) {}) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> {}}"
+      using V_quantalic assms(3) by blast
     then show ?thesis
-      by (simp add: CVA.sup_def)
+      by (simp add: CVA.bot_def CVA.sup_def Poset.bot_def)
   qed
-  moreover have "sup V {seq V p u | u.  u \<in> {}} = bot V"
-    by (simp add: CVA.bot_def CVA.sup_def Poset.bot_def) 
-  moreover have "le V (bot V) q"
-  ultimately show ?thesis
-  *)
+  then show ?thesis
+    by (smt (verit, ccfv_threshold) CVA.sup_def V_quantalic all_not_in_conv assms(4) cocomplete empty_Collect_eq empty_subsetI is_quantalic_def sup_is_lub)
+qed
 
 proposition hoare_choice_rule :
   fixes V :: "('A, 'a) CVA" and p q a b :: "('A,'a) Valuation"
@@ -543,17 +578,20 @@ proof (rule iffI, goal_cases)
       using "1" by blast 
     moreover have "seq V p (join V a b) = join V (seq V p a) (seq V p b)"
       using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
+    moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
+      using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
     moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
-      using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"] 
+      using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
+      by (metis (no_types, opaque_lifting) CVA.join_def V_quantalic calculation(2) calculation(3) cocomplete is_quantalic_def) 
     moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
-      by (smt (verit, del_insts) "1" V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) calculation(3) is_quantalic_def join_elem valid_le_transitive valid_seq_elem) 
+      by (smt (verit, best) "1" V_quantalic V_valid assms(4) calculation(2) calculation(3) calculation(4) is_quantalic_def join_elem valid_le_transitive)
     ultimately show ?thesis
       by force
   qed
 next
   case 2
   then show ?case
-    by (smt (verit, del_insts) CVA.is_complete_def CVA.join_def V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) binary_quantalic is_quantalic_def join_property valid_seq_elem) 
+    by (smt (z3) CVA.join_def V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) binary_quantalic cocomplete is_quantalic_def join_property valid_seq_elem)
 qed
 
 

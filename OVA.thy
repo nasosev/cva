@@ -910,7 +910,7 @@ proof
   show "Poset.valid (poset V)"
     using V_valid by (metis OVA.valid_welldefined valid_gc)
 next
-  show "\<forall>U\<subseteq>OVA.elems V. (\<exists>i. is_inf (OVA.poset V) U i) \<and> Poset.inf (OVA.poset V) U \<in> OVA.elems V"
+  show "\<forall>U\<subseteq>OVA.elems V. (\<exists>i. is_inf (poset V) U i) \<and> Poset.inf (poset V) U \<in> OVA.elems V"
   proof (rule allI, rule impI)
     fix U
     assume U: "U \<subseteq> elems V"
@@ -1030,7 +1030,7 @@ next
         moreover have "Poset.le (poset V) z i" using le_eq_local_le [where ?V=V]
           by (smt (verit, del_insts) F_def V_valid \<open>d i \<subseteq> d z\<close> \<open>i \<in> OVA.elems V\<close> \<open>z \<in> OVA.elems V\<close> calculation(10) calculation(18) d_res elem_le_wrap fst_conv i_def local_le_def snd_conv)
         term ?thesis
-        ultimately show "Poset.le (OVA.poset V) z i"
+        ultimately show "Poset.le (poset V) z i"
           by meson
       qed
       moreover have "is_inf (poset V) U i"
@@ -1038,7 +1038,7 @@ next
       ultimately show ?thesis
         by linarith
     qed
-    moreover have "inf (OVA.poset V) U \<in> OVA.elems V"
+    moreover have "inf (poset V) U \<in> OVA.elems V"
       by (smt (verit, best) calculation(4) inf_def is_inf_def someI_ex) 
     ultimately show "(\<exists>i. is_inf (poset V) U i) \<and> inf (poset V) U \<in> elems V"
       by blast 
@@ -1050,10 +1050,10 @@ qed
 definition ext_local :: "('A, 'a) OVA \<Rightarrow> ('A Open, ('a \<times> 'a,'a) PosetMap) Function 
   \<Rightarrow> (('A, 'a) Valuation) Semigroup" where
 "ext_local V f = \<lparr> mult =
-  \<lparr> PosetMap.dom = OVA.poset V \<times>\<times> OVA.poset V, 
-    cod = OVA.poset V,
+  \<lparr> PosetMap.dom = poset V \<times>\<times> poset V, 
+    cod = poset V,
     func = { ((a, b), (d a \<union> d b, (f \<cdot> (d a \<union> d b)) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b))))
-            |a b . (a,b) \<in> el (OVA.poset V \<times>\<times> OVA.poset V) } \<rparr>\<rparr>" 
+            |a b . (a,b) \<in> el (poset V \<times>\<times> poset V) } \<rparr>\<rparr>" 
 
 lemma d_ext_local : 
   fixes V :: "('A, 'a) OVA"  and a b :: "('A,'a) Valuation" and op :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
@@ -1061,11 +1061,11 @@ lemma d_ext_local :
   shows "d (mul (ext_local V f) a b) = d a \<union> d b"
 proof -
   define "comb'" where "comb' = mult (ext_local V f)"
-  have "Poset.dom comb' = OVA.poset V \<times>\<times> OVA.poset V" using comb'_def ext_local_def [where ?V=V and
+  have "Poset.dom comb' = poset V \<times>\<times> poset V" using comb'_def ext_local_def [where ?V=V and
         ?f=f]
     by simp            
   moreover have 1 : "Poset.func comb' =  { ((a, b), (d a \<union> d b, (f \<cdot> (d a \<union> d b)) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b))))
-            |a b . (a,b) \<in> el (OVA.poset V \<times>\<times> OVA.poset V) }"  using comb'_def ext_local_def [where ?V=V and
+            |a b . (a,b) \<in> el (poset V \<times>\<times> poset V) }"  using comb'_def ext_local_def [where ?V=V and
         ?f=f]
     by simp
   moreover have 2 : "(a,b) \<in> el (Poset.dom comb')"  using comb'_def ext_local_def [where ?V=V and ?f=f]
@@ -1085,11 +1085,11 @@ lemma e_ext_local :
   shows "e (mul (ext_local V f) a b) =  f \<cdot> (d a \<union> d b) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b))"
 proof -
   define "comb'" where "comb' = mult (ext_local V f)"
-  have "Poset.dom comb' = OVA.poset V \<times>\<times> OVA.poset V" using comb'_def ext_local_def [where ?V=V and
+  have "Poset.dom comb' = poset V \<times>\<times> poset V" using comb'_def ext_local_def [where ?V=V and
         ?f=f]    
     by simp            
   moreover have 1 : "Poset.func comb' =  { ((a, b), (d a \<union> d b, (f \<cdot> (d a \<union> d b)) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b))))
-            |a b . (a,b) \<in> el (OVA.poset V \<times>\<times> OVA.poset V) }"  using comb'_def ext_local_def [where ?V=V and
+            |a b . (a,b) \<in> el (poset V \<times>\<times> poset V) }"  using comb'_def ext_local_def [where ?V=V and
         ?f=f]
     by simp
   moreover have 2 : "(a,b) \<in> el (Poset.dom comb')"  using comb'_def ext_local_def [where ?V=V and ?f=f]
@@ -1114,14 +1114,14 @@ lemma ext_local_elem :
 shows "mul (ext_local V f) a b \<in> elems V" 
 proof -
   define "comb'" where "comb' = mult (ext_local V f)"
-  have "Poset.dom comb' = OVA.poset V \<times>\<times> OVA.poset V" using comb'_def ext_local_def [where ?V=V and
+  have "Poset.dom comb' = poset V \<times>\<times> poset V" using comb'_def ext_local_def [where ?V=V and
         ?f=f]
     by simp        
-  moreover have  "Poset.cod comb' = OVA.poset V" using comb'_def ext_local_def [where ?V=V and
+  moreover have  "Poset.cod comb' = poset V" using comb'_def ext_local_def [where ?V=V and
         ?f=f]
     by simp       
   moreover have  "Poset.func comb' =  { ((a, b), (d a \<union> d b, (f \<cdot> (d a \<union> d b)) \<star> (e (ext V (d a \<union> d b) a), e (ext V (d a \<union> d b) b))))
-            |a b . (a,b) \<in> el (OVA.poset V \<times>\<times> OVA.poset V) }"  using comb'_def ext_local_def [where ?V=V and
+            |a b . (a,b) \<in> el (poset V \<times>\<times> poset V) }"  using comb'_def ext_local_def [where ?V=V and
         ?f=f]
     by simp
   moreover have "Poset.valid_map (f \<cdot> (d a \<union> d b))"  using assms
@@ -1197,7 +1197,7 @@ next
   then show ?case 
   proof -
     define "U" where "U = d a \<union> d b \<union> d c"
-    have "a \<in> OVA.elems V \<and> b \<in> OVA.elems V \<and> c \<in> OVA.elems V"
+    have "a \<in> elems V \<and> b \<in> elems V \<and> c \<in> elems V"
       using "2"(1) "2"(2) "2"(3) by blast 
     moreover have "d (comb' a b) = d a \<union> d b"
       using "2"(1) "2"(2) comb'_def d_ext_local by blast 
@@ -1332,28 +1332,7 @@ lemma up_down_le_down_up :
   and C_le_B : "C \<subseteq> d b" and B_le_A : "d b \<subseteq> A" and C_le_B' : "C \<subseteq> B'" and B'_le_A : "B' \<subseteq> A"
   and b_el : "b \<in> elems V"
 shows "local_le V B' (res V B' (ext V A b)) (ext V B' (res V C b))"
-proof -
-  have "B' = d (res V B' (ext V A b))"
-    by (metis A_open B'_le_A B'_open B_le_A V_valid b_el d_ext d_res ext_elem) 
-  moreover have "B' = d (ext V B' (res V C b))"
-    by (metis B'_open C_le_B C_le_B' C_open V_valid b_el d_ext d_res res_elem)
-  moreover have "res V B' (ext V A b) =
-    res V B' (res V (B \<union> B') (ext V A (ext V (B \<union> B') b)))" using res_functorial_trans ext_functorial_trans
-    by (smt (verit, del_insts) A_open B'_le_A B'_open B_def B_le_A Prealgebra.valid_space V_valid b_el d_elem_is_open d_ext dual_order.eq_iff ext_elem inf_sup_ord(3) le_supI2 sup_least valid_prealgebra valid_union2)
-  moreover have "... = res V B' (ext V (B \<union> B') b)" using galois_insertion
-    by (metis (no_types, lifting) A_open B'_le_A B'_open B_def B_le_A Prealgebra.valid_space V_valid b_el d_elem_is_open d_ext ext_elem inf_sup_ord(3) sup.idem sup.mono valid_prealgebra valid_union2) 
-  moreover have "le V (res V B' (ext V (B \<union> B') b)) (ext V B' (res V C (res V B' (ext V (B \<union> B') b))))" 
-    using galois_closure_extensive [where ?V=V and ?B=C and ?a="res V B' (ext V (B \<union> B') b)"] le_eq_local_le [where ?V=V]
-    by (smt (verit, best) A_open B'_le_A B'_open B_le_A C_le_B' C_open V_valid b_el calculation(3) calculation(4) d_ext d_res ext_elem res_elem)
-  moreover have "ext V B' (res V C (res V B' (ext V (B \<union> B') b))) = ext V B' (res V C (ext V (B \<union> B') b))" using res_functorial_trans
-    by (metis (no_types, lifting) B'_open B_def C_le_B' C_open Prealgebra.valid_space V_valid b_el d_elem_is_open d_ext ext_elem sup.cobounded1 sup_commute valid_prealgebra valid_union2)
-  moreover have "... = ext V B' (res V C (res V B (ext V (B \<union> B') b)))" using res_functorial_trans
-    by (metis (no_types, lifting) B'_open B_def C_le_B C_open Prealgebra.valid_space V_valid b_el d_elem_is_open d_ext ext_elem sup.cobounded1 valid_prealgebra valid_union2) 
-  moreover have "... = ext V B' (res V C b)"
-    by (metis B'_open B_def Prealgebra.valid_space V_valid b_el d_elem_is_open galois_insertion sup.cobounded1 valid_prealgebra valid_union2) 
-  ultimately show ?thesis
-    by (metis A_open B'_le_A B'_open B_le_A C_le_B' C_open V_valid b_el d_ext ext_elem galois_closure_extensive res_elem)
-qed
+  by (smt (verit, del_insts) A_open B'_le_A B'_open B_le_A C_le_B C_le_B' C_open V_valid b_el d_elem_is_open d_ext d_res ext_elem galois_insertion id_le_res intermediate_extension res_elem res_functorial_trans valid_le)
 
 lemma local_mono_ext_comm_imp_laxity:
   fixes V :: "('A, 'a) OVA" and f :: "('A Open, ('a \<times> 'a,'a) PosetMap) Function"
@@ -2025,8 +2004,8 @@ proof -
 lemma laxity2 :
   fixes V :: "('A,'a) OVA" and B B' :: "'A Open"  and a a' :: "('A, 'a) Valuation"
   assumes V_valid : "valid V"
-  and B_open :"B \<in> opens (space V)"  and B_le_A : "B \<subseteq> d a"
-  and B_open :"B' \<in> opens (space V)"  and B'_le_A' : "B' \<subseteq> d a'"
+  and B_open :"B \<in> opens (space V)" and B_le_A : "B \<subseteq> d a"
+  and B_open :"B' \<in> opens (space V)" and B'_le_A' : "B' \<subseteq> d a'"
   and a_el : "a \<in> elems V"
   and a'_elem :  "a' \<in> elems V"
 shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" 
