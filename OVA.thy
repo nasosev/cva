@@ -910,27 +910,21 @@ proof
   show "Poset.valid (poset V)"
     using V_valid by (metis OVA.valid_welldefined valid_gc)
 next
-  show "(\<forall> U \<subseteq> el (poset V). \<exists> i . is_inf (poset V) U i)"
-  proof safe
+  show "\<forall>U\<subseteq>OVA.elems V. (\<exists>i. is_inf (OVA.poset V) U i) \<and> Poset.inf (OVA.poset V) U \<in> OVA.elems V"
+  proof (rule allI, rule impI)
     fix U
     assume U: "U \<subseteq> elems V"
 
     define "d_U" where "d_U = \<Union> (d ` U)"
     define "ex_U" where "ex_U = ((e o ex d_U) ` U)"
-    define "some_e_U" where "some_e_U = Poset.inf (F (d_U)) ex_U"
+    define "e_U" where "e_U = Poset.inf (F (d_U)) ex_U"
 
     have "d_U \<in> opens (space V)"
       by (smt (verit, best) Prealgebra.valid_space U V_valid d_U_def image_subsetI d_elem_is_open subsetD valid_prealgebra valid_union)
     moreover have "ex_U \<subseteq> el (F (d_U))"
       by (smt (verit) Sup_upper UN_subset_iff Union_least F_def \<open>U \<subseteq> elems V\<close> calculation comp_apply d_U_def e_ext ex_U_def ex_def image_subsetI in_mono d_elem_is_open V_valid)
-    moreover have "some_e_U \<noteq> None" using Poset.complete_inf_not_none
-      using calculation(1) calculation(2) local_completeness some_e_U_def F_def V_valid
-      by metis
-
-    obtain e_U where "some_e_U = Some e_U" using \<open>some_e_U \<noteq> None\<close> by auto
-  
     moreover have "e_U \<in> el (F d_U)"
-      by (metis (mono_tags, lifting) \<open>some_e_U \<noteq> None\<close> calculation(3) inf_def option.inject someI_ex some_e_U_def)
+      using calculation(1) calculation(2) e_U_def inf_el local_completeness by blast 
     define "i" where "i = (d_U, e_U)"
     moreover have "i \<in> elems V"
       by (metis F_def \<open>e_U \<in> el (F d_U)\<close> calculation(1) raw_elem_is_elem i_def V_valid)
@@ -953,13 +947,13 @@ next
         moreover have "Poset.is_complete (F (d_U))"
           using \<open>d_U \<in> opens (Prealgebra.space (prealgebra V))\<close> local_completeness by blast 
         moreover have "Poset.is_inf (F (d_U)) ex_U e_U" using ex_U_def local_completeness
-          by (metis \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> \<open>some_e_U = Some e_U\<close> calculation(3) some_e_U_def some_inf_is_inf)
+          by (smt (verit) \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> calculation(4) e_U_def inf_is_glb inf_smaller is_inf_def)
         moreover have "d i = d_U \<and> d (ex d_U u) = d_U"
           using U V_valid \<open>d_U \<in> opens (OVA.space V)\<close> calculation(1) calculation(2) ex_def i_def by auto 
         moreover have "local_le V (d_U) i (ex d_U u)"
           using F_def \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> calculation(1) calculation(3)
             calculation(5) calculation(6) ex_U_def i_def inf_smaller
-          by (smt (verit, del_insts) comp_apply image_iff local_le_def snd_conv) 
+          by (simp add: is_inf_def local_le_def)
         moreover have "d u = d (pr (d u) i)"
           using U V_valid \<open>i \<in> OVA.elems V\<close> calculation(1) calculation(2) calculation(6) d_elem_is_open d_res pr_def by blast 
         moreover have "local_le V (d u) (pr (d u) i) u"  using res_ext_adjunction [where ?V=V]
@@ -1023,7 +1017,7 @@ next
           moreover have "e_U \<in> el (F d_U)"
             by (simp add: \<open>e_U \<in> el (F d_U)\<close>)
           moreover have "is_inf (F d_U) ex_U e_U"
-            using \<open>Poset.valid (F d_U)\<close> \<open>e_U \<in> el (F d_U)\<close> \<open>ex_U \<subseteq> el (F d_U)\<close> \<open>some_e_U = Some e_U\<close> some_e_U_def some_inf_is_inf by fastforce
+            by (smt (verit, del_insts) \<open>d_U \<in> opens (OVA.space V)\<close> calculation(2) calculation(4) e_U_def inf_is_glb inf_smaller is_inf_def local_completeness) 
           moreover have z_U_is_lb : "\<forall> v \<in> U . Poset.le (F d_U) (e (res V d_U z)) (e (ex d_U v))"
             by (metis (no_types, lifting) F_def V_valid \<open>\<forall>u\<in>U. OVA.le V i u\<close> \<open>\<forall>v\<in>U. local_le V d_U z_U (ex d_U v)\<close> \<open>\<forall>v\<in>U. v \<in> OVA.elems V\<close> \<open>d_U \<in> opens (OVA.space V)\<close> \<open>d_U \<subseteq> d z\<close> \<open>i \<in> OVA.elems V\<close> \<open>z \<in> OVA.elems V\<close> d_antitone d_ext d_res ex_def fst_conv i_def local_le_def valid_gc_poset valid_prealgebra z_U_def)
           moreover have "\<forall> u \<in> ex_U. Poset.le (F d_U) (e (res V d_U z)) u"  using z_U_is_lb
@@ -1031,7 +1025,7 @@ next
           moreover have "Poset.le_rel (F d_U) \<subseteq> le_rel (F d_U)"
             by simp
           ultimately show ?thesis
-            by (simp add: inf_is_glb)
+            by (simp add: \<open>d_U \<in> opens (OVA.space V)\<close> e_U_def inf_is_glb local_completeness) 
         qed
         moreover have "Poset.le (poset V) z i" using le_eq_local_le [where ?V=V]
           by (smt (verit, del_insts) F_def V_valid \<open>d i \<subseteq> d z\<close> \<open>i \<in> OVA.elems V\<close> \<open>z \<in> OVA.elems V\<close> calculation(10) calculation(18) d_res elem_le_wrap fst_conv i_def local_le_def snd_conv)
@@ -1044,8 +1038,10 @@ next
       ultimately show ?thesis
         by linarith
     qed
-    show "\<exists>i. is_inf (OVA.poset V) U i"
-      using \<open>is_inf (OVA.poset V) U i\<close> by blast 
+    moreover have "inf (OVA.poset V) U \<in> OVA.elems V"
+      by (smt (verit, best) calculation(4) inf_def is_inf_def someI_ex) 
+    ultimately show "(\<exists>i. is_inf (poset V) U i) \<and> inf (poset V) U \<in> elems V"
+      by blast 
   qed
 qed
 

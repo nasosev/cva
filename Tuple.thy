@@ -2012,7 +2012,7 @@ proof -
     by simp
 qed
 
-lemma  rel_comb_is_int_e :
+lemma rel_comb_is_int_e :
   fixes T :: "('A, 'x) TupleSystem" and a b :: "('A,'x) Relation"
   defines "R \<equiv> rel_ova T" 
   assumes T_valid : "valid T"

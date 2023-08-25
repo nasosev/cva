@@ -95,10 +95,10 @@ definition join :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 "join V a b = Poset.join (poset V) a b"
 
 definition inf :: "('A,'a) CVA \<Rightarrow> (('A, 'a) Valuation) set \<Rightarrow> ('A, 'a) Valuation" where
-"inf V U = Poset.inf' (poset V) U"
+"inf V U = Poset.inf (poset V) U"
 
 definition sup :: "('A,'a) CVA \<Rightarrow> (('A, 'a) Valuation) set \<Rightarrow> ('A, 'a) Valuation" where
-"sup V U = Poset.sup' (poset V) U"
+"sup V U = Poset.sup (poset V) U"
 
 (* Properties *)
 
@@ -291,7 +291,7 @@ proof -
   define "U" where "U = {b, b'}" 
   moreover have "U \<subseteq> elems V"
     using U_def assms(5) assms(4) by blast
-  have "join V b b' = sup V U" unfolding U_def sup_def Poset.sup'_def join_def Poset.join_def
+  have "join V b b' = sup V U" unfolding U_def sup_def Poset.sup_def join_def Poset.join_def
     by force 
   moreover have "{par V a b, par V a b'} = {par V a u | u . u \<in> U}" using U_def 
     by blast
@@ -300,11 +300,11 @@ proof -
   moreover have "{seq V b a, seq V b' a} = {seq V u a | u . u \<in> U}" using U_def 
     by blast
   moreover have "join V (par V a b) (par V a b') = sup V {par V a u | u . u \<in> U}"
-    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(3) sup'_def) 
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(3))
   moreover have "join V (seq V a b) (seq V a b') = sup V {seq V a u | u . u \<in> U}"
-    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(4) sup'_def)
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(4))
   moreover have "join V (seq V b a) (seq V b' a) = sup V {seq V u a | u . u \<in> U}"
-    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(5) sup'_def)
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(5))
   ultimately show ?thesis using is_quantalic_def [where ?V=V ]
     using \<open>U \<subseteq> CVA.elems V\<close> assms(2) assms(3) by presburger
 qed
@@ -511,13 +511,13 @@ shows "hoare V p (bot V) q"
 proof -
   have "seq V p (bot V) = sup V {seq V p u | u.  u \<in> {}}" using is_quantalic_def [where ?V=V]
   proof -
-    have f1: "\<And>c. sup' (CVA.poset (c::('A, 'a) CVA)) {} = CVA.bot c"
+    have f1: "\<And>c. sup (CVA.poset (c::('A, 'a) CVA)) {} = CVA.bot c"
       by (simp add: CVA.bot_def Poset.bot_def)
-    have f2: "\<And>p P. p \<notin> CVA.elems V \<or> \<not> P \<subseteq> CVA.elems V \<or> sup' (CVA.poset V) {seq V p pa |pa. pa \<in> P} = seq V p (sup' (CVA.poset V) P)"
+    have f2: "\<And>p P. p \<notin> CVA.elems V \<or> \<not> P \<subseteq> CVA.elems V \<or> sup (CVA.poset V) {seq V p pa |pa. pa \<in> P} = seq V p (sup (CVA.poset V) P)"
       by (smt (z3) CVA.sup_def V_quantalic \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
     have "p \<in> CVA.elems V \<and> {} \<subseteq> CVA.elems V"
       using assms(3) by blast
-    then have "sup' (CVA.poset V) {seq V p pa |pa. pa \<in> {}} = seq V p (CVA.bot V)"
+    then have "sup (CVA.poset V) {seq V p pa |pa. pa \<in> {}} = seq V p (CVA.bot V)"
       using f2 f1 by presburger
     then show ?thesis
       by (simp add: CVA.sup_def)
