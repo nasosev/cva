@@ -373,10 +373,10 @@ lemma discrete_valid : "valid discrete"
 (* Infima and suprema *)
 
 definition is_inf :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"is_inf P U i \<equiv>  U \<subseteq> el P \<and> i \<in> el P \<and> ((\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i))"
+"is_inf P U i \<equiv> U \<subseteq> el P \<and> i \<in> el P \<and> (\<forall>u\<in>U. le P i u) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P z u) \<longrightarrow> le P z i)"
 
 definition is_sup :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> 'a \<Rightarrow> bool" where
-"is_sup P U s \<equiv> U \<subseteq> el P \<and> s \<in> el P \<and> (s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z))"
+"is_sup P U s \<equiv> U \<subseteq> el P \<and> s \<in> el P \<and> (\<forall>u\<in>U. le P u s) \<and> (\<forall>z \<in> el P. (\<forall>u\<in>U. le P u z) \<longrightarrow> le P s z)"
 
 abbreviation is_bot :: "'a Poset \<Rightarrow> 'a \<Rightarrow> bool" where
 "is_bot P b \<equiv> b \<in> el P \<and> (\<forall>p \<in> el P. le P b p)"
@@ -489,26 +489,111 @@ lemma join_property : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrigh
   by (smt (verit, ccfv_threshold) insert_iff singleton_iff)
 
 lemma complete_equiv_cocomplete : "is_complete P = is_cocomplete P"
-  oops
-(*
 proof (safe, goal_cases)
   case 1
   then show ?case 
-  proof - 
+  proof (simp add: is_cocomplete_def)
     assume "is_complete P"
-    fix U
-    define "s" where "s = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
-    
-    have "s = sup P U" unfolding sup_def is_sup_def  sorry
-
-    show "is_cocomplete P" sorry
+    show "valid P \<and> (\<forall>U\<subseteq>el P. (\<exists>i. is_sup P U i) \<and> Poset.sup P U \<in> el P) " 
+    proof (rule conjI, goal_cases)
+      case 1
+      then show ?case
+        using \<open>is_complete P\<close> is_complete_def by blast 
+    next
+      case 2
+      then show ?case 
+      proof (rule allI, rule impI)
+        fix U
+        assume "U \<subseteq> el P"
+        define "s" where "s = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
+        have "is_sup P U s"
+        proof (simp add: is_sup_def, safe, goal_cases)
+          case (1 x)
+          then show ?case
+            using \<open>U \<subseteq> el P\<close> by blast 
+        next
+          case 2
+          then show ?case
+            by (simp add: "1" inf_el s_def) 
+        next
+          case (3 u)
+          then show ?case
+            by (simp add: "1" inf_is_glb s_def) 
+        next
+          case (4 u)
+          then show ?case
+            using \<open>U \<subseteq> el P\<close> by blast 
+        next
+          case (5 u)
+          then show ?case
+            by (simp add: "1" inf_el s_def) 
+        next
+          case (6 z)
+          then show ?case
+            by (smt (verit) "1" inf_smaller is_complete_def mem_Collect_eq s_def subset_eq) 
+        next
+          case (7 z)
+          then show ?case 
+            by (simp add: "1" inf_el s_def) 
+        qed
+        then show "(\<exists>i. is_sup P U i) \<and> Poset.sup P U \<in> el P"
+          by (smt (verit, best) is_sup_def someI_ex sup_def)
+      qed
     qed
-next
-  case 2
-  then show ?case sorry
+  qed
+    next
+ case 2
+  then show ?case 
+  proof (simp add: is_complete_def)
+    assume "is_cocomplete P"
+    show "valid P \<and> (\<forall>U\<subseteq>el P. (\<exists>i. is_inf P U i) \<and> Poset.inf P U \<in> el P)"
+    proof (rule conjI, goal_cases)
+      case 1
+      then show ?case
+        using \<open>is_cocomplete P\<close> is_cocomplete_def by blast 
+    next
+      case 2
+      then show ?case 
+      proof (rule allI, rule impI)
+        fix U
+        assume "U \<subseteq> el P"
+        define "i" where "i = sup P {a \<in> el P . (\<forall> u \<in> U . le P a u)}"
+        have "is_inf P U i"
+        proof (simp add: is_inf_def, safe, goal_cases)
+          case (1 x)
+          then show ?case
+            using \<open>U \<subseteq> el P\<close> by blast 
+        next
+          case 2
+          then show ?case
+            by (simp add: \<open>is_cocomplete P\<close> i_def sup_el)
+        next
+          case (3 u)
+          then show ?case
+            by (simp add: \<open>is_cocomplete P\<close> i_def sup_is_lub)
+        next
+          case (4 u)
+          then show ?case
+            by (simp add: \<open>is_cocomplete P\<close> i_def sup_el)
+        next
+          case (5 u)
+          then show ?case
+            using \<open>U \<subseteq> el P\<close> by blast
+        next
+          case (6 z)
+          then show ?case
+            by (smt (verit, ccfv_SIG) \<open>is_cocomplete P\<close> i_def mem_Collect_eq subset_iff sup_greater) 
+        next
+          case (7 z)
+          then show ?case
+            by (simp add: \<open>is_cocomplete P\<close> i_def sup_el) 
+        qed
+        then show "(\<exists>i. is_inf P U i) \<and> Poset.inf P U \<in> el P"
+          by (smt (verit, best) inf_def is_inf_def someI_ex) 
+      qed
+    qed
+  qed
 qed
-*)
-
 
 (* Constants *)
 
@@ -518,9 +603,17 @@ definition top :: "'a Poset \<Rightarrow> 'a" where
 definition bot :: "'a Poset \<Rightarrow> 'a" where
 "bot P = sup P {} "
 
-(*
-lemma top_max : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> le P a (top P)" 
-*)
+lemma top_max : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> le P a (top P)"
+  by (simp add: sup_greater top_def) 
+
+lemma bot_min : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> le P (bot P) a"
+  by (simp add: bot_def sup_is_lub)
+
+lemma top_as_inf : "is_complete P \<Longrightarrow> is_cocomplete P \<Longrightarrow> top P = inf P {}"
+  oops
+
+lemma bot_as_inf : "is_complete P \<Longrightarrow> is_cocomplete P \<Longrightarrow> top P = inf P (el P)" 
+  oops
 
 (* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
 
@@ -529,7 +622,6 @@ definition lfp :: "('a , 'a) PosetMap \<Rightarrow> 'a \<Rightarrow> 'a" where
 
 definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a \<Rightarrow> 'a" where
 "gfp f a \<equiv> sup (cod f) {x \<in> el (dom f) . le (cod f) x (f \<star> x)}" 
-
 
 (* Powerset *)
 
@@ -595,92 +687,6 @@ next
     by (simp add: powerset_valid) 
 qed
 
-(*
-  case 1
-  then show ?case
-    by (simp add: powerset_valid) 
-next
-  case (2 U)
-  then show ?case 
-  proof -
-    fix U
-    assume "U \<subseteq> el (powerset X)"
-    define "i" where "i = (if U = {} then X else \<Inter> U)"
-    have "is_inf (powerset X) U i" 
-    proof (simp add: is_inf_def, safe, goal_cases)
-      case (1 x)
-      then show ?case
-        using \<open>U \<subseteq> el (powerset X)\<close> by blast 
-    next
-      case 2
-      then show ?case
-        by (metis Inter_subset \<open>U \<subseteq> el (powerset X)\<close> i_def in_mono order_refl powerset_el) 
-    next
-      case (3 u)
-      then show ?case
-        by (metis Inter_lower equals0D i_def powerset_le) 
-    next
-      case (4 u)
-      then show ?case
-        by (metis Inf_lower \<open>U \<subseteq> el (powerset X)\<close> dual_order.trans empty_iff i_def in_mono powerset_el) 
-    next
-      case (5 u)
-      then show ?case
-        using \<open>U \<subseteq> el (powerset X)\<close> by blast 
-    next
-      case (6 z)
-      then show ?case
-        by (metis Inf_greatest \<open>U \<subseteq> el (powerset X)\<close> i_def powerset_el powerset_le subsetD) 
-    next
-      case (7 z)
-      then show ?case
-        by (metis Inter_subset \<open>U \<subseteq> el (powerset X)\<close> i_def powerset_el subset_iff) 
-    qed
-    show "\<exists>i. is_inf (powerset X) U i"
-      using \<open>is_inf (powerset X) U i\<close> by blast 
-  qed
-next
-  case (3 U)
-  then show ?case 
-  proof -
-    fix U
-    assume "U \<subseteq> el (powerset X)"
-    define "i" where "i = (if U = {} then X else \<Inter> U)"
-    have "is_inf (powerset X) U i" 
-    proof (simp add: is_inf_def, safe, goal_cases)
-      case (1 x)
-      then show ?case
-        using \<open>U \<subseteq> el (powerset X)\<close> by blast 
-    next
-      case 2
-      then show ?case
-        by (metis Inter_subset \<open>U \<subseteq> el (powerset X)\<close> i_def in_mono order_refl powerset_el) 
-    next
-      case (3 u)
-      then show ?case
-        by (metis Inter_lower equals0D i_def powerset_le) 
-    next
-      case (4 u)
-      then show ?case
-        by (metis Inf_lower \<open>U \<subseteq> el (powerset X)\<close> dual_order.trans empty_iff i_def in_mono powerset_el) 
-    next
-      case (5 u)
-      then show ?case
-        using \<open>U \<subseteq> el (powerset X)\<close> by blast 
-    next
-      case (6 z)
-      then show ?case
-        by (metis Inf_greatest \<open>U \<subseteq> el (powerset X)\<close> i_def powerset_el powerset_le subsetD) 
-    next
-      case (7 z)
-      then show ?case
-        by (metis Inter_subset \<open>U \<subseteq> el (powerset X)\<close> i_def powerset_el subset_iff) 
-    qed
-    show "Poset.inf (powerset X) U \<in> el (powerset X)"
-      by (smt (verit, ccfv_threshold) \<open>is_inf (powerset X) U i\<close> inf_def is_inf_def someI_ex) 
-  qed
-qed
-*)
 (* Direct image *)
 
 definition direct_image :: "('x, 'y) Function \<Rightarrow> ('x set, 'y set) PosetMap" where
