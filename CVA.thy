@@ -107,10 +107,17 @@ definition is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_complete V \<equiv> Poset.is_complete (OVA.poset (seq_algebra V)) \<and> Poset.is_cocomplete (OVA.poset (seq_algebra V))"
 
 definition is_quantalic :: "('A,'a) CVA \<Rightarrow> bool" where
-"is_quantalic V \<equiv> \<forall> a U . U \<subseteq> elems V \<longrightarrow> a \<in> elems V \<longrightarrow>
+"is_quantalic V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> a \<in> elems V \<longrightarrow>
   par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
   seq V a (sup V U) = sup V {seq V a u | u . u \<in> U} \<and>
-  seq V (sup V U) a = sup V {seq V u a | u . u \<in> U}"
+  seq V (sup V U) a = sup V {seq V u a | u . u \<in> U})"
+
+(* Constants *)
+definition top :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation" where
+"top V = Poset.top (poset V)"
+
+definition bot :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation" where
+"bot V = Poset.bot (poset V)"
 
 (* Validity *)
 
@@ -252,41 +259,73 @@ lemma valid_neut_par_elem:
   shows "neut_par V A \<in> elems V"
   by (metis A_open CVA.valid_welldefined V_valid neutral_is_element valid_elems)
 
+(* Lattice and quantale *) 
 
 lemma quantalic_par_com :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
-  assumes "valid V" and "is_complete V" and "is_quantalic V"
+  assumes "valid V" and "is_quantalic V"
   and "a \<in> elems V" and "U \<subseteq> elems V"
-shows "par V (sup V U) a = sup V {par V u a | u . u \<in> U}"
+shows "par V (sup V U) a = sup V {par V u a | u . u \<in> U}" 
 proof -
   have "par V (sup V U) a = par V a (sup V U)"
-    by (metis CVA.is_complete_def CVA.sup_def assms(1) assms(2) assms(4) assms(5) sup_el valid_par_comm) 
+    by (metis (no_types, opaque_lifting) CVA.is_complete_def CVA.sup_def assms(1) assms(2) assms(3) assms(4) is_quantalic_def sup_el valid_par_comm)
   moreover have "{par V u a | u . u \<in> U} = {par V a u | u . u \<in> U}"
-    using assms(1) assms(4) assms(5) valid_par_comm by blast
+    using assms(1) assms(3) assms(4) valid_par_comm by blast
   ultimately show ?thesis
   proof -
     have "par V a (CVA.sup V U) = CVA.sup V {par V a p |p. p \<in> U}"
-      using assms(3) assms(4) assms(5) is_quantalic_def by blast
+      using assms(3) assms(4) assms(2) is_quantalic_def by blast
     then show ?thesis
       using \<open>par V (CVA.sup V U) a = par V a (CVA.sup V U)\<close> \<open>{par V u a |u. u \<in> U} = {par V a u |u. u \<in> U}\<close> by presburger
   qed 
 qed
 
-(*
-lemma binary_quantalic : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> is_quantalic V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> b' \<in> elems V
- \<Longrightarrow> par V a (join V b b') = join V (par V a b) (par V a b')"
+lemma binary_quantalic :
+  fixes V :: "('A, 'a) CVA" and a b b' :: "('A, 'a) Valuation"
+  assumes "valid V" and "is_quantalic V"
+  and "a \<in> elems V" and "b \<in> elems V" and "b' \<in> elems V" 
+shows "par V a (join V b b') = join V (par V a b) (par V a b')
+\<and> seq V a (join V b b') = join V (seq V a b) (seq V a b')
+\<and> seq V (join V b b') a = join V (seq V b a) (seq V b' a)"
 proof -
-  assume "valid V" 
-  define "U" where "U = {b,b'}" 
+  define "U" where "U = {b, b'}" 
+  moreover have "U \<subseteq> elems V"
+    using U_def assms(5) assms(4) by blast
   have "join V b b' = sup V U" unfolding U_def sup_def Poset.sup'_def join_def Poset.join_def
     by force 
-  moreover have "join V (par V a b) (par V a b') = sup V {par V a b, par V a b'}"
-    by (simp add: CVA.join_def CVA.sup_def Poset.join_def sup'_def) 
-  moreover have "{b,b'} \<subseteq> elems V" 
-  moreover have "par V a (sup V U) = sup V {par V a u | u . u \<in> U}" 
+  moreover have "{par V a b, par V a b'} = {par V a u | u . u \<in> U}" using U_def 
+    by blast
+  moreover have "{seq V a b, seq V a b'} = {seq V a u | u . u \<in> U}" using U_def 
+    by blast
+  moreover have "{seq V b a, seq V b' a} = {seq V u a | u . u \<in> U}" using U_def 
+    by blast
+  moreover have "join V (par V a b) (par V a b') = sup V {par V a u | u . u \<in> U}"
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(3) sup'_def) 
+  moreover have "join V (seq V a b) (seq V a b') = sup V {seq V a u | u . u \<in> U}"
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(4) sup'_def)
+  moreover have "join V (seq V b a) (seq V b' a) = sup V {seq V u a | u . u \<in> U}"
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(5) sup'_def)
   ultimately show ?thesis using is_quantalic_def [where ?V=V ]
+    using \<open>U \<subseteq> CVA.elems V\<close> assms(2) assms(3) by presburger
+qed
 
-*)
+lemma inf_elem : "is_complete V \<Longrightarrow> U \<subseteq> elems V \<Longrightarrow> inf V U \<in> elems V"
+  by (simp add: CVA.inf_def CVA.is_complete_def inf_el) 
+
+lemma sup_elem : "is_complete V \<Longrightarrow> U \<subseteq> elems V \<Longrightarrow> sup V U \<in> elems V"
+  by (simp add: CVA.is_complete_def CVA.sup_def sup_el)
+
+lemma meet_elem : "is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> meet V a b \<in> elems V"
+  by (simp add: CVA.is_complete_def CVA.meet_def meet_el)
+
+lemma join_elem : "is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> join V a b \<in> elems V"
+  by (simp add: CVA.is_complete_def CVA.join_def join_el)
+
+lemma top_elem : "is_complete V \<Longrightarrow> top V \<in> elems V"
+  by (simp add: CVA.is_complete_def CVA.top_def Poset.top_def sup_el)
+
+lemma bot_elem : "is_complete V \<Longrightarrow> bot V \<in> elems V"
+  by (simp add: CVA.bot_def CVA.is_complete_def Poset.bot_def sup_el) 
 
 (* Paper results *)
 
@@ -348,7 +387,6 @@ lemma neutral_collapse_strongly_neutral :
   and neutral_collapse : "neut_par V = neut_seq V"
 shows "is_strongly_neutral (par_algebra V) = is_strongly_neutral (seq_algebra V)"
   by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid fst_conv is_strongly_neutral_def neutral_collapse neutral_is_element valid_ext) 
-
 
 (* [Proposition 2, TMCVA] *)
 proposition comparitor :
@@ -463,6 +501,61 @@ proposition hoare_consequence_rule :
   and "le V p' p" and "le V q q'" and "hoare V p a q"
 shows "hoare V p' a q'"
   by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element valid_gc_poset valid_monotone valid_poset valid_reflexivity valid_semigroup valid_transitivity)  
+
+(*
+proposition hoare_failure_rule :
+  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and "p \<in> elems V" and "q \<in> elems V"
+shows "hoare V p (bot V) q" 
+proof -
+  have "seq V p (bot V) = sup V {seq V p u | u.  u \<in> {}}" using is_quantalic_def [where ?V=V]
+  proof -
+    have f1: "\<And>c. sup' (CVA.poset (c::('A, 'a) CVA)) {} = CVA.bot c"
+      by (simp add: CVA.bot_def Poset.bot_def)
+    have f2: "\<And>p P. p \<notin> CVA.elems V \<or> \<not> P \<subseteq> CVA.elems V \<or> sup' (CVA.poset V) {seq V p pa |pa. pa \<in> P} = seq V p (sup' (CVA.poset V) P)"
+      by (smt (z3) CVA.sup_def V_quantalic \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
+    have "p \<in> CVA.elems V \<and> {} \<subseteq> CVA.elems V"
+      using assms(3) by blast
+    then have "sup' (CVA.poset V) {seq V p pa |pa. pa \<in> {}} = seq V p (CVA.bot V)"
+      using f2 f1 by presburger
+    then show ?thesis
+      by (simp add: CVA.sup_def)
+  qed
+  moreover have "sup V {seq V p u | u.  u \<in> {}} = bot V"
+    by (simp add: CVA.bot_def CVA.sup_def Poset.bot_def) 
+  moreover have "le V (bot V) q"
+  ultimately show ?thesis
+  *)
+
+
+proposition hoare_choice_rule :
+  fixes V :: "('A, 'a) CVA" and p q a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and "p \<in> elems V" and "q \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+shows "hoare V p (join V a b) q = (hoare V p a q \<and> hoare V p b q)" 
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case 
+  proof -
+    have "le V (seq V p (join V a b)) q"
+      using "1" by blast 
+    moreover have "seq V p (join V a b) = join V (seq V p a) (seq V p b)"
+      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
+    moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
+      using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
+      by (metis (no_types, opaque_lifting) CVA.is_complete_def CVA.join_def CVA.valid_welldefined V_quantalic V_valid assms(3) assms(5) assms(6) calculation(2) comb_is_element is_quantalic_def)
+    moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
+      by (smt (verit, del_insts) "1" V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) calculation(3) is_quantalic_def join_elem valid_le_transitive valid_seq_elem) 
+    ultimately show ?thesis
+      by force
+  qed
+next
+  case 2
+  then show ?case
+    by (smt (verit, del_insts) CVA.is_complete_def CVA.join_def V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) binary_quantalic is_quantalic_def join_property valid_seq_elem) 
+qed
+
 
 (* Rely-guarantee logic rules: 
 

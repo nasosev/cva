@@ -474,6 +474,12 @@ proof -
     by (simp add: join_def sup_def)
 qed
 
+lemma sup'_greater : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> a \<in> U \<Longrightarrow> \<forall> u \<in> U. le P a (sup' P U)"
+  by (smt (verit, del_insts) is_cocomplete_def is_sup_def some_sup_is_sup sup'_def sup_def) 
+
+lemma inf'_smaller : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> a \<in> U \<Longrightarrow> \<forall> u \<in> U. le P (inf' P U) a"
+  by (metis complete_inf_exists inf'_def is_inf_def) 
+
 lemma complete_meet_is_inf : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> is_inf P {a, b} (meet P a b)"
   by (metis (mono_tags, lifting) complete_meet_is_some_inf inf_def meet_def option.simps(3) someI_ex)
 
@@ -486,11 +492,17 @@ lemma meet_smaller1 : "is_complete P \<Longrightarrow> a \<in> el P \<Longrighta
 lemma meet_smaller2 : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P (meet P a b) b"
   by (smt (verit, ccfv_threshold) complete_meet_is_inf insertCI is_inf_def)
 
+lemma meet_smaller : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P (meet P a b) a \<and> le P (meet P a b) b"
+  by (simp add: meet_smaller1 meet_smaller2)
+
 lemma join_greater1 : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P a (join P a b)"
   by (smt (verit) cocomplete_join_is_sup insertCI is_sup_def)
 
 lemma join_greater2 : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P b (join P a b)"
   by (smt (verit, ccfv_threshold) cocomplete_join_is_sup insertCI is_sup_def)
+
+lemma join_greater : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P a (join P a b) \<and> le P b (join P a b)"
+  by (simp add: join_greater1 join_greater2)
 
 lemma meet_el : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> meet P a b \<in> el P" 
 proof -
@@ -549,6 +561,18 @@ next
 qed
 *)
 
+
+(* Constants *)
+
+definition top :: "'a Poset \<Rightarrow> 'a" where
+"top P = sup' P (el P) "
+
+definition bot :: "'a Poset \<Rightarrow> 'a" where
+"bot P = sup' P {} "
+
+(*
+lemma top_max : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> le P a (top P)" 
+*)
 
 (* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
 
