@@ -488,6 +488,95 @@ lemma join_property : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrigh
   using cocomplete_join_is_sup is_sup_def
   by (smt (verit, ccfv_threshold) insert_iff singleton_iff)
 
+lemma inf_is_inf : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_inf P U (inf P U)"
+  by (metis complete_inf_exists inf_def someI_ex)
+
+lemma sup_is_sup : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_sup P U (sup P U)"
+  by (metis cocomplete_sup_exists sup_def someI_ex)
+
+lemma inf_as_sup : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
+  proof -
+    assume "is_complete P "
+    fix U 
+    assume "U \<subseteq> el P"
+    define "s" where "s = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
+    have "is_sup P U s"
+    proof (simp add: is_sup_def, safe, goal_cases)
+      case (1 x)
+      then show ?case
+        using \<open>U \<subseteq> el P\<close> by blast 
+    next
+      case 2
+      then show ?case
+        by (simp add: \<open>is_complete P\<close> inf_el s_def) 
+    next
+      case (3 u)
+      then show ?case
+        by (simp add: \<open>is_complete P\<close> inf_is_glb s_def) 
+    next
+      case (4 u)
+      then show ?case
+        using \<open>U \<subseteq> el P\<close> by blast 
+    next
+      case (5 u)
+      then show ?case
+        by (simp add: \<open>is_complete P\<close> inf_el s_def)
+    next
+      case (6 z)
+      then show ?case
+        by (smt (verit) \<open>is_complete P\<close> inf_smaller is_complete_def mem_Collect_eq s_def subset_eq) 
+    next
+      case (7 z)
+      then show ?case 
+        by (simp add: \<open>is_complete P\<close> inf_el s_def) 
+    qed
+    moreover have "sup P U = s"
+      by (smt (verit) Poset.sup_unique \<open>is_complete P\<close> calculation is_complete_def is_sup_def someI_ex sup_def)
+    thus "Poset.sup P U = Poset.inf P {a \<in> el P. \<forall>u\<in>U. le P u a}"
+      using s_def by blast 
+  qed
+
+lemma sup_as_inf : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> inf P U = sup P {a \<in> el P . (\<forall> u \<in> U . le P a u)}"
+   proof -
+    assume "is_cocomplete P "
+    fix U 
+    assume "U \<subseteq> el P"
+    define "i" where "i = sup P {a \<in> el P . (\<forall> u \<in> U . le P a u)}"
+    have "is_inf P U i"
+    proof (simp add: is_inf_def, safe, goal_cases)
+      case (1 x)
+      then show ?case
+        using \<open>U \<subseteq> el P\<close> by blast 
+    next
+      case 2
+      then show ?case
+        by (simp add: \<open>is_cocomplete P\<close> sup_el i_def) 
+    next
+      case (3 u)
+      then show ?case
+        by (simp add: \<open>is_cocomplete P\<close> sup_is_lub i_def) 
+    next
+      case (4 u)
+      then show ?case
+        by (simp add: \<open>is_cocomplete P\<close> i_def sup_el)
+    next
+      case (5 u)
+      then show ?case
+        using \<open>U \<subseteq> el P\<close> by auto
+    next
+      case (6 z)
+      then show ?case
+        by (smt (verit) \<open>is_cocomplete P\<close> sup_greater is_cocomplete_def mem_Collect_eq i_def subset_eq) 
+    next
+      case (7 z)
+      then show ?case 
+        by (simp add: \<open>is_cocomplete P\<close> sup_el i_def) 
+    qed
+    moreover have "inf P U = i"
+      by (smt (verit) Poset.inf_unique \<open>is_cocomplete P\<close> calculation is_cocomplete_def is_inf_def someI_ex inf_def)
+    thus "inf P U = sup P {a \<in> el P. \<forall>u\<in>U. le P a u}"
+      using i_def by blast 
+  qed
 
 lemma complete_equiv_cocomplete : "is_complete P = is_cocomplete P"
 proof (safe, goal_cases)
@@ -511,7 +600,7 @@ proof (safe, goal_cases)
         proof (simp add: is_sup_def, safe, goal_cases)
           case (1 x)
           then show ?case
-            using \<open>U \<subseteq> el P\<close> by blast 
+            using \<open>U \<subseteq> el P\<close> by blast
         next
           case 2
           then show ?case
@@ -523,7 +612,7 @@ proof (safe, goal_cases)
         next
           case (4 u)
           then show ?case
-            using \<open>U \<subseteq> el P\<close> by blast 
+            using \<open>U \<subseteq> el P\<close> by blast
         next
           case (5 u)
           then show ?case
@@ -596,13 +685,6 @@ proof (safe, goal_cases)
   qed
 qed
 
-
-lemma inf_as_sup : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
-  oops
-
-lemma sup_as_inf : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> inf P U = sup P {a \<in> el P . (\<forall> u \<in> U . le P a u)}"
-  oops
-
 (* Constants *)
 
 definition top :: "'a Poset \<Rightarrow> 'a" where
@@ -625,11 +707,49 @@ lemma bot_as_inf : "is_complete P \<Longrightarrow> bot P = inf P (el P)"
 
 (* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
 
-definition lfp :: "('a , 'a) PosetMap \<Rightarrow> 'a \<Rightarrow> 'a" where
-"lfp f a \<equiv> inf (cod f) {x \<in> el (dom f) . le (cod f) (f \<star> x) x}" 
+definition lfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
+"lfp f \<equiv> inf (cod f) {x \<in> el (dom f) . le (cod f) (f \<star> x) x}" 
 
-definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a \<Rightarrow> 'a" where
-"gfp f a \<equiv> sup (cod f) {x \<in> el (dom f) . le (cod f) x (f \<star> x)}" 
+definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
+"gfp f \<equiv> sup (cod f) {x \<in> el (dom f) . le (cod f) x (f \<star> x)}" 
+
+lemma lfp_is_el : "is_complete P \<Longrightarrow> valid_map f \<Longrightarrow> dom f = P \<Longrightarrow> cod f = P \<Longrightarrow> lfp f \<in> el P"
+  by (simp add: Poset.lfp_def inf_el)
+
+lemma gfp_is_el : "is_cocomplete P \<Longrightarrow> valid_map f \<Longrightarrow> dom f = P \<Longrightarrow> cod f = P \<Longrightarrow> gfp f \<in> el P"
+  by (simp add: Poset.gfp_def sup_el)
+
+(* Proof techniques *)
+
+lemma indirect_inequality_lower : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "le P a b = (\<forall> c \<in> el P . (le P b c \<longrightarrow> le P a c))"
+  by (smt (verit, best) P_valid assms(2) assms(3) valid_reflexivity valid_transitivity)
+
+lemma indirect_inequality_higher : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "le P a b = (\<forall> c \<in> el P . (le P c a \<longrightarrow> le P c b))"
+  by (smt (verit, best) P_valid assms(2) assms(3) valid_reflexivity valid_transitivity)
+
+lemma indirect_equality_lower : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "a = b = (\<forall> c \<in> el P . (le P b c = le P a c))"
+  by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
+
+lemma indirect_equality_higher : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "a = b = (\<forall> c \<in> el P . (le P c a = le P c b))"
+  by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
+
+lemma fusion : "todo" oops
 
 (* Powerset *)
 

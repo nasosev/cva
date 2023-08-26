@@ -277,7 +277,7 @@ proof -
   proof -
     have "par V a (CVA.sup V U) = CVA.sup V {par V a p |p. p \<in> U}"
       using assms(3) assms(4) assms(2) is_quantalic_def by blast
-    then show ?thesis
+    thus ?thesis
       using \<open>par V (CVA.sup V U) a = par V a (CVA.sup V U)\<close> \<open>{par V u a |u. u \<in> U} = {par V a u |u. u \<in> U}\<close> by presburger
   qed 
 qed
@@ -328,6 +328,68 @@ lemma top_elem : "is_complete V \<Longrightarrow> top V \<in> elems V"
 
 lemma bot_elem : "is_complete V \<Longrightarrow> bot V \<in> elems V"
   by (metis CVA.bot_def CVA.sup_def Poset.bot_def empty_subsetI sup_elem)
+
+(* Iteration *)      
+
+definition par_iter_map :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (('A, 'a) Valuation, ('A, 'a) Valuation) PosetMap" where
+"par_iter_map V x \<equiv> \<lparr> PosetMap.dom = poset V, cod = poset V, 
+                   func = { (a, join V (neut_par V (d x)) (par V x a)) | a.  a \<in> elems V} \<rparr>"
+
+definition seq_iter_map :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (('A, 'a) Valuation, ('A, 'a) Valuation) PosetMap" where
+"seq_iter_map V x \<equiv> \<lparr> PosetMap.dom = poset V, cod = poset V, 
+                   func = { (a, join V (neut_seq V (d x)) (seq V x a)) | a.  a \<in> elems V} \<rparr>"
+
+definition finite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"finite_par_iter V x = lfp (par_iter_map V x)"
+
+definition infinite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"infinite_par_iter V x = gfp (par_iter_map V x)"
+
+definition finite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"finite_seq_iter V x = lfp (seq_iter_map V x)"
+
+definition infinite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"infinite_seq_iter V x = gfp (seq_iter_map V x)"
+
+lemma valid_par_iter_map : 
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V" and a_elem : "x \<in> elems V"
+  shows "Poset.valid_map (par_iter_map V x)"
+proof (rule Poset.valid_mapI, goal_cases)
+  case 1
+  then show ?case
+    by (metis (mono_tags, lifting) CVA.valid_welldefined PosetMap.select_convs(1) V_valid par_iter_map_def valid_poset valid_semigroup) 
+next
+  case 2
+  then show ?case
+    by (metis (mono_tags, lifting) CVA.valid_welldefined PosetMap.select_convs(2) V_valid par_iter_map_def valid_poset valid_semigroup) 
+next
+  case (3 a b)
+  then show ?case 
+  proof -
+    have "PosetMap.dom (par_iter_map V a) = poset V \<and> PosetMap.cod (par_iter_map V a) = poset V"
+      by (simp add: par_iter_map_def) 
+    moreover have "a \<in> elems V"
+      by (smt (verit) "3" PosetMap.select_convs(3) fst_conv mem_Collect_eq par_iter_map_def) 
+    moreover have "b = join V (neut_par V (d x)) (par V x a)"
+      by (smt (verit, best) "3" PosetMap.select_convs(3) fst_conv mem_Collect_eq par_iter_map_def snd_eqD) 
+    moreover have "b \<in> elems V" using join_el [where ?P="poset V"]
+      by (metis CVA.valid_welldefined V_complete V_valid a_elem calculation(2) calculation(3) d_elem_is_open join_elem valid_neut_par_elem valid_par_elem) 
+    ultimately show ?thesis
+      by (simp add: par_iter_map_def) 
+  qed
+next
+  case (4 a b b')
+  then show ?case
+    by (smt (verit) Pair_inject PosetMap.simps(3) mem_Collect_eq par_iter_map_def) 
+next
+  case (5 a)
+  then show ?case
+    by (smt (verit, ccfv_threshold) PosetMap.select_convs(1) PosetMap.select_convs(3) mem_Collect_eq par_iter_map_def) 
+next
+  case (6 a a')
+  then show ?case  sorry
+    oops
 
 (* Paper results *)
 
@@ -426,6 +488,178 @@ qed
 
 (* Hoare logic rules: https://en.wikipedia.org/wiki/Hoare_logic#Rules *)
 
+proposition hoare_neut_seq_rule :
+  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "q \<in> elems V"
+  shows "hoare V p (neut_seq V (d p)) q = le V p q"
+  by (metis CVA.valid_welldefined V_valid assms(2) valid_neutral_law_right) 
+
+proposition hoare_neut_seq_rule' :
+  fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V"
+  shows "hoare V p (neut_seq V (d p)) p"
+  by (metis CVA.valid_welldefined V_valid assms(2) valid_le_reflexive valid_neutral_law_right)
+
+proposition hoare_antitony_rule :
+  fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "a \<in> elems V" and "b \<in> elems V"
+  and "d a = d b" (* This is added for CVAs. Alternatively we could remove this cond. and have a weaker conclusion *)
+  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . (hoare V p a q \<longrightarrow> hoare V p b q)) = le V b a"
+proof (rule iffI[rotated], goal_cases)
+  case 1
+  then show ?case 
+by (smt (verit) V_valid assms(2) assms(3) valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
+next
+  case 2
+  then show ?case 
+  proof -
+    have "\<forall> p \<in> elems V . \<forall>  q \<in> elems V .(le V (seq V p a) q \<longrightarrow>le V (seq V p b) q)"
+      using "2" by blast
+    moreover have "\<forall> p \<in> elems V . le V (seq V p b) (seq V p a)"
+      using V_valid assms(2) calculation valid_le_reflexive valid_seq_elem by blast 
+    moreover have "le V b (seq V (neut_seq V (d b)) a)"
+      by (metis CVA.valid_welldefined V_valid assms(3) calculation(2) d_elem_is_open neutral_is_element valid_neutral_law_left)
+    ultimately show ?thesis
+      by (metis CVA.valid_welldefined V_valid assms(2) assms(4) valid_neutral_law_left) 
+    qed
+qed
+
+proposition hoare_extensionality_rule :
+  fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "a \<in> elems V" and "b \<in> elems V"
+  and "d a = d b" (* This is added for CVAs. Alternatively we could remove this cond. and have a weaker conclusion *)
+  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . (hoare V p a q = hoare V p b q)) = (a = b)"
+  by (smt (z3) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open neutral_is_element valid_le_antisymmetric valid_le_reflexive valid_neutral_law_left)
+
+proposition hoare_composition_rule' :
+  fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+  and "hoare V p a q" and "hoare V q b r"
+shows "hoare V p (seq V a b) r"
+  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) valid_comb_associative valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
+
+proposition hoare_composition_rule :
+  fixes V :: "('A, 'a) CVA" and p r a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V"  and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+shows "(\<exists> q \<in> elems V . hoare V p a q \<and> hoare V q b r) = hoare V p (seq V a b) r"
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case
+    using V_valid assms(2) assms(3) assms(4) assms(5) hoare_composition_rule' by blast 
+next
+  case 2
+  then show ?case
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(4) assms(5) valid_comb_associative valid_le_reflexive valid_seq_elem) 
+qed
+
+proposition hoare_consequence_rule :
+  fixes V :: "('A, 'a) CVA" and p p' q q' a :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "p' \<in> elems V" and "q \<in> elems V" and "q' \<in> elems V" and "a \<in> elems V"
+  and "le V p' p" and "le V q q'" and "hoare V p a q"
+shows "hoare V p' a q'"
+  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element valid_gc_poset valid_monotone valid_poset valid_reflexivity valid_semigroup valid_transitivity)  
+
+proposition hoare_failure_rule :
+  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and "p \<in> elems V" and "q \<in> elems V"
+shows "hoare V p (bot V) q" 
+proof -
+  have "seq V p (bot V) = sup V {seq V p u | u.  u \<in> {}}" using is_quantalic_def [where ?V=V]
+  proof -
+    have "\<forall>p P. \<not> is_quantalic V \<or> p \<notin> CVA.elems V \<or> seq V p (Poset.sup (CVA.poset V) P) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> P} \<or> \<not> P \<subseteq> CVA.elems V"
+      by (smt (z3) CVA.sup_def \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
+    then have "seq V p (Poset.sup (CVA.poset V) {}) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> {}}"
+      using V_quantalic assms(3) by blast
+    thus ?thesis
+      by (simp add: CVA.bot_def CVA.sup_def Poset.bot_def)
+  qed
+  thus ?thesis
+    by (smt (verit, ccfv_threshold) CVA.sup_def V_quantalic all_not_in_conv assms(4) cocomplete empty_Collect_eq empty_subsetI is_quantalic_def sup_is_lub)
+qed
+
+proposition hoare_choice_rule :
+  fixes V :: "('A, 'a) CVA" and p q a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and "p \<in> elems V" and "q \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+shows "hoare V p (join V a b) q = (hoare V p a q \<and> hoare V p b q)" 
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case 
+  proof -
+    have "le V (seq V p (join V a b)) q"
+      using "1" by blast 
+    moreover have "seq V p (join V a b) = join V (seq V p a) (seq V p b)"
+      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
+    moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
+      using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
+    moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
+      using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
+      by (metis (no_types, opaque_lifting) CVA.join_def V_quantalic calculation(2) calculation(3) cocomplete is_quantalic_def) 
+    moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
+      by (smt (verit, best) "1" V_quantalic V_valid assms(4) calculation(2) calculation(3) calculation(4) is_quantalic_def join_elem valid_le_transitive)
+    ultimately show ?thesis
+      by force
+  qed
+next
+  case 2
+  then show ?case
+    by (smt (z3) CVA.join_def V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) binary_quantalic cocomplete is_quantalic_def join_property valid_seq_elem)
+qed
+
+proposition hoare_choice_rule' :
+  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation" and U :: "(('A,'a) Valuation) set"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and "p \<in> elems V" and "q \<in> elems V" and "U \<subseteq> elems V" 
+shows "hoare V p (sup V {u . u \<in> U}) q = (\<forall> u \<in> U.  hoare V p a q)" 
+proof (rule iffI, goal_cases)
+  oops 
+(*
+  case 1
+  then show ?case 
+  proof -
+    have "le V (seq V p (sup V {u . u \<in> U})) q"
+      using "1" by blast 
+    moreover have "seq V p (sup V {u . u \<in> U}) = sup V {seq V p u | u . u \<in> U}"
+      by (metis V_quantalic assms(3) assms(5) is_quantalic_def mem_Collect_eq subsetI subset_antisym)
+      by (smt (verit) Collect_cong V_quantalic assms(3) assms(5) is_quantalic_def mem_Collect_eq subsetD subsetI)
+      by (metis Collect_mem_eq V_quantalic assms(3) assms(5) is_quantalic_def)
+      by (metis Collect_mem_eq V_quantalic assms(3) assms(5) is_quantalic_def)
+      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
+    moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
+      using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
+    moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
+      using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
+      by (metis (no_types, opaque_lifting) CVA.join_def V_quantalic calculation(2) calculation(3) cocomplete is_quantalic_def) 
+    moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
+      by (smt (verit, best) "1" V_quantalic V_valid assms(4) calculation(2) calculation(3) calculation(4) is_quantalic_def join_elem valid_le_transitive)
+    ultimately show ?thesis
+      by force
+  qed
+next
+  case 2
+  then show ?case 
+qed
+*)
+
+proposition hoare_iteration_rule : "todo" oops
+
+proposition hoare_premise_rule :
+  fixes V :: "('A, 'a) CVA" and a b c:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "a \<in> elems V" and "b \<in> elems V" and "c \<in> elems V"
+  and "d a = d b"
+shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V .  \<forall>  r \<in> elems V . (hoare V p a q \<and> hoare V q b r \<longrightarrow> hoare V p c r)) = le V c (seq V a b)"
+proof (rule iffI[rotated], goal_cases)
+  oops
+
 (* [Proposition 3, TMCVA] *)
 proposition hoare_concurrency_rule :
   fixes V :: "('A, 'a) CVA" and p p' a a' q q' :: "('A,'a) Valuation"
@@ -480,120 +714,6 @@ proof -
   ultimately show ?thesis
     by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open neutral_is_element valid_neutral_law_right valid_par_comm valid_par_elem valid_poset valid_semigroup valid_seq_elem valid_transitivity valid_weak_exchange)
 qed
-
-proposition hoare_neut_seq_rule :
-  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V" and "q \<in> elems V"
-  shows "hoare V p (neut_seq V (d p)) q = le V p q"
-  by (metis CVA.valid_welldefined V_valid assms(2) valid_neutral_law_right) 
-
-proposition hoare_neut_seq_rule' :
-  fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V"
-  shows "hoare V p (neut_seq V (d p)) p"
-  by (metis CVA.valid_welldefined V_valid assms(2) valid_le_reflexive valid_neutral_law_right)
-
-proposition hoare_antitony_rule :
-  fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and  "a \<in> elems V" and "b \<in> elems V"
-  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . (hoare V p a q \<longrightarrow> hoare V p b q)) = le V b a"
-proof (rule iffI[rotated], goal_cases)
-  case 1
-  then show ?case 
-by (smt (verit) V_valid assms(2) assms(3) valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
-next
-  case 2
-  then show ?case oops
-
-proposition hoare_extensionality_rule :
-  fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and  "a \<in> elems V" and "b \<in> elems V"
-  shows "(\<forall> p q . p \<in> elems V \<and> q \<in> elems V \<and> (hoare V p a q = hoare V p b q)) = (a = b)"
-proof (rule iffI[rotated], goal_cases) oops
-
-proposition hoare_composition_rule' :
-  fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
-  and "hoare V p a q" and "hoare V q b r"
-shows "hoare V p (seq V a b) r"
-  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) valid_comb_associative valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
-
-proposition hoare_composition_rule :
-  fixes V :: "('A, 'a) CVA" and p r a b :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V"  and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
-shows "(\<exists> q \<in> elems V . hoare V p a q \<and> hoare V q b r) =  hoare V p (seq V a b) r"
-proof (rule iffI, goal_cases)
-  case 1
-  then show ?case
-    using V_valid assms(2) assms(3) assms(4) assms(5) hoare_composition_rule' by blast 
-next
-  case 2
-  then show ?case
-    by (metis CVA.valid_welldefined V_valid assms(2) assms(4) assms(5) valid_comb_associative valid_le_reflexive valid_seq_elem) 
-qed
-
-proposition hoare_consequence_rule :
-  fixes V :: "('A, 'a) CVA" and p p' q q' a :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V" and "p' \<in> elems V" and "q \<in> elems V" and "q' \<in> elems V" and "a \<in> elems V"
-  and "le V p' p" and "le V q q'" and "hoare V p a q"
-shows "hoare V p' a q'"
-  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element valid_gc_poset valid_monotone valid_poset valid_reflexivity valid_semigroup valid_transitivity)  
-
-proposition hoare_failure_rule :
-  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
-  and "p \<in> elems V" and "q \<in> elems V"
-shows "hoare V p (bot V) q" 
-proof -
-  have "seq V p (bot V) = sup V {seq V p u | u.  u \<in> {}}" using is_quantalic_def [where ?V=V]
-  proof -
-    have "\<forall>p P. \<not> is_quantalic V \<or> p \<notin> CVA.elems V \<or> seq V p (Poset.sup (CVA.poset V) P) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> P} \<or> \<not> P \<subseteq> CVA.elems V"
-      by (smt (z3) CVA.sup_def \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
-    then have "seq V p (Poset.sup (CVA.poset V) {}) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> {}}"
-      using V_quantalic assms(3) by blast
-    then show ?thesis
-      by (simp add: CVA.bot_def CVA.sup_def Poset.bot_def)
-  qed
-  then show ?thesis
-    by (smt (verit, ccfv_threshold) CVA.sup_def V_quantalic all_not_in_conv assms(4) cocomplete empty_Collect_eq empty_subsetI is_quantalic_def sup_is_lub)
-qed
-
-proposition hoare_choice_rule :
-  fixes V :: "('A, 'a) CVA" and p q a b :: "('A,'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
-  and "p \<in> elems V" and "q \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
-shows "hoare V p (join V a b) q = (hoare V p a q \<and> hoare V p b q)" 
-proof (rule iffI, goal_cases)
-  case 1
-  then show ?case 
-  proof -
-    have "le V (seq V p (join V a b)) q"
-      using "1" by blast 
-    moreover have "seq V p (join V a b) = join V (seq V p a) (seq V p b)"
-      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
-    moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
-      using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
-    moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
-      using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
-      by (metis (no_types, opaque_lifting) CVA.join_def V_quantalic calculation(2) calculation(3) cocomplete is_quantalic_def) 
-    moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
-      by (smt (verit, best) "1" V_quantalic V_valid assms(4) calculation(2) calculation(3) calculation(4) is_quantalic_def join_elem valid_le_transitive)
-    ultimately show ?thesis
-      by force
-  qed
-next
-  case 2
-  then show ?case
-    by (smt (z3) CVA.join_def V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) binary_quantalic cocomplete is_quantalic_def join_property valid_seq_elem)
-qed
-
 
 (* Rely-guarantee logic rules: 
 
