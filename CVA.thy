@@ -333,23 +333,11 @@ lemma bot_elem : "is_complete V \<Longrightarrow> bot V \<in> elems V"
 
 definition par_iter_map :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (('A, 'a) Valuation, ('A, 'a) Valuation) PosetMap" where
 "par_iter_map V x \<equiv> \<lparr> PosetMap.dom = poset V, cod = poset V, 
-                   func = { (a, join V (neut_par V (d x)) (par V x a)) | a.  a \<in> elems V} \<rparr>"
+                   func = { (a, join V (neut_par V (d x)) (par V x a)) | a. a \<in> elems V} \<rparr>"
 
 definition seq_iter_map :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (('A, 'a) Valuation, ('A, 'a) Valuation) PosetMap" where
 "seq_iter_map V x \<equiv> \<lparr> PosetMap.dom = poset V, cod = poset V, 
-                   func = { (a, join V (neut_seq V (d x)) (seq V x a)) | a.  a \<in> elems V} \<rparr>"
-
-definition finite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"finite_par_iter V x = lfp (par_iter_map V x)"
-
-definition infinite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"infinite_par_iter V x = gfp (par_iter_map V x)"
-
-definition finite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"finite_seq_iter V x = lfp (seq_iter_map V x)"
-
-definition infinite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"infinite_seq_iter V x = gfp (seq_iter_map V x)"
+                   func = { (a, join V (neut_seq V (d x)) (seq V x a)) | a. a \<in> elems V} \<rparr>"
 
 lemma valid_par_iter_map : 
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
@@ -388,8 +376,124 @@ next
     by (smt (verit, ccfv_threshold) PosetMap.select_convs(1) PosetMap.select_convs(3) mem_Collect_eq par_iter_map_def) 
 next
   case (6 a a')
-  then show ?case  sorry
-    oops
+  then show ?case  
+  proof -
+    have "a \<in> elems V \<and> a' \<in> elems V"
+      by (metis (mono_tags, lifting) "6"(1) "6"(2) PosetMap.select_convs(1) par_iter_map_def) 
+    moreover have "le V a a'"
+      by (smt (verit, del_insts) "6"(3) PosetMap.select_convs(1) par_iter_map_def)
+    moreover have "el (PosetMap.dom (par_iter_map V x)) = elems V \<and> el (PosetMap.cod (par_iter_map V x)) = elems V"
+      by (simp add: par_iter_map_def) 
+    moreover have a_el : "a \<in> el (PosetMap.dom (par_iter_map V x)) "
+      using "6"(1) by auto                 
+    moreover have a'_el : "a' \<in> el (PosetMap.dom (par_iter_map V x)) "
+      by (simp add: "6"(2))
+    moreover have "par_iter_map V x \<star> a = join V (neut_par V (d x)) (par V x a)" 
+      using Poset.fun_app3 [where ?f="par_iter_map V x" and ?a=a] par_iter_map_def [where ?V=V and ?x=x] a_el
+      by (smt (z3) PosetMap.select_convs(3) calculation(3) mem_Collect_eq prod.inject the1_equality)
+    moreover have "par_iter_map V x \<star> a' = join V (neut_par V (d x)) (par V x a')" 
+      using Poset.fun_app3 [where ?f="par_iter_map V x" and ?a=a'] par_iter_map_def [where ?V=V and ?x=x] a'_el
+      by (smt (z3) PosetMap.select_convs(3) calculation(3) mem_Collect_eq prod.inject the1_equality) 
+    moreover have "le V (par V x a) (par V x a')"
+      using V_valid a_elem calculation(1) calculation(2) valid_le_reflexive valid_par_mono by blast 
+    moreover have "le V (join V (neut_par V (d x)) (par V x a)) (join V (neut_par V (d x)) (par V x a'))" using join_mono [where ?P="poset V"]
+      by (smt (z3) CVA.join_def CVA.valid_welldefined V_complete V_valid a_elem calculation(1) calculation(1) calculation(8) cocomplete d_elem_is_open join_elem valid_le_reflexive valid_neut_par_elem valid_par_elem)
+    ultimately show "Poset.le (PosetMap.cod (par_iter_map V x)) (par_iter_map V x \<star> a) (par_iter_map V x \<star> a')"
+      by (smt (verit, best) PosetMap.select_convs(2) par_iter_map_def)
+  qed
+qed
+
+lemma valid_seq_iter_map : 
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V" and a_elem : "x \<in> elems V"
+  shows "Poset.valid_map (seq_iter_map V x)"
+proof (rule Poset.valid_mapI, goal_cases)
+  case 1
+  then show ?case
+    by (simp add: CVA.valid_welldefined OVA.valid_welldefined Semigroup.valid_welldefined V_valid seq_iter_map_def valid_map_welldefined_cod)
+next
+  case 2
+  then show ?case
+    by (metis (no_types, lifting) PosetMap.select_convs(2) V_complete cocomplete is_cocomplete_def seq_iter_map_def)
+next
+  case (3 a b)
+  then show ?case 
+  proof -
+    have "PosetMap.dom (seq_iter_map V a) = poset V \<and> PosetMap.cod (seq_iter_map V a) = poset V"
+      by (simp add: seq_iter_map_def)
+    moreover have "a \<in> elems V"
+      by (smt (verit) "3" PosetMap.select_convs(3) fst_conv mem_Collect_eq seq_iter_map_def)
+    moreover have "b = join V (neut_seq V (d x)) (seq V x a)"
+      by (smt (verit, del_insts) "3" PosetMap.select_convs(3) fst_conv mem_Collect_eq seq_iter_map_def snd_eqD)
+    moreover have "b \<in> elems V" using join_el [where ?P="poset V"]
+      by (metis CVA.join_def CVA.valid_welldefined V_complete V_valid a_elem calculation(2) calculation(3) cocomplete d_elem_is_open valid_neut_seq_elem valid_seq_elem)
+    ultimately show ?thesis
+      by (simp add: seq_iter_map_def) 
+  qed
+next
+  case (4 a b b')
+  then show ?case
+    by (smt (verit, del_insts) Pair_inject PosetMap.simps(3) mem_Collect_eq seq_iter_map_def) 
+next
+  case (5 a)
+  then show ?case
+    by (smt (verit, best) PosetMap.select_convs(1) PosetMap.select_convs(3) mem_Collect_eq seq_iter_map_def) 
+next
+  case (6 a a')
+  then show ?case  
+  proof -
+    have "a \<in> elems V \<and> a' \<in> elems V"
+      by (metis (mono_tags, lifting) "6"(1) "6"(2) PosetMap.select_convs(1) seq_iter_map_def)
+    moreover have "le V a a'"
+      by (smt (verit, del_insts) "6"(2) "6"(3) PosetMap.select_convs(1) calculation seq_iter_map_def)
+    moreover have "el (PosetMap.dom (seq_iter_map V x)) = elems V \<and> el (PosetMap.cod (seq_iter_map V x)) = elems V"
+      by (simp add: seq_iter_map_def) 
+    moreover have a_el : "a \<in> el (PosetMap.dom (seq_iter_map V x)) "
+      using "6"(1) by auto                 
+    moreover have a'_el : "a' \<in> el (PosetMap.dom (seq_iter_map V x)) "
+      by (simp add: "6"(2))
+    moreover have "seq_iter_map V x \<star> a = join V (neut_seq V (d x)) (seq V x a)" 
+      using Poset.fun_app3 [where ?f="seq_iter_map V x" and ?a=a] seq_iter_map_def [where ?V=V and ?x=x] a_el calculation assms
+      by (smt (z3) PosetMap.select_convs(3) mem_Collect_eq prod.inject the1_equality) 
+    moreover have "seq_iter_map V x \<star> a' = join V (neut_seq V (d x)) (seq V x a')" 
+      using Poset.fun_app3 [where ?f="seq_iter_map V x" and ?a=a'] seq_iter_map_def [where ?V=V and ?x=x] a'_el calculation assms
+      by (smt (z3) PosetMap.select_convs(3) mem_Collect_eq prod.inject the1_equality) 
+    moreover have "le V (seq V x a) (seq V x a')"
+      using V_valid a_elem calculation(1) calculation(2) valid_le_reflexive valid_seq_mono
+      by blast 
+    moreover have "le V (join V (neut_seq V (d x)) (seq V x a)) (join V (neut_seq V (d x)) (seq V x a'))" using join_mono [where ?P="poset V"]
+      by (smt (z3) CVA.join_def CVA.valid_welldefined V_complete V_valid a_elem calculation(1) calculation(8) cocomplete d_elem_is_open join_elem valid_le_reflexive valid_neut_seq_elem valid_seq_elem)
+    ultimately show "Poset.le (PosetMap.cod (seq_iter_map V x)) (seq_iter_map V x \<star> a) (seq_iter_map V x \<star> a')"
+      by (smt (verit, best) PosetMap.select_convs(2) seq_iter_map_def)
+  qed
+qed
+
+definition finite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"finite_par_iter V x = lfp (par_iter_map V x)"
+
+definition infinite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"infinite_par_iter V x = gfp (par_iter_map V x)"
+
+definition finite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"finite_seq_iter V x = lfp (seq_iter_map V x)"
+
+definition infinite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
+"infinite_seq_iter V x = gfp (seq_iter_map V x)"
+
+lemma star_induction_left : "todo" oops (* b + x \<sqdot> a \<le> x \<Rightarrow> b \<sqdot> a\<^emph> \<le> x *)
+
+lemma star_induction_right: "todo" oops (*b + a \<sqdot> x \<le> x \<Rightarrow> a\<^emph> \<sqdot> b \<le> x *) 
+
+lemma skip_le_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> le V (neut_seq V (d a)) (finite_seq_iter V a)" 
+  oops
+
+lemma id_le_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> le V a (finite_seq_iter V a)" 
+  oops
+
+lemma seq_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> seq V (finite_seq_iter V a) (finite_seq_iter V a) = finite_seq_iter V a" 
+  oops
+
+lemma ka_finite_seq_iter : "todo" oops (* "(a + b)\<^emph> = a\<^emph> \<sqdot> (b \<sqdot> a\<^emph>)\<^emph>" *)
 
 (* Paper results *)
 
@@ -573,14 +677,7 @@ proposition hoare_failure_rule :
 shows "hoare V p (bot V) q" 
 proof -
   have "seq V p (bot V) = sup V {seq V p u | u.  u \<in> {}}" using is_quantalic_def [where ?V=V]
-  proof -
-    have "\<forall>p P. \<not> is_quantalic V \<or> p \<notin> CVA.elems V \<or> seq V p (Poset.sup (CVA.poset V) P) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> P} \<or> \<not> P \<subseteq> CVA.elems V"
-      by (smt (z3) CVA.sup_def \<open>is_quantalic V \<equiv> CVA.is_complete V \<and> (\<forall>a U. U \<subseteq> CVA.elems V \<longrightarrow> a \<in> CVA.elems V \<longrightarrow> par V a (CVA.sup V U) = CVA.sup V {par V a u |u. u \<in> U} \<and> seq V a (CVA.sup V U) = CVA.sup V {seq V a u |u. u \<in> U} \<and> seq V (CVA.sup V U) a = CVA.sup V {seq V u a |u. u \<in> U})\<close>)
-    then have "seq V p (Poset.sup (CVA.poset V) {}) = Poset.sup (CVA.poset V) {seq V p pa |pa. pa \<in> {}}"
-      using V_quantalic assms(3) by blast
-    thus ?thesis
-      by (simp add: CVA.bot_def CVA.sup_def Poset.bot_def)
-  qed
+    by (smt (verit, ccfv_threshold) CVA.bot_def CVA.sup_def Poset.bot_def V_quantalic assms(3) empty_Collect_eq empty_iff empty_subsetI)
   thus ?thesis
     by (smt (verit, ccfv_threshold) CVA.sup_def V_quantalic all_not_in_conv assms(4) cocomplete empty_Collect_eq empty_subsetI is_quantalic_def sup_is_lub)
 qed
@@ -649,7 +746,18 @@ next
 qed
 *)
 
-proposition hoare_iteration_rule : "todo" oops
+proposition hoare_iteration_rule : 
+  fixes V :: "('A, 'a) CVA" and p a:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "p \<in> elems V" and "a \<in> elems V"
+shows "hoare V p a p = hoare V p (finite_seq_iter V a) p"
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case sorry
+next
+  case 2
+  then show ?case sorry
+qed
 
 proposition hoare_premise_rule :
   fixes V :: "('A, 'a) CVA" and a b c:: "('A,'a) Valuation"

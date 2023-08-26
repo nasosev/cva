@@ -88,12 +88,11 @@ lemma valid_transitivity : "valid P \<Longrightarrow> x \<in> el P \<Longrightar
 lemma valid_antisymmetry : "valid P \<Longrightarrow> x \<in> el P \<Longrightarrow> y \<in> el P\<Longrightarrow> le P x y \<Longrightarrow> le P y x \<Longrightarrow> x = y"
   by (smt (verit, ccfv_threshold) valid_def)
 
-
 lemma valid_mapI [intro] : "valid (dom f) \<Longrightarrow> valid (cod f)  \<Longrightarrow> (\<And>a b. (a, b) \<in> func f \<Longrightarrow>  a \<in> el (dom f) \<and> b \<in> el (cod f)) \<Longrightarrow>
                    (\<And>a b b'. (a, b) \<in> func f \<Longrightarrow> (a, b') \<in> func f \<Longrightarrow> b = b') \<Longrightarrow>
                    (\<And>a. a \<in> el (dom f) \<Longrightarrow> (\<exists>b. (a, b) \<in> func f)) \<Longrightarrow>
                    (\<And>a a'. a \<in> el (dom f) \<Longrightarrow> a' \<in> el (dom f) \<Longrightarrow> le (dom f) a a' \<Longrightarrow> le (cod f) (f \<star> a) (f \<star> a'))
-  \<Longrightarrow> valid_map f " unfolding valid_map_def
+  \<Longrightarrow> valid_map f" unfolding valid_map_def
   by auto
 
 lemma valid_map_welldefined_dom : "valid_map f \<Longrightarrow> valid (dom f)"
@@ -141,7 +140,7 @@ lemma fun_app : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarr
 lemma fun_app2 : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f \<star> a \<in> el (cod f)"
   by (meson fun_app valid_map_welldefined)
 
-lemma fun_app3 [simp] : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f \<star> a = (THE b. (a, b) \<in> func f) "
+lemma fun_app3 : "a \<in> el (dom f) \<Longrightarrow> f \<star> a = (THE b. (a, b) \<in> func f) "
   by (simp add: app_def)
 
 lemma fun_ext_raw : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom f = dom g \<Longrightarrow> cod f = cod g \<Longrightarrow> (\<And>a. a \<in> el (dom f) \<Longrightarrow> f \<star> a = g \<star> a) \<Longrightarrow> func f = func g"
@@ -230,7 +229,7 @@ next
     by (simp add: Poset.compose_total) 
 next
   case (7 a a')
-  then show ?case
+  then show ?case 
     by (simp add: compose_monotone) 
 qed
 
@@ -487,6 +486,14 @@ lemma meet_property : "is_complete P \<Longrightarrow> a \<in> el P \<Longrighta
 lemma join_property : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> c \<in> el P \<Longrightarrow> le P a c \<Longrightarrow> le P b c \<Longrightarrow> le P (join P a b) c"
   using cocomplete_join_is_sup is_sup_def
   by (smt (verit, ccfv_threshold) insert_iff singleton_iff)
+
+lemma meet_mono : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> a' \<in> el P \<Longrightarrow> b' \<in> el P \<Longrightarrow> le P a a' \<Longrightarrow> le P b b' 
+\<Longrightarrow> le P (meet P a b) (meet P a b')"
+  by (smt (verit, ccfv_threshold) is_complete_def meet_el meet_property meet_smaller1 meet_smaller2 valid_def) 
+
+lemma join_mono : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> a' \<in> el P \<Longrightarrow> b' \<in> el P \<Longrightarrow> le P a a' \<Longrightarrow> le P b b' 
+\<Longrightarrow> le P (join P a b) (join P a b')"
+  by (smt (verit, best) is_cocomplete_def join_el join_greater1 join_greater2 join_property valid_transitivity) 
 
 lemma inf_is_inf : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_inf P U (inf P U)"
   by (metis complete_inf_exists inf_def someI_ex)
@@ -748,6 +755,10 @@ lemma indirect_equality_higher :
   and "a \<in> el P" and "b \<in> el P"
 shows "a = b = (\<forall> c \<in> el P . (le P c a = le P c b))"
   by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
+
+lemma left_fusion : "todo" oops
+
+lemma right_fusion : "todo" oops
 
 lemma fusion : "todo" oops
 
