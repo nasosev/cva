@@ -830,11 +830,41 @@ definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
 lemma gfp_is_el : "is_cocomplete P \<Longrightarrow> valid_map f \<Longrightarrow> dom f = P \<Longrightarrow> cod f = P \<Longrightarrow> gfp f \<in> el P"
   by (simp add: Poset.gfp_def sup_el)
 
-lemma left_fusion : "todo" oops
+(* Fusion *)
 
-lemma right_fusion : "todo" oops
+lemma right_subfusion : 
+  fixes P :: "'a Poset" and f g h :: "('a, 'a) PosetMap" 
+  assumes P_complete : "is_complete P" 
+  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and g_valid : "valid_map g" and g_endo : "dom g = P \<and> cod g = P"
+  and h_valid : "valid_map h" and h_endo : "dom h = P \<and> cod h = P"
+  and fg_le_gh : "\<And> a. a \<in> el P \<Longrightarrow> le P ((f \<diamondop> g) \<star> a) ((g \<diamondop> h) \<star> a)" 
+shows "le P (lfp f) (g \<star> (lfp h))"
+  by (metis (no_types, lifting) P_complete Poset.compose_app_assoc Poset.fun_app2 Poset.lfp_lowerbound Poset.lfp_unfold f_endo f_valid fg_le_gh g_endo g_valid h_endo h_valid lfp_is_el) 
 
-lemma fusion : "todo" oops
+lemma left_subfusion :
+  fixes P :: "'a Poset" and f g h :: "('a, 'a) PosetMap" 
+  assumes P_complete : "is_cocomplete P" 
+  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and g_valid : "valid_map g" and g_endo : "dom g = P \<and> cod g = P"
+  and h_valid : "valid_map h" and h_endo : "dom h = P \<and> cod h = P"
+  and fg_le_gh : "\<And> a. a \<in> el P \<Longrightarrow> le P ((f \<diamondop> g) \<star> a) ((h \<diamondop> f) \<star> a)" 
+  and f_strict : "f \<star> (bot V) = bot V"
+  and f_cont : "\<And> A . A \<subseteq> el P \<Longrightarrow> f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
+shows "le P (f \<star> (lfp g)) (lfp h)"
+  oops
+
+lemma fusion : 
+  fixes P :: "'a Poset" and f g h :: "('a, 'a) PosetMap" 
+  assumes P_complete : "is_complete P" 
+  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and g_valid : "valid_map g" and g_endo : "dom g = P \<and> cod g = P"
+  and h_valid : "valid_map h" and h_endo : "dom h = P \<and> cod h = P"
+  and fg_eq_gh : "\<And> a. a \<in> el P \<Longrightarrow> ((f \<diamondop> g) \<star> a) = ((h \<diamondop> f) \<star> a)" 
+  and f_strict : "f \<star> (bot V) = bot V"
+  and f_cont : "\<And> A . A \<subseteq> el P \<Longrightarrow> f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
+shows "(f \<star> (lfp g)) = (lfp h)" 
+  oops
 
 (* Powerset *)
 
