@@ -814,6 +814,13 @@ lemma lfp_eqI :
   shows "lfp f = a"
   by (metis P_complete Poset.lfp_lowerbound Poset.lfp_unfold a_el assms(6) f_endo f_valid fp is_complete_def lfp_is_el valid_antisymmetry)
 
+lemma lfp_induct :
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a"
+  assumes P_complete : "is_complete P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and a_el : "a \<in> el P"
+  and ind : "le P (f \<star> (meet P (lfp f) a)) a"
+shows "le P (lfp f) a"
+  by (smt (verit) P_complete Poset.fun_app2 Poset.lfp_lowerbound Poset.lfp_unfold a_el f_endo f_valid ind is_complete_def lfp_is_el meet_el meet_property meet_smaller valid_map_monotone valid_transitivity)
 
 (* Greatest fixed point *)
 
@@ -822,7 +829,6 @@ definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
 
 lemma gfp_is_el : "is_cocomplete P \<Longrightarrow> valid_map f \<Longrightarrow> dom f = P \<Longrightarrow> cod f = P \<Longrightarrow> gfp f \<in> el P"
   by (simp add: Poset.gfp_def sup_el)
-
 
 lemma left_fusion : "todo" oops
 

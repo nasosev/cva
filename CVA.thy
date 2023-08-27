@@ -469,23 +469,33 @@ next
 qed
 
 definition finite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"finite_par_iter V x = lfp (par_iter_map V x)"
+"finite_par_iter V a = lfp (par_iter_map V a)"
 
 definition infinite_par_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"infinite_par_iter V x = gfp (par_iter_map V x)"
+"infinite_par_iter V a = gfp (par_iter_map V a)"
 
 definition finite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"finite_seq_iter V x = lfp (seq_iter_map V x)"
-
+"finite_seq_iter V a = lfp (seq_iter_map V a)"
+                               
 definition infinite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
-"infinite_seq_iter V x = gfp (seq_iter_map V x)"
+"infinite_seq_iter V a = gfp (seq_iter_map V a)"
 
-lemma star_induction_left : "todo" oops (* b + x \<sqdot> a \<le> x \<Rightarrow> b \<sqdot> a\<^emph> \<le> x *)
-
-lemma star_induction_right: "todo" oops (*b + a \<sqdot> x \<le> x \<Rightarrow> a\<^emph> \<sqdot> b \<le> x *) 
-
-lemma skip_le_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> le V (neut_seq V (d a)) (finite_seq_iter V a)" 
-  oops
+lemma skip_le_finite_seq_iter :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V"
+  and "a \<in> elems V"
+shows "le V (neut_seq V (d a)) (finite_seq_iter V a)"
+proof -
+  define "a_star" where "a_star = finite_seq_iter V a" 
+  have "join V (neut_seq V (d a)) (seq V a a_star) = a_star" using lfp_unfold [where ?P="poset V" and ?f="seq_iter_map V a"]
+    CVA.is_complete_def Poset.fun_app Poset.valid_map_deterministic V_complete V_valid a_star_def assms(3) finite_seq_iter_def lfp_is_el  seq_iter_map_def valid_seq_iter_map
+    by (smt (z3) Pair_inject PosetMap.select_convs(1) PosetMap.select_convs(2) PosetMap.select_convs(3) mem_Collect_eq) 
+  moreover have "le V (neut_seq V (d a)) (join V (neut_seq V (d a)) (seq V a a_star))" 
+    using a_star_def join_greater1 [where ?P="poset V" and ?a="neut_seq V (d a)"]
+    by (metis (no_types, lifting) CVA.is_complete_def CVA.join_def CVA.valid_welldefined PosetMap.select_convs(1) PosetMap.select_convs(2) V_complete V_valid assms(3) cocomplete d_elem_is_open finite_seq_iter_def lfp_is_el seq_iter_map_def valid_neut_seq_elem valid_seq_elem valid_seq_iter_map)
+  ultimately show ?thesis
+    using a_star_def by force
+qed
 
 lemma id_le_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> le V a (finite_seq_iter V a)" 
   oops
@@ -494,6 +504,10 @@ lemma seq_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longright
   oops
 
 lemma ka_finite_seq_iter : "todo" oops (* "(a + b)\<^emph> = a\<^emph> \<sqdot> (b \<sqdot> a\<^emph>)\<^emph>" *)
+
+lemma star_induction_left : "todo" oops (* b + x \<sqdot> a \<le> x \<Rightarrow> b \<sqdot> a\<^emph> \<le> x *)
+
+lemma star_induction_right: "todo" oops (*b + a \<sqdot> x \<le> x \<Rightarrow> a\<^emph> \<sqdot> b \<le> x *) 
 
 (* Paper results *)
 
