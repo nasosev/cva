@@ -480,32 +480,75 @@ definition finite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<R
 definition infinite_seq_iter :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "infinite_seq_iter V a = gfp (seq_iter_map V a)"
 
+lemma "finite_par_iter_el" : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> finite_par_iter V a \<in> elems V"
+  by (smt (verit, ccfv_SIG) CVA.is_complete_def PosetMap.select_convs(1) PosetMap.select_convs(2) finite_par_iter_def lfp_is_el par_iter_map_def valid_par_iter_map) 
+
+lemma "infinite_par_iter" : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> infinite_par_iter V a \<in> elems V"
+  by (metis (no_types, lifting) PosetMap.select_convs(1) PosetMap.select_convs(2) cocomplete gfp_is_el infinite_par_iter_def par_iter_map_def valid_par_iter_map) 
+
+lemma "finite_seq_iter_el" : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> finite_seq_iter V a \<in> elems V"
+  by (smt (verit, ccfv_SIG) CVA.is_complete_def PosetMap.select_convs(1) PosetMap.select_convs(2) finite_seq_iter_def lfp_is_el seq_iter_map_def valid_seq_iter_map) 
+
+lemma "infinite_seq_iter" : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> infinite_seq_iter V a \<in> elems V"
+  by (metis (no_types, lifting) PosetMap.select_convs(1) PosetMap.select_convs(2) cocomplete gfp_is_el infinite_seq_iter_def seq_iter_map_def valid_seq_iter_map) 
+
 lemma skip_le_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and V_complete : "is_complete V"
-  and "a \<in> elems V"
+  and a_el : "a \<in> elems V"
 shows "le V (neut_seq V (d a)) (finite_seq_iter V a)"
 proof -
   define "a_star" where "a_star = finite_seq_iter V a" 
   have "join V (neut_seq V (d a)) (seq V a a_star) = a_star" using lfp_unfold [where ?P="poset V" and ?f="seq_iter_map V a"]
-    CVA.is_complete_def Poset.fun_app Poset.valid_map_deterministic V_complete V_valid a_star_def assms(3) finite_seq_iter_def lfp_is_el  seq_iter_map_def valid_seq_iter_map
-    by (smt (z3) Pair_inject PosetMap.select_convs(1) PosetMap.select_convs(2) PosetMap.select_convs(3) mem_Collect_eq) 
-  moreover have "le V (neut_seq V (d a)) (join V (neut_seq V (d a)) (seq V a a_star))" 
-    using a_star_def join_greater1 [where ?P="poset V" and ?a="neut_seq V (d a)"]
-    by (metis (no_types, lifting) CVA.is_complete_def CVA.join_def CVA.valid_welldefined PosetMap.select_convs(1) PosetMap.select_convs(2) V_complete V_valid assms(3) cocomplete d_elem_is_open finite_seq_iter_def lfp_is_el seq_iter_map_def valid_neut_seq_elem valid_seq_elem valid_seq_iter_map)
-  ultimately show ?thesis
+    CVA.is_complete_def Poset.fun_app Poset.valid_map_deterministic V_complete V_valid a_star_def a_el finite_seq_iter_def lfp_is_el  seq_iter_map_def valid_seq_iter_map
+    by (smt (z3) PosetMap.select_convs(1) PosetMap.select_convs(2) PosetMap.select_convs(3) fst_conv mem_Collect_eq)
+  moreover have "le V (neut_seq V (d a)) (join V (neut_seq V (d a)) (seq V a a_star))"
+    by (metis CVA.join_def CVA.valid_welldefined V_complete V_valid a_star_def a_el cocomplete d_elem_is_open finite_seq_iter_el join_greater1 valid_neut_seq_elem valid_seq_elem) 
+ ultimately show ?thesis
     using a_star_def by force
 qed
 
-lemma id_le_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> le V a (finite_seq_iter V a)" 
-  oops
+lemma id_le_finite_seq_iter :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V"
+  and a_el : "a \<in> elems V"
+shows "le V a (finite_seq_iter V a)"
+proof -
+  define "a_star" where "a_star = finite_seq_iter V a" 
+  moreover have "a_star \<in> elems V" 
+    using V_complete V_valid assms(3) calculation finite_seq_iter_el by blast
+  have "join V (neut_seq V (d a)) (seq V a a_star) = a_star" using lfp_unfold [where ?P="poset V" and ?f="seq_iter_map V a"]
+    CVA.is_complete_def Poset.fun_app Poset.valid_map_deterministic V_complete V_valid a_star_def a_el finite_seq_iter_def lfp_is_el  seq_iter_map_def valid_seq_iter_map
+    by (smt (z3) PosetMap.select_convs(1) PosetMap.select_convs(2) PosetMap.select_convs(3) fst_conv mem_Collect_eq)
+  moreover have "le V (seq V a a_star) (join V (neut_seq V (d a)) (seq V a a_star))" 
+    using a_star_def join_greater2 [where ?P="poset V" and ?a="neut_seq V (d a)"]
+    by (metis (no_types, lifting) CVA.is_complete_def CVA.join_def CVA.valid_welldefined PosetMap.select_convs(1) PosetMap.select_convs(2) V_complete V_valid assms(3) cocomplete d_elem_is_open finite_seq_iter_def lfp_is_el seq_iter_map_def valid_neut_seq_elem valid_seq_elem valid_seq_iter_map)
+  moreover have "le V (neut_seq V (d a)) a_star"
+     using V_complete V_valid a_star_def a_el skip_le_finite_seq_iter by blast 
+  moreover have "le V (seq V a (neut_seq V (d a))) (seq V a a_star)"
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_complete V_valid \<open>a_star \<in> CVA.elems V\<close> a_el calculation(4) cocomplete d_elem_is_open is_cocomplete_def valid_monotone valid_neut_seq_elem valid_reflexivity valid_semigroup) 
+  ultimately show ?thesis
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid \<open>a_star \<in> CVA.elems V\<close> a_el valid_le_transitive valid_neutral_law_right valid_seq_elem) 
+qed
 
-lemma seq_finite_seq_iter : "valid V \<Longrightarrow> is_complete V \<Longrightarrow> a \<in> elems V \<Longrightarrow> seq V (finite_seq_iter V a) (finite_seq_iter V a) = finite_seq_iter V a" 
+lemma seq_finite_seq_iter :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and a_el : "a \<in> elems V"
+shows "seq V (finite_seq_iter V a) (finite_seq_iter V a) = finite_seq_iter V a"
   oops
 
 lemma ka_finite_seq_iter : "todo" oops (* "(a + b)\<^emph> = a\<^emph> \<sqdot> (b \<sqdot> a\<^emph>)\<^emph>" *)
 
 lemma star_induction_left : "todo" oops (* b + x \<sqdot> a \<le> x \<Rightarrow> b \<sqdot> a\<^emph> \<le> x *)
+
+lemma star_induction_left :
+  fixes V :: "('A, 'a) CVA" and a b x :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" and x_el : "x \<in> elems V"
+  and lhs : "le V (join V b (seq V x a)) x"
+shows "le V (seq V b (finite_seq_iter V a)) x"
+  oops
 
 lemma star_induction_right: "todo" oops (*b + a \<sqdot> x \<le> x \<Rightarrow> a\<^emph> \<sqdot> b \<le> x *) 
 
@@ -762,15 +805,16 @@ qed
 
 proposition hoare_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p a:: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and  "p \<in> elems V" and "a \<in> elems V"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and p_el : "p \<in> elems V" and a_el : "a \<in> elems V"
 shows "hoare V p a p = hoare V p (finite_seq_iter V a) p"
 proof (rule iffI, goal_cases)
   case 1
   then show ?case sorry
 next
   case 2
-  then show ?case sorry
+  then show ?case
+    by (smt (verit) V_quantalic V_valid p_el a_el finite_seq_iter_el hoare_consequence_rule hoare_neut_seq_rule hoare_neut_seq_rule' id_le_finite_seq_iter is_quantalic_def valid_seq_elem valid_seq_mono) 
 qed
 
 proposition hoare_premise_rule :
