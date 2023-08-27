@@ -243,6 +243,36 @@ lemma compose_assoc : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
 \<Longrightarrow> (h \<diamondop> g) \<diamondop> f = h \<diamondop> (g \<diamondop> f)"
   by (smt (verit) Poset.cod_compose Poset.compose_app_assoc Poset.compose_valid Poset.dom_compose Poset.fun_app2 Poset.fun_ext) 
 
+(* Proof techniques *)
+
+lemma indirect_inequality_lower : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "le P a b = (\<forall> c \<in> el P . (le P b c \<longrightarrow> le P a c))"
+  by (smt (verit, best) P_valid assms(2) assms(3) valid_reflexivity valid_transitivity)
+
+lemma indirect_inequality_higher : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "le P a b = (\<forall> c \<in> el P . (le P c a \<longrightarrow> le P c b))"
+  by (smt (verit, best) P_valid assms(2) assms(3) valid_reflexivity valid_transitivity)
+
+lemma indirect_equality_lower : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "a = b = (\<forall> c \<in> el P . (le P b c = le P a c))"
+  by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
+
+lemma indirect_equality_higher : 
+  fixes P :: "'a Poset" and a b :: "'a"
+  assumes P_valid : "valid P"
+  and "a \<in> el P" and "b \<in> el P"
+shows "a = b = (\<forall> c \<in> el P . (le P c a = le P c b))"
+  by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
+
 (* Properties *)
 
 definition is_surjective :: "('a, 'b) PosetMap \<Rightarrow> bool" where
@@ -714,47 +744,85 @@ lemma bot_as_inf : "is_complete P \<Longrightarrow> bot P = inf P (el P)"
 
 (* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
 
-definition lfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
-"lfp f \<equiv> inf (cod f) {x \<in> el (dom f) . le (cod f) (f \<star> x) x}" 
+(* Least fixed point *)
 
-definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
-"gfp f \<equiv> sup (cod f) {x \<in> el (dom f) . le (cod f) x (f \<star> x)}" 
+definition lfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
+"lfp f \<equiv> inf (cod f) {a \<in> el (dom f) . le (cod f) (f \<star> a) a}" 
 
 lemma lfp_is_el : "is_complete P \<Longrightarrow> valid_map f \<Longrightarrow> dom f = P \<Longrightarrow> cod f = P \<Longrightarrow> lfp f \<in> el P"
   by (simp add: Poset.lfp_def inf_el)
 
+lemma lfp_lowerbound :
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a"
+  assumes P_complete : "is_complete P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and "a \<in> el P" and "le P (f \<star> a) a"
+  shows "le P (lfp f) a"
+  using  Poset.lfp_def assms inf_is_inf is_inf_def
+  by (smt (verit, del_insts) mem_Collect_eq subset_iff)
+
+lemma lfp_greatest :
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a"
+  assumes P_complete : "is_complete P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and "a \<in> el P" and "le P (f \<star> a) a"
+shows "(\<And>u . u  \<in> el P \<and> le P (f \<star> u) u \<Longrightarrow> le P a u) \<Longrightarrow> le P a (lfp f)"  
+  using assms lfp_def [where ?f=f] inf_is_glb [where ?P=P]
+  by (metis (no_types, lifting) mem_Collect_eq subsetI) 
+
+lemma lfp_is_fp :
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
+  assumes P_complete : "is_complete P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+shows "f \<star> (lfp f) = lfp f"
+proof -
+  define "H" where "H = {x \<in> el (dom f) . le (cod f) (f \<star> x) x}"
+  define "a" where "a = inf (cod f) H"
+  have "lfp f = a"
+    using H_def Poset.lfp_def a_def by blast 
+  have "a \<in> el P \<and> f \<star> a \<in> el P"
+    by (metis P_complete Poset.fun_app2 \<open>Poset.lfp f = a\<close> f_endo f_valid lfp_is_el)
+  moreover have "le P (f \<star> a) a"
+    by (smt (verit) H_def P_complete Poset.fun_app2 a_def calculation f_endo f_valid inf_is_glb inf_smaller is_complete_def mem_Collect_eq subset_eq valid_map_monotone valid_transitivity) 
+  moreover have "le P  a (f \<star> a)"
+  proof -
+    have "le P (f \<star> (f \<star> a)) (f \<star> a)"
+      by (metis calculation(1) calculation(2) f_endo f_valid valid_map_monotone) 
+    moreover have  "f \<star> a \<in> H"
+      by (simp add: H_def \<open>a \<in> el P \<and> f \<star> a \<in> el P\<close> calculation f_endo) 
+    ultimately show ?thesis
+      by (smt (verit, ccfv_SIG) H_def P_complete a_def f_endo inf_is_inf is_inf_def mem_Collect_eq subset_eq) 
+  qed
+  ultimately show ?thesis
+    by (metis P_complete \<open>Poset.lfp f = a\<close> is_complete_def valid_antisymmetry) 
+qed
+
+lemma lfp_unfold :
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
+  assumes P_complete : "is_complete P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  shows "f \<star> (lfp f) = lfp f"
+  using P_complete f_endo f_valid lfp_is_fp by blast
+
+lemma lfp_const :
+  fixes P :: "'a Poset" and a :: "'a"
+  assumes P_complete : "is_complete P"
+  and "a \<in> el P"
+  shows "lfp (const P P a) = a"
+  by (metis P_complete Poset.const_app Poset.const_cod Poset.const_dom Poset.const_valid Poset.lfp_unfold assms(2) is_complete_def lfp_is_el) 
+
+lemma lfp_eqI :
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a"
+  assumes P_complete : "is_complete P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and a_el : "a \<in> el P" and fp : "f \<star> a = a" and "\<And>b. b \<in> el P \<and>  f \<star> b = b \<Longrightarrow> le P a b" 
+  shows "lfp f = a"
+  by (metis P_complete Poset.lfp_lowerbound Poset.lfp_unfold a_el assms(6) f_endo f_valid fp is_complete_def lfp_is_el valid_antisymmetry)
+
+
+(* Greatest fixed point *)
+
+definition gfp :: "('a , 'a) PosetMap \<Rightarrow> 'a" where
+"gfp f \<equiv> sup (cod f) {a \<in> el (dom f) . le (cod f) a (f \<star> a)}" 
+
 lemma gfp_is_el : "is_cocomplete P \<Longrightarrow> valid_map f \<Longrightarrow> dom f = P \<Longrightarrow> cod f = P \<Longrightarrow> gfp f \<in> el P"
   by (simp add: Poset.gfp_def sup_el)
 
-(* Proof techniques *)
-
-lemma indirect_inequality_lower : 
-  fixes P :: "'a Poset" and a b :: "'a"
-  assumes P_valid : "valid P"
-  and "a \<in> el P" and "b \<in> el P"
-shows "le P a b = (\<forall> c \<in> el P . (le P b c \<longrightarrow> le P a c))"
-  by (smt (verit, best) P_valid assms(2) assms(3) valid_reflexivity valid_transitivity)
-
-lemma indirect_inequality_higher : 
-  fixes P :: "'a Poset" and a b :: "'a"
-  assumes P_valid : "valid P"
-  and "a \<in> el P" and "b \<in> el P"
-shows "le P a b = (\<forall> c \<in> el P . (le P c a \<longrightarrow> le P c b))"
-  by (smt (verit, best) P_valid assms(2) assms(3) valid_reflexivity valid_transitivity)
-
-lemma indirect_equality_lower : 
-  fixes P :: "'a Poset" and a b :: "'a"
-  assumes P_valid : "valid P"
-  and "a \<in> el P" and "b \<in> el P"
-shows "a = b = (\<forall> c \<in> el P . (le P b c = le P a c))"
-  by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
-
-lemma indirect_equality_higher : 
-  fixes P :: "'a Poset" and a b :: "'a"
-  assumes P_valid : "valid P"
-  and "a \<in> el P" and "b \<in> el P"
-shows "a = b = (\<forall> c \<in> el P . (le P c a = le P c b))"
-  by (smt (verit, del_insts) P_valid assms(2) assms(3) valid_antisymmetry valid_reflexivity) 
 
 lemma left_fusion : "todo" oops
 
