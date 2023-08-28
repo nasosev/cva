@@ -848,6 +848,7 @@ next
 qed
 *)
 
+(*
 proposition hoare_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p a:: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
@@ -861,6 +862,7 @@ next
   then show ?case
     by (smt (verit) V_quantalic V_valid p_el a_el finite_seq_iter_el hoare_consequence_rule hoare_neut_seq_rule hoare_neut_seq_rule' id_le_finite_seq_iter is_quantalic_def valid_seq_elem valid_seq_mono) 
 qed
+*)
 
 proposition hoare_premise_rule :
   fixes V :: "('A, 'a) CVA" and a b c:: "('A,'a) Valuation"
