@@ -722,6 +722,24 @@ proof (safe, goal_cases)
   qed
 qed
 
+(* This is false! *)
+lemma sup_dist_join2 :
+  fixes P :: "'a Poset" and U :: "'a set" and a :: "'a"
+  assumes P_cocomplete : "is_cocomplete P" and U_els : "U \<subseteq> el P" and a_el : "a \<in> el P"
+  shows "join P a (sup P U) = sup P {join P a u | u. u \<in> U}"
+proof -
+  have "join P a (sup P U) \<in> el P"
+    by (simp add: P_cocomplete U_els a_el join_el sup_el) 
+  moreover have "sup P {join P a u | u. u \<in> U} \<in> el P"
+    by (smt (verit, ccfv_threshold) P_cocomplete U_els a_el in_mono join_el mem_Collect_eq subsetI sup_el) 
+
+  moreover have "le P (join P a (sup P U)) (sup P {join P a u | u. u \<in> U})" sorry
+  moreover have "le P (sup P {join P a u | u. u \<in> U}) (join P a (sup P U))" sorry
+
+  ultimately show ?thesis
+    by (meson P_cocomplete is_cocomplete_def valid_antisymmetry) 
+  oops
+
 (* Constants *)
 
 definition top :: "'a Poset \<Rightarrow> 'a" where
@@ -916,7 +934,6 @@ proof -
   ultimately show ?thesis
     using P_complete U_def \<open>Poset.sup P U \<in> el P\<close> is_complete_def valid_antisymmetry by fastforce
 qed
-  
 
 (* Powerset *)
 
@@ -1128,7 +1145,7 @@ next
     fix a
     assume "a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))"
     have "a \<subseteq> Function.dom f"
-      by (metis Poset.dom_compose \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> cod_eq_dom direct_image_cod direct_image_dom direct_image_valid f_valid g_valid powerset_el)
+      by (metis Poset.dom_compose \<open>a \<in> el (PosetMap.dom (direct_image g \<diamondop> direct_image f))\<close> cod_eq_dom direct_image_cod direct_image_dom  powerset_el)
     have "(a, {f \<cdot> x |x. x \<in> a}) \<in> {(b, {f \<cdot> x |x. x \<in> b}) |b. b \<subseteq> Function.dom f} "
       using \<open>a \<subseteq> Function.dom f\<close> by blast
     moreover have "{f \<cdot> x |x. x \<in> a} \<subseteq> Function.cod f"

@@ -532,6 +532,50 @@ proof -
     by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid \<open>a_star \<in> CVA.elems V\<close> a_el valid_le_transitive valid_neutral_law_right valid_seq_elem) 
 qed
 
+lemma kleene_finite_seq_iter :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  and a_el : "a \<in> elems V"
+shows "finite_seq_iter V a = sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}"
+proof - 
+  define "f_a" where "f_a = seq_iter_map V a"
+  have "finite_seq_iter V a = lfp f_a"
+    by (simp add: finite_seq_iter_def f_a_def) 
+  moreover have "Poset.valid_map f_a"
+    using V_quantalic V_valid a_el f_a_def is_quantalic_def valid_seq_iter_map by blast 
+  moreover have "(\<And>A. A \<subseteq> elems V \<Longrightarrow> f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A})" 
+  proof -
+    fix A
+    assume "A \<subseteq> elems V"
+    define "sup_A" where "sup_A = Poset.sup (CVA.poset V) A"
+    have "sup_A \<in> elems V"
+      using V_quantalic \<open>A \<subseteq> CVA.elems V\<close> cocomplete is_quantalic_def sup_A_def sup_el by blast 
+    moreover have "Poset.valid_map f_a \<and> el (PosetMap.dom f_a) = elems V" 
+    using V_quantalic V_valid a_el f_a_def is_quantalic_def valid_seq_iter_map
+    by (smt (verit, best) PosetMap.select_convs(1) seq_iter_map_def) 
+    moreover have "f_a \<star> sup_A \<in> elems V"  using fun_app2 [where ?f=f_a and ?a=sup_A]
+      by (smt (verit, ccfv_SIG) PosetMap.select_convs(2) calculation(1) calculation(2) f_a_def seq_iter_map_def) 
+
+    moreover have "f_a \<star> sup_A = join V (neut_seq V (d a)) (seq V a sup_A)" 
+      using fun_app3 [where ?f=f_a and ?a=sup_A] sup_A_def f_a_def seq_iter_map_def [where ?V=V and ?x=a]
+      by (smt (verit, ccfv_SIG) Poset.fun_app_iff PosetMap.select_convs(3) calculation(1) calculation(2) mem_Collect_eq) 
+
+    moreover have "\<And> u. u \<in> A \<Longrightarrow> f_a \<star> u = join V (neut_seq V (d a)) (seq V a u)" 
+      using fun_app3 [where ?f=f_a] sup_A_def f_a_def seq_iter_map_def [where ?V=V and ?x=a]
+      using \<open>A \<subseteq> CVA.elems V\<close> by auto 
+    moreover have " {f_a \<star> a |a. a \<in> A} = {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A}"
+      using calculation(5) by force 
+    moreover have "Poset.sup (poset V) {f_a \<star> a |a. a \<in> A} = sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A}"
+      using sup_def calculation
+      by metis
+    moreover have "sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A} = join V (neut_seq V (d a)) (sup V {seq V a u | u . u \<in> A})" 
+      oops
+(*
+    ultimately show "f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A}" oops
+
+      show ?thesis using kleene_lfp [where ?P="poset V" and ?f=f_a]
+        oops
+*)
 lemma seq_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
@@ -811,7 +855,7 @@ proposition hoare_iteration_rule :
 shows "hoare V p a p = hoare V p (finite_seq_iter V a) p"
 proof (rule iffI, goal_cases)
   case 1
-  then show ?case sorry
+  then show ?case 
 next
   case 2
   then show ?case
