@@ -108,6 +108,7 @@ definition is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 lemma cocomplete : "is_complete V \<Longrightarrow> is_cocomplete (poset V)"
   using CVA.is_complete_def complete_equiv_cocomplete by blast 
 
+(* Todo: make a weaker assumption of continuity (preservation of directed or nonempty suprema) to encompass more models, e.g. CRA *)
 definition is_quantalic :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_quantalic V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> a \<in> elems V \<longrightarrow>
   par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>

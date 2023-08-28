@@ -180,11 +180,11 @@ lemma compose_total : "valid_map f \<Longrightarrow> valid_map g \<Longrightarro
   unfolding compose_def
   by (smt (z3) Poset.fun_app Poset.fun_app2 PosetMap.select_convs(3) relcomp.relcompI)
 
-lemma dom_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> dom (g \<diamondop> f) = dom f"
+lemma dom_compose [simp] : "dom g = cod f \<Longrightarrow> dom (g \<diamondop> f) = dom f"
   unfolding compose_def
   by (simp add: Let_def)
 
-lemma cod_compose [simp] : "valid_map f \<Longrightarrow> valid_map g \<Longrightarrow> dom g = cod f \<Longrightarrow> cod (g \<diamondop> f) = cod g"
+lemma cod_compose [simp] : "dom g = cod f \<Longrightarrow> cod (g \<diamondop> f) = cod g"
   unfolding compose_def
   by (simp add: Let_def)
 
@@ -849,7 +849,6 @@ lemma left_subfusion :
   and g_valid : "valid_map g" and g_endo : "dom g = P \<and> cod g = P"
   and h_valid : "valid_map h" and h_endo : "dom h = P \<and> cod h = P"
   and fg_le_gh : "\<And> a. a \<in> el P \<Longrightarrow> le P ((f \<diamondop> g) \<star> a) ((h \<diamondop> f) \<star> a)" 
-  and f_strict : "f \<star> (bot V) = bot V"
   and f_cont : "\<And> A . A \<subseteq> el P \<Longrightarrow> f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
 shows "le P (f \<star> (lfp g)) (lfp h)"
   oops
@@ -861,10 +860,63 @@ lemma fusion :
   and g_valid : "valid_map g" and g_endo : "dom g = P \<and> cod g = P"
   and h_valid : "valid_map h" and h_endo : "dom h = P \<and> cod h = P"
   and fg_eq_gh : "\<And> a. a \<in> el P \<Longrightarrow> ((f \<diamondop> g) \<star> a) = ((h \<diamondop> f) \<star> a)" 
-  and f_strict : "f \<star> (bot V) = bot V"
   and f_cont : "\<And> A . A \<subseteq> el P \<Longrightarrow> f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
 shows "(f \<star> (lfp g)) = (lfp h)" 
   oops
+
+(* Kleene *)
+
+primrec iter :: "('a, 'a) PosetMap \<Rightarrow> nat \<Rightarrow> ('a, 'a) PosetMap" where
+  "iter f 0 = f" 
+| "iter f (Suc n) = f \<diamondop> (iter f n)"
+
+lemma cod_iter :  "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> cod (iter f n) = cod f"
+  apply (induct n)
+   apply simp
+  by fastforce
+
+lemma dom_iter :  "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> dom (iter f n) = dom f"
+  apply (induct n)
+   apply simp
+  by (simp add: cod_iter)
+
+lemma iter_valid : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> valid_map (iter f n)"
+  apply (induct n)
+   apply simp
+  by (simp add: Poset.compose_valid cod_iter)
+
+lemma iter_el : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (iter f n) \<star> a \<in> el (dom f)"
+  by (metis Poset.fun_app2 cod_iter dom_iter iter_valid) 
+
+lemma kleene_lfp : 
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
+  assumes P_complete : "is_complete P" 
+  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and f_cont : "\<And> A . A \<subseteq> el P \<Longrightarrow> f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
+shows "lfp f = sup P { (iter f n) \<star> (bot P) | n . n \<in> UNIV }" 
+proof -
+  define "U" where "U = { (iter f n) \<star> (bot P) | n . n \<in> UNIV }"
+  have "lfp f \<in> el P"
+    using P_complete f_endo f_valid lfp_is_el by blast 
+  moreover have "sup P U \<in> el P"
+    by (smt (verit, best) P_complete U_def bot_def complete_equiv_cocomplete empty_def f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
+  have "le P (lfp f) (sup P U)"
+    by (smt (z3) Collect_mem_eq Collect_mono_iff P_complete Poset.lfp_lowerbound \<open>Poset.sup P U \<in> el P\<close> bot_def bot_min complete_equiv_cocomplete empty_Collect_eq f_cont f_endo f_valid lfp_is_el mem_Collect_eq sup_el valid_antisymmetry valid_map_welldefined_cod valid_welldefined) 
+  moreover have "le P (sup P U) (lfp f)" 
+  proof -
+    have "\<And> n . le P ((iter f n) \<star> (bot P)) (lfp f)"  
+      apply (induct_tac n)
+      apply (metis P_complete Poset.iter.simps(1) Poset.lfp_unfold bot_as_inf bot_min calculation(1) complete_equiv_cocomplete dual_order.refl f_endo f_valid inf_el valid_map_monotone)
+      by (smt (verit) P_complete Poset.compose_app_assoc Poset.iter.simps(2) Poset.lfp_unfold bot_as_inf calculation(1) cod_iter dom_iter dual_order.refl f_endo f_valid is_complete_def iter_el iter_valid valid_map_monotone)
+    moreover have "\<And> a . a \<in> U \<Longrightarrow> le P a (lfp f)"
+      using U_def calculation by blast 
+    thus ?thesis using sup_is_lub [where ?P=P and ?U=U and ?z="Poset.lfp f"]
+      by (smt (verit, best) P_complete U_def \<open>Poset.lfp f \<in> el P\<close> bot_def complete_equiv_cocomplete empty_subsetI f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
+  qed
+  ultimately show ?thesis
+    using P_complete U_def \<open>Poset.sup P U \<in> el P\<close> is_complete_def valid_antisymmetry by fastforce
+qed
+  
 
 (* Powerset *)
 
