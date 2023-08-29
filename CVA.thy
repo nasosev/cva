@@ -564,7 +564,7 @@ qed
 
 lemma kleene_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and a_el : "a \<in> elems V"
 shows "finite_seq_iter V a = sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}"
 proof - 
@@ -572,16 +572,17 @@ proof -
   have "finite_seq_iter V a = lfp f_a"
     by (simp add: finite_seq_iter_def f_a_def) 
   moreover have "Poset.valid_map f_a"
-    using V_quantalic V_valid a_el f_a_def is_quantalic_def valid_seq_iter_map by blast 
-  moreover have "(\<And>A. A \<subseteq> elems V \<Longrightarrow> f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A})" 
+    using V_cont V_valid a_el f_a_def is_continuous_def valid_seq_iter_map by blast 
+  moreover have "(\<And>A. A \<subseteq> elems V \<Longrightarrow> A \<noteq> {} \<Longrightarrow> f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A})" 
   proof -
     fix A
     assume "A \<subseteq> elems V"
+    assume "A \<noteq> {}"
     define "sup_A" where "sup_A = Poset.sup (CVA.poset V) A"
     have "sup_A \<in> elems V"
-      using V_quantalic \<open>A \<subseteq> CVA.elems V\<close> cocomplete is_quantalic_def sup_A_def sup_el by blast 
+      using V_cont \<open>A \<subseteq> CVA.elems V\<close> cocomplete is_continuous_def sup_A_def sup_el by blast 
     moreover have "Poset.valid_map f_a \<and> el (PosetMap.dom f_a) = elems V" 
-    using V_quantalic V_valid a_el f_a_def is_quantalic_def valid_seq_iter_map
+    using V_cont V_valid a_el f_a_def is_continuous_def valid_seq_iter_map
     by (smt (verit, best) PosetMap.select_convs(1) seq_iter_map_def) 
     moreover have "f_a \<star> sup_A \<in> elems V"  using fun_app2 [where ?f=f_a and ?a=sup_A]
       by (smt (verit, ccfv_SIG) PosetMap.select_convs(2) calculation(1) calculation(2) f_a_def seq_iter_map_def) 
@@ -598,14 +599,42 @@ proof -
     moreover have "Poset.sup (poset V) {f_a \<star> a |a. a \<in> A} = sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A}"
       using sup_def calculation
       by metis
-    moreover have "sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A} = join V (neut_seq V (d a)) (sup V {seq V a u | u . u \<in> A})" 
-      oops
-(*
-    ultimately show "f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A}" oops
+    moreover have 1: "{seq V a u | u . u \<in> A} \<noteq> {}" 
+      using \<open>A \<noteq> {}\<close> by blast
+    moreover have 2: "{seq V a u |u. u \<in> A} \<subseteq> elems V"
+      by (smt (verit) V_valid \<open>A \<subseteq> CVA.elems V\<close> a_el mem_Collect_eq subset_iff valid_seq_elem)
+    moreover have 3: " neut_seq V (d a) \<in> elems V"
+      by (meson CVA.valid_welldefined V_valid a_el d_elem_is_open valid_neut_seq_elem) 
+    moreover have 4: "is_cocomplete (poset V)" using cocomplete [where ?V=V] V_cont is_continuous_def [where ?V=V]
+      by blast
+    moreover have 5: "{Poset.join (CVA.poset V) (neut_seq V (d a)) u |u. u \<in> {seq V a u |u. u \<in> A}} = {Poset.join (CVA.poset V) (neut_seq V (d a)) (seq V a u) | u . u \<in> A}"
+      by blast
+    moreover have "join V (neut_seq V (d a)) (sup V {seq V a u | u . u \<in> A}) = sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A}" 
+      unfolding join_def sup_def
+      using 5 4 2 1 3 sup_dist_join1 [where ?P="poset V" and ?a="neut_seq V (d a)" and ?U="{seq V a u | u . u \<in> A}"] by simp
 
-      show ?thesis using kleene_lfp [where ?P="poset V" and ?f=f_a]
-        oops
-*)
+    moreover have "join V (neut_seq V (d a)) (sup V {seq V a u | u . u \<in> A}) \<in> elems V"
+      by (metis (no_types, lifting) "2" "3" "4" CVA.join_def CVA.sup_def join_el sup_el)
+    moreover have "sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A} \<in> elems V"
+      using calculation(13) calculation(14) by presburger 
+
+    moreover have "f_a \<star> Poset.sup (poset V) A = join V (neut_seq V (d a)) (seq V a (Poset.sup (poset V) A))"
+      using calculation(4) sup_A_def by blast 
+    moreover have "seq V a (sup V A) = sup V {seq V a u | u . u \<in> A}" using V_cont is_continuous_def [where ?V=V]
+      using \<open>A \<noteq> {}\<close> \<open>A \<subseteq> CVA.elems V\<close> a_el by blast
+
+    ultimately show "f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A}" unfolding f_a_def seq_iter_map_def
+      by (simp add: CVA.sup_def)
+  qed
+
+  moreover have "Poset.is_complete (CVA.poset V)" using V_cont is_continuous_def [where ?V=V]
+    using CVA.is_complete_def by auto
+  moreover have "Poset.valid_map f_a \<and> PosetMap.dom f_a = CVA.poset V \<and> PosetMap.cod f_a = CVA.poset V"
+    by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) PosetMap.select_convs(2) calculation(2) f_a_def seq_iter_map_def) 
+  ultimately show ?thesis using kleene_lfp [where ?P="poset V" and ?f=f_a] unfolding f_a_def finite_seq_iter_def sup_def bot_def
+    by fastforce
+qed
+
 lemma seq_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
