@@ -108,12 +108,21 @@ definition is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 lemma cocomplete : "is_complete V \<Longrightarrow> is_cocomplete (poset V)"
   using CVA.is_complete_def complete_equiv_cocomplete by blast 
 
-(* Todo: make a weaker assumption of continuity (preservation of directed or nonempty suprema) to encompass more models, e.g. CRA *)
+definition is_continuous :: "('A,'a) CVA \<Rightarrow> bool" where
+"is_continuous V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> U \<noteq> {} \<longrightarrow> a \<in> elems V \<longrightarrow>
+  par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
+  seq V a (sup V U) = sup V {seq V a u | u . u \<in> U} \<and>
+  seq V (sup V U) a = sup V {seq V u a | u . u \<in> U})"
+
 definition is_quantalic :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_quantalic V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> a \<in> elems V \<longrightarrow>
   par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
   seq V a (sup V U) = sup V {seq V a u | u . u \<in> U} \<and>
   seq V (sup V U) a = sup V {seq V u a | u . u \<in> U})"
+
+lemma quant_imp_cont : "is_quantalic V \<Longrightarrow> is_continuous V" 
+  unfolding is_quantalic_def is_continuous_def
+  by blast
 
 (* Constants *)
 definition top :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation" where
@@ -264,6 +273,25 @@ lemma valid_neut_par_elem:
 
 (* Lattice and quantale *) 
 
+lemma continuous_par_com :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
+  assumes "valid V" and "is_continuous V"
+  and "a \<in> elems V" and "U \<subseteq> elems V" and "U \<noteq> {}"
+shows "par V (sup V U) a = sup V {par V u a | u . u \<in> U}" 
+proof -
+  have "par V (sup V U) a = par V a (sup V U)"
+    by (metis (no_types, opaque_lifting) CVA.is_complete_def CVA.sup_def assms(1) assms(2) assms(3) assms(4) complete_equiv_cocomplete is_cocomplete_def is_continuous_def valid_par_comm)
+  moreover have "{par V u a | u . u \<in> U} = {par V a u | u . u \<in> U}"
+    using assms(1) assms(3) assms(4) valid_par_comm by blast
+  ultimately show ?thesis
+  proof -
+    have "par V a (CVA.sup V U) = CVA.sup V {par V a p |p. p \<in> U}"
+      using assms is_continuous_def by blast
+    thus ?thesis
+      using \<open>par V (CVA.sup V U) a = par V a (CVA.sup V U)\<close> \<open>{par V u a |u. u \<in> U} = {par V a u |u. u \<in> U}\<close> by presburger
+  qed 
+qed
+
 lemma quantalic_par_com :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
   assumes "valid V" and "is_quantalic V"
@@ -283,15 +311,17 @@ proof -
   qed 
 qed
 
-lemma binary_quantalic :
+lemma binary_continuous :
   fixes V :: "('A, 'a) CVA" and a b b' :: "('A, 'a) Valuation"
-  assumes "valid V" and "is_quantalic V"
+  assumes "valid V" and "is_continuous V"
   and "a \<in> elems V" and "b \<in> elems V" and "b' \<in> elems V" 
 shows "par V a (join V b b') = join V (par V a b) (par V a b')
 \<and> seq V a (join V b b') = join V (seq V a b) (seq V a b')
 \<and> seq V (join V b b') a = join V (seq V b a) (seq V b' a)"
 proof -
   define "U" where "U = {b, b'}" 
+  moreover have "U \<noteq> {}" using U_def try
+    by simp
   moreover have "U \<subseteq> elems V"
     using U_def assms(5) assms(4) by blast
   have "join V b b' = sup V U" unfolding U_def sup_def Poset.sup_def join_def Poset.join_def
@@ -303,13 +333,13 @@ proof -
   moreover have "{seq V b a, seq V b' a} = {seq V u a | u . u \<in> U}" using U_def 
     by blast
   moreover have "join V (par V a b) (par V a b') = sup V {par V a u | u . u \<in> U}"
-    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(3))
-  moreover have "join V (seq V a b) (seq V a b') = sup V {seq V a u | u . u \<in> U}"
     by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(4))
-  moreover have "join V (seq V b a) (seq V b' a) = sup V {seq V u a | u . u \<in> U}"
+  moreover have "join V (seq V a b) (seq V a b') = sup V {seq V a u | u . u \<in> U}"
     by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(5))
-  ultimately show ?thesis using is_quantalic_def [where ?V=V ]
-    using \<open>U \<subseteq> CVA.elems V\<close> assms(2) assms(3) by presburger
+  moreover have "join V (seq V b a) (seq V b' a) = sup V {seq V u a | u . u \<in> U}"
+    by (simp add: CVA.join_def CVA.sup_def Poset.join_def calculation(6))
+  ultimately show ?thesis using is_continuous_def [where ?V=V ]  \<open>U \<subseteq> CVA.elems V\<close> assms(2) assms(3)
+    by presburger 
 qed
 
 lemma inf_elem : "is_complete V \<Longrightarrow> U \<subseteq> elems V \<Longrightarrow> inf V U \<in> elems V"
@@ -786,7 +816,7 @@ qed
 
 proposition hoare_choice_rule :
   fixes V :: "('A, 'a) CVA" and p q a b :: "('A,'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and "p \<in> elems V" and "q \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
 shows "hoare V p (join V a b) q = (hoare V p a q \<and> hoare V p b q)" 
 proof (rule iffI, goal_cases)
@@ -796,21 +826,21 @@ proof (rule iffI, goal_cases)
     have "le V (seq V p (join V a b)) q"
       using "1" by blast 
     moreover have "seq V p (join V a b) = join V (seq V p a) (seq V p b)"
-      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
+      using V_cont V_valid assms(3) assms(5) assms(6) binary_continuous by blast 
     moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
       using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
     moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
       using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
-      by (metis (no_types, opaque_lifting) CVA.join_def V_quantalic calculation(2) calculation(3) cocomplete is_quantalic_def) 
+      by (metis (no_types, opaque_lifting) CVA.join_def V_cont calculation(2) calculation(3) cocomplete is_continuous_def) 
     moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
-      by (smt (verit, best) "1" V_quantalic V_valid assms(4) calculation(2) calculation(3) calculation(4) is_quantalic_def join_elem valid_le_transitive)
+      by (smt (verit, best) "1" V_cont V_valid assms(4) calculation(2) calculation(3) calculation(4) is_continuous_def join_elem valid_le_transitive)
     ultimately show ?thesis
       by force
   qed
 next
   case 2
   then show ?case
-    by (smt (z3) CVA.join_def V_quantalic V_valid assms(3) assms(4) assms(5) assms(6) binary_quantalic cocomplete is_quantalic_def join_property valid_seq_elem)
+    by (smt (z3) CVA.join_def V_cont V_valid assms(3) assms(4) assms(5) assms(6) binary_continuous cocomplete is_continuous_def join_property valid_seq_elem)
 qed
 
 proposition hoare_choice_rule' :
@@ -831,7 +861,7 @@ proof (rule iffI, goal_cases)
       by (smt (verit) Collect_cong V_quantalic assms(3) assms(5) is_quantalic_def mem_Collect_eq subsetD subsetI)
       by (metis Collect_mem_eq V_quantalic assms(3) assms(5) is_quantalic_def)
       by (metis Collect_mem_eq V_quantalic assms(3) assms(5) is_quantalic_def)
-      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_quantalic by blast 
+      using V_quantalic V_valid assms(3) assms(5) assms(6) binary_continuous by blast 
     moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
       using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
     moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
