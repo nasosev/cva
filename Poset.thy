@@ -525,6 +525,12 @@ lemma join_mono : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarr
 \<Longrightarrow> le P (join P a b) (join P a b')"
   by (smt (verit, best) is_cocomplete_def join_el join_greater1 join_greater2 join_property valid_transitivity) 
 
+lemma meet_comm : "a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> meet P a b = meet P b a"
+  by (simp add: insert_commute meet_def)
+
+lemma join_comm : "a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> join P a b = join P b a"
+  by (simp add: insert_commute join_def)
+
 lemma inf_is_inf : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_inf P U (inf P U)"
   by (metis complete_inf_exists inf_def someI_ex)
 
@@ -536,6 +542,25 @@ lemma inf_antimono : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longr
 
 lemma sup_mono : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> V \<subseteq> el P \<Longrightarrow> U \<subseteq> V \<Longrightarrow> le P (sup P U) (sup P V)"
   by (smt (verit, del_insts) in_mono sup_el sup_greater sup_is_lub)
+
+lemma sup_singleton : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> sup P {a} = a"
+  by (smt (verit) insert_absorb2 is_cocomplete_def join_def join_el join_greater1 join_property valid_antisymmetry valid_reflexivity)
+
+lemma inf_singleton : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> inf P {a} = a" 
+  using insert_absorb2 is_complete_def inf_def inf_el meet_smaller1 meet_property inf_smaller is_inf_is_glb valid_antisymmetry valid_reflexivity
+  by (smt (verit, del_insts) meet_def meet_el)
+
+lemma sup_el_le : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> a \<in> el P \<Longrightarrow> \<exists> u \<in> U . le P a u \<Longrightarrow> le P a (sup P U)"
+  by (smt (verit, ccfv_threshold) in_mono is_cocomplete_def sup_greater valid_transitivity)
+
+lemma inf_el_le : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> a \<in> el P \<Longrightarrow> \<exists> u \<in> U . le P u a \<Longrightarrow> le P (inf P U) a"
+  by (smt (verit, ccfv_SIG) inf_smaller is_complete_def subsetD valid_def)
+
+lemma sup_mono_pointwise : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> V \<subseteq> el P \<Longrightarrow> (\<forall> u \<in> U. \<exists> v \<in> V. le P u v) \<Longrightarrow> le P (sup P U) (sup P V)"
+  by (simp add: is_cocomplete_def subsetD sup_el_le sup_is_lub)
+
+lemma inf_mono_pointwise : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> V \<subseteq> el P \<Longrightarrow> (\<forall> v \<in> V. \<exists> u \<in> U. le P u v) \<Longrightarrow> le P (inf P U) (inf P V)"
+  by (simp add: inf_el_le inf_is_glb is_complete_def subsetD)
 
 lemma inf_as_sup : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
   proof -
@@ -728,28 +753,55 @@ proof (safe, goal_cases)
   qed
 qed
 
-(*
-lemma sup_dist_join2 :
+lemma sup_dist_join1 :
   fixes P :: "'a Poset" and U :: "'a set" and a :: "'a"
   assumes P_cocomplete : "is_cocomplete P" and U_els : "U \<subseteq> el P" and U_inhabited : "U \<noteq> {}" and a_el : "a \<in> el P"
   shows "join P a (sup P U) = sup P {join P a u | u. u \<in> U}"
 proof -
-  have "join P a (sup P U) \<in> el P"
+  define "aU" where "aU = {join P a u | u. u \<in> U}"
+  then have "aU \<subseteq> el P" using aU_def 
+    by (smt (verit) P_cocomplete U_els a_el join_el mem_Collect_eq subset_eq)
+  moreover have "join P a (sup P U) \<in> el P"
     by (simp add: P_cocomplete U_els a_el join_el sup_el) 
-  moreover have "sup P {join P a u | u. u \<in> U} \<in> el P"
-    by (smt (verit, ccfv_threshold) P_cocomplete U_els a_el in_mono join_el mem_Collect_eq subsetI sup_el) 
+  moreover have "sup P aU \<in> el P"
+    by (smt (verit, ccfv_threshold) P_cocomplete U_els a_el in_mono join_el mem_Collect_eq subsetI sup_el aU_def) 
+  moreover have left: "le P (join P a (sup P U)) (sup P aU)" 
+    proof -
+      have "\<exists> u . u \<in> U \<and> join P a u \<in> aU \<and> le P a (join P a u)"
+        using P_cocomplete U_els U_inhabited a_el join_greater1 aU_def by fastforce 
+      moreover have "le P a (sup P aU)"
+        using P_cocomplete U_els a_el calculation join_el mem_Collect_eq subset_iff sup_el_le aU_def
+        by (smt (verit, ccfv_threshold)) 
+      moreover have "\<forall>u\<in>U. \<exists>v\<in>aU. le P u v" using aU_def
+        by (smt (verit) P_cocomplete U_els a_el join_greater mem_Collect_eq subsetD)
+      moreover have "le P (sup P U) (sup P aU)" using sup_mono_pointwise [where ?P=P and ?U=U and ?V=aU]
+        using P_cocomplete U_els \<open>aU \<subseteq> el P\<close> calculation(3) by fastforce
+      ultimately show ?thesis
+        by (simp add: P_cocomplete U_els \<open>Poset.sup P aU \<in> el P\<close> a_el join_property sup_el)
+    qed
+  moreover have right: "le P (sup P aU) (join P a (sup P U))" 
+    proof -
+      have "\<forall>v \<in> aU. le P v (join P a (sup P U))" using aU_def
+        by (smt (verit, ccfv_threshold) P_cocomplete U_els \<open>aU \<subseteq> el P\<close> a_el in_mono join_greater1 join_mono mem_Collect_eq sup_el sup_greater) 
+      thus ?thesis
+        by (simp add: P_cocomplete \<open>aU \<subseteq> el P\<close> \<open>join P a (Poset.sup P U) \<in> el P\<close> sup_is_lub) 
+    qed
+  ultimately show ?thesis using aU_def P_cocomplete is_cocomplete_def valid_antisymmetry
+    by fastforce
+qed
 
-  moreover have "le P (join P a (sup P U)) (sup P {join P a u | u. u \<in> U})" 
-  proof -
-    have "\<exists> u . u \<in> U \<and> join P a u \<in> {join P a u | u. u \<in> U} \<and> le P a (join P a u)"
-      using P_cocomplete U_els U_inhabited a_el join_greater1 by fastforce 
-    moreover have "le P a (sup P {join P a u | u. u \<in> U})"  
-  moreover have "le P (sup P {join P a u | u. u \<in> U}) (join P a (sup P U))" sorry
-
+lemma sup_dist_join2 :
+  fixes P :: "'a Poset" and U :: "'a set" and a :: "'a"
+  assumes P_cocomplete : "is_cocomplete P" and U_els : "U \<subseteq> el P" and U_inhabited : "U \<noteq> {}" and a_el : "a \<in> el P"
+  shows "join P (sup P U) a = sup P {join P u a | u. u \<in> U}" 
+proof -
+  have "join P (sup P U) a = join P a (sup P U)"
+    by (simp add: P_cocomplete U_els a_el join_comm sup_el)
+  moreover have "sup P {join P u a | u. u \<in> U} = sup P {join P a u | u. u \<in> U}"
+    by (metis U_els a_el in_mono join_comm)
   ultimately show ?thesis
-    by (meson P_cocomplete is_cocomplete_def valid_antisymmetry) 
-  oops
-*)
+    by (simp add: P_cocomplete U_els U_inhabited a_el sup_dist_join1)
+qed
 
 (* Constants *)
 
