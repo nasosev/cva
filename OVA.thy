@@ -824,6 +824,14 @@ corollary galois_insertion :
   shows "res V (d b) (ext V A b) = b"
   by (smt (verit, best) A_open B_le_A V_valid b_el d_elem_is_open d_ext d_neut ext_comm ext_elem inf.absorb_iff2 neutral_is_element ova_comb_local stability subset_Un_eq sup.absorb_iff1 sup_ge2 valid_comb_law_right valid_neutral_law_left)
 
+lemma ext_le_id :
+  fixes V :: "('A,'a) OVA" and A :: "'A Open"  and b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and A_open : "A \<in> opens (space V)" and B_le_A : "d b \<subseteq> A"
+  and b_el : "b \<in> elems V"
+shows "le V (ext V A b) b"
+  by (metis A_open B_le_A V_valid b_el d_ext elem_le_wrap ext_elem galois_insertion res_functorial_id valid_le valid_poset valid_reflexivity valid_semigroup)
+
 (* [Corollary 2 (2/2), TMCVA] *)
 corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a :: "('A, 'a) Valuation"
