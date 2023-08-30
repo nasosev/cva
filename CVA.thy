@@ -108,6 +108,7 @@ definition is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 lemma cocomplete : "is_complete V \<Longrightarrow> is_cocomplete (poset V)"
   using CVA.is_complete_def complete_equiv_cocomplete by blast 
 
+(* Usually 'continuous' means preservation of directed suprema only, so the below defn. is stronger *)
 definition is_continuous :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_continuous V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> U \<noteq> {} \<longrightarrow> a \<in> elems V \<longrightarrow>
   par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
@@ -124,12 +125,26 @@ lemma quant_imp_cont : "is_quantalic V \<Longrightarrow> is_continuous V"
   unfolding is_quantalic_def is_continuous_def
   by blast
 
+lemma cont_imp_complete : "is_continuous V \<Longrightarrow> is_complete V"
+  using is_continuous_def by blast 
+
+lemma quant_imp_complete : "is_quantalic V \<Longrightarrow> is_complete V"
+  using is_quantalic_def by blast 
+
+
 (* Constants *)
-definition top :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation" where
-"top V = Poset.top (poset V)"
 
 definition bot :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation" where
 "bot V = Poset.bot (poset V)"
+
+definition top :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation" where
+"top V = Poset.top (poset V)"
+
+lemma complete_bot_el : "is_complete V \<Longrightarrow> bot V \<in> elems V"
+  by (simp add: CVA.bot_def CVA.is_complete_def bot_as_inf inf_el)
+
+lemma complete_top_el : "is_complete V \<Longrightarrow> top V \<in> elems V"
+  by (metis CVA.top_def Poset.top_def cocomplete dual_order.refl sup_el) 
 
 (* Validity *)
 
@@ -586,11 +601,9 @@ proof -
     by (smt (verit, best) PosetMap.select_convs(1) seq_iter_map_def) 
     moreover have "f_a \<star> sup_A \<in> elems V"  using fun_app2 [where ?f=f_a and ?a=sup_A]
       by (smt (verit, ccfv_SIG) PosetMap.select_convs(2) calculation(1) calculation(2) f_a_def seq_iter_map_def) 
-
     moreover have "f_a \<star> sup_A = join V (neut_seq V (d a)) (seq V a sup_A)" 
       using fun_app3 [where ?f=f_a and ?a=sup_A] sup_A_def f_a_def seq_iter_map_def [where ?V=V and ?x=a]
       by (smt (verit, ccfv_SIG) Poset.fun_app_iff PosetMap.select_convs(3) calculation(1) calculation(2) mem_Collect_eq) 
-
     moreover have "\<And> u. u \<in> A \<Longrightarrow> f_a \<star> u = join V (neut_seq V (d a)) (seq V a u)" 
       using fun_app3 [where ?f=f_a] sup_A_def f_a_def seq_iter_map_def [where ?V=V and ?x=a]
       using \<open>A \<subseteq> CVA.elems V\<close> by auto 
@@ -612,21 +625,17 @@ proof -
     moreover have "join V (neut_seq V (d a)) (sup V {seq V a u | u . u \<in> A}) = sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A}" 
       unfolding join_def sup_def
       using 5 4 2 1 3 sup_dist_join1 [where ?P="poset V" and ?a="neut_seq V (d a)" and ?U="{seq V a u | u . u \<in> A}"] by simp
-
     moreover have "join V (neut_seq V (d a)) (sup V {seq V a u | u . u \<in> A}) \<in> elems V"
       by (metis (no_types, lifting) "2" "3" "4" CVA.join_def CVA.sup_def join_el sup_el)
     moreover have "sup V {join V (neut_seq V (d a)) (seq V a u) | u . u \<in> A} \<in> elems V"
       using calculation(13) calculation(14) by presburger 
-
     moreover have "f_a \<star> Poset.sup (poset V) A = join V (neut_seq V (d a)) (seq V a (Poset.sup (poset V) A))"
       using calculation(4) sup_A_def by blast 
     moreover have "seq V a (sup V A) = sup V {seq V a u | u . u \<in> A}" using V_cont is_continuous_def [where ?V=V]
       using \<open>A \<noteq> {}\<close> \<open>A \<subseteq> CVA.elems V\<close> a_el by blast
-
     ultimately show "f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A}" unfolding f_a_def seq_iter_map_def
       by (simp add: CVA.sup_def)
   qed
-
   moreover have "Poset.is_complete (CVA.poset V)" using V_cont is_continuous_def [where ?V=V]
     using CVA.is_complete_def by auto
   moreover have "Poset.valid_map f_a \<and> PosetMap.dom f_a = CVA.poset V \<and> PosetMap.cod f_a = CVA.poset V"
@@ -637,24 +646,33 @@ qed
 
 lemma seq_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and a_el : "a \<in> elems V"
 shows "seq V (finite_seq_iter V a) (finite_seq_iter V a) = finite_seq_iter V a"
   oops
 
 lemma ka_finite_seq_iter : "todo" oops (* "(a + b)\<^emph> = a\<^emph> \<sqdot> (b \<sqdot> a\<^emph>)\<^emph>" *)
 
-lemma star_induction_left : "todo" oops (* b + x \<sqdot> a \<le> x \<Rightarrow> b \<sqdot> a\<^emph> \<le> x *)
-
+(* b + x \<sqdot> a \<le> x \<Rightarrow> b \<sqdot> a\<^emph> \<le> x *)
 lemma star_induction_left :
   fixes V :: "('A, 'a) CVA" and a b x :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" and x_el : "x \<in> elems V"
   and lhs : "le V (join V b (seq V x a)) x"
-shows "le V (seq V b (finite_seq_iter V a)) x"
+shows "le V (seq V b (finite_seq_iter V a)) x" using kleene_finite_seq_iter [where ?V=V and ?a=a] 
   oops
 
-lemma star_induction_right: "todo" oops (*b + a \<sqdot> x \<le> x \<Rightarrow> a\<^emph> \<sqdot> b \<le> x *) 
+(*b + a \<sqdot> x \<le> x \<Rightarrow> a\<^emph> \<sqdot> b \<le> x *) 
+lemma star_induction_right :
+  fixes V :: "('A, 'a) CVA" and a b x :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" and x_el : "x \<in> elems V"
+  and lhs : "le V (join V b (seq V a x)) x"
+shows "le V (seq V (finite_seq_iter V a) b) x"  
+proof -
+  have "finite_seq_iter V a = sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}" using kleene_finite_seq_iter [where ?V=V and ?a=a]
+    using V_cont V_valid a_el by blast
+  show ?thesis oops
 
 (* Paper results *)
 
@@ -907,21 +925,66 @@ next
 qed
 *)
 
-(*
+
 proposition hoare_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p a:: "('A,'a) Valuation"
-  assumes V_valid : "valid V" and V_quantalic : "is_quantalic V"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and p_el : "p \<in> elems V" and a_el : "a \<in> elems V"
 shows "hoare V p a p = hoare V p (finite_seq_iter V a) p"
 proof (rule iffI, goal_cases)
+  define "U" where "U = {((iter (seq_iter_map V a) n) \<star> (bot V)) | n . n \<in> UNIV} "
+  define "pU" where "pU = {seq V p ((iter (seq_iter_map V a) n) \<star> (bot V)) | n . n \<in> UNIV}"
   case 1
   then show ?case 
+  proof -
+    assume "le V (seq V p a) p"
+  have "finite_seq_iter V a = sup V U" using kleene_finite_seq_iter [where ?V=V and ?a=a] U_def
+    using V_cont V_valid a_el by blast
+  moreover have "Poset.valid_map (seq_iter_map V a)" using valid_seq_iter_map [where ?V=V and ?x=a] using V_valid V_cont
+    using a_el cont_imp_complete by blast
+  moreover have "\<And> n . ((iter (seq_iter_map V a) n) \<star> (bot V)) \<in> elems V" using iter_el
+    by (metis (no_types, lifting) PosetMap.select_convs(1) PosetMap.select_convs(2) V_cont calculation(2) complete_bot_el cont_imp_complete seq_iter_map_def)
+  moreover have "\<And> n . seq V p ((iter (seq_iter_map V a) n) \<star> (bot V)) \<in> elems V"
+    using V_valid calculation(3) p_el valid_seq_elem by blast   
+
+  moreover have "\<And> n . le V (seq V p ((iter (seq_iter_map V a) n) \<star> (bot V))) p" 
+  proof -
+    fix n
+    show "le V (seq V p ((iter (seq_iter_map V a) n) \<star> (bot V))) p"
+    proof  (induct_tac n, goal_cases)
+      case 1
+      then show ?case sorry
+    next
+      case (2 n)
+      then show ?case sorry
+    qed
+   
+  qed
+  moreover have "pU \<subseteq> elems V"
+    using pU_def calculation(4) by fastforce 
+  moreover have "le V (sup V pU) p" 
+    using sup_is_lub [where ?P="poset V" and ?z=p and ?U=pU] pU_def
+    by (smt (z3) CVA.sup_def V_cont calculation(5) calculation(6) cocomplete cont_imp_complete mem_Collect_eq p_el)
+  moreover have "U \<noteq> {}"
+    using U_def by blast
+  moreover have 0 : "pU = {seq V p u |u. u \<in> U}" unfolding U_def pU_def try0
+    by blast
+  moreover have 00: "sup V pU = sup V {seq V p u |u. u \<in> U}"
+    using "0" by auto
+  moreover have "seq V p (sup V U) = sup V pU " 
+    using U_def pU_def 00 V_cont cont_imp_complete [where ?V=V] is_continuous_def [where ?V=V]
+    by (smt (z3) Collect_cong calculation(3) calculation(8) mem_Collect_eq p_el subsetI)
+  moreover have "sup V { seq V p ((iter (seq_iter_map V a) n) \<star> (bot V)) | n . n \<in> UNIV} = seq V p (finite_seq_iter V a)" 
+    using calculation(1) calculation(11) pU_def by presburger
+  ultimately show "le V (seq V p (finite_seq_iter V a)) p"
+    by force 
+qed
 next
   case 2
   then show ?case
-    by (smt (verit) V_quantalic V_valid p_el a_el finite_seq_iter_el hoare_consequence_rule hoare_neut_seq_rule hoare_neut_seq_rule' id_le_finite_seq_iter is_quantalic_def valid_seq_elem valid_seq_mono) 
+    by (smt (verit) V_cont V_valid p_el a_el finite_seq_iter_el hoare_consequence_rule hoare_neut_seq_rule hoare_neut_seq_rule' id_le_finite_seq_iter is_continuous_def valid_seq_elem valid_seq_mono) 
 qed
-*)
+
 
 proposition hoare_premise_rule :
   fixes V :: "('A, 'a) CVA" and a b c:: "('A,'a) Valuation"

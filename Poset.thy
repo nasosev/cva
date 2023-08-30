@@ -948,7 +948,7 @@ shows "(f \<star> (lfp g)) = (lfp h)"
 (* Kleene *)
 
 primrec iter :: "('a, 'a) PosetMap \<Rightarrow> nat \<Rightarrow> ('a, 'a) PosetMap" where
-  "iter f 0 = f" 
+  "iter f 0 = ident (dom f)" 
 | "iter f (Suc n) = f \<diamondop> (iter f n)"
 
 lemma cod_iter :  "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> cod (iter f n) = cod f"
@@ -964,6 +964,7 @@ lemma dom_iter :  "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow>
 lemma iter_valid : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> valid_map (iter f n)"
   apply (induct n)
    apply simp
+  using Poset.ident_valid valid_map_welldefined_cod apply blast
   by (simp add: Poset.compose_valid cod_iter)
 
 lemma iter_el : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (iter f n) \<star> a \<in> el (dom f)"
@@ -972,6 +973,7 @@ lemma iter_el : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a
 lemma iter_app : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f \<star> ((iter f n) \<star> a) = iter f (n + 1) \<star> a"
   by (simp add: Poset.compose_app_assoc cod_iter dom_iter iter_valid) 
 
+(* Todo: weaken precondition to preservation of directed suprema (Scott-continuous) *)
 lemma kleene_lfp : 
   fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
   assumes P_complete : "is_complete P" 
@@ -1010,7 +1012,7 @@ moreover have "le P (sup P U) (lfp f)"
   proof -
     have "\<And> n . le P ((iter f n) \<star> (bot P)) (lfp f)"  
       apply (induct_tac n)
-      apply (metis P_complete Poset.iter.simps(1) Poset.lfp_unfold \<open>Poset.lfp f \<in> el P\<close> bot_as_inf bot_min complete_equiv_cocomplete dual_order.refl f_endo f_valid inf_el valid_map_monotone)
+      apply (metis P_complete Poset.ident_app Poset.iter.simps(1) bot_as_inf bot_min calculation(2) complete_equiv_cocomplete f_endo is_complete_def set_eq_subset)
       by (smt (verit) P_complete Poset.compose_app_assoc Poset.fun_app2 Poset.iter.simps(2) Poset.lfp_unfold bot_as_inf calculation(2) cod_iter dom_iter f_endo f_valid inf_el iter_valid subset_eq valid_map_monotone) 
     moreover have "\<And> a . a \<in> U \<Longrightarrow> le P a (lfp f)"
       using U_def calculation by blast 
