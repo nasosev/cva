@@ -733,6 +733,13 @@ lemma elem_le_wrap :
 shows "le V a b"
   by (smt (verit, best) B_le_A OVA.le_eq_local_le Poset.valid_def V_valid a_B_le_b a_el b_el d_elem_is_open d_res id_le_res res_elem valid_poset valid_semigroup)
 
+lemma neut_le_neut :
+  fixes V :: "('A,'a) OVA" and A B :: "'A Open" 
+  assumes V_valid : "valid V"
+  and B_open :"B \<in> opens (space V)" and A_open :"A \<in> opens (space V)" and B_le_A : "B \<subseteq> A"
+shows "le V (neut V A) (neut V B)"
+  by (metis (no_types, lifting) A_open B_le_A B_open V_valid elem_le_wrap fst_conv neutral_is_element stability valid_le valid_poset valid_reflexivity valid_semigroup)  
+
 (* [Theorem 1 (1/3), TMCVA] *)
 theorem res_ext_adjunction :
   fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
@@ -2015,7 +2022,7 @@ lemma laxity2 :
   and B_open :"B \<in> opens (space V)" and B_le_A : "B \<subseteq> d a"
   and B_open :"B' \<in> opens (space V)" and B'_le_A' : "B' \<subseteq> d a'"
   and a_el : "a \<in> elems V"
-  and a'_elem :  "a' \<in> elems V"
+  and a'_elem : "a' \<in> elems V"
 shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" 
   oops
 

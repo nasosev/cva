@@ -967,11 +967,15 @@ lemma iter_valid : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow
   using Poset.ident_valid valid_map_welldefined_cod apply blast
   by (simp add: Poset.compose_valid cod_iter)
 
-lemma iter_el : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> (iter f n) \<star> a \<in> el (dom f)"
+lemma iter_el : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> iter f n \<star> a \<in> el (dom f)"
   by (metis Poset.fun_app2 cod_iter dom_iter iter_valid) 
 
-lemma iter_app : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f \<star> ((iter f n) \<star> a) = iter f (n + 1) \<star> a"
+lemma iter_app : "valid_map f \<Longrightarrow> dom f = cod f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> f \<star> (iter f n \<star> a) = iter f (n + 1) \<star> a"
   by (simp add: Poset.compose_app_assoc cod_iter dom_iter iter_valid) 
+
+lemma iter_zero_app : "valid_map f \<Longrightarrow> a \<in> el (dom f) \<Longrightarrow> iter f 0 \<star> a = a"
+  by (simp add: Poset.valid_map_welldefined)
+
 
 (* Todo: weaken precondition to preservation of directed suprema (Scott-continuous) *)
 lemma kleene_lfp : 

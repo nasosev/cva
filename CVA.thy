@@ -136,6 +136,7 @@ lemma complete_bot_el : "is_complete V \<Longrightarrow> bot V \<in> elems V"
 lemma complete_top_el : "is_complete V \<Longrightarrow> top V \<in> elems V"
   by (metis CVA.top_def Poset.top_def cocomplete dual_order.refl sup_el) 
 
+
 (* Validity *)
 
 lemma valid_welldefined: "valid V \<Longrightarrow> OVA.valid (seq_algebra V) \<and> OVA.valid (par_algebra V) \<and> (OVA.prealgebra (seq_algebra V) = OVA.prealgebra (par_algebra V))"
@@ -708,6 +709,42 @@ proof -
     by fastforce
 qed
 
+lemma iter_seq_el: 
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and n :: "nat"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V" 
+shows "iter (seq_iter_map V a) n \<star> bot V \<in> elems V"
+  by (metis (no_types, lifting) PosetMap.select_convs(1) V_cont V_valid a_el complete_bot_el cont_imp_complete dom_cod_seq_iter_map iter_el seq_iter_map_def valid_seq_iter_map)
+
+lemma iter_seq_zero : 
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V" 
+shows "iter (seq_iter_map V a) 0 \<star> bot V = bot V"
+  by (metis (no_types, lifting) PosetMap.select_convs(1) V_cont V_valid a_el complete_bot_el cont_imp_complete iter_zero_app seq_iter_map_def valid_seq_iter_map)
+
+lemma iter_seq_induction : 
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and n :: "nat"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V" 
+shows "iter (seq_iter_map V a) (Suc n) \<star> bot V = join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) n \<star> bot V)))"
+proof -
+  have "Poset.valid_map (seq_iter_map V a)"
+    using V_cont V_valid a_el cont_imp_complete valid_seq_iter_map by blast
+  moreover have "Poset.valid_map (iter (seq_iter_map V a) n)"
+    by (simp add: calculation dom_cod_seq_iter_map iter_valid)
+  moreover have "(iter (seq_iter_map V a) n \<star> bot V) \<in> elems V"
+    by (metis (no_types, lifting) PosetMap.select_convs(1) V_cont calculation(1) complete_bot_el cont_imp_complete dom_cod_seq_iter_map iter_el seq_iter_map_def)
+  moreover have "iter (seq_iter_map V a) (Suc n) \<star> bot V = seq_iter_map V a \<star> ((iter (seq_iter_map V a) n \<star> bot V))"
+    using compose_app_assoc [where ?f="seq_iter_map V a" and ?g="iter (seq_iter_map V a) n" and ?a="bot V"]
+    by (metis (no_types, lifting) Poset.compose_app_assoc Poset.iter.simps(2) PosetMap.select_convs(1) V_cont calculation(1) calculation(2) cod_iter complete_bot_el cont_imp_complete dom_cod_seq_iter_map dom_iter seq_iter_map_def)
+  moreover have "... = join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) n \<star> bot V)))"
+    using seq_iter_map_def [where ?V=V and ?x=a] Poset.fun_app3
+    by (smt (z3) Poset.fun_app PosetMap.select_convs(1) PosetMap.select_convs(3) calculation(1) calculation(3) mem_Collect_eq old.prod.inject)
+  ultimately show ?thesis
+    by presburger 
+qed
+
 lemma seq_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -732,12 +769,7 @@ lemma star_induction_right :
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" and x_el : "x \<in> elems V"
   and lhs : "le V (join V b (seq V a x)) x"
-shows "le V (seq V (finite_seq_iter V a) b) x"  
-proof -
-  have "finite_seq_iter V a = sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}" using kleene_finite_seq_iter [where ?V=V and ?a=a]
-    using V_cont V_valid a_el by blast
-  show ?thesis oops
-
+shows "le V (seq V (finite_seq_iter V a) b) x"  oops
 
 
 (* Paper results *)
@@ -978,16 +1010,8 @@ proof (rule iffI, goal_cases)
     show "le V (seq V p ((iter (seq_iter_map V a) n) \<star> (bot V))) p"
     proof  (induct_tac n, goal_cases)
       case 1
-      then show ?case 
-      proof -     
-        have "iter (seq_iter_map V a) 0 = Poset.ident (PosetMap.dom (seq_iter_map V a))"
-          using Poset.iter.simps(1) by blast 
-        moreover have "iter (seq_iter_map V a) 0 \<star> bot V = bot V" 
-          using seq_iter_map_def [where ?V=V and ?x=a] 
-           V_cont \<open>Poset.valid_map (seq_iter_map V a)\<close> complete_bot_el cont_imp_complete valid_map_welldefined_dom by force
-        ultimately show ?thesis
-          by (smt (verit) V_cont V_valid \<open>\<And>n. seq V p (iter (seq_iter_map V a) n \<star> CVA.bot V) \<in> CVA.elems V\<close> \<open>hoare V p a p\<close> a_el cont_imp_complete p_el seq_bot1 valid_le_transitive valid_seq_elem)
-      qed
+      then show ?case
+        by (smt (verit, best) V_cont V_valid \<open>hoare V p a p\<close> a_el calculation(3) cont_imp_complete iter_seq_zero p_el seq_bot1 valid_le_transitive valid_seq_elem) 
     next
       case (2 n)
       then show ?case 
@@ -1001,26 +1025,19 @@ proof (rule iffI, goal_cases)
           by (metis (no_types, lifting) PosetMap.simps(1) PosetMap.simps(2) calculation(2) iter_valid seq_iter_map_def)
         moreover have "(iter (seq_iter_map V a) n \<star> bot V) \<in> elems V"
           using \<open>\<And>n. iter (seq_iter_map V a) n \<star> CVA.bot V \<in> CVA.elems V\<close> by blast
-        moreover have "iter (seq_iter_map V a) (Suc n) \<star> bot V = seq_iter_map V a \<star> ((iter (seq_iter_map V a) n \<star> bot V))"
-          using compose_app_assoc [where ?f="seq_iter_map V a" and ?g="iter (seq_iter_map V a) n" and ?a="bot V"]
-          by (smt (verit, del_insts) One_nat_def PosetMap.select_convs(2) V_cont add.right_neutral add_Suc_right calculation(2) complete_bot_el cont_imp_complete dom_cod_seq_iter_map iter_app seq_iter_map_def)
-        moreover have "... = join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) n \<star> bot V)))"
-          using seq_iter_map_def [where ?V=V and ?x=a] Poset.fun_app3
-          by (smt (verit, del_insts) Poset.fun_app_iff PosetMap.select_convs(3) calculation(2) calculation(4) mem_Collect_eq)
-
+        moreover have "iter (seq_iter_map V a) (Suc n) \<star> bot V  = join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) n \<star> bot V)))"
+          using V_cont V_valid a_el iter_seq_induction by blast
         moreover have "seq V p (neut_seq V (d a)) = ext V (d a) p" using ext_symmetric_seq
           by (metis CVA.valid_welldefined V_valid a_el d_elem_is_open dp_le_da p_el)         
         moreover have "le V ( ext V (d a) p) p" using ext_le_id
           by (metis CVA.valid_welldefined V_valid a_el d_elem_is_open dp_le_da p_el)
         moreover have 0: "hoare V p (neut_seq V (d a)) p"
-          using calculation(7) calculation(8) by presburger
+          using calculation(6) calculation(7) by presburger
         moreover have 1: "hoare V p (seq V a ((iter (seq_iter_map V a) n \<star> bot V))) p"
           using "1" "2" V_valid a_el calculation(4) hoare_composition_rule' p_el by blast
-
         moreover have "le V (seq V p (join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) n \<star> bot V))))) p " 
           using 0 1 hoare_choice_rule [where ?V=V and ?p=p and ?q=p and ?a="neut_seq V (d a)" and ?b="seq V a ((iter (seq_iter_map V a) n \<star> bot V))"]
           by (smt (verit, best) CVA.valid_welldefined V_cont V_valid a_el calculation(4) d_elem_is_open p_el valid_neut_seq_elem valid_seq_elem)
-        
         ultimately show "hoare V p (iter (seq_iter_map V a) (Suc n) \<star> bot V) p"
           by presburger 
     qed
@@ -1125,13 +1142,14 @@ qed
 
 (* Invariants 
 
-See Thms 6.4, 6.5 of [2].
+See Thms 6.4, 6.5, Lem. 6.6 of [2].
 *)
 
-
-
-lemma inv_dist : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>  le V (par V i (seq V a b)) (seq V (par V i a) (par V i b))"
+lemma inv_dist_le : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>  le V (par V i (seq V a b)) (seq V (par V i a) (par V i b))"
   using invariant_def by blast 
+
+lemma inv_dist : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> par V i (seq V a b) = seq V (par V i a) (par V i b)"
+  by (smt (verit) inv_dist_le invariant_def valid_le_antisymmetric valid_par_elem valid_seq_elem valid_weak_exchange)
 
 lemma inv_neut_seq : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> le V (neut_seq V (d i)) i"
   using invariant_def by blast 
@@ -1194,9 +1212,58 @@ shows "le V (seq V (par V a b) r) (par V (seq V a r) (seq V b r))"
 lemma inv_iter :
   fixes V :: "('A, 'a) CVA" and i:: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
-  and i_el : "r \<in> elems V" and inv_i : "invariant V r" 
-shows "invariant V (finite_seq_iter V r)" 
+  and i_el : "i \<in> elems V" and inv_i : "invariant V i" 
+shows "invariant V (finite_seq_iter V i)" 
   oops
+
+lemma inv_iter_le :
+  fixes V :: "('A, 'a) CVA" and a i :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and i_el : "i \<in> elems V" and inv_i : "invariant V i"  and a_el : "a \<in> elems V"
+  and a_le_i : "le V a i" and di_le_da : "d i \<subseteq> d a"
+shows "le V (finite_seq_iter V a) i" 
+proof -
+  define "U" where "U = {iter (seq_iter_map V a) n \<star> CVA.bot V |n. n \<in> UNIV}"
+  then have "finite_seq_iter V a = sup V U"
+    using V_cont V_valid a_el kleene_finite_seq_iter by blast
+  moreover have "\<And> n . le V ( (iter (seq_iter_map V a) n) \<star> (bot V)) i" 
+    proof (induct_tac n, goal_cases)
+      case (1 n)
+      then show ?case
+        by (metis CVA.bot_def V_cont V_valid a_el bot_min cocomplete cont_imp_complete i_el iter_seq_zero) 
+    next
+      case (2 n m)
+      then show ?case 
+      proof -
+        have "iter (seq_iter_map V a) (Suc m) \<star> bot V = join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) m \<star> bot V)))" 
+          using iter_seq_induction [where ?V=V and ?n=m and ?a=a] V_cont V_valid a_el by fastforce 
+        moreover have "le V (neut_seq V (d a)) (neut_seq V (d i))" using neut_le_neut di_le_da
+          by (metis CVA.valid_welldefined V_valid a_el d_elem_is_open i_el)
+        moreover have "le V (neut_seq V (d a)) i"
+          by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid a_el calculation(2) d_elem_is_open i_el inv_i inv_neut_seq valid_le_transitive valid_neut_seq_elem)
+        moreover have "le V ((iter (seq_iter_map V a) m \<star> bot V)) i"
+          using "2" by blast
+        moreover have "le V (seq V a ((iter (seq_iter_map V a) m \<star> bot V))) (seq V a i)" using valid_seq_mono iter_seq_el
+          using "2" V_cont V_valid a_el i_el valid_le_reflexive by blast
+        moreover have "le V (seq V a i) i"
+          by (smt (verit, del_insts) V_valid a_el a_le_i i_el inv_i inv_idem_seq valid_le_reflexive valid_seq_mono)
+        moreover have "le V (seq V a ((iter (seq_iter_map V a) m \<star> bot V))) i"
+          by (smt (verit, ccfv_threshold) V_cont V_valid a_el calculation(5) calculation(6) i_el iter_seq_el valid_le_transitive valid_seq_elem) 
+        moreover have "le V (join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) m \<star> bot V)))) i"
+          by (smt (verit, del_insts) CVA.join_def CVA.valid_welldefined V_cont V_valid a_el calculation(3) calculation(7) cocomplete cont_imp_complete d_elem_is_open i_el iter_seq_el join_property neutral_is_element valid_seq_elem)
+        ultimately show ?thesis
+          by presburger 
+      qed
+    qed
+    moreover have "U \<subseteq> CVA.elems V " using U_def
+      by (smt (verit) PosetMap.select_convs(1) PosetMap.select_convs(2) V_cont V_valid a_el complete_bot_el cont_imp_complete iter_el mem_Collect_eq seq_iter_map_def subsetI valid_seq_iter_map) 
+    moreover have "le V (sup V U) i"
+      unfolding sup_def
+      using sup_is_lub [where ?P="poset V" and ?U="U" and ?z=i] U_def
+      using V_cont calculation(2) calculation(3) cocomplete cont_imp_complete i_el by blast
+    ultimately show ?thesis
+      by presburger 
+  qed
 
 (* Rely-guarantee logic rules
 
@@ -1382,8 +1449,17 @@ next
       by (smt (verit, ccfv_threshold) "2" V_cont V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_continuous hoare_choice_rule valid_par_elem)
     ultimately show ?thesis
       by blast
+  qed
 qed
 
-
+proposition rg_iteration_rule : 
+  fixes V :: "('A, 'a) CVA" and p a :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and p_el : "p \<in> elems V" and a_el : "a \<in> elems V"
+  and dp_le_da : "d p \<subseteq> d a"
+  and inv_hoare : "hoare V p r p" and inv_rg : "rg V p r a g p"
+shows "rg V p r (finite_seq_iter V a) g p"
+proof -
+  
 
 end
