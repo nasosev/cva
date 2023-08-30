@@ -86,7 +86,11 @@ abbreviation rg :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 (* i \<Zsemi> i = i \<and> i \<parallel> i = i \<and> i \<parallel> (a \<Zsemi> b) \<preceq> (i \<parallel> a) \<Zsemi> (i \<parallel> b) *)
 (* for recursion, we should also assume neut_skip \<le> i *)
 definition invariant :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
-"invariant V i \<equiv> le V (neut_seq V (d i)) i \<and>  seq V i i = i \<and> par V i i = i \<and> (\<forall> a b . a \<in> elems V \<and> b \<in> elems V \<longrightarrow> le V (par V i (seq V a b)) (seq V (par V i a) (par V i b)))"
+"invariant V i \<equiv> 
+  le V (neut_seq V (d i)) i 
+  \<and> seq V i i = i 
+  \<and> par V i i = i 
+  \<and> (\<forall> a b . a \<in> elems V \<and> b \<in> elems V \<longrightarrow> le V (par V i (seq V a b)) (seq V (par V i a) (par V i b)))"
 
 definition meet :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> ('A, 'a) Valuation" where
 "meet V a b = Poset.meet (poset V) a b"
@@ -1254,31 +1258,50 @@ and ?b="(seq V p1 (par V (meet V r1 r2) (par V a1 a2)))" and ?c="(seq V p1 (par 
     by force 
 qed
 
+(* Note: in CKA the converse direction is proved, but this would require neut_par refines any
+ invariant, which is too strong in many models *)
 proposition rg_neut_par_rule :
-  fixes V :: "('A, 'a) CVA" and p r g q :: "('A,'a) Valuation"
+  fixes V :: "('A, 'a) CVA" and r g p q :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
-  and "p \<in> elems V" and "r \<in> elems V" and "g \<in> elems V" and "q \<in> elems V"
+  and r_el : "r \<in> elems V" and g_el : "g \<in> elems V" and p_el : "p \<in> elems V"  and q_el : "q \<in> elems V"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
-  and "rg V p r (neut_par V (d r)) g q" 
+  and "rg V p r (neut_par V (d r)) g q"
 shows "hoare V p r q"
-  by (metis CVA.valid_welldefined V_valid assms(3) assms(8) valid_elems valid_neutral_law_right) 
-
+  by (metis CVA.valid_welldefined V_valid assms(8) r_el valid_elems valid_neutral_law_right)
 
 proposition rg_choice_rule :
-  fixes V :: "('A, 'a) CVA" and p r g q :: "('A,'a) Valuation" and U :: "(('A,'a) Valuation) set"
-  assumes V_valid : "valid V"
-  and V_complete : "is_complete V"
-  and V_quantale : "is_quantalic V"
-  and "p \<in> elems V" and "r \<in> elems V" and "U \<subseteq> elems V" and "g \<in> elems V" and "q \<in> elems V"
+  fixes V :: "('A, 'a) CVA" and p q a b r g :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and "r \<in> elems V" and "g \<in> elems V" and "p \<in> elems V" and "q \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
-shows "rg V p r (sup V U) g q = (\<forall> u. u \<in> U \<longrightarrow> rg V p r u g q)"
+shows "rg V p r (join V a b) g q = (rg V p r a g q \<and> rg V p r b g q)" 
 proof (rule iffI, goal_cases)
   case 1
-  then show ?case sorry
+  then show ?case 
+  proof -
+    have "le V (seq V p (par V r (join V a b))) q \<and> le V (join V a b) g"
+      using "1" by blast 
+    moreover have "le V a g \<and> le V b g"
+      by (smt (verit, best) CVA.join_def V_cont V_valid assms(4) assms(7) assms(8) calculation cocomplete cont_imp_complete join_el join_greater1 join_greater2 valid_le_transitive)
+    moreover have "le V (seq V p (par V r a)) q \<and> le V (seq V p (par V r b)) q"
+      by (smt (verit, ccfv_threshold) "1" V_cont V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_continuous hoare_choice_rule valid_par_elem)
+    ultimately show ?thesis
+      by meson
+  qed
 next
   case 2
-  then show ?case sorry
+  then show ?case 
+  proof -
+    have "le V (seq V p (par V r a)) q \<and> le V (seq V p (par V r b)) q \<and> le V a g \<and> le V b g"
+      using "2" by fastforce
+    moreover have "le V (join V a b) g"
+      by (smt (verit) "2" CVA.join_def V_cont assms(4) assms(7) assms(8) cocomplete cont_imp_complete join_property) 
+    moreover have "le V (seq V p (par V r (join V a b))) q"
+      by (smt (verit, ccfv_threshold) "2" V_cont V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_continuous hoare_choice_rule valid_par_elem)
+    ultimately show ?thesis
+      by blast
 qed
+
 
 
 end
