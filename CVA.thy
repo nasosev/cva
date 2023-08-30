@@ -430,7 +430,10 @@ lemma top_elem : "is_complete V \<Longrightarrow> top V \<in> elems V"
 lemma bot_elem : "is_complete V \<Longrightarrow> bot V \<in> elems V"
   by (metis CVA.bot_def CVA.sup_def Poset.bot_def empty_subsetI sup_elem)
 
-(* Iteration *)      
+(* Iteration 
+
+Todo: implement other properties https://en.wikipedia.org/wiki/Kleene_algebra#Properties
+*)
 
 definition par_iter_map :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (('A, 'a) Valuation, ('A, 'a) Valuation) PosetMap" where
 "par_iter_map V x \<equiv> \<lparr> PosetMap.dom = poset V, cod = poset V, 
@@ -734,6 +737,8 @@ proof -
   have "finite_seq_iter V a = sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}" using kleene_finite_seq_iter [where ?V=V and ?a=a]
     using V_cont V_valid a_el by blast
   show ?thesis oops
+
+
 
 (* Paper results *)
 
@@ -1110,16 +1115,93 @@ proof -
     by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open neutral_is_element valid_neutral_law_right valid_par_comm valid_par_elem valid_poset valid_semigroup valid_seq_elem valid_transitivity valid_weak_exchange)
 qed
 
-(* Rely-guarantee logic rules: 
+(* Rely-guarantee CVAs
 
 1. van Staden, Stephan. "On rely-guarantee reasoning." Mathematics of Program Construction: 12th International Conference, MPC 2015, Königswinter, Germany, June 29--July 1, 2015. Proceedings 12. Springer International Publishing, 2015.
 2. Hoare, CAR Tony, et al. "Concurrent kleene algebra." CONCUR 2009-Concurrency Theory: 20th International Conference, CONCUR 2009, Bologna, Italy, September 1-4, 2009. Proceedings 20. Springer Berlin Heidelberg, 2009.
 3. Hoare, Tony, et al. "Concurrent Kleene algebra and its foundations." The Journal of Logic and Algebraic Programming 80.6 (2011): 266-296. 
 
-Todo : - identify minimal invariance property
-       - develop further properties of invariants (closures, lattice, etc.)
-       - assume completeness for infima/suprema/iteration rules
 *)
+
+(* Invariants 
+
+See Thms 6.4, 6.5 of [2].
+*)
+
+
+
+lemma inv_dist : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow>  le V (par V i (seq V a b)) (seq V (par V i a) (par V i b))"
+  using invariant_def by blast 
+
+lemma inv_neut_seq : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> le V (neut_seq V (d i)) i"
+  using invariant_def by blast 
+
+lemma inv_idem_par : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> par V i i = i"
+  using invariant_def by blast 
+
+lemma inv_idem_seq : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> seq V i i = i"
+  using invariant_def by blast 
+
+lemma inv_par_neut_seq_le_id : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> le V (par V (neut_seq V (d i)) i) i"
+  by (smt (verit) CVA.valid_welldefined d_elem_is_open invariant_def neutral_is_element valid_par_mono)
+
+lemma inv_id_le_seq1 :
+  fixes V :: "('A, 'a) CVA" and i a :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and i_el : "i \<in> elems V" and inv_i : "invariant V i"and a_el : "a \<in> elems V" 
+  and di_eq_da : "d i = d a"
+shows "le V a (seq V a i)"
+proof - 
+  have "a = seq V a (neut_seq V (d a))"
+    by (metis CVA.valid_welldefined V_valid a_el valid_neutral_law_right) 
+  moreover have "le V (neut_seq V (d a)) i"
+    by (smt (verit, best) di_eq_da inv_i invariant_def) 
+  ultimately show ?thesis
+    by (smt (verit, best) CVA.valid_welldefined V_valid a_el d_elem_is_open i_el valid_le_reflexive valid_neut_seq_elem valid_seq_mono) 
+qed
+
+lemma inv_id_le_seq2 :
+  fixes V :: "('A, 'a) CVA" and r a :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and i_el : "i \<in> elems V" and inv_i : "invariant V i" and a_el : "a \<in> elems V" 
+  and di_eq_da : "d i = d a"
+shows "le V a (seq V i a)"
+proof - 
+  have "a = seq V (neut_seq V (d a)) a"
+    by (metis CVA.valid_welldefined V_valid a_el valid_neutral_law_left)
+  moreover have "le V (neut_seq V (d a)) i"
+    by (smt (verit, best) di_eq_da inv_i invariant_def) 
+  ultimately show ?thesis
+    by (smt (verit, best) CVA.valid_welldefined V_valid a_el d_elem_is_open i_el valid_le_reflexive valid_neut_seq_elem valid_seq_mono) 
+qed
+
+lemma inv_dist_par1 :
+  fixes V :: "('A, 'a) CVA" and i a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and i_el : "r \<in> elems V" and inv_i : "invariant V r" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
+  and di_eq_da_eq_db : "d i = d a \<and> d i = d b"
+shows "le V (seq V r (par V a b)) (par V (seq V r a) (seq V r b))"
+  by (smt (verit) V_valid a_el b_el inv_i invariant_def i_el valid_weak_exchange) 
+
+lemma inv_dist_par2 :
+  fixes V :: "('A, 'a) CVA" and i a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and i_el : "r \<in> elems V" and inv_i : "invariant V r" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
+  and di_eq_da_eq_db : "d i = d a \<and> d i = d b"
+shows "le V (seq V (par V a b) r) (par V (seq V a r) (seq V b r))"
+  by (smt (verit) V_valid a_el b_el inv_i invariant_def i_el valid_weak_exchange)
+
+lemma inv_iter :
+  fixes V :: "('A, 'a) CVA" and i:: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and i_el : "r \<in> elems V" and inv_i : "invariant V r" 
+shows "invariant V (finite_seq_iter V r)" 
+  oops
+
+(* Rely-guarantee logic rules
+
+See [2,3].
+ *)
 
 proposition rg_sequential_rule :
   fixes V :: "('A, 'a) CVA" and r g p p' p'' a b :: "('A,'a) Valuation"
