@@ -1009,6 +1009,7 @@ proposition hoare_choice_rule' :
 shows "hoare V p (sup V {u . u \<in> U}) q = (\<forall> u \<in> U.  hoare V p a q)" 
   oops
 
+(* Note the assumption dp_le_da that holds vacuously in a CKA *)
 proposition hoare_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p a:: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -1510,7 +1511,6 @@ proposition rg_iteration_rule :
   fixes V :: "('A, 'a) CVA" and p r a g :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and p_el : "p \<in> elems V" and r_el : "r \<in> elems V" and a_el : "a \<in> elems V" and g_el : "g \<in> elems V"
-  and dp_le_da : "d p \<subseteq> d a"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
   and assm_hoare : "hoare V p r p" and assm_rg : "rg V p r a g p"
   and extra : "le V (neut_seq V (d a)) r"
