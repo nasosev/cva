@@ -1506,7 +1506,7 @@ next
   qed
 qed
 
-(* Note: the assumption 'extra' below is needed here (whereas it holds trivially in a CKA as units coincide there. *)
+(* Note: the assumption 'extra' below is needed here (whereas it holds trivially in a CKA). *)
 proposition rg_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p r a g :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -1598,7 +1598,6 @@ proof -
         by (smt (verit) CVA.valid_welldefined V_cont V_valid a_el a_m_def d_elem_is_open hoare_choice_rule iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
     qed
   qed
-
   moreover have "le V (sup V W) p" 
     unfolding sup_def W_def
     using  sup_is_lub [where ?P="poset V" and ?U="W" and ?z=p] W_def
