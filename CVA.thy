@@ -1505,6 +1505,7 @@ next
   qed
 qed
 
+(* Note: the assumption 'extra' below is needed here (whereas it holds trivially in a CKA as units coincide there. *)
 proposition rg_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p r a g :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -1512,10 +1513,12 @@ proposition rg_iteration_rule :
   and dp_le_da : "d p \<subseteq> d a"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
   and assm_hoare : "hoare V p r p" and assm_rg : "rg V p r a g p"
+  and extra : "le V (neut_seq V (d a)) r"
 shows "rg V p r (finite_seq_iter V a) g p"
 proof -
   have "le V (finite_seq_iter V a) g" using inv_iter_le [where ?V=V and ?i=g and ?a=a]
     using V_cont V_valid a_el assm_rg g_el inv_g by blast
+  
   define "U" where "U = {iter (seq_iter_map V a) n \<star> CVA.bot V |n. n \<in> UNIV}"
   then have "finite_seq_iter V a = sup V U"
     using V_cont V_valid a_el kleene_finite_seq_iter by blast
@@ -1523,25 +1526,33 @@ proof -
     by blast 
   moreover have "U \<subseteq> elems V" using U_def
     using V_cont V_valid a_el iter_seq_el by blast 
+
+  define "W" where "W = {seq V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V)) |n. n \<in> UNIV}"
+  moreover have "W \<noteq> {}" using W_def
+    by blast 
+  moreover have "W \<subseteq> elems V" using W_def
+    using V_cont V_valid a_el iter_seq_el
+    by (smt (verit, del_insts) mem_Collect_eq p_el r_el subsetI valid_par_elem valid_seq_elem) 
   moreover have "seq V p (par V r (sup V U)) = seq V p (sup V {par V r u | u . u \<in> U})"
-    using V_cont V_valid calculation(2) calculation(3) continuous_par_dist r_el
-    by (metis (mono_tags, lifting)) 
+    by (metis (mono_tags, lifting) V_cont V_valid \<open>U \<subseteq> CVA.elems V\<close> calculation(2) continuous_par_dist r_el)
   moreover have "{par V r u | u . u \<in> U} \<noteq> {}" using U_def
     by blast
   moreover have "{par V r u | u . u \<in> U} \<subseteq> elems V" using U_def
-    by (smt (verit, ccfv_threshold) V_valid calculation(3) mem_Collect_eq r_el subset_eq valid_par_elem) 
+    by (smt (z3) Collect_mem_eq Collect_mono_iff V_valid \<open>U \<subseteq> CVA.elems V\<close> r_el valid_par_elem)
   moreover have "seq V p (sup V {par V r u | u . u \<in> U}) = (sup V {seq V p (par V r u) | u . u \<in> U})"
     using V_cont V_valid continuous_seq_dist
-    by (smt (verit) Collect_cong calculation(5) calculation(6) mem_Collect_eq p_el)
+    by (smt (verit) Collect_cong calculation(7) calculation(8) mem_Collect_eq p_el)
   moreover have "seq V p (par V r (sup V U))  = sup V {seq V p (par V r u) | u . u \<in> U}"
-    using calculation(4) calculation(7) by presburger
-  moreover have "{seq V p (par V r u) | u . u \<in> U} = {seq V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V)) | n . n \<in> UNIV}" 
-    using U_def
+    using calculation(6) calculation(9) by presburger
+  moreover have "{seq V p (par V r u) | u . u \<in> U} = W" 
+    using U_def W_def
     by blast
-  moreover have "seq V p (par V r (sup V U)) = sup V {seq V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V)) | n . n \<in> UNIV}" using U_def
-    using calculation(8) calculation(9) by presburger
+  moreover have "seq V p (par V r (sup V U)) = sup V W" using U_def
+    using calculation(10) calculation(11) W_def by presburger
+  moreover have "sup V W = seq V p (par V r (sup V U))"
+    using W_def calculation(12) by presburger
 
-  moreover have "\<And> n . le V (seq V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V ))) p" 
+  moreover have fa: "\<And> n . le V (seq V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V ))) p" 
   proof (induct_tac n, goal_cases)
     case (1 n)
     then show ?case 
@@ -1566,23 +1577,36 @@ proof -
         using iter_seq_induction [where ?V=V and ?a=a and ?n=m] V_cont V_valid a_el a_m_def by blast
       moreover have "seq V p (par V r (iter (seq_iter_map V a) (Suc m) \<star> bot V)) = seq V p (par V r (join V (neut_seq V (d a)) (seq V a (a_m))))"
         using calculation(2) by presburger
-      moreover have "... = seq V p ( (join V (par V r (neut_seq V (d a))) (par V r (seq V a (a_m)))))"
+      moreover have "... = seq V p (join V (par V r (neut_seq V (d a))) (par V r (seq V a (a_m))))"
         by (metis CVA.valid_welldefined V_cont V_valid a_el a_m_def binary_continuous d_elem_is_open iter_seq_el r_el valid_neut_seq_elem valid_seq_elem)
-      moreover have "... = ( (join V (seq V p (par V r (neut_seq V (d a)))) (seq V p (par V r (seq V a (a_m))))))"
+      moreover have "... = join V (seq V p (par V r (neut_seq V (d a)))) (seq V p (par V r (seq V a (a_m))))"
+        by (metis CVA.valid_welldefined V_cont V_valid a_el a_m_def binary_continuous d_elem_is_open iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
+      
+      moreover have 1: "le V (seq V p (par V r (seq V a (a_m)))) p"
+        by (smt (z3) "2" V_cont V_valid a_el a_m_def assm_rg hoare_composition_rule' inv_dist inv_r iter_seq_el p_el r_el valid_elems valid_par_elem valid_seq_elem)
 
+      moreover have "le V (par V r (neut_seq V (d a))) r" using extra
+        by (smt (verit) CVA.valid_welldefined V_valid a_el d_elem_is_open r_el valid_le_reflexive valid_neut_seq_elem valid_par_mono inv_r invariant_def) 
+
+      moreover have "le V (seq V p (par V r (neut_seq V (d a)))) (seq V p r)" using valid_seq_mono [where ?V=V]
+        by (smt (verit) CVA.valid_welldefined V_valid a_el calculation(7) d_elem_is_open p_el r_el valid_le_reflexive valid_neut_seq_elem valid_par_elem) 
+
+      moreover have 2: "le V (seq V p (par V r (neut_seq V (d a)))) p"
+        by (smt (verit, best) CVA.valid_welldefined V_valid a_el assm_hoare calculation(8) d_elem_is_open p_el r_el valid_le_transitive valid_neut_seq_elem valid_par_elem valid_seq_elem) 
+
+      ultimately show ?thesis
+        by (smt (verit) CVA.valid_welldefined V_cont V_valid a_el a_m_def d_elem_is_open hoare_choice_rule iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
+    qed
   qed
-  define "W" where "W = {seq V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V)) |n. n \<in> UNIV}"
-  moreover have "W \<subseteq> elems V"
-    by (smt (verit, ccfv_threshold) W_def V_cont V_valid a_el iter_seq_el mem_Collect_eq p_el r_el subsetI valid_par_elem valid_seq_elem)
+
   moreover have "le V (sup V W) p" 
-    unfolding sup_def
-    using  sup_is_lub [where ?P="poset V" and ?U="W" and ?z=p]
-     V_cont calculation(7) calculation(8) cocomplete continuous_complete p_el W_def
-    using \<open>\<And>n. hoare V p (par V r (iter (seq_iter_map V a) n \<star> CVA.bot V)) p\<close> calculation(12) by blast 
+    unfolding sup_def W_def
+    using  sup_is_lub [where ?P="poset V" and ?U="W" and ?z=p] W_def
+    using V_cont calculation(5) continuous_cocomplete fa p_el by blast 
   moreover have "le V (seq V p (par V r (sup V U))) p"
-    using W_def calculation(10) calculation(13) by presburger 
+    using calculation(12) calculation(15) by presburger
   moreover have "le V (seq V p (par V r (finite_seq_iter V a))) p"
-    using calculation(1) calculation(14) by presburger
+    using calculation(1) calculation(16) by presburger
   ultimately show ?thesis using U_def
     using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
 qed
