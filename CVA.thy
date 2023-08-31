@@ -904,6 +904,7 @@ proposition hoare_neut_seq_rule :
   shows "hoare V p (neut_seq V (d p)) q = le V p q"
   by (metis CVA.valid_welldefined V_valid assms(2) valid_neutral_law_right) 
 
+(* Todo: consider weakening vs strengthining of preconditions/postconditions w.r.t. domains *)
 proposition hoare_neut_seq_rule' :
   fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -914,7 +915,7 @@ proposition hoare_neut_seq_rule' :
 proposition hoare_antitony_rule :
   fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
   assumes V_valid : "valid V"
-  and  "a \<in> elems V" and "b \<in> elems V"
+  and  "a \<in> elems V" and "b \<in> elems V" (* Todo: Can da be smaller than d b? *)
   and "d a = d b" (* This is added for CVAs. Alternatively we could remove this cond. and have a weaker conclusion *)
   shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . (hoare V p a q \<longrightarrow> hoare V p b q)) = le V b a"
 proof (rule iffI[rotated], goal_cases)
@@ -1014,7 +1015,7 @@ proposition hoare_iteration_rule :
   fixes V :: "('A, 'a) CVA" and p a:: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and p_el : "p \<in> elems V" and a_el : "a \<in> elems V"
-  and dp_le_da : "d p \<subseteq> d a"
+  and dp_le_da : "d p \<subseteq> d a" (* Or this: extra : "le V (seq V p (neut_seq V (d a))) p" *)
 shows "hoare V p a p = hoare V p (finite_seq_iter V a) p"
 proof (rule iffI, goal_cases)
   define "U" where "U = {((iter (seq_iter_map V a) n) \<star> (bot V)) | n . n \<in> UNIV} "
@@ -1150,7 +1151,8 @@ proposition hoare_frame_rule :
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
   and "hoare V p a q" 
-shows "hoare V (par V f p) (par V a (neut_seq V (d f))) (par V f q)" 
+  and frame : " (par V a (neut_seq V (d f))) = a" (* reformulate this as a condition the domains *)
+shows "hoare V (par V f p) a (par V f q)" 
 proof - 
   have "le V (seq V p a) q"
     using assms(6) by force 
@@ -1507,6 +1509,7 @@ next
 qed
 
 (* Note: the assumption 'extra' below is needed here (whereas it holds trivially in a CKA). *)
+(* Why don't we require d p \<subseteq> d r like in the Hoare version hoare_iter_rule ? *)
 proposition rg_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p r a g :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
