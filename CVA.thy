@@ -1106,6 +1106,8 @@ shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . \<forall>  r \<
 proof (rule iffI[rotated], goal_cases)
   oops
 
+(* Todo: rules relating to extension/projection? *) 
+
 (* [Proposition 3, TMCVA] *)
 proposition hoare_concurrency_rule :
   fixes V :: "('A, 'a) CVA" and p p' a a' q q' :: "('A,'a) Valuation"
