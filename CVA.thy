@@ -1376,6 +1376,22 @@ proof -
     using \<open>(\<Zsemi>) \<equiv> seq V\<close> \<open>(\<parallel>) \<equiv> par V\<close> gl_def by blast 
 qed
 
+(*
+proposition rg_sequential_rule' :
+  fixes V :: "('A, 'a) CVA" and r1 p1 a1 q1 g1 r2 p2 b2 q2 g3 :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and V_complete : "is_complete V"
+  and "r1 \<in> elems V" and "p \<in> elems V" and "a1 \<in> elems V" and "p' \<in> elems V" and "g1 \<in> elems V"
+  and "r2 \<in> elems V"  and "a2 \<in> elems V" and "p'' \<in> elems V" and "g2 \<in> elems V" 
+  and rg1 : "rg V p r1 a1 g1 p'" and rg2 : "rg V p' r2 a2 g2 p''"
+  and inv_r1 : "invariant V r1" and inv_g1 : "invariant V g1" and inv_r2 : "invariant V r2" and inv_g2 : "invariant V g2"
+shows "rg V p (meet V r1 r2) (seq V a1 a2) (seq V g1 g2) p''"
+proof -
+  have "le V (seq V a1 a2) (seq V g1 g2)"
+    using V_valid assms(11) assms(5) assms(7) assms(9) rg1 rg2 valid_seq_mono by blast 
+  moreover have "par V (meet V r1 r2) (seq V a1 a2)"
+*)
+
 (* Note Thm 8.4 of [2,3] in a CKA parallel restricted to invariants corresponds to supremum in the
  lattice of invariants, since the natural order defined a \<le> b \<longleftrightarrow> a \<parallel> b = b coincides with the ambient
 order (and the meet of both orders coincide). This is not the case here. *)
