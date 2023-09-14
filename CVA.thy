@@ -1147,21 +1147,28 @@ qed
 
 (* To recover the ordinary frame rule, we must constrain so that 'par V a (neut_seq V (d f) = a' *)
 (* See https://en.wikipedia.org/wiki/Separation_logic#Reasoning_about_programs:_triples_and_proof_rules 
- where there is an additional condition mod(C) \<inter> fv(R) = \<emptyset> *)
+ where there is an additional condition mod(a) \<inter> fv(f) = \<emptyset> *)
 proposition hoare_frame_rule :
   fixes V :: "('A, 'a) CVA" and p f a q :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
   and "hoare V p a q" 
-  and frame : " (par V a (neut_seq V (d f))) = a" (* reformulate this as a condition the domains *)
+  and frame : " (par V a (neut_seq V (d f))) = a"  (* todo: reformulate this as a condition the domains? *)
 shows "hoare V (par V f p) a (par V f q)" 
 proof - 
   have "le V (seq V p a) q"
     using assms(6) by force 
   moreover have "le V (par V f (seq V p a)) (par V f q)"
     by (smt (verit, ccfv_threshold) V_valid assms(2) assms(3) assms(4) assms(5) calculation valid_le_reflexive valid_par_mono valid_seq_elem) 
+  moreover have "le V (seq V (par V f p) (par V (neut_seq V (d f)) a)) (par V f (seq V p a))"
+    using valid_weak_exchange [where ?V=V] CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open valid_neut_seq_elem
+    by (metis valid_neutral_law_right) 
+  moreover have "(seq V (par V f p) (par V (neut_seq V (d f)) a)) = (seq V (par V f p) a)"
+    by (metis CVA.valid_welldefined V_valid assms(3) assms(4) d_elem_is_open frame neutral_is_element valid_par_comm)
+  moreover have "le V (seq V (par V f p) a) (par V f q)"
+    by (smt (verit, best) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) calculation(2) calculation(3) calculation(4) comb_is_element valid_gc_poset valid_poset valid_semigroup valid_transitivity) 
   ultimately show ?thesis
-    by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open neutral_is_element valid_neutral_law_right valid_par_comm valid_par_elem valid_poset valid_semigroup valid_seq_elem valid_transitivity valid_weak_exchange)
+    by meson 
 qed
 
 (* Rely-guarantee CVAs

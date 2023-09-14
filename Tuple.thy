@@ -117,7 +117,7 @@ lemma relation_ar_valid : "Function.valid_map (Prealgebra.ar (rel_prealg T))"
 
 lemma relation_ob_value : "A \<in> opens (space T) \<Longrightarrow> (Prealgebra.ob (rel_prealg T)) \<cdot> A = Poset.powerset (ob T \<cdot> A )"
   unfolding rel_prealg_def
-  by (simp add: Function.dom_def)
+  by (simp add: Function.fun_app_iff Function.valid_map_def)
 
 lemma relation_ob_value_valid : "valid T \<Longrightarrow> A \<in> opens (space T) \<Longrightarrow> Poset.valid (Prealgebra.ob (rel_prealg T) \<cdot> A)"
   using relation_ob_value [where ?T=T]
@@ -129,7 +129,7 @@ lemma relation_as_value : "A \<in> opens (space T) \<Longrightarrow> a \<subsete
 lemma relation_ar_value : "i \<in> inclusions (space T) 
 \<Longrightarrow> Prealgebra.ar (rel_prealg T) \<cdot> i = Poset.direct_image (ar T \<cdot> i)"
   unfolding rel_prealg_def [where ?T=T]
-  by (simp add: Function.dom_def)
+  by (smt (verit, best) Function.fun_app_iff Function.select_convs(2) Prealgebra.Prealgebra.select_convs(3) \<open>rel_prealg T \<equiv> let R0 = \<lparr>Function.cod = UNIV, func = {(A, powerset (Tuple.ob T \<cdot> A)) |A. A \<in> opens (Tuple.space T)}\<rparr>; R1 = \<lparr>Function.cod = UNIV, func = {(i, direct_image (Tuple.ar T \<cdot> i)) |i. i \<in> inclusions (Tuple.space T)}\<rparr> in \<lparr>Prealgebra.space = Tuple.space T, ob = R0, ar = R1\<rparr>\<close> mem_Collect_eq relation_ar_valid)
 
 lemma relation_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Poset.valid_map (Prealgebra.ar (rel_prealg T) \<cdot> i)"
   using Presheaf.valid_ar Tuple.valid_welldefined direct_image_valid relation_ar_value by fastforce
@@ -1419,7 +1419,7 @@ lemma lists_ob_el : "A \<in> opens (space T) \<Longrightarrow> xs \<in> (Preshea
 
 lemma lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (lists T))) \<cdot> i = Function.lists_map (ar T \<cdot> i)"
   unfolding lists_def
-  by (simp add: Function.dom_def)
+  by (smt (verit, del_insts) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_mapI Presheaf.Presheaf.select_convs(3) TupleSystem.select_convs(1) UNIV_I fst_conv mem_Collect_eq snd_conv)
 
 lemma lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Function.valid_map ((Presheaf.ar (presheaf (lists T))) \<cdot> i)"
   unfolding lists_def
@@ -1650,7 +1650,7 @@ lemma ne_lists_ob_el : "A \<in> opens (space T) \<Longrightarrow> xs \<in> (Pres
 
 lemma ne_lists_ar_value : "i \<in> inclusions (space T) \<Longrightarrow> (Presheaf.ar (presheaf (ne_lists T))) \<cdot> i = Function.ne_lists_map (ar T \<cdot> i)"
   unfolding ne_lists_def
-  by (simp add: Function.dom_def)
+  by (smt (verit, del_insts) Function.fun_app_iff Function.select_convs(1) Function.select_convs(2) Function.valid_mapI Pair_inject Presheaf.Presheaf.select_convs(3) TupleSystem.select_convs(1) UNIV_I mem_Collect_eq)
 
 lemma ne_lists_ar_value_valid : "valid T \<Longrightarrow> i \<in> inclusions (space T) \<Longrightarrow> Function.valid_map ((Presheaf.ar (presheaf (ne_lists T))) \<cdot> i)"
   unfolding ne_lists_def

@@ -74,7 +74,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 ### Prerequisites
 
-- [Isabelle2022](https://isabelle.in.tum.de/website-Isabelle2022/index.html)
+- [Isabelle2023](https://isabelle.in.tum.de/website-Isabelle2023/index.html)
 
 ### (Optional) Building an image and loading it in Isabelle/jEdit
 
