@@ -905,6 +905,7 @@ proposition hoare_neut_seq_rule :
   by (metis CVA.valid_welldefined V_valid assms(2) valid_neutral_law_right) 
 
 (* Todo: consider weakening vs strengthining of preconditions/postconditions w.r.t. domains *)
+(* Stronger conclusion of hoare_neut_seq_rule *)
 proposition hoare_neut_seq_rule' :
   fixes V :: "('A, 'a) CVA" and p:: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -935,6 +936,7 @@ proposition hoare_extensionality_rule :
   shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . d a = d b \<and> (hoare V p a q = hoare V p b q)) = (a = b)"
   by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) d_elem_is_open valid_le_antisymmetric valid_le_reflexive valid_neut_seq_elem valid_neutral_law_left)
 
+(* Stronger conclusion of hoare_composition_rule *)
 proposition hoare_composition_rule' :
   fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -1002,13 +1004,6 @@ next
   then show ?case
     by (smt (z3) CVA.join_def V_cont V_valid assms(3) assms(4) assms(5) assms(6) binary_continuous cocomplete is_continuous_def join_property valid_seq_elem)
 qed
-
-proposition hoare_choice_rule' :
-  fixes V :: "('A, 'a) CVA" and p q :: "('A,'a) Valuation" and U :: "(('A,'a) Valuation) set"
-  assumes V_valid : "valid V" and V_quantalic : "is_continuous V"
-  and "p \<in> elems V" and "q \<in> elems V" and "U \<subseteq> elems V" and "U \<noteq> {}"
-shows "hoare V p (sup V {u . u \<in> U}) q = (\<forall> u \<in> U.  hoare V p a q)" 
-  oops
 
 (* Note the assumption dp_le_da that holds vacuously in a CKA *)
 proposition hoare_iteration_rule : 
@@ -1336,12 +1331,83 @@ See [2,3].
  *)
 
 proposition rg_sequential_rule :
-  fixes V :: "('A, 'a) CVA" and r g p p' p'' a b :: "('A,'a) Valuation"
+  fixes V :: "('A, 'a) CVA" and r1 p1 a1 q1 g1 r2 p2 b2 q2 g3 :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
+  and V_complete : "is_complete V"
+  and "r1 \<in> elems V" and "p \<in> elems V" and "a1 \<in> elems V" and "p' \<in> elems V" and "g1 \<in> elems V"
+  and "r2 \<in> elems V"  and "a2 \<in> elems V" and "p'' \<in> elems V" and "g2 \<in> elems V" 
+  and rg1 : "rg V p r1 a1 g1 p'" and rg2 : "rg V p' r2 a2 g2 p''"
+  and inv_r1 : "invariant V r1" and inv_g1 : "invariant V g1" and inv_r2 : "invariant V r2" and inv_g2 : "invariant V g2"
+  and "invariant V (meet V r1 r2)"
+shows "rg V p (meet V r1 r2) (seq V a1 a2) (seq V g1 g2) p''"
+proof -
+  have "le V (seq V a1 a2) (seq V g1 g2)"
+    using V_valid assms(11) assms(5) assms(7) assms(9) rg1 rg2 valid_seq_mono by blast 
+  moreover have 0: "le V (par V (meet V r1 r2) (seq V a1 a2)) (seq V (par V (meet V r1 r2) a1) (par V (meet V r1 r2) a2))"
+    using assms(18) assms(5) assms(9) invariant_def by blast
+  
+  moreover have "le V (par V (meet V r1 r2) a1) (par V r1 a1)"
+    by (smt (verit) CVA.is_complete_def CVA.meet_def V_complete V_valid assms(3) assms(5) assms(8) cocomplete is_cocomplete_def meet_el meet_smaller1 valid_par_mono valid_reflexivity) 
+  moreover have 1: "le V (seq V (par V (meet V r1 r2) a1) (par V (meet V r1 r2) a2)) (seq V (par V r1 a1) (par V (meet V r1 r2) a2))"
+    by (smt (verit) V_complete V_valid assms(3) assms(5) assms(8) assms(9) calculation(3) meet_elem valid_le_reflexive valid_par_elem valid_seq_mono)
+  moreover have "le V (par V (meet V r1 r2) a2) (par V r2 a2)"
+    by (smt (verit, ccfv_SIG) CVA.is_complete_def CVA.meet_def V_complete V_valid assms(3) assms(8) assms(9) meet_el meet_smaller2 valid_le_reflexive valid_par_mono)
+  moreover have 2: "le V (seq V (par V r1 a1) (par V (meet V r1 r2) a2)) (seq V (par V r1 a1) (par V r2 a2))"
+    by (smt (verit) V_complete V_valid assms(3) assms(5) assms(8) assms(9) calculation(5) meet_elem valid_le_reflexive valid_par_elem valid_seq_mono)
+
+  moreover have 3: "le V (par V (meet V r1 r2) (seq V a1 a2)) (seq V (par V r1 a1) (par V (meet V r1 r2) a2))" 
+    using 0 1 valid_transitivity
+    by (smt (verit, best) V_complete V_valid assms(3) assms(5) assms(8) assms(9) meet_elem valid_le_transitive valid_par_elem valid_seq_elem) 
+
+  moreover have 4: "le V (par V (meet V r1 r2) (seq V a1 a2)) (seq V (par V r1 a1) (par V r2 a2))"
+    using 0 1 2 3 valid_transitivity
+    by (smt (verit, ccfv_threshold) V_complete V_valid assms(3) assms(5) assms(8) assms(9) meet_elem valid_le_transitive valid_par_elem valid_seq_elem)
+
+  moreover have 5: "le V (seq V p (par V (meet V r1 r2) (seq V a1 a2))) (seq V p (seq V (par V r1 a1) (par V r2 a2)))"
+    by (smt (verit, ccfv_threshold) "4" V_complete V_valid assms(3) assms(4) assms(5) assms(8) assms(9) meet_elem valid_le_reflexive valid_par_elem valid_seq_elem valid_seq_mono) 
+
+  moreover have 6: "(seq V p (seq V (par V r1 a1) (par V r2 a2))) = seq V (seq V p (par V r1 a1)) (par V r2 a2)"
+    by (metis CVA.valid_welldefined V_valid assms(3) assms(4) assms(5) assms(8) assms(9) valid_comb_associative valid_par_elem)
+
+  moreover have 7: "le V (seq V p (seq V (par V r1 a1) (par V r2 a2))) (seq V p' (par V r2 a2))"
+    by (smt (verit, ccfv_threshold) V_valid assms(3) assms(4) assms(5) assms(6) assms(8) assms(9) hoare_composition_rule' rg1 valid_le_reflexive valid_par_elem valid_seq_elem) 
+
+  moreover have 8: "le V (seq V p' (par V r2 a2)) p''"
+    using rg2 by blast 
+
+  moreover have 9: "le V (seq V p (seq V (par V r1 a1) (par V r2 a2))) p''"
+    by (smt (verit, ccfv_SIG) "7" "8" V_valid assms(10) assms(3) assms(4) assms(5) assms(6) assms(8) assms(9) valid_le_transitive valid_par_elem valid_seq_elem)
+
+  moreover have 10: "le V (seq V p (par V (meet V r1 r2) (seq V a1 a2))) (seq V p (seq V (par V r1 a1) (par V r2 a2)))"
+    using "5" by blast
+
+  moreover have 11: "le V (seq V p (par V (meet V r1 r2) (seq V a1 a2))) p''"
+    by (smt (verit, ccfv_SIG) "5" "9" CVA.is_complete_def CVA.meet_def CVA.valid_welldefined V_complete V_valid assms(10) assms(3) assms(4) assms(5) assms(8) assms(9) comb_is_element meet_el valid_elems valid_poset valid_semigroup valid_transitivity) 
+
+  ultimately show ?thesis
+    by meson
+qed
+
+(* Stronger assumptions form of the sequential rule *)
+proposition rg_sequential_rule' :
+  fixes V :: "('A, 'a) CVA" and r g p p' p'' a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V"
   and r_el : "r \<in> elems V" and g_el : "g \<in> elems V" and p_el : "p \<in> elems V" and p'_el : "p' \<in> elems V" and p''_el : "p'' \<in> elems V" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
   and rg1 : "rg V p r a g p'" and rg2 : "rg V p' r b g p''"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
-shows "rg V p r (seq V a b) g p''"
+shows "rg V p r (seq V a b) g p''" 
+proof -
+  have "meet V r r = r" 
+    by (metis CVA.is_complete_def CVA.meet_def V_complete meet_idem r_el)
+  moreover have "seq V g g = g"
+    using inv_g invariant_def by blast
+  ultimately show ?thesis
+  using rg_sequential_rule [where ?V=V and ?r1.0=r and ?r2.0=r and ?g1.0=g and ?g2.0=g and ?p=p and ?a1.0=a and ?p'=p' and ?a2.0=b and  ?p''=p'']
+  using V_complete V_valid a_el b_el g_el inv_g inv_r p''_el p'_el p_el r_el rg1 rg2 by fastforce
+qed
+
+(* Commented out below, a direct proof not relying on completeness *)
+(* 
 proof - 
   define "gl" (infixl \<open>\<preceq>\<close> 54) where "a \<preceq> b = le V a b" for a b
   define "sc" (infixl \<open>\<Zsemi>\<close> 55) where "a \<Zsemi> b = seq V a b" for a b
@@ -1375,21 +1441,6 @@ proof -
   ultimately show ?thesis
     using \<open>(\<Zsemi>) \<equiv> seq V\<close> \<open>(\<parallel>) \<equiv> par V\<close> gl_def by blast 
 qed
-
-(*
-proposition rg_sequential_rule' :
-  fixes V :: "('A, 'a) CVA" and r1 p1 a1 q1 g1 r2 p2 b2 q2 g3 :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and V_complete : "is_complete V"
-  and "r1 \<in> elems V" and "p \<in> elems V" and "a1 \<in> elems V" and "p' \<in> elems V" and "g1 \<in> elems V"
-  and "r2 \<in> elems V"  and "a2 \<in> elems V" and "p'' \<in> elems V" and "g2 \<in> elems V" 
-  and rg1 : "rg V p r1 a1 g1 p'" and rg2 : "rg V p' r2 a2 g2 p''"
-  and inv_r1 : "invariant V r1" and inv_g1 : "invariant V g1" and inv_r2 : "invariant V r2" and inv_g2 : "invariant V g2"
-shows "rg V p (meet V r1 r2) (seq V a1 a2) (seq V g1 g2) p''"
-proof -
-  have "le V (seq V a1 a2) (seq V g1 g2)"
-    using V_valid assms(11) assms(5) assms(7) assms(9) rg1 rg2 valid_seq_mono by blast 
-  moreover have "par V (meet V r1 r2) (seq V a1 a2)"
 *)
 
 (* Note Thm 8.4 of [2,3] in a CKA parallel restricted to invariants corresponds to supremum in the

@@ -531,6 +531,12 @@ lemma meet_comm : "a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow>
 lemma join_comm : "a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> join P a b = join P b a"
   by (simp add: insert_commute join_def)
 
+lemma meet_idem : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> meet P a a = a"
+  using is_complete_def meet_el meet_property meet_smaller1 valid_antisymmetry valid_reflexivity by fastforce
+
+lemma join_idem : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> join P a a = a"
+  using is_cocomplete_def join_el join_greater1 join_property valid_antisymmetry valid_reflexivity by fastforce 
+
 lemma inf_is_inf : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> is_inf P U (inf P U)"
   by (metis complete_inf_exists inf_def someI_ex)
 
