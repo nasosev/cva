@@ -911,7 +911,7 @@ proposition hoare_neut_seq_rule' :
   assumes V_valid : "valid V"
   and "p \<in> elems V"
   shows "hoare V p (neut_seq V (d p)) p"
-  by (metis CVA.valid_welldefined V_valid assms(2) valid_le_reflexive valid_neutral_law_right)
+  using V_valid assms(2) hoare_neut_seq_rule valid_le_reflexive by blast
 
 proposition hoare_antitony_rule :
   fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
@@ -1148,7 +1148,7 @@ proposition hoare_frame_rule :
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
   and "hoare V p a q" 
-  and frame : " (par V a (neut_seq V (d f))) = a"  (* todo: reformulate this as a condition the domains? *)
+  and frame : "le V a ((par V (neut_seq V (d f)) a))"  (* todo: reformulate this as a condition the domains? weaken the cond. so it doesnt imply d f \<subseteq> d a*)
 shows "hoare V (par V f p) a (par V f q)" 
 proof - 
   have "le V (seq V p a) q"
@@ -1158,11 +1158,14 @@ proof -
   moreover have "le V (seq V (par V f p) (par V (neut_seq V (d f)) a)) (par V f (seq V p a))"
     using valid_weak_exchange [where ?V=V] CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open valid_neut_seq_elem
     by (metis valid_neutral_law_right) 
-  moreover have "(seq V (par V f p) (par V (neut_seq V (d f)) a)) = (seq V (par V f p) a)"
-    by (metis CVA.valid_welldefined V_valid assms(3) assms(4) d_elem_is_open frame neutral_is_element valid_par_comm)
-  moreover have "le V (seq V (par V f p) a) (par V f q)"
-    by (smt (verit, best) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) calculation(2) calculation(3) calculation(4) comb_is_element valid_gc_poset valid_poset valid_semigroup valid_transitivity) 
-  ultimately show ?thesis
+  moreover have "le V (seq V (par V f p) a) (seq V (par V f p) (par V (neut_seq V (d f)) a))"
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open frame neutral_is_element valid_le_reflexive valid_par_elem valid_seq_mono)
+  moreover have "le V (seq V (par V f p) a) (par V f (seq V p a))" 
+    using assms calculation valid_transitivity [where ?P="poset V" and ?x="seq V (par V f p) a" and ?y="seq V (par V f p) (par V (neut_seq V (d f)) a)" and ?z="par V f (seq V p a)"]
+    by (smt (verit) CVA.valid_welldefined comb_is_element d_elem_is_open neutral_is_element valid_gc_poset valid_poset valid_semigroup)
+  moreover have "le V (seq V (par V f p) a) (par V f q)" using assms calculation valid_transitivity
+    by (smt (verit, ccfv_threshold) valid_le_transitive valid_par_elem valid_seq_elem)
+  ultimately show ?thesis                                                                        
     by meson 
 qed
 
