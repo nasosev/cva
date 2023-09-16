@@ -2062,5 +2062,4 @@ lemma laxity2 :
 shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" 
   oops
 
-
 end
