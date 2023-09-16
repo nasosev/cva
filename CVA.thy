@@ -933,32 +933,10 @@ proposition hoare_extensionality_rule :
   fixes V :: "('A, 'a) CVA" and a b:: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and  "a \<in> elems V" and "b \<in> elems V"
-  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . d a = d b \<and> (hoare V p a q = hoare V p b q)) = (a = b)"
-  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) d_elem_is_open valid_le_antisymmetric valid_le_reflexive valid_neut_seq_elem valid_neutral_law_left)
-
+  and "d a = d b"
+  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V .  (hoare V p a q = hoare V p b q)) = (a = b)"
+  by (smt (verit) V_valid assms(2) assms(3) assms(4) hoare_antitony_rule valid_le_antisymmetric)
 (* Stronger conclusion of hoare_composition_rule *)
-proposition hoare_composition_rule' :
-  fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
-  and "hoare V p a q" and "hoare V q b r"
-shows "hoare V p (seq V a b) r"
-  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) valid_comb_associative valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
-
-proposition hoare_composition_rule :
-  fixes V :: "('A, 'a) CVA" and p r a b :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V"  and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
-shows "(\<exists> q \<in> elems V . hoare V p a q \<and> hoare V q b r) = hoare V p (seq V a b) r"
-proof (rule iffI, goal_cases)
-  case 1
-  then show ?case
-    using V_valid assms(2) assms(3) assms(4) assms(5) hoare_composition_rule' by blast 
-next
-  case 2
-  then show ?case
-    by (metis CVA.valid_welldefined V_valid assms(2) assms(4) assms(5) valid_comb_associative valid_le_reflexive valid_seq_elem) 
-qed
 
 proposition hoare_consequence_rule :
   fixes V :: "('A, 'a) CVA" and p p' q q' a :: "('A,'a) Valuation"
@@ -1003,6 +981,29 @@ next
   case 2
   then show ?case
     by (smt (z3) CVA.join_def V_cont V_valid assms(3) assms(4) assms(5) assms(6) binary_continuous cocomplete is_continuous_def join_property valid_seq_elem)
+qed
+
+proposition hoare_composition_rule' :
+  fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+  and "hoare V p a q" and "hoare V q b r"
+shows "hoare V p (seq V a b) r"
+  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) valid_comb_associative valid_le_reflexive valid_le_transitive valid_seq_elem valid_seq_mono)
+
+proposition hoare_composition_rule :
+  fixes V :: "('A, 'a) CVA" and p r a b :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V"  and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
+shows "(\<exists> q \<in> elems V . hoare V p a q \<and> hoare V q b r) = hoare V p (seq V a b) r"
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case
+    using V_valid assms(2) assms(3) assms(4) assms(5) hoare_composition_rule' by blast 
+next
+  case 2
+  then show ?case
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(4) assms(5) valid_comb_associative valid_le_reflexive valid_seq_elem) 
 qed
 
 (* Note the assumption dp_le_da that holds vacuously in a CKA *)
@@ -1091,15 +1092,6 @@ next
   then show ?case
     by (smt (verit) V_cont V_valid p_el a_el finite_seq_iter_el hoare_consequence_rule hoare_neut_seq_rule hoare_neut_seq_rule' id_le_finite_seq_iter is_continuous_def valid_seq_elem valid_seq_mono) 
 qed
-
-proposition hoare_premise_rule :
-  fixes V :: "('A, 'a) CVA" and a b c:: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and  "a \<in> elems V" and "b \<in> elems V" and "c \<in> elems V"
-  and "d a = d b"
-shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . \<forall>  r \<in> elems V . (hoare V p a q \<and> hoare V q b r \<longrightarrow> hoare V p c r)) = le V c (seq V a b)"
-proof (rule iffI[rotated], goal_cases)
-  oops
 
 (* Todo: rules relating to extension/projection? *) 
 
@@ -1201,6 +1193,15 @@ proposition hoare_res_rule :
 shows "hoare V p a (res V U q)"
   by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) id_le_res res_elem valid_le_transitive valid_seq_elem) 
 
+
+proposition hoare_premise_rule :
+  fixes V :: "('A, 'a) CVA" and a b c:: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and  "a \<in> elems V" and "b \<in> elems V" and "c \<in> elems V"
+  and "d a = d b"
+shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . \<forall>  r \<in> elems V . (hoare V p a q \<and> hoare V q b r \<longrightarrow> hoare V p c r)) = le V c (seq V a b)"
+proof (rule iffI, goal_cases)
+  oops
 
 (* Rely-guarantee CVAs
 
