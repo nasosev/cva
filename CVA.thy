@@ -992,7 +992,7 @@ proposition hoare_extensionality_rule :
   assumes V_valid : "valid V"
   and  "a \<in> elems V" and "b \<in> elems V"
   and "d a = d b"
-  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V .  (hoare V p a q = hoare V p b q)) = (a = b)"
+  shows "(\<forall> p \<in> elems V . \<forall>  q \<in> elems V . hoare V p a q = hoare V p b q) = (a = b)"
   by (smt (verit) V_valid assms(2) assms(3) assms(4) hoare_antitony_rule set_eq_subset valid_le_antisymmetric)
 
 (* [CKA, Lemma 5.2.4] *)
