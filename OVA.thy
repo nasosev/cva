@@ -839,6 +839,26 @@ lemma ext_le_id :
 shows "le V (ext V A b) b"
   by (metis A_open B_le_A V_valid b_el d_ext elem_le_wrap ext_elem galois_insertion res_functorial_id valid_le valid_poset valid_reflexivity valid_semigroup)
 
+lemma ext_monotone' :
+  fixes V :: "('A,'a) OVA" and b b' :: "('A, 'a) Valuation" and A :: "'A Open"
+  assumes V_valid: "valid V"
+  and "A \<in> opens (space V)"
+  and "d b \<subseteq> A"
+  and "d b' \<subseteq> A"
+  and "b \<in> elems V" and "b' \<in> elems V" and "le V b b'"
+shows "le V (ext V A b) (ext V A b')"
+  by (smt (verit, best) OVA.le_eq_local_le OVA.valid_welldefined V_valid assms(2) assms(3) assms(5) assms(6) assms(7) d_ext ext_elem ext_le_id res_ext_adjunction valid_le valid_poset valid_transitivity)  
+
+lemma res_monotone' :
+  fixes V :: "('A,'a) OVA" and a a' :: "('A, 'a) Valuation" and B :: "'A Open"
+  assumes V_valid: "valid V"
+  and "B \<in> opens (space V)"
+  and "B \<subseteq> d a"
+  and "B \<subseteq> d a'"
+  and "a \<in> elems V" and "a' \<in> elems V" and "le V a a'"
+shows "le V (res V B a) (res V B a')"
+  by (smt (verit, ccfv_threshold) OVA.le_eq_local_le OVA.valid_welldefined V_valid assms(2) assms(4) assms(5) assms(6) assms(7) d_res id_le_res res_elem valid_le valid_poset valid_transitivity)
+
 (* [Corollary 2 (2/2), TMCVA] *)
 corollary galois_closure_extensive :
   fixes V :: "('A,'a) OVA" and B :: "'A Open"  and a :: "('A, 'a) Valuation"
@@ -882,6 +902,22 @@ theorem ext_functorial_trans :
   and C_le_B : "d c \<subseteq> B" and B_le_A : "B \<subseteq> A" 
   shows "ext V A (ext V B c) = ext V A c"
   by (smt (verit, ccfv_threshold) A_open B_le_A B_open C_le_B V_valid c_el d_ext dual_order.trans ext_elem ext_functorial_trans_lhs_imp_rhs ext_functorial_trans_rhs_imp_lhs valid_antisymmetry valid_poset valid_semigroup)
+
+lemma ext_comm' :
+  fixes V :: "('A, 'a) OVA" and A :: "'A Open" and b b' :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and A_open : "A \<in> opens (space V)" 
+  and b_el : "b \<in> elems V" and b'_el : "b' \<in> elems V"
+  and B_le_A : "d b \<subseteq> A"
+  and B'_le_A : "d b' \<subseteq> A"
+shows "ext V A (comb V b b') = comb V (ext V A b) (ext V A b')"
+proof -
+  define "U" where "U = d b \<union> d b'" 
+  then have "ext V U (comb V b b') = comb V (ext V U b) (ext V U b')"
+    by (metis V_valid b'_el b_el comb_is_element ext_functorial_id ova_comb_local valid_domain_law)
+  then show  ?thesis
+    by (smt (verit) B'_le_A B_le_A Prealgebra.valid_space Un_least V_valid assms(2) b'_el b_el d_elem_is_open d_ext ext_comm ext_elem ext_functorial_trans order_class.order_eq_iff ova_comb_local sup.coboundedI1 sup.coboundedI2 valid_prealgebra valid_union2)
+qed
 
 corollary galois_closure_idempotent :
   fixes V :: "('A,'a) OVA" and A B C :: "'A Open"  and a :: "('A, 'a) Valuation"
@@ -2025,5 +2061,6 @@ lemma laxity2 :
   and a'_elem : "a' \<in> elems V"
 shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" 
   oops
+
 
 end

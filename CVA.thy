@@ -1148,7 +1148,7 @@ proposition hoare_frame_rule :
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
   and "hoare V p a q" 
-  and frame : "le V a ((par V (neut_seq V (d f)) a))"  (* todo: reformulate this as a condition the domains? weaken the cond. so it doesnt imply d f \<subseteq> d a*)
+  and frame : "le V (seq V (par V f p) a) (seq V (par V f p) (par V (neut_seq V (d f)) a))"  (* todo: reformulate this as a condition the domains? *)
 shows "hoare V (par V f p) a (par V f q)" 
 proof - 
   have "le V (seq V p a) q"
@@ -1168,6 +1168,39 @@ proof -
   ultimately show ?thesis                                                                        
     by meson 
 qed
+
+proposition hoare_ext_rule :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation" and U :: "'A Open"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
+  and "hoare V p a q" 
+  and "U \<in> opens (space V)" and "d p \<union> d a \<union> d q \<subseteq> U"
+shows "hoare V (ext V U p) a (ext V U q)" 
+proof -
+  have "le V (seq V p a) q"
+    using assms(5) by blast 
+  moreover have "le V (ext V U (seq V p a)) (ext V U q)" using ext_monotone' [where ?V="seq_algebra V" and ?A=U]
+    by (metis (no_types, opaque_lifting) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(6) assms(7) calculation comb_is_element le_sup_iff valid_domain_law)
+  moreover have "ext V U (seq V p a) = seq V (ext V U p) (ext V U a)"
+    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) assms(6) assms(7) ext_comm' sup.bounded_iff)
+  moreover have "... = seq V (ext V U p) a" using ova_comb_local [where ?V="seq_algebra V"]
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(6) assms(7) d_ext equalityE ext_elem ext_functorial_id inf_sup_aci(6) le_sup_iff subset_antisym)
+  moreover have "le V (seq V (ext V U p) a) (ext V U q)"
+    using calculation(2) calculation(3) calculation(4) by force
+  ultimately show ?thesis
+    by simp
+qed    
+
+(* This is just a special case of the consequence rule *)
+proposition hoare_res_rule :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation" and U :: "'A Open"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
+  and "hoare V p a q" 
+  and "U \<in> opens (space V)" and "U \<subseteq> d q"
+shows "hoare V p a (res V U q)"
+  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) id_le_res res_elem valid_le_transitive valid_seq_elem) 
+
 
 (* Rely-guarantee CVAs
 
