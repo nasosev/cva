@@ -772,6 +772,91 @@ proof -
     by presburger 
 qed
 
+primrec fiter_seq :: "('A, 'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> nat \<Rightarrow> ('A, 'a) Valuation" where
+  "fiter_seq V a 0 = neut_seq V (d a)" 
+| "fiter_seq V a (Suc n) = seq V a (fiter_seq V a n)"
+
+
+lemma fiter_seq_elem :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and n :: "nat"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V"
+shows "fiter_seq V a n \<in> elems V"
+proof (induct_tac n, goal_cases)
+  case 1
+  then show ?case
+    by (metis CVA.valid_welldefined V_valid a_el d_elem_is_open fiter_seq.simps(1) valid_neut_seq_elem) 
+next
+  case (2 n)
+  then show ?case
+    by (metis V_valid a_el fiter_seq.simps(2) valid_seq_elem) 
+qed
+
+lemma seq_bot :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and n :: "nat"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V"
+shows "le V (seq V a (bot V)) a"
+  by (metis CVA.valid_welldefined V_cont V_valid a_el continuous_complete d_elem_is_open seq_bot1 valid_neut_seq_elem valid_neutral_law_right) 
+
+(*
+lemma fiter_seq_is_finite_seq_iter1 :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and m :: "nat"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V"
+shows "le V (sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<le> m}) (sup V {fiter_seq V a n | n . n \<le> m})"
+proof (induct_tac m, goal_cases)
+  case 1
+  then show ?case 
+  proof -
+    have "sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<le> 0} = bot V"
+      using sup_singleton V_cont V_valid a_el iter_seq_zero le_zero_eq singleton_conv
+      by (smt (verit, ccfv_SIG) CVA.sup_def Collect_cong continuous_cocomplete iter_seq_el) 
+    
+    thus ?thesis 
+next
+  case (2 n)
+  then show ?case sorry
+qed
+*)
+
+(*
+lemma fiter_seq_is_finite_seq_iter :
+  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_cont : "is_continuous V"
+  and a_el : "a \<in> elems V"
+shows "finite_seq_iter V a = sup V {fiter_seq V a n | n . n \<in> UNIV}"
+proof -
+  have "sup V {fiter_seq V a n | n . n \<in> UNIV} \<in> elems V"
+    by (smt (verit, del_insts) Collect_mem_eq Collect_mono_iff V_cont V_valid a_el continuous_complete fiter_seq_elem sup_elem)
+  moreover have "sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV} = finite_seq_iter V a"
+    using V_cont V_valid a_el kleene_finite_seq_iter by fastforce 
+  moreover have "le V (sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}) (sup V {fiter_seq V a n | n . n \<in> UNIV})" 
+  proof -
+    have "\<And> n . le V ((iter (seq_iter_map V a) n) \<star> bot V) (sup V {fiter_seq V a n | n . n \<in> UNIV})"
+    proof (induct_tac n, goal_cases)
+      case (1 n)
+      then show ?case
+        by (metis (no_types, lifting) CVA.bot_def V_cont V_valid a_el bot_min calculation(1) continuous_cocomplete iter_seq_zero) 
+    next
+      case (2 n m)
+      then show ?case 
+      proof -
+        have "le V (iter (seq_iter_map V a) m \<star> bot V) (sup V {fiter_seq V a n |n. n \<in> UNIV})"
+          using "2" by blast 
+        moreover have "\<exists> b . b \<in> {fiter_seq V a n |n. n \<in> UNIV} \<and> le V (iter (seq_iter_map V a) m \<star> bot V) b" 
+    qed
+    thus ?thesis using sup_is_lub [where ?P="poset V"]
+      by (smt (verit) CVA.sup_def V_cont V_valid a_el calculation(1) continuous_cocomplete iter_seq_el mem_Collect_eq subsetI) 
+  qed
+  moreover have "le V (sup V {fiter_seq V a n | n . n \<in> UNIV}) (sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV})" 
+    sorry
+  ultimately show ?thesis
+    using V_cont V_valid a_el continuous_complete finite_seq_iter_el valid_le_antisymmetric
+    by (metis (no_types, lifting))
+qed
+*)
+
 lemma seq_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -1084,7 +1169,7 @@ proposition hoare_extensionality_rule :
   by (smt (verit) V_valid assms(2) assms(3) assms(4) hoare_antitony_rule set_eq_subset valid_le_antisymmetric)
 
 (* [CKA, Lemma 5.2.4] *)
-proposition hoare_composition_rule :
+proposition hoare_sequential_rule :
   fixes V :: "('A, 'a) CVA" and p r a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
@@ -1100,13 +1185,13 @@ next
 qed
 
 (* [CKA, Lemma 5.2.4] (special form) *)
-proposition hoare_composition_rule' :
+proposition hoare_sequential_rule' :
   fixes V :: "('A, 'a) CVA" and p q r a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "q \<in> elems V" and "r \<in> elems V" and "a \<in> elems V" and "b \<in> elems V"
   and "hoare V p a q" and "hoare V q b r"
 shows "hoare V p (seq V a b) r"
-  using V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) hoare_composition_rule by blast
+  using V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) hoare_sequential_rule by blast
 
 (* [CKA, Lemma 5.2.5] *)
 proposition hoare_weakening_rule :
@@ -1183,7 +1268,7 @@ proof (rule iffI, goal_cases)
   proof -
     fix n
     show "le V (seq V p ((iter (seq_iter_map V a) n) \<star> (bot V))) p"
-    proof  (induct_tac n, goal_cases)
+    proof (induct_tac n, goal_cases)
       case 1
       then show ?case
         by (smt (verit, best) V_cont V_valid \<open>hoare V p a p\<close> a_el calculation(3) continuous_complete iter_seq_zero p_el seq_bot1 valid_le_transitive valid_seq_elem) 
@@ -1209,7 +1294,7 @@ proof (rule iffI, goal_cases)
         moreover have 0: "hoare V p (neut_seq V (d a)) p"
           using calculation(6) calculation(7) by presburger
         moreover have 1: "hoare V p (seq V a ((iter (seq_iter_map V a) n \<star> bot V))) p"
-          using "1" "2" V_valid a_el calculation(4) hoare_composition_rule' p_el by blast
+          using "1" "2" V_valid a_el calculation(4) hoare_sequential_rule' p_el by blast
         moreover have "le V (seq V p (join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) n \<star> bot V))))) p " 
           using 0 1 hoare_choice_rule [where ?V=V and ?p=p and ?q=p and ?a="neut_seq V (d a)" and ?b="seq V a ((iter (seq_iter_map V a) n \<star> bot V))"]
           by (smt (verit, best) CVA.valid_welldefined V_cont V_valid a_el calculation(4) d_elem_is_open p_el valid_neut_seq_elem valid_seq_elem)
@@ -1257,7 +1342,7 @@ proof (rule iffI, goal_cases)
     have "\<forall>p\<in>elems V. \<forall>q\<in>elems V. \<forall>r\<in>elems V. hoare V p a q \<and> hoare V q b r \<longrightarrow> hoare V p c r"
       using "1" by fastforce 
     then have "\<forall>p\<in>elems V. \<forall>r\<in>elems V. hoare V p (seq V a b) r \<longrightarrow> hoare V p c r"
-      using V_valid assms(2) assms(3) hoare_composition_rule by blast
+      using V_valid assms(2) assms(3) hoare_sequential_rule by blast
     then have "le V c (seq V a b)" 
       using hoare_antitony_rule [where ?V=V and ?b="seq V a b" and ?a=c] assms
       by (smt (z3) CVA.valid_welldefined d_elem_is_open d_neut dual_order.refl neutral_is_element valid_domain_law valid_neutral_law_right valid_seq_elem)
@@ -1274,7 +1359,7 @@ next
       using hoare_antitony_rule [where ?V=V and ?b="seq V a b" and ?a=c]
       using CVA.valid_welldefined V_valid assms(4) by blast
     then have "\<forall>p\<in>elems V. \<forall>q\<in>elems V. \<forall>r\<in>elems V. hoare V p a q \<and> hoare V q b r \<longrightarrow> hoare V p c r" 
-      using hoare_composition_rule [where ?V=V and ?a=a and ?b=b]
+      using hoare_sequential_rule [where ?V=V and ?a=a and ?b=b]
       using V_valid assms(2) assms(3) by blast
     thus ?thesis
       by force
@@ -1647,7 +1732,7 @@ proof -
     by (metis CVA.valid_welldefined V_valid assms(3) assms(4) assms(5) assms(8) assms(9) valid_comb_associative valid_par_elem)
 
   moreover have 7: "le V (seq V p (seq V (par V r1 a1) (par V r2 a2))) (seq V p' (par V r2 a2))"
-    by (smt (verit, ccfv_threshold) V_valid assms(3) assms(4) assms(5) assms(6) assms(8) assms(9) hoare_composition_rule' rg1 valid_le_reflexive valid_par_elem valid_seq_elem) 
+    by (smt (verit, ccfv_threshold) V_valid assms(3) assms(4) assms(5) assms(6) assms(8) assms(9) hoare_sequential_rule' rg1 valid_le_reflexive valid_par_elem valid_seq_elem) 
 
   moreover have 8: "le V (seq V p' (par V r2 a2)) p''"
     using rg2 by blast 
@@ -1791,7 +1876,7 @@ proof -
         by (metis CVA.valid_welldefined V_cont V_valid a_el a_m_def binary_continuous d_elem_is_open iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
       
       moreover have 1: "le V (seq V p (par V r (seq V a (a_m)))) p"
-        by (smt (z3) "2" V_cont V_valid a_el a_m_def assm_rg hoare_composition_rule' inv_dist inv_r iter_seq_el p_el r_el valid_elems valid_par_elem valid_seq_elem)
+        by (smt (z3) "2" V_cont V_valid a_el a_m_def assm_rg hoare_sequential_rule' inv_dist inv_r iter_seq_el p_el r_el valid_elems valid_par_elem valid_seq_elem)
 
       moreover have "le V (par V r (neut_seq V (d a))) r" using extra
         by (smt (verit) CVA.valid_welldefined V_valid a_el d_elem_is_open r_el valid_le_reflexive valid_neut_seq_elem valid_par_mono inv_r invariant_def) 

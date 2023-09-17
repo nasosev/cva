@@ -458,7 +458,7 @@ lemma is_sup_greater : "valid P \<Longrightarrow> U \<subseteq> el P \<Longright
 lemma inf_is_glb : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> \<forall>u\<in>U. le P z u \<Longrightarrow> le P z (inf P U)"
   by (simp add: inf_def is_inf_is_glb is_complete_def someI_ex) 
 
-lemma sup_is_lub : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P  \<Longrightarrow> z \<in> el P \<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P (sup P U) z"
+lemma sup_is_lub : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> z \<in> el P \<Longrightarrow> \<forall>u\<in>U. le P u z \<Longrightarrow> le P (sup P U) z"
   by (simp add: sup_def is_sup_is_lub is_cocomplete_def someI_ex) 
 
 lemma complete_inf_exists : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> \<exists>i \<in> el P. is_inf P U i"
@@ -808,6 +808,7 @@ proof -
   ultimately show ?thesis
     by (simp add: P_cocomplete U_els U_inhabited a_el sup_dist_join1)
 qed
+
 
 (* Constants *)
 
