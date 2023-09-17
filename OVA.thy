@@ -823,6 +823,75 @@ corollary strongly_neutral_monoid :
 shows "comb V (neut V {}) a = a \<and> comb V a (neut V {}) = a"
   by (smt (verit, ccfv_threshold) Prealgebra.valid_space Space.valid_def V_valid a_el d_elem_is_open neutral_is_element strongly_neutral strongly_neutral_combination sup_bot.right_neutral sup_bot_left valid_comb_associative valid_neutral_law_left valid_neutral_law_right valid_prealgebra) 
 
+lemma strongly_neutral_neut_comm :
+  fixes V :: "('A,'a) OVA" and a :: "('A, 'a) Valuation" and U :: "'A Open"
+  assumes V_valid : "valid V"
+  and strongly_neutral : "is_strongly_neutral V"
+  and a_el : "a \<in> elems V"
+  and U_open :"U \<in> opens (space V)"
+shows "comb V a (neut V U) = comb V (neut V U) a"
+  by (smt (verit) U_open V_valid a_el comb_is_element d_elem_is_open d_neut neutral_is_element strongly_neutral strongly_neutral_combination subset_Un_eq sup.absorb_iff1 sup.orderE valid_associative valid_domain_law valid_neutral_law_left valid_neutral_law_right valid_semigroup) 
+
+lemma weak_comb_law_left :
+  fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation" and U :: "'A Open"
+  assumes V_valid : "valid V"
+  and strongly_neutral : "is_strongly_neutral V"
+  and a_el : "a \<in> elems V" and b_elem : "b \<in> elems V"
+  and U_open :"U \<in> opens (space V)" and "d a \<subseteq> U" and "U \<subseteq> d a \<union> d b"
+shows "res V U (comb V a b) = comb V a (res V (d b \<inter> U) b)" 
+proof -
+  have "U \<inter> (d a \<union> d b) = U"
+    using assms(7) by blast
+  moreover have "comb V a b \<in> elems V \<and> d (comb V a b) = d a \<union> d b"
+    by (meson V_valid a_el b_elem comb_is_element valid_domain_law)
+  moreover have "d (res V U (comb V a b)) = U"
+    using U_open assms(7) calculation(2) by auto  
+  moreover have "res V U (comb V a b) = comb V (res V U (comb V a b)) (neut V U)"
+    by (metis U_open V_valid assms(7) calculation(2) calculation(3) res_elem valid_neutral_law_right)
+  moreover have "... = res V U (comb V (comb V a b) (neut V U))"
+    by (metis (no_types, lifting) U_open V_valid assms(7) calculation(2) d_neut inf.absorb_iff2 neutral_is_element valid_comb_law_right)
+  moreover have "... = res V U (comb V (comb V a (neut V U)) b)"
+    by (metis OVA.valid_welldefined U_open V_valid a_el b_elem strongly_neutral_neut_comm neutral_is_element strongly_neutral valid_associative)
+  moreover have "... = comb V (comb V a (neut V U)) (res V (U \<inter> d b) b)"
+    by (metis U_open V_valid a_el assms(6) b_elem comb_is_element fst_eqD neutral_is_element sup.absorb_iff2 valid_comb_law_left valid_domain_law)
+  moreover have "... = comb V (comb V a (res V (U \<inter> d b) b)) (neut V U)"
+    by (metis Int_lower2 Prealgebra.valid_space U_open V_valid a_el b_elem d_elem_is_open neutral_is_element res_elem strongly_neutral strongly_neutral_neut_comm valid_comb_associative valid_inter valid_prealgebra)
+  moreover have "... = comb V a (res V (U \<inter> d b) b)"
+    by (smt (verit, best) Int_lower2 Prealgebra.valid_space U_open V_valid a_el assms(6) b_elem calculation(1) comb_is_element d_elem_is_open d_res inf.absorb_iff2 inf_sup_distrib1 res_elem valid_domain_law valid_inter valid_neutral_law_right valid_prealgebra)
+  ultimately show ?thesis
+    by (simp add: Int_commute)
+qed
+
+lemma weak_comb_law_right :
+  fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation" and U :: "'A Open"
+  assumes V_valid : "valid V"
+  and strongly_neutral : "is_strongly_neutral V"
+  and a_el : "a \<in> elems V" and b_elem : "b \<in> elems V"
+  and U_open :"U \<in> opens (space V)" and "d b \<subseteq> U" and "U \<subseteq> d a \<union> d b"
+shows "res V U (comb V a b) = comb V (res V (d a \<inter> U) a) b" 
+proof -
+  have "U \<inter> (d a \<union> d b) = U"
+    using assms(7) by blast
+  moreover have "comb V a b \<in> elems V \<and> d (comb V a b) = d a \<union> d b"
+    by (meson V_valid a_el b_elem comb_is_element valid_domain_law)
+  moreover have "d (res V U (comb V a b)) = U"
+    using U_open assms(7) calculation(2) by auto  
+  moreover have "res V U (comb V a b) = comb V  (neut V U) (res V U (comb V a b))"
+    by (metis U_open V_valid assms(7) calculation(2) calculation(3) res_elem valid_neutral_law_left)
+  moreover have "... = res V U (comb V  (neut V U) (comb V a b))"
+    by (metis (no_types, lifting) Int_Un_eq(2) Int_commute U_open V_valid assms(7) calculation(1) calculation(2) equalityE fst_conv neutral_is_element strongly_neutral weak_comb_law_left)
+  moreover have "... = res V U (comb V a (comb V (neut V U) b))"
+    by (metis U_open V_valid a_el b_elem neutral_is_element strongly_neutral strongly_neutral_neut_comm valid_comb_associative)
+  moreover have "... = comb V  (res V (U \<inter> d a) a) (comb V (neut V U) b)"
+    by (metis Int_commute U_open V_valid a_el assms(6) b_elem comb_is_element fst_conv neutral_is_element sup.orderE valid_comb_law_right valid_domain_law)
+  moreover have "... = comb V (comb V (res V (U \<inter> d a) a) b) (neut V U)"
+    by (metis Int_lower2 Prealgebra.valid_space U_open V_valid a_el b_elem d_elem_is_open neutral_is_element res_elem strongly_neutral strongly_neutral_neut_comm valid_comb_associative valid_inter valid_prealgebra)
+  moreover have "... = comb V (res V (U \<inter> d a) a) b"
+    by (smt (verit, best) Int_lower2 Prealgebra.valid_space U_open V_valid a_el assms(6) b_elem calculation(1) comb_is_element d_elem_is_open d_res inf.absorb_iff2 inf_sup_distrib1 res_elem valid_domain_law valid_inter valid_neutral_law_right valid_prealgebra)
+  ultimately show ?thesis
+    by (simp add: Int_commute)
+qed
+
 (* [Corollary 2 (1/2), TMCVA] *)
 corollary galois_insertion :
   fixes V :: "('A,'a) OVA" and A :: "'A Open" and b :: "('A, 'a) Valuation"

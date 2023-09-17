@@ -906,7 +906,7 @@ proposition hoare_domain_rule :
 shows "d q \<subseteq> d a \<union> d p"
   by (metis CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) comb_is_element d_comb sup_commute)
 
-proposition hoare_ext_rule :
+proposition hoare_ext_rule1 :
   fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation" and U :: "'A Open"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
@@ -928,16 +928,59 @@ proof -
     by simp
 qed    
 
-(* This is just a special case of the weakening rule.
-Todo: can we find a more useful rule involving restriction? *)
-proposition hoare_res_rule :
-  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation" and U :: "'A Open"
+proposition hoare_ext_rule2 :
+  fixes V :: "('A, 'a) CVA" and p b q :: "('A,'a) Valuation" and A :: "'A Open"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "b \<in> elems V" and "q \<in> elems V" 
+  and "hoare V p b q" 
+  and "A \<in> opens (space V)" and "d b \<subseteq> A"
+shows "hoare V p (ext V A b) q" 
+proof -
+  have "le V (ext V A b) b"
+    by (meson CVA.valid_welldefined V_valid assms(3) assms(6) assms(7) ext_le_id) 
+  moreover have "le V (seq V p (ext V A b)) (seq V p b)"
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(6) assms(7) calculation ext_elem valid_comb_monotone valid_le_reflexive) 
+  ultimately show ?thesis
+    by (smt (verit, best) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) comb_is_element ext_elem valid_poset valid_semigroup valid_transitivity)
+qed
+
+proposition hoare_res_rule1 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation" and P Q :: "'A Open"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
+  and "hoare V (res V P p) a q" 
+  and "P \<in> opens (space V)" and "P \<subseteq> d p"
+  and "Q \<in> opens (space V)" and "Q \<subseteq> d q"
+shows "hoare V p a (res V Q q)"
+  by (smt (verit, del_insts) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) assms(8) assms(9) comb_is_element id_le_res res_elem valid_comb_monotone valid_le_reflexive valid_poset valid_semigroup valid_transitivity)
+
+proposition hoare_res_rule2 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation" and B :: "'A Open"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
+  and "hoare V p (res V B a) q" 
+  and "B \<in> opens (space V)" and "B \<subseteq> d a"
+shows "hoare V p a q"
+  by (smt (verit, ccfv_SIG) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) comb_is_element id_le_res res_elem valid_le_reflexive valid_le_transitive valid_monotone valid_semigroup)
+
+proposition hoare_res_rule3 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
+   and "d p \<subseteq> d q" and "d p \<subseteq> d a"
   and "hoare V p a q" 
-  and "U \<in> opens (space V)" and "U \<subseteq> d q"
-shows "hoare V p a (res V U q)"
-  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) assms(7) id_le_res res_elem valid_le_transitive valid_seq_elem) 
+shows "hoare V p (res V (d p) a) (res V (d p) q)" 
+proof -
+  have "le V (seq V p a) q"
+    using assms(7) by fastforce
+  then have "le V (res V (d p) (seq V p a)) (res V (d p) q)"
+    by (smt (verit, del_insts) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) comb_is_element d_elem_is_open res_monotone' subset_Un_eq valid_domain_law)
+  moreover have "res V (d p) (seq V p a) = seq V p (res V (d p) a)"
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(3) assms(6) inf.orderE valid_comb_law_left) 
+  moreover have "le V (seq V p (res V (d p) a)) (res V (d p) q)"
+    using calculation(1) calculation(2) by auto 
+  ultimately show ?thesis by blast
+qed
 
 (* [CKA, Lemma 5.2.1] *)
 proposition hoare_neut_seq_rule :
@@ -1729,5 +1772,7 @@ proof -
   ultimately show ?thesis using U_def
     using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
 qed
+
+
 
 end
