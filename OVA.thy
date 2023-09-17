@@ -618,6 +618,22 @@ proof -
     by (metis f_def g_def)
 qed
 
+lemma res_comm :
+  fixes V :: "('A,'a) OVA" and a b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+shows "res V (d a \<inter> d b) (comb V a b) = comb V (res V (d a \<inter> d b) a) (res V (d a \<inter> d b) b)"
+proof -
+  have "res V (d a \<inter> d b) (comb V a b) = res V (d a \<inter> d b) (res V (d a) (comb V a b))"
+    by (metis (no_types, opaque_lifting) Prealgebra.valid_space V_valid a_el b_el comb_is_element d_elem_is_open inf_le1 res_functorial_trans sup_ge1 valid_domain_law valid_inter valid_prealgebra) 
+  moreover have "... = res V (d a \<inter> d b) (comb V a (res V (d a \<inter> d b) b))"
+    by (metis V_valid a_el b_el valid_comb_law_left)
+  moreover have "... = comb V (res V (d a \<inter> d b) a) (res V (d a \<inter> d b) b)"
+    by (smt (verit, best) Int_commute Int_lower2 Prealgebra.valid_space V_valid a_el b_el d_elem_is_open d_res inf.idem inf_left_commute res_elem valid_comb_law_right valid_inter valid_prealgebra)
+  ultimately show ?thesis
+    by presburger
+qed
+
 (* [Remark 2 (3/3), TMCVA] *)
 lemma stability:
   fixes V :: "('A,'a) OVA" and A B :: "'A Open"
@@ -2130,5 +2146,6 @@ lemma laxity2 :
   and a'_elem : "a' \<in> elems V"
 shows "le V (res V (B \<union> B') (comb V a a')) (comb V (res V B a) (res V B a'))" 
   oops
+
 
 end

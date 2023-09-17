@@ -967,20 +967,65 @@ proposition hoare_res_rule3 :
   fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
-   and "d p \<subseteq> d q" and "d p \<subseteq> d a"
+   and "d p \<subseteq> d q"
   and "hoare V p a q" 
-shows "hoare V p (res V (d p) a) (res V (d p) q)" 
+shows "hoare V p (res V (d p \<inter> d a) a) (res V (d p) q)" 
 proof -
   have "le V (seq V p a) q"
-    using assms(7) by fastforce
+    using assms(6) by force 
   then have "le V (res V (d p) (seq V p a)) (res V (d p) q)"
-    by (smt (verit, del_insts) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) assms(5) assms(6) comb_is_element d_elem_is_open res_monotone' subset_Un_eq valid_domain_law)
-  moreover have "res V (d p) (seq V p a) = seq V p (res V (d p) a)"
-    by (metis CVA.valid_welldefined V_valid assms(2) assms(3) assms(6) inf.orderE valid_comb_law_left) 
-  moreover have "le V (seq V p (res V (d p) a)) (res V (d p) q)"
-    using calculation(1) calculation(2) by auto 
-  ultimately show ?thesis by blast
+    by (smt (verit, del_insts) CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open d_res id_le_res res_elem res_monotone' valid_le_transitive valid_seq_elem)
+  moreover have "res V (d p) (seq V p a) = seq V p (res V (d p \<inter> d a) a)"
+    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) valid_comb_law_left)
+  moreover have "le V (seq V p (res V (d p \<inter> d a) a)) (res V (d p) q)"
+    using calculation(1) calculation(2) by auto
+  ultimately show ?thesis
+    by meson
 qed
+
+proposition hoare_res_rule4 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
+   and "d a \<subseteq> d q"
+  and "hoare V p a q" 
+shows "hoare V (res V (d p \<inter> d a) p) a (res V (d a) q)" 
+proof -
+  have "le V (seq V p a) q"
+    using assms(6) by force 
+  then have "le V (res V (d a) (seq V p a)) (res V (d a) q)"
+    by (smt (verit, del_insts) CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open d_res id_le_res res_elem res_monotone' valid_le_transitive valid_seq_elem)
+  moreover have "res V (d a) (seq V p a) = seq V (res V (d p \<inter> d a) p) a"
+    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) valid_comb_law_right)
+  moreover have "le V (seq V (res V (d p \<inter> d a) p) a) (res V (d a) q)"
+    using calculation(1) calculation(2) by auto
+  ultimately show ?thesis
+    by meson
+qed
+
+proposition hoare_res_rule5 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
+   and "d p \<inter> d a \<subseteq> d q"
+  and "hoare V p a q" 
+shows "hoare V (res V (d p \<inter> d a) p) (res V (d p \<inter> d a) a) (res V (d p \<inter> d a) q)" 
+proof -
+  define "U" where "U = d p \<inter> d a" 
+  have "U \<in> opens (space V) \<and> U \<subseteq> d q \<and> U \<subseteq> d (seq V p a)"
+    by (smt (verit, best) CVA.valid_welldefined OVA.valid_le Prealgebra.valid_space U_def V_valid assms(2) assms(3) assms(4) assms(5) assms(6) d_elem_is_open order.trans valid_inter valid_prealgebra valid_seq_elem)
+  moreover have "le V (seq V p a) q"
+     using assms(6) by force
+  moreover have "le V (res V U (seq V p a)) (res V U q)" using U_def
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) calculation(1) calculation(2) res_monotone' valid_seq_elem) 
+  moreover have "res V U (seq V p a) = seq V (res V U p) (res V U a)"
+    by (metis CVA.valid_welldefined U_def V_valid assms(2) assms(3) res_comm)
+  moreover have "le V (seq V (res V U p) (res V U a)) (res V U q)"
+    using calculation(3) calculation(4) by auto
+  ultimately show ?thesis
+    using U_def by fastforce
+qed
+
 
 (* [CKA, Lemma 5.2.1] *)
 proposition hoare_neut_seq_rule :
