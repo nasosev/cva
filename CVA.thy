@@ -1403,7 +1403,6 @@ proof -
     by (simp add: \<open>(\<preceq>) \<equiv> CVA.le V\<close> pc_def sc_def)
 qed
 
-(* To recover the ordinary frame rule, we must constrain so that 'par V a (neut_seq V (d f) = a' *)
 (* See https://en.wikipedia.org/wiki/Separation_logic#Reasoning_about_programs:_triples_and_proof_rules 
  where there is an additional condition mod(a) \<inter> fv(f) = \<emptyset> *)
 (* [CKA, Lemma 5.4.2] *)
@@ -1412,25 +1411,21 @@ proposition hoare_frame_rule :
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
   and "hoare V p a q" 
-  and frame : "le V (seq V (par V f p) a) (seq V (par V f p) (par V (neut_seq V (d f)) a))"  (* todo: reformulate this as a condition the domains? *)
+  and frame : "res V (d f) a = neut_seq V (d f)"  (* c.f. mod(a) \<inter> fv(f) = \<emptyset> *)
+  and idempotence : "par V (res V (d f) a) a = a" (* c.f. idempotence in valuation algebras *)
 shows "hoare V (par V f p) a (par V f q)" 
 proof - 
-  have "le V (seq V p a) q"
-    using assms(6) by force 
-  moreover have "le V (par V f (seq V p a)) (par V f q)"
-    by (smt (verit, ccfv_threshold) V_valid assms(2) assms(3) assms(4) assms(5) calculation valid_le_reflexive valid_par_mono valid_seq_elem) 
-  moreover have "le V (seq V (par V f p) (par V (neut_seq V (d f)) a)) (par V f (seq V p a))"
-    using valid_weak_exchange [where ?V=V] CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open valid_neut_seq_elem
-    by (metis valid_neutral_law_right) 
-  moreover have "le V (seq V (par V f p) a) (seq V (par V f p) (par V (neut_seq V (d f)) a))"
-    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open frame neutral_is_element valid_le_reflexive valid_par_elem valid_seq_mono)
-  moreover have "le V (seq V (par V f p) a) (par V f (seq V p a))" 
-    using assms calculation valid_transitivity [where ?P="poset V" and ?x="seq V (par V f p) a" and ?y="seq V (par V f p) (par V (neut_seq V (d f)) a)" and ?z="par V f (seq V p a)"]
-    by (smt (verit) CVA.valid_welldefined comb_is_element d_elem_is_open neutral_is_element valid_gc_poset valid_poset valid_semigroup)
-  moreover have "le V (seq V (par V f p) a) (par V f q)" using assms calculation valid_transitivity
-    by (smt (verit, ccfv_threshold) valid_le_transitive valid_par_elem valid_seq_elem)
-  ultimately show ?thesis                                                                        
-    by meson 
+  have "seq V (par V f p) a = seq V (par V f p) (par V (res V (d f) a) a)"
+    using idempotence by auto
+  moreover have "le V (...) (par V (seq V f (res V (d f) a)) (seq V p a))" 
+    using valid_weak_exchange [where ?V=V and ?a1.0=f and ?a2.0=p and ?a3.0="res V (d f) a" and ?a4.0=a]
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open frame valid_neut_seq_elem)
+  moreover have "par V (seq V f (res V (d f) a)) (seq V p a) = par V f (seq V p a)"
+    by (metis CVA.valid_welldefined V_valid assms(3) frame valid_neutral_law_right) 
+  moreover have "le V (...) (par V f q)"
+    by (smt (verit, del_insts) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) valid_le_reflexive valid_par_mono valid_seq_elem) 
+  ultimately show ?thesis
+    by (smt (z3) V_valid assms(2) assms(3) assms(4) assms(5) valid_le_transitive valid_par_elem valid_seq_elem)
 qed
 
 (* Rely-guarantee CVAs
@@ -1594,6 +1589,21 @@ shows "par V r (finite_seq_iter V a) = par V (finite_seq_iter V (par V r a)) r"
 
 (* Rely-guarantee logic rules *)
 
+proposition rg_hoare_rule :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V"
+  and p_el : "p \<in> elems V" and a_el : "a \<in> elems V" and q_el : "q \<in> elems V"
+shows "rg V p (neut_par V (d a)) a (top V) q = hoare V p a q"
+proof (rule iffI, goal_cases)
+  case 1
+  then show ?case
+    by (metis CVA.valid_welldefined V_valid a_el valid_elems valid_neutral_law_left) 
+next
+  case 2
+  then show ?case
+    by (smt (z3) CVA.top_def CVA.valid_welldefined V_complete V_valid a_el cocomplete top_max valid_gc_poset valid_neutral_law_left) 
+qed
+
 (* [CKA, Thm 8.4] *)
 (* Note in a CKA parallel restricted to invariants corresponds to supremum in the
  lattice of invariants, since the natural order defined a \<le> b \<longleftrightarrow> a \<parallel> b = b coincides with the ambient
@@ -1752,7 +1762,7 @@ qed
 
 (* [CKA, Thm 8.6.1] *)
 (* Note: in CKA the converse direction is proved, but this would require neut_par refines any
- invariant, which is too strong in many models *)
+ invariant, which is too strong in many CVA models. *)
 proposition rg_neut_par_rule :
   fixes V :: "('A, 'a) CVA" and r g p q :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -1797,9 +1807,7 @@ next
   qed
 qed
 
-(* [CKA, Thm 8.7] *)
-(* Note: the assumption 'extra' below is needed here (whereas it holds trivially in a CKA). *)
-(* Why don't we require d p \<subseteq> d r like in the Hoare version hoare_iter_rule ? *)
+(* [CKA, Thm 8.7] *) 
 proposition rg_iteration_rule : 
   fixes V :: "('A, 'a) CVA" and p r a g :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -1880,30 +1888,37 @@ proof -
 
       moreover have "le V (neut_seq V (d a)) (neut_seq V (d r))" using dr_le_da neut_le_neut [where ?V="seq_algebra V" and ?A="d a" and ?B="d r"]
         by (meson CVA.valid_welldefined V_valid a_el d_elem_is_open r_el)
-      moreover have "le V (par V r (neut_seq V (d a))) r"  
-
+      moreover have "le V (par V r (neut_seq V (d a))) (par V r (neut_seq V (d r)))"
+        by (smt (verit) CVA.valid_welldefined V_valid a_el calculation(7) d_elem_is_open r_el valid_le_reflexive valid_neut_seq_elem valid_par_mono)  
+      moreover have "le V (par V r (neut_seq V (d r))) (par V r r)"
+        by (smt (verit, ccfv_SIG) CVA.valid_welldefined V_valid d_elem_is_open inv_neut_seq inv_r neutral_is_element r_el valid_le_reflexive valid_par_mono)
+      moreover have "par V r r = r"
+        using V_valid inv_idem_par inv_r r_el by blast
+      moreover have "le V (par V r (neut_seq V (d a))) r"
+        by (smt (verit, ccfv_SIG) CVA.valid_welldefined V_valid a_el calculation(10) calculation(7) d_elem_is_open inv_neut_seq inv_r r_el valid_le_reflexive valid_le_transitive valid_neut_seq_elem valid_par_mono)
+      moreover have "par V r (neut_seq V (d a)) \<in> elems V"
+        by (metis V_cont V_valid a_el fiter_seq.simps(1) fiter_seq_elem r_el valid_par_elem) 
+      
       moreover have "le V (seq V p (par V r (neut_seq V (d a)))) (seq V p r)" using valid_seq_mono [where ?V=V]
-        by (smt (verit) CVA.valid_welldefined V_valid a_el calculation(7) d_elem_is_open p_el r_el valid_le_reflexive valid_neut_seq_elem valid_par_elem) 
+        by (smt (z3) V_valid calculation(11) calculation(12) p_el r_el valid_le_reflexive)
 
       moreover have 2: "le V (seq V p (par V r (neut_seq V (d a)))) p"
-        by (smt (verit, best) CVA.valid_welldefined V_valid a_el assm_hoare calculation(8) d_elem_is_open p_el r_el valid_le_transitive valid_neut_seq_elem valid_par_elem valid_seq_elem) 
+        by (smt (verit, best) CVA.valid_welldefined V_valid a_el assm_hoare calculation(13) d_elem_is_open p_el r_el valid_le_transitive valid_neut_seq_elem valid_par_elem valid_seq_elem) 
 
       ultimately show ?thesis
         by (smt (verit) CVA.valid_welldefined V_cont V_valid a_el a_m_def d_elem_is_open hoare_choice_rule iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
+     qed
     qed
+    moreover have "le V (sup V W) p" 
+      unfolding sup_def W_def
+      using  sup_is_lub [where ?P="poset V" and ?U="W" and ?z=p] W_def
+      using V_cont calculation(5) continuous_cocomplete fa p_el by blast 
+    moreover have "le V (seq V p (par V r (sup V U))) p"
+      using calculation(12) calculation(15) by presburger
+    moreover have "le V (seq V p (par V r (finite_seq_iter V a))) p"
+      using calculation(1) calculation(16) by presburger
+    ultimately show ?thesis using U_def
+      using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
   qed
-  moreover have "le V (sup V W) p" 
-    unfolding sup_def W_def
-    using  sup_is_lub [where ?P="poset V" and ?U="W" and ?z=p] W_def
-    using V_cont calculation(5) continuous_cocomplete fa p_el by blast 
-  moreover have "le V (seq V p (par V r (sup V U))) p"
-    using calculation(12) calculation(15) by presburger
-  moreover have "le V (seq V p (par V r (finite_seq_iter V a))) p"
-    using calculation(1) calculation(16) by presburger
-  ultimately show ?thesis using U_def
-    using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
-qed
-
-
 
 end
