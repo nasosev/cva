@@ -1806,7 +1806,7 @@ proposition rg_iteration_rule :
   and p_el : "p \<in> elems V" and r_el : "r \<in> elems V" and a_el : "a \<in> elems V" and g_el : "g \<in> elems V"
   and inv_r : "invariant V r" and inv_g : "invariant V g"
   and assm_hoare : "hoare V p r p" and assm_rg : "rg V p r a g p"
-  and extra : "le V (neut_seq V (d a)) r"
+  and dr_le_da : "d r \<subseteq> d a" (* Note this is equiv. to 1_a \<le> r *)
 shows "rg V p r (finite_seq_iter V a) g p"
 proof -
   have "le V (finite_seq_iter V a) g" using inv_iter_le [where ?V=V and ?i=g and ?a=a]
@@ -1878,8 +1878,9 @@ proof -
       moreover have 1: "le V (seq V p (par V r (seq V a (a_m)))) p"
         by (smt (z3) "2" V_cont V_valid a_el a_m_def assm_rg hoare_sequential_rule' inv_dist inv_r iter_seq_el p_el r_el valid_elems valid_par_elem valid_seq_elem)
 
-      moreover have "le V (par V r (neut_seq V (d a))) r" using extra
-        by (smt (verit) CVA.valid_welldefined V_valid a_el d_elem_is_open r_el valid_le_reflexive valid_neut_seq_elem valid_par_mono inv_r invariant_def) 
+      moreover have "le V (neut_seq V (d a)) (neut_seq V (d r))" using dr_le_da neut_le_neut [where ?V="seq_algebra V" and ?A="d a" and ?B="d r"]
+        by (meson CVA.valid_welldefined V_valid a_el d_elem_is_open r_el)
+      moreover have "le V (par V r (neut_seq V (d a))) r"  
 
       moreover have "le V (seq V p (par V r (neut_seq V (d a)))) (seq V p r)" using valid_seq_mono [where ?V=V]
         by (smt (verit) CVA.valid_welldefined V_valid a_el calculation(7) d_elem_is_open p_el r_el valid_le_reflexive valid_neut_seq_elem valid_par_elem) 
