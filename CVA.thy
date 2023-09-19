@@ -792,6 +792,7 @@ next
     by (metis V_valid a_el fiter_seq.simps(2) valid_seq_elem) 
 qed
 
+
 lemma seq_bot :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and n :: "nat"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
@@ -799,63 +800,87 @@ lemma seq_bot :
 shows "le V (seq V a (bot V)) a"
   by (metis CVA.valid_welldefined V_cont V_valid a_el continuous_complete d_elem_is_open seq_bot1 valid_neut_seq_elem valid_neutral_law_right) 
 
-(*
-lemma fiter_seq_is_finite_seq_iter1 :
-  fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and m :: "nat"
-  assumes V_valid : "valid V" and V_cont : "is_continuous V"
-  and a_el : "a \<in> elems V"
-shows "le V (sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<le> m}) (sup V {fiter_seq V a n | n . n \<le> m})"
-proof (induct_tac m, goal_cases)
-  case 1
-  then show ?case 
-  proof -
-    have "sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<le> 0} = bot V"
-      using sup_singleton V_cont V_valid a_el iter_seq_zero le_zero_eq singleton_conv
-      by (smt (verit, ccfv_SIG) CVA.sup_def Collect_cong continuous_cocomplete iter_seq_el) 
-    
-    thus ?thesis 
-next
-  case (2 n)
-  then show ?case sorry
-qed
-*)
 
-(*
 lemma fiter_seq_is_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
   assumes V_valid : "valid V" and V_cont : "is_continuous V"
   and a_el : "a \<in> elems V"
-shows "finite_seq_iter V a = sup V {fiter_seq V a n | n . n \<in> UNIV}"
+shows "finite_seq_iter V a = sup V {fiter_seq V a n | n . n \<in> UNIV}" (is "?L = ?R")
 proof -
-  have "sup V {fiter_seq V a n | n . n \<in> UNIV} \<in> elems V"
-    by (smt (verit, del_insts) Collect_mem_eq Collect_mono_iff V_cont V_valid a_el continuous_complete fiter_seq_elem sup_elem)
-  moreover have "sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV} = finite_seq_iter V a"
-    using V_cont V_valid a_el kleene_finite_seq_iter by fastforce 
-  moreover have "le V (sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV}) (sup V {fiter_seq V a n | n . n \<in> UNIV})" 
+  have "?L \<in> elems V \<and> ?R \<in> elems V"
+    by (smt (verit, del_insts) Collect_mem_eq Collect_mono_iff V_cont V_valid a_el continuous_complete finite_seq_iter_el fiter_seq_elem sup_elem) 
+  moreover have "le V ?L ?R"
   proof -
-    have "\<And> n . le V ((iter (seq_iter_map V a) n) \<star> bot V) (sup V {fiter_seq V a n | n . n \<in> UNIV})"
-    proof (induct_tac n, goal_cases)
-      case (1 n)
-      then show ?case
-        by (metis (no_types, lifting) CVA.bot_def V_cont V_valid a_el bot_min calculation(1) continuous_cocomplete iter_seq_zero) 
-    next
-      case (2 n m)
-      then show ?case 
-      proof -
-        have "le V (iter (seq_iter_map V a) m \<star> bot V) (sup V {fiter_seq V a n |n. n \<in> UNIV})"
-          using "2" by blast 
-        moreover have "\<exists> b . b \<in> {fiter_seq V a n |n. n \<in> UNIV} \<and> le V (iter (seq_iter_map V a) m \<star> bot V) b" 
-    qed
-    thus ?thesis using sup_is_lub [where ?P="poset V"]
-      by (smt (verit) CVA.sup_def V_cont V_valid a_el calculation(1) continuous_cocomplete iter_seq_el mem_Collect_eq subsetI) 
+    let ?U = "{fiter_seq V a n | n . n \<in> UNIV}"
+    have "?U \<noteq> {} \<and> ?U \<subseteq> elems V"
+      by (smt (verit, ccfv_SIG) Collect_empty_eq UNIV_witness V_cont V_valid a_el fiter_seq_elem mem_Collect_eq subset_iff)
+    moreover have "?R \<in> el (Poset.dom (seq_iter_map V a))"
+      by (smt (verit, best) PosetMap.select_convs(1) \<open>finite_seq_iter V a \<in> CVA.elems V \<and> CVA.sup V {fiter_seq V a n |n. n \<in> UNIV} \<in> CVA.elems V\<close> seq_iter_map_def)
+    moreover have "(seq_iter_map V a) \<star> ?R = join V (neut_seq V (d a)) (seq V a ?R)"
+      using seq_iter_map_def [where ?V=V and ?x=a] Poset.fun_app3 [where ?f="seq_iter_map V a" and ?a="?R"] calculation
+      by (smt (verit, ccfv_threshold) Poset.fun_app_iff PosetMap.select_convs(3) V_cont V_valid \<open>finite_seq_iter V a \<in> CVA.elems V \<and> CVA.sup V {fiter_seq V a n |n. n \<in> UNIV} \<in> CVA.elems V\<close> a_el continuous_complete mem_Collect_eq valid_seq_iter_map)
+    moreover have "\<And> n . le V (fiter_seq V a n) ?R" using sup_greater [where ?P="poset V" and ?U="?U"]
+      by (metis (mono_tags, lifting) CVA.sup_def UNIV_I V_cont calculation(1) continuous_cocomplete mem_Collect_eq)
+    moreover have "le V (neut_seq V (d a)) ?R"
+      by (metis (no_types, lifting) calculation(4) fiter_seq.simps(1))
+    moreover have "{seq V a (fiter_seq V a n) | n . n \<in> UNIV} = {seq V a u |u. u \<in> {fiter_seq V a n |n. n \<in> UNIV}}" by blast
+    moreover have "seq V a ?R = sup V {seq V a (fiter_seq V a n) | n . n \<in> UNIV}"
+      using V_cont continuous_seq_dist [where ?V=V and ?a=a and ?U="?U"]
+      using V_valid a_el calculation(1) calculation(6) by presburger
+    moreover have "\<And> n . seq V a (fiter_seq V a n) = fiter_seq V a (n+1)"
+      by auto 
+    moreover have "seq V a ?R = sup V {fiter_seq V a (n + 1) |n. n \<in> UNIV}"
+      using calculation(7) by force 
+    moreover have "{fiter_seq V a (n + 1) |n. n \<in> UNIV} \<subseteq> ?U"
+      by blast
+    moreover have "le V (seq V a ?R) ?R"
+      by (smt (verit, best) CVA.sup_def Poset.sup_mono V_cont calculation(1) calculation(10) calculation(9) continuous_cocomplete dual_order.trans)
+    moreover have "le V (seq_iter_map V a \<star> ?R) ?R"
+      by (smt (verit, ccfv_threshold) CVA.join_def CVA.valid_welldefined V_cont V_valid \<open>finite_seq_iter V a \<in> CVA.elems V \<and> CVA.sup V {fiter_seq V a n |n. n \<in> UNIV} \<in> CVA.elems V\<close> a_el calculation(11) calculation(3) calculation(5) continuous_cocomplete d_elem_is_open join_property neutral_is_element valid_seq_elem) 
+    ultimately show ?thesis
+      by (metis (no_types, lifting) CVA.is_complete_def Poset.lfp_lowerbound PosetMap.select_convs(1) V_cont V_valid a_el continuous_complete dom_cod_seq_iter_map finite_seq_iter_def seq_iter_map_def valid_seq_iter_map)
   qed
-  moreover have "le V (sup V {fiter_seq V a n | n . n \<in> UNIV}) (sup V { (iter (seq_iter_map V a) n) \<star> (bot V) | n . n \<in> UNIV})" 
-    sorry
-  ultimately show ?thesis
-    using V_cont V_valid a_el continuous_complete finite_seq_iter_el valid_le_antisymmetric
-    by (metis (no_types, lifting))
+    moreover have "le V ?R ?L"
+    proof -
+      have "\<And> n . le V (fiter_seq V a n) ?L" 
+      proof (induct_tac n, goal_cases)
+        case (1 n)
+        then show ?case
+          by (metis V_cont V_valid a_el continuous_complete fiter_seq.simps(1) skip_le_finite_seq_iter) 
+      next
+        case (2 n m)
+        then show ?case 
+        proof -
+          let ?f = "seq_iter_map V a"
+          assume "le V (fiter_seq V a m) (finite_seq_iter V a)"
+          moreover have "fiter_seq V a m \<in> el (Poset.dom ?f) \<and> (finite_seq_iter V a) \<in> el (Poset.dom ?f) "
+            by (metis (mono_tags, lifting) PosetMap.select_convs(1) V_cont V_valid \<open>finite_seq_iter V a \<in> CVA.elems V \<and> CVA.sup V {fiter_seq V a n |n. n \<in> UNIV} \<in> CVA.elems V\<close> a_el fiter_seq_elem seq_iter_map_def)
+          moreover have "le V (?f \<star> (fiter_seq V a m)) (?f \<star> (finite_seq_iter V a))" using Poset.valid_map_monotone [where ?f="?f"]
+            by (metis (no_types, lifting) PosetMap.select_convs(1) V_cont V_valid \<open>CVA.le V (fiter_seq V a m) (finite_seq_iter V a)\<close> a_el calculation(2) continuous_complete dom_cod_seq_iter_map seq_iter_map_def valid_seq_iter_map)
+          moreover have "fiter_seq V a (Suc m) = seq V a (fiter_seq V a m)"
+            by auto 
+          moreover have "?f \<star> (fiter_seq V a m) = join V (neut_seq V (d a)) (seq V a (fiter_seq V a m))" 
+            using Poset.fun_app3 [where ?f="?f" and ?a="fiter_seq V a m"]
+            by (smt (verit, ccfv_SIG) Poset.fun_app_iff PosetMap.select_convs(3) V_cont V_valid a_el continuous_complete fiter_seq_elem mem_Collect_eq seq_iter_map_def valid_seq_iter_map) 
+          moreover have "le V (seq V a (fiter_seq V a m)) (?f \<star> (fiter_seq V a m))"
+            by (metis (no_types, lifting) CVA.join_def CVA.valid_welldefined V_cont V_valid a_el calculation(5) continuous_cocomplete d_elem_is_open fiter_seq_elem join_greater neutral_is_element valid_seq_elem)
+          moreover have "?f \<star> (finite_seq_iter V a) = finite_seq_iter V a"
+            by (smt (verit) CVA.is_complete_def Poset.lfp_unfold PosetMap.select_convs(2) V_cont V_valid a_el continuous_complete dom_cod_seq_iter_map finite_seq_iter_def seq_iter_map_def valid_seq_iter_map) 
+          moreover have 0: "le V (fiter_seq V a (Suc m)) (?f \<star> (fiter_seq V a m))"
+            using calculation(4) calculation(6) by presburger 
+          moreover have 1: "le V (?f \<star> (fiter_seq V a m)) (finite_seq_iter V a)"
+            using calculation(3) calculation(7) by auto
+          thus "le V (fiter_seq V a (Suc m)) (finite_seq_iter V a)"
+            using 0 1 Poset.valid_transitivity [where ?P="poset V"]
+            by (smt (verit, ccfv_threshold) V_cont V_valid \<open>finite_seq_iter V a \<in> CVA.elems V \<and> CVA.sup V {fiter_seq V a n |n. n \<in> UNIV} \<in> CVA.elems V\<close> a_el calculation(4) calculation(5) continuous_complete fiter_seq.simps(1) fiter_seq_elem join_elem valid_le_transitive)
+        qed
+      qed
+      thus ?thesis
+        by (smt (verit) CVA.sup_def V_cont V_valid a_el calculation(1) continuous_cocomplete fiter_seq_elem mem_Collect_eq subsetI sup_is_lub)  
+    qed
+ ultimately show ?thesis
+   using V_valid valid_le_antisymmetric by blast
 qed
-*)
 
 lemma seq_finite_seq_iter :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation"
@@ -883,7 +908,6 @@ lemma star_induction_right :
   and lhs : "le V (join V b (seq V a x)) x"
 shows "le V (seq V (finite_seq_iter V a) b) x"  oops
 
-
 (* Paper results *)
 
 (* [Proposition 1 (1/3), TMCVA] *)
@@ -897,14 +921,14 @@ proposition epsilon_le_delta [simp] :
 lemma epsilon_par_epsilon_le_epsilon :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  defines "\<epsilon>A \<equiv> neut_seq V A"
   shows "le V (par V \<epsilon>A \<epsilon>A) \<epsilon>A"
   by (smt (z3) A_open CVA.valid_welldefined V_valid \<epsilon>A_def comb_is_element fst_conv neutral_is_element valid_domain_law valid_elems valid_neutral_law_left valid_neutral_law_right valid_weak_exchange) 
 
 lemma delta_le_delta_seq_delta :
   fixes V :: "('A, 'a) CVA" and A :: "'A Open"
   assumes V_valid : "valid V" and A_open : "A \<in> opens (space V)"
-  defines "\<delta>A \<equiv> neut_par V A" and "\<epsilon>A \<equiv> neut_seq V A"
+  defines "\<delta>A \<equiv> neut_par V A"
   shows "le V \<delta>A (seq V \<delta>A \<delta>A)"
   by (smt (z3) A_open CVA.valid_welldefined V_valid \<delta>A_def comb_is_element d_neut neutral_is_element valid_domain_law valid_elems valid_neutral_law_left valid_neutral_law_right valid_weak_exchange)
 
@@ -1238,7 +1262,14 @@ proof (rule iffI, goal_cases)
 next
   case 2
   then show ?case
-    by (smt (z3) CVA.join_def V_cont V_valid assms(3) assms(4) assms(5) assms(6) binary_continuous cocomplete is_continuous_def join_property valid_seq_elem)
+  proof 
+    assume "le V (seq V p a) q" 
+    assume "le V (seq V p b) q" 
+    then have "le V (join V (seq V p a) (seq V p b)) q"
+      by (smt (verit, ccfv_threshold) CVA.join_def V_cont V_valid \<open>hoare V p a q\<close> assms(3) assms(4) assms(5) assms(6) continuous_cocomplete join_property valid_seq_elem)
+    thus "hoare V p (join V a b) q"
+      by (metis V_cont V_valid assms(3) assms(5) assms(6) binary_continuous)
+  qed
 qed
 
 (* [CKA, Lemma 5.2.8] *)
@@ -1492,17 +1523,17 @@ qed
 lemma inv_dist_par1 :
   fixes V :: "('A, 'a) CVA" and i a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
-  and i_el : "r \<in> elems V" and inv_i : "invariant V r" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
+  and i_el : "i \<in> elems V" and inv_i : "invariant V i" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
   and di_eq_da_eq_db : "d i = d a \<and> d i = d b"
-shows "le V (seq V r (par V a b)) (par V (seq V r a) (seq V r b))"
+shows "le V (seq V i (par V a b)) (par V (seq V i a) (seq V i b))"
   by (smt (verit) V_valid a_el b_el inv_i invariant_def i_el valid_weak_exchange) 
 
 lemma inv_dist_par2 :
   fixes V :: "('A, 'a) CVA" and i a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
-  and i_el : "r \<in> elems V" and inv_i : "invariant V r" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
+  and i_el : "i \<in> elems V" and inv_i : "invariant V i" and a_el : "a \<in> elems V" and b_el : "b \<in> elems V" 
   and di_eq_da_eq_db : "d i = d a \<and> d i = d b"
-shows "le V (seq V (par V a b) r) (par V (seq V a r) (seq V b r))"
+shows "le V (seq V (par V a b) i) (par V (seq V a i) (seq V b i))"
   by (smt (verit) V_valid a_el b_el inv_i invariant_def i_el valid_weak_exchange)
 
 lemma inv_iter :
@@ -1702,6 +1733,8 @@ and ?b="(seq V p1 (par V (meet V r1 r2) (par V a1 a2)))" and ?c="(seq V p1 (par 
 qed
 
 (* [CKA, Thm 8.5] *)
+(* Note that in a CKA we get a parallel of guarantees rather than a sequential composite; 
+this would follow from `comparitor` above *)
 proposition rg_sequential_rule :
   fixes V :: "('A, 'a) CVA" and r1 p1 a1 q1 g1 r2 p2 b2 q2 g3 :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -1921,4 +1954,18 @@ proof -
       using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
   qed
 
+
+(*
+lemma d_meet :
+  fixes V :: "('A, 'a) CVA" and a b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+shows "d (meet V a b) = d a \<union> d b"
+
+lemma d_join :
+  fixes V :: "('A, 'a) CVA" and a b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V" and V_complete : "is_complete V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+shows "d (meet V a b) = d a \<inter> d b"
+*)
 end
