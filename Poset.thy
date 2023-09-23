@@ -568,6 +568,12 @@ lemma sup_mono_pointwise : "is_cocomplete P \<Longrightarrow> U \<subseteq> el P
 lemma inf_mono_pointwise : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> V \<subseteq> el P \<Longrightarrow> (\<forall> v \<in> V. \<exists> u \<in> U. le P u v) \<Longrightarrow> le P (inf P U) (inf P V)"
   by (simp add: inf_el_le inf_is_glb is_complete_def subsetD)
 
+lemma join_le : "is_cocomplete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P a b \<Longrightarrow> join P a b = b"
+  by (smt (verit, ccfv_threshold) is_cocomplete_def join_el join_greater join_property valid_def)
+
+lemma inf_le : "is_complete P \<Longrightarrow> a \<in> el P \<Longrightarrow> b \<in> el P \<Longrightarrow> le P a b \<Longrightarrow> meet P a b = a"
+  by (smt (verit, del_insts) is_complete_def meet_el meet_idem meet_mono meet_smaller1 valid_antisymmetry)
+
 lemma inf_as_sup : "is_complete P \<Longrightarrow> U \<subseteq> el P \<Longrightarrow> sup P U = inf P {a \<in> el P . (\<forall> u \<in> U . le P u a)}"
   proof -
     assume "is_complete P "
@@ -832,8 +838,11 @@ lemma bot_as_inf : "is_complete P \<Longrightarrow> bot P = inf P (el P)"
 
 (* Directed subsets *)
 
-definition is_directed :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> bool"  where
+definition is_directed :: "'a Poset \<Rightarrow> 'a set \<Rightarrow> bool" where
 "is_directed P U \<equiv> U \<subseteq> el P \<and> U \<noteq> {} \<and> (\<forall> a b . a \<in> U \<longrightarrow> b \<in> U \<longrightarrow> join P a b \<in> U)"
+
+definition is_continuous :: "('a,'b) PosetMap \<Rightarrow> bool" where
+"is_continuous f \<equiv> (\<forall> U . is_directed (dom f) U \<longrightarrow> f \<star> (sup (dom f) U) = sup (cod f) {f \<star> a | a . a \<in> U})"
 
 (* Fixed points. C.f. https://isabelle.in.tum.de/library/HOL/HOL/Inductive.html *)
 
@@ -1002,214 +1011,122 @@ next
   then show ?case
     by (smt (verit) Poset.app_def Suc_eq_plus1 dom_iter f_endo f_valid iter_app iter_el valid_map_monotone) 
 qed
-(*
-lemma le_chain:
-  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and n m :: "nat"
+
+lemma iter0_le_suc_iter :   
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a" and n  :: "nat"
   assumes P_complete : "is_complete P" 
-  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
-  and n_le_m : "n \<le> m" and "\<forall>k. n \<le> k \<and> k < m \<longrightarrow> le P (iter f k \<star> Poset.bot P) (iter f (Suc k) \<star> Poset.bot P)"
-  shows "le P (iter f n \<star> Poset.bot P) (iter f m \<star> Poset.bot P)"
-proof -
-  have chain: "\<forall>k. n \<le> k \<and> k < m \<longrightarrow> le P (iter f k \<star> bot P) (iter f (k + 1) \<star> bot P)"
-    using assms by auto
-  show ?thesis
-  proof (induct "m - n" )
-    case 0
-    then have "m = n" using n_le_m
-      by simp  
-    then show ?case
-      by (metis P_complete Poset.valid_map_welldefined bot_as_inf f_endo f_valid inf_el iter_el subsetI valid_reflexivity) 
-  next
-    case (Suc x)
-    then have "le P (iter f n \<star> Poset.bot P) (iter f (n + 1) \<star> Poset.bot P)"
-      using chain
-      by (metis dual_order.refl zero_less_Suc zero_less_diff) 
-moreover have "le P (iter f (n + 1) \<star> bot P) (iter f m \<star> bot P)"
-proof -
-  have "m = n + Suc x" using `Suc x = m - n` by simp
-  then have "le P (iter f (n + 1) \<star> bot P) (iter f (n + Suc x) \<star> bot P)"
-    using Suc   `m = n + Suc x` add_diff_cancel_left' add_diff_inverse_nat leD n_le_m
-  then show ?thesis by (simp add: `m = n + Suc x`)
-qed
+  and a_el : "a \<in> el P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+shows "le P (iter f 0 \<star> bot P) (iter f n \<star> bot P)"
+  by (metis P_complete Poset.fun_app2 bot_as_inf bot_min cod_iter complete_equiv_cocomplete dom_iter dual_order.refl f_endo f_valid inf_el iter_valid iter_zero_app)  
 
-
-
-    ultimately show ?case by (metis le_trans)
-  qed
-qed
-
+lemma iter_trans:
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a" and n m k :: "nat"
+  assumes P_complete : "is_complete P" 
+  and a_el : "a \<in> el P" and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+  and nm: "le P (iter f n \<star> bot P) (iter f m \<star> bot P)"
+  and mk: "le P (iter f m \<star> bot P) (iter f k \<star> bot P)"
+shows "le P (iter f n \<star> bot P) (iter f k \<star> bot P)"
+  by (smt (verit, del_insts) P_complete Poset.fun_app2 bot_as_inf cod_iter dom_iter dual_order.refl f_endo f_valid is_complete_def iter_valid mk nm valid_transitivity)
 
 lemma iter_le_iter :   
   fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a" and n m :: "nat"
   assumes P_complete : "is_complete P" 
   and a_el : "a \<in> el P" and  f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
 shows "n < m \<Longrightarrow> le P (iter f n \<star> bot P) (iter f m \<star> bot P)" 
-proof (induct n)
-  case 0
-  then show ?case
-    by (metis P_complete Poset.fun_app2 bot_as_inf bot_min cod_iter complete_equiv_cocomplete dom_iter f_endo f_valid inf_el iter_valid iter_zero_app subsetI) 
+proof (induct rule: less_Suc_induct[where P = "\<lambda>n m. le P (iter f n \<star> bot P) (iter f m \<star> bot P)"])
+  show "\<And> i. le P (iter f i \<star> bot P) (iter f (Suc i) \<star> bot P)"
+    using iter_le_suc_iter
+    by (metis P_complete a_el f_endo f_valid) 
 next
-  case (Suc n)
-  then show ?case   
-  proof (induct m)
-    case 0
-    then show ?case
-      by blast 
-  next
-    case (Suc m)
-    then show ?case 
-    proof -
-      assume "((n < m \<Longrightarrow> le P (iter f n \<star> bot P) (iter f m \<star> bot P)) \<Longrightarrow>
-     Suc n < m \<Longrightarrow> le P (iter f (Suc n) \<star> bot P) (iter f m \<star> bot P))"
-      assume "(n < Suc m \<Longrightarrow> le P (iter f n \<star> bot P) (iter f (Suc m) \<star> bot P))"
-      assume "Suc n < Suc m"
-      have "iter f (Suc n) \<star> Poset.bot P = f \<star> (iter f n \<star> bot P)"
-        by (simp add: P_complete Poset.compose_app_assoc bot_as_inf cod_iter dom_iter f_endo f_valid inf_el iter_valid) 
-      moreover have "iter f (Suc m) \<star> Poset.bot P = f \<star> (iter f m \<star> bot P)"
-        by (simp add: P_complete bot_as_inf f_endo f_valid inf_el iter_app)
-
-      moreover have "n < m"
-        using Suc.prems(2) by auto
-
-      moreover have chain: "\<forall>k. n \<le> k \<and> k < m \<longrightarrow> le P (iter f k \<star> bot P) (iter f (Suc k) \<star> bot P)"
-        using iter_le_suc_iter P_complete a_el f_valid f_endo
-        by metis 
-      
-      moreover have "le P (iter f n \<star> bot P) (iter f m \<star> bot P)"
-      proof (rule le_chain)
-
-  show "\<forall>k. n \<le> k \<and> k < m \<longrightarrow> le P (iter f k \<star> Poset.bot P) (iter f (Suc k) \<star> Poset.bot P)"
-    using chain by simp
+  show "\<And>i j k. i < j \<Longrightarrow> j < k \<Longrightarrow> le P (iter f i \<star> bot P) (iter f j \<star> bot P) \<Longrightarrow> le P (iter f j \<star> bot P) (iter f k \<star> bot P) \<Longrightarrow> le P (iter f i \<star> bot P) (iter f k \<star> bot P)"
+    using iter_trans
+    by (smt (verit, ccfv_threshold) P_complete a_el f_endo f_valid) 
 qed
 
-      ultimately show "le P (iter f (Suc n) \<star> Poset.bot P) (iter f (Suc m) \<star> Poset.bot P)"
+lemma iter_join :   
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap" and a :: "'a" and n m :: "nat"
+  assumes P_complete : "is_complete P" 
+  and a_el : "a \<in> el P" and  f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
+shows "join P (iter f n \<star> bot P) (iter f m \<star> bot P) = iter f (max n m) \<star> bot P" 
 proof -
-  have "le P (iter f n \<star> Poset.bot P) (iter f m \<star> Poset.bot P)"
-    using \<open>Suc n < Suc m\<close> by auto
-  then have "le P (f \<star> iter f n \<star> Poset.bot P) (f \<star> iter f m \<star> Poset.bot P)"
-    by (metis (no_types, lifting) f_valid valid_map_monotone)
-  then show ?thesis
-    using \<open>iter f (Suc n) \<star> Poset.bot P = f \<star> iter f n \<star> Poset.bot P\<close> \<open>iter f (Suc m) \<star> Poset.bot P = f \<star> iter f m \<star> Poset.bot P\<close> 
-    by simp
+  have "n = m \<Longrightarrow> join P (iter f n \<star> bot P) (iter f m \<star> bot P) =  iter f (max n m) \<star> bot P"
+    by (metis P_complete bot_as_inf complete_equiv_cocomplete dual_order.refl f_endo f_valid inf_el iter_el join_idem max.idem)
+  moreover have "n < m \<Longrightarrow> join P (iter f n \<star> bot P) (iter f m \<star> bot P) = iter f (max n m) \<star> bot P"
+    by (metis P_complete bot_as_inf complete_equiv_cocomplete dual_order.refl f_endo f_valid inf_el iter_el iter_le_iter join_le max.absorb4) 
+  moreover have "m < n \<Longrightarrow> join P (iter f n \<star> bot P) (iter f m \<star> bot P) = iter f (max n m) \<star> bot P"
+    by (metis P_complete bot_as_inf complete_equiv_cocomplete dual_order.refl f_endo f_valid inf_el iter_el iter_le_iter join_comm join_le max.absorb3)
+  ultimately show ?thesis
+    by fastforce
 qed
-  qed
 
+lemma iter_directed :   
+  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
+  assumes P_complete : "is_complete P" 
+  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P" and f_cont : "is_continuous f"
+shows "is_directed P { iter f n \<star> bot P | n . n \<in> UNIV }"
+  unfolding is_directed_def
+proof (safe, goal_cases)
+  case (1 x n)
+  then show ?case
+    by (metis P_complete bot_as_inf dual_order.refl f_endo f_valid inf_el iter_el) 
+next
+  case 2
+  then show ?case
+    by blast 
+next
+  case (3 a b n na)
+  then show ?case
+    by (metis P_complete UNIV_I f_endo f_valid iter_join lfp_is_el) 
 qed
-*)
-(* Todo: weaken precondition to preservation of directed suprema (Scott-continuous) *)
+
 lemma kleene_lfp : 
   fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
   assumes P_complete : "is_complete P" 
   and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
-  and f_cont : "\<And> A . A \<subseteq> el P \<Longrightarrow> A \<noteq> {} \<Longrightarrow>  f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
+  and f_cont : "is_continuous f"
 shows "lfp f = sup P { iter f n \<star> bot P | n . n \<in> UNIV }" 
 proof -
-  define "U" where "U = { (iter f n) \<star> bot P | n . n \<in> UNIV }"
-  have "U \<noteq> {}" using U_def
-    by blast 
-  moreover have "lfp f \<in> el P"
-    using P_complete f_endo f_valid lfp_is_el by blast 
-  moreover have "sup P U \<in> el P"
-    by (smt (verit, best) P_complete U_def bot_def complete_equiv_cocomplete empty_def f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
-  moreover have "le P (lfp f) (sup P U)" 
-  proof -
-    have "f \<star> (sup P U) = sup P {f \<star> u | u. u \<in> U}"
-      by (smt (verit, ccfv_SIG) Collect_cong P_complete U_def bot_def calculation(1) complete_equiv_cocomplete empty_subsetI f_cont f_endo f_valid is_cocomplete_def iter_el mem_Collect_eq subsetI) 
-    moreover have "{f \<star> u | u. u \<in> U} \<subseteq> U"
-    proof 
-      fix x
-      assume "x \<in> {f \<star> u |u. u \<in> U}" 
-      then have "\<exists> n . x = iter f n \<star> bot P"
-        by (smt (verit) P_complete U_def bot_as_inf dual_order.refl f_endo f_valid is_complete_def iter_app mem_Collect_eq) 
-      thus "x \<in> U"
-        using U_def by blast 
-    qed
-    moreover have "le P (sup P {f \<star> u | u. u \<in> U}) (sup P U)" using U_def sup_mono [where ?P=P and ?U="{f \<star> u | u. u \<in> U}" and ?V=U] complete_equiv_cocomplete [where ?P=P]
-      by (smt (verit) P_complete bot_as_inf calculation(2) f_endo f_valid inf_el iter_el mem_Collect_eq subsetD subsetI)
-    moreover have "le P (f \<star> (meet P (lfp f) (sup P U))) (sup P U)"
-      by (smt (verit) P_complete Poset.fun_app2 \<open>Poset.lfp f \<in> el P\<close> \<open>Poset.sup P U \<in> el P\<close> calculation(1) calculation(3) f_endo f_valid is_complete_def meet_el meet_smaller2 valid_map_monotone valid_transitivity) 
-    ultimately show ?thesis
-      using P_complete Poset.lfp_induct \<open>Poset.sup P U \<in> el P\<close> f_endo f_valid by fastforce  
-  qed
-moreover have "le P (sup P U) (lfp f)"
-  proof -
-    have "\<And> n . le P ((iter f n) \<star> bot P) (lfp f)"  
-      apply (induct_tac n)
-      apply (metis P_complete Poset.ident_app Poset.iter.simps(1) bot_as_inf bot_min calculation(2) complete_equiv_cocomplete f_endo is_complete_def set_eq_subset)
-      by (smt (verit) P_complete Poset.compose_app_assoc Poset.fun_app2 Poset.iter.simps(2) Poset.lfp_unfold bot_as_inf calculation(2) cod_iter dom_iter f_endo f_valid inf_el iter_valid subset_eq valid_map_monotone) 
-    moreover have "\<And> a . a \<in> U \<Longrightarrow> le P a (lfp f)"
-      using U_def calculation by blast 
-    thus ?thesis using sup_is_lub [where ?P=P and ?U=U and ?z="Poset.lfp f"]
-      by (smt (verit, best) P_complete U_def \<open>Poset.lfp f \<in> el P\<close> bot_def complete_equiv_cocomplete empty_subsetI f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
-  qed
-  ultimately show ?thesis
-    using P_complete U_def \<open>Poset.sup P U \<in> el P\<close> is_complete_def valid_antisymmetry by fastforce
-qed
-
-(*
-lemma kleene_lfp' : 
-  fixes P :: "'a Poset" and f :: "('a, 'a) PosetMap"
-  assumes P_complete : "is_complete P" 
-  and f_valid : "valid_map f" and f_endo : "dom f = P \<and> cod f = P"
-  and f_cont : "\<And> A . is_directed P A \<Longrightarrow>  f \<star> (sup P A) = sup P {f \<star> a | a . a \<in> A}"
-shows "lfp f = sup P { (iter f n) \<star> bot P | n . n \<in> UNIV }" 
-proof -
   let ?U = "{ (iter f n) \<star> bot P | n . n \<in> UNIV }"
-  have "is_directed P ?U" unfolding is_directed_def
-  proof (safe, goal_cases)
-    case (1 x n)
-    then show ?case
-      by (metis P_complete bot_as_inf dual_order.refl f_endo f_valid inf_el iter_el) 
-  next
-    case 2
-    then show ?case
-      by blast 
-  next
-    case (3 a b n m)
-    then show ?case 
-  qed
-
-  moreover have "is_directed P U"
+  have "is_directed P ?U"
+    using P_complete f_cont f_endo f_valid iter_directed by blast 
   moreover have "lfp f \<in> el P"
     using P_complete f_endo f_valid lfp_is_el by blast 
-  moreover have "sup P U \<in> el P"
-    by (smt (verit, best) P_complete U_def bot_def complete_equiv_cocomplete empty_def f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
-  moreover have "le P (lfp f) (sup P U)" 
+  moreover have "sup P ?U \<in> el P"
+    by (metis (no_types, lifting) P_complete calculation(1) complete_equiv_cocomplete is_directed_def sup_el)
+  moreover have "le P (lfp f) (sup P ?U)" 
   proof -
-    have "f \<star> (sup P U) = sup P {f \<star> u | u. u \<in> U}"
-      by (smt (verit, ccfv_SIG) Collect_cong P_complete U_def bot_def calculation(1) complete_equiv_cocomplete empty_subsetI f_cont f_endo f_valid is_cocomplete_def iter_el mem_Collect_eq subsetI) 
-    moreover have "{f \<star> u | u. u \<in> U} \<subseteq> U"
+    have "f \<star> (sup P ?U) = sup P {f \<star> u | u. u \<in> ?U}"
+      using calculation(1) f_cont f_endo is_continuous_def by force
+    moreover have "{f \<star> u | u. u \<in> ?U} \<subseteq> ?U" 
     proof 
       fix x
-      assume "x \<in> {f \<star> u |u. u \<in> U}" 
+      assume "x \<in> {f \<star> u |u. u \<in> ?U}" 
       then have "\<exists> n . x = iter f n \<star> bot P"
-        by (smt (verit) P_complete U_def bot_as_inf dual_order.refl f_endo f_valid is_complete_def iter_app mem_Collect_eq) 
-      thus "x \<in> U"
-        using U_def by blast 
+        by (smt (verit, best) P_complete bot_as_inf f_endo f_valid inf_el iter_app mem_Collect_eq subsetI)
+      thus "x \<in> ?U"
+        by blast 
     qed
-    moreover have "le P (sup P {f \<star> u | u. u \<in> U}) (sup P U)" using U_def sup_mono [where ?P=P and ?U="{f \<star> u | u. u \<in> U}" and ?V=U] complete_equiv_cocomplete [where ?P=P]
-      by (smt (verit) P_complete bot_as_inf calculation(2) f_endo f_valid inf_el iter_el mem_Collect_eq subsetD subsetI)
-    moreover have "le P (f \<star> (meet P (lfp f) (sup P U))) (sup P U)"
-      by (smt (verit) P_complete Poset.fun_app2 \<open>Poset.lfp f \<in> el P\<close> \<open>Poset.sup P U \<in> el P\<close> calculation(1) calculation(3) f_endo f_valid is_complete_def meet_el meet_smaller2 valid_map_monotone valid_transitivity) 
+    moreover have "le P (sup P {f \<star> u | u. u \<in> ?U}) (sup P ?U)"
+      by (smt (verit, best) P_complete Poset.sup_mono \<open>is_directed P {iter f n \<star> Poset.bot P |n. n \<in> UNIV}\<close> calculation(2) complete_equiv_cocomplete dual_order.trans is_directed_def)
+    moreover have "le P (f \<star> (meet P (lfp f) (sup P ?U))) (sup P ?U)"
+      by (metis (no_types, lifting) P_complete Poset.lfp_lowerbound Poset.lfp_unfold \<open>Poset.lfp f \<in> el P\<close> \<open>Poset.sup P {iter f n \<star> Poset.bot P |n. n \<in> UNIV} \<in> el P\<close> calculation(1) calculation(3) f_endo f_valid inf_le) 
     ultimately show ?thesis
-      using P_complete Poset.lfp_induct \<open>Poset.sup P U \<in> el P\<close> f_endo f_valid by fastforce  
+      by (metis (no_types, lifting) P_complete Poset.lfp_lowerbound \<open>Poset.sup P {iter f n \<star> Poset.bot P |n. n \<in> UNIV} \<in> el P\<close> f_endo f_valid)
   qed
-moreover have "le P (sup P U) (lfp f)"
+moreover have "le P (sup P ?U) (lfp f)"
   proof -
     have "\<And> n . le P ((iter f n) \<star> bot P) (lfp f)"  
       apply (induct_tac n)
       apply (metis P_complete Poset.ident_app Poset.iter.simps(1) bot_as_inf bot_min calculation(2) complete_equiv_cocomplete f_endo is_complete_def set_eq_subset)
       by (smt (verit) P_complete Poset.compose_app_assoc Poset.fun_app2 Poset.iter.simps(2) Poset.lfp_unfold bot_as_inf calculation(2) cod_iter dom_iter f_endo f_valid inf_el iter_valid subset_eq valid_map_monotone) 
-    moreover have "\<And> a . a \<in> U \<Longrightarrow> le P a (lfp f)"
-      using U_def calculation by blast 
-    thus ?thesis using sup_is_lub [where ?P=P and ?U=U and ?z="Poset.lfp f"]
-      by (smt (verit, best) P_complete U_def \<open>Poset.lfp f \<in> el P\<close> bot_def complete_equiv_cocomplete empty_subsetI f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
+    moreover have "\<And> a . a \<in> ?U \<Longrightarrow> le P a (lfp f)"
+      using calculation by blast
+    thus ?thesis using sup_is_lub [where ?P=P and ?U="?U" and ?z="lfp f"] 
+      by (smt (verit, best) P_complete \<open>Poset.lfp f \<in> el P\<close> bot_def complete_equiv_cocomplete empty_subsetI f_endo f_valid iter_el mem_Collect_eq subset_iff sup_el) 
   qed
   ultimately show ?thesis
-    using P_complete U_def \<open>Poset.sup P U \<in> el P\<close> is_complete_def valid_antisymmetry by fastforce
+    by (meson P_complete is_complete_def valid_antisymmetry) 
 qed
-
-*)
 
 (* Powerset *)
 

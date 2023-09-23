@@ -732,7 +732,10 @@ proof -
     using CVA.is_complete_def by auto
   moreover have "Poset.valid_map f_a \<and> PosetMap.dom f_a = CVA.poset V \<and> PosetMap.cod f_a = CVA.poset V"
     by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) PosetMap.select_convs(2) calculation(2) f_a_def seq_iter_map_def) 
-  ultimately show ?thesis using kleene_lfp [where ?P="poset V" and ?f=f_a] unfolding f_a_def finite_seq_iter_def sup_def bot_def
+  moreover have "Poset.is_continuous f_a"
+    by (smt (verit, ccfv_SIG) Collect_cong Poset.is_continuous_def calculation(3) calculation(5) is_directed_def)  
+  ultimately show ?thesis using kleene_lfp [where ?P="poset V" and ?f=f_a]  
+    unfolding f_a_def finite_seq_iter_def sup_def bot_def
     by fastforce
 qed
 
@@ -1954,7 +1957,6 @@ proof -
       using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
   qed
 
-
 (*
 lemma d_meet :
   fixes V :: "('A, 'a) CVA" and a b :: "('A, 'a) Valuation"
@@ -1968,4 +1970,5 @@ lemma d_join :
   and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
 shows "d (meet V a b) = d a \<inter> d b"
 *)
+
 end
