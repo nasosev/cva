@@ -2038,8 +2038,7 @@ qed
 proposition rel_ova_is_complete :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
-  defines "R \<equiv> rel_ova T" 
-  shows "is_complete (poset (rel_ova T))"
+  shows "is_complete (rel_ova T)"
   using locally_complete_imp_complete powerset_is_complete
   by (metis OVA.simps(1) assms(1) rel_ova_def rel_ova_valid rel_space relation_ob_value)
 
@@ -2048,7 +2047,7 @@ lemma rel_comb_le1 :
   defines "R \<equiv> rel_ova T" 
   assumes T_valid : "valid T"
   and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
-shows "le R (comb (rel_ova T) a b) a"
+shows "le R (comb R a b) a"
 proof (intro leI, safe, goal_cases)
   case 1
   then show ?case
@@ -2105,33 +2104,37 @@ proposition rel_comb_is_meet :
   defines "R \<equiv> rel_ova T" 
   assumes T_valid : "valid T"
   and a_el : "a \<in> elems R" and b_el : "b \<in> elems R" 
-shows "is_inf (poset R) {a, b} (comb R a b)"
-  unfolding R_def
-proof (simp add: is_inf_def, intro conjI impI, goal_cases)
-  case 1
-  then show ?case
-    by (metis T_valid comp_apply rel_comb_le1) 
-next
-  case 2
-  then show ?case
-    by (metis T_valid comp_apply rel_comb_le2) 
-next
-  case 3
-  then show ?case
-    by (smt (verit, del_insts) T_valid comp_apply d_elem_is_open rel_idempotent rel_le_rel_eq rel_ova_valid res_functorial_id valid_comb_monotone valid_map_welldefined_cod valid_reflexivity valid_semigroup valid_welldefined_map)
-next
-  case 4
-  then show ?case
-    using R_def a_el by force   
-next
-  case 5
-  then show ?case
-    using R_def b_el by force 
-next
-  case 6
-  then show ?case
-    by (metis R_def T_valid a_el b_el comp_apply rel_comb_el) 
-qed
-
+shows "comb R a b = meet R a b"
+proof -
+  have "is_inf (poset R) {a, b} (comb R a b)"
+      unfolding R_def
+    proof (simp add: is_inf_def, intro conjI impI, goal_cases)
+      case 1
+      then show ?case
+        by (metis T_valid comp_apply rel_comb_le1) 
+    next
+      case 2
+      then show ?case
+        by (metis T_valid comp_apply rel_comb_le2) 
+    next
+      case 3
+      then show ?case
+        by (smt (verit, del_insts) T_valid comp_apply d_elem_is_open rel_idempotent rel_le_rel_eq rel_ova_valid res_functorial_id valid_comb_monotone valid_map_welldefined_cod valid_reflexivity valid_semigroup valid_welldefined_map)
+    next
+      case 4
+      then show ?case
+        using R_def a_el by force   
+    next
+      case 5
+      then show ?case
+        using R_def b_el by force 
+    next
+      case 6
+      then show ?case
+        by (metis R_def T_valid a_el b_el comp_apply rel_comb_el) 
+    qed
+    thus ?thesis
+      by (smt (verit) Poset.inf_unique R_def T_valid a_el b_el complete_meet_is_inf is_inf_def rel_ova_is_complete rel_ova_valid valid_poset valid_semigroup)
+  qed
 
 end
