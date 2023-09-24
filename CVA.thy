@@ -109,7 +109,6 @@ abbreviation sup :: "('A,'a) CVA \<Rightarrow> (('A, 'a) Valuation) set \<Righta
 abbreviation is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_complete V \<equiv> OVA.is_complete (seq_algebra V)"
 
-(* Usually 'continuous' means preservation of directed suprema only, so the below defn. is stronger *)
 definition is_right_positively_disjunctive :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_right_positively_disjunctive V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> U \<noteq> {} \<longrightarrow> a \<in> elems V \<longrightarrow>
   par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
@@ -391,7 +390,7 @@ proof -
     by (metis (mono_tags, lifting) assms(1) assms(2) assms(3) assms(4) assms(5) rpd_par_dist) 
 qed
 
-lemma binary_continuous :
+lemma binary_disjunctive :
   fixes V :: "('A, 'a) CVA" and a b b' :: "('A, 'a) Valuation"
   assumes "valid V" and "is_right_positively_disjunctive V"
   and "a \<in> elems V" and "b \<in> elems V" and "b' \<in> elems V" 
@@ -1240,7 +1239,7 @@ proof (rule iffI, goal_cases)
     have "le V (seq V p (join V a b)) q"
       using "1" by blast 
     moreover have "seq V p (join V a b) = join V (seq V p a) (seq V p b)"
-      using V_rpd V_valid assms(3) assms(5) assms(6) binary_continuous by blast 
+      using V_rpd V_valid assms(3) assms(5) assms(6) binary_disjunctive by blast 
     moreover have "seq V p a \<in> elems V \<and> seq V p b \<in> elems V"
       using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
     moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
@@ -1260,7 +1259,7 @@ next
     then have "le V (join V (seq V p a) (seq V p b)) q"
       by (smt (verit, ccfv_threshold) V_rpd V_valid \<open>hoare V p a q\<close> assms(3) assms(4) assms(5) assms(6) rpd_cocomplete join_property valid_seq_elem)
     thus "hoare V p (join V a b) q"
-      by (metis V_rpd V_valid assms(3) assms(5) assms(6) binary_continuous)
+      by (metis V_rpd V_valid assms(3) assms(5) assms(6) binary_disjunctive)
   qed
 qed
 
@@ -1813,7 +1812,7 @@ proof (rule iffI, goal_cases)
     moreover have "le V a g \<and> le V b g"
       by (smt (verit, best) V_rpd V_valid assms(4) assms(7) assms(8) calculation cocomplete rpd_complete join_el join_greater1 join_greater2 valid_le_transitive)
     moreover have "le V (seq V p (par V r a)) q \<and> le V (seq V p (par V r b)) q"
-      by (smt (verit, ccfv_threshold) "1" V_rpd V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_continuous hoare_choice_rule valid_par_elem)
+      by (smt (verit, ccfv_threshold) "1" V_rpd V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_disjunctive hoare_choice_rule valid_par_elem)
     ultimately show ?thesis
       by meson
   qed
@@ -1826,7 +1825,7 @@ next
     moreover have "le V (join V a b) g"
       by (smt (verit) "2" V_rpd assms(4) assms(7) assms(8) cocomplete rpd_complete join_property) 
     moreover have "le V (seq V p (par V r (join V a b))) q"
-      by (smt (verit, ccfv_threshold) "2" V_rpd V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_continuous hoare_choice_rule valid_par_elem)
+      by (smt (verit, ccfv_threshold) "2" V_rpd V_valid assms(3) assms(5) assms(6) assms(7) assms(8) binary_disjunctive hoare_choice_rule valid_par_elem)
     ultimately show ?thesis
       by blast
   qed
@@ -1904,9 +1903,9 @@ proof -
       moreover have "seq V p (par V r (iter (seq_iter_map V a) (Suc m) \<star> bot V)) = seq V p (par V r (join V (neut_seq V (d a)) (seq V a (a_m))))"
         using calculation(2) by presburger
       moreover have "... = seq V p (join V (par V r (neut_seq V (d a))) (par V r (seq V a (a_m))))"
-        by (metis CVA.valid_welldefined V_rpd V_valid a_el a_m_def binary_continuous d_elem_is_open iter_seq_el r_el valid_neut_seq_elem valid_seq_elem)
+        by (metis CVA.valid_welldefined V_rpd V_valid a_el a_m_def binary_disjunctive d_elem_is_open iter_seq_el r_el valid_neut_seq_elem valid_seq_elem)
       moreover have "... = join V (seq V p (par V r (neut_seq V (d a)))) (seq V p (par V r (seq V a (a_m))))"
-        by (metis CVA.valid_welldefined V_rpd V_valid a_el a_m_def binary_continuous d_elem_is_open iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
+        by (metis CVA.valid_welldefined V_rpd V_valid a_el a_m_def binary_disjunctive d_elem_is_open iter_seq_el p_el r_el valid_neut_seq_elem valid_par_elem valid_seq_elem)
       
       moreover have 1: "le V (seq V p (par V r (seq V a (a_m)))) p"
         by (smt (z3) "2" V_rpd V_valid a_el a_m_def assm_rg hoare_sequential_rule' inv_dist inv_r iter_seq_el p_el r_el valid_elems valid_par_elem valid_seq_elem)
