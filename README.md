@@ -28,7 +28,7 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 - [x] Remark 2 (res_functorial_id, res_functorial_trans, stability)
 - [x] Remark 3 (local_mono_eq_global)
 - [x] Theorem 1 (res_ext_adjunction, ext_functorial_id, ext_functorial_trans)
-- [x] Corollary 1 (strongly_neutral_covariance, strongly_neutral_monoid)
+- [x] Corollary 1 (strongly_neutral_combination, strongly_neutral_monoid)
 - [x] Corollary 2 (galois_insertion, galois_closure_extensive)
 - [x] Corollary 3 (locally_complete_imp_complete)
 - [x] Lemma 1 (local_mono_ext_comm_imp_assoc, local_mono_ext_comm_imp_mono)

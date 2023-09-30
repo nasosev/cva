@@ -94,46 +94,6 @@ proposition hoare_res_rule3 :
   fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
   and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
-   and "d p \<subseteq> d q"
-  and "hoare V p a q" 
-shows "hoare V p (res V (d p \<inter> d a) a) (res V (d p) q)" 
-proof -
-  have "le V (seq V p a) q"
-    using assms(6) by force 
-  then have "le V (res V (d p) (seq V p a)) (res V (d p) q)"
-    by (smt (verit, del_insts) CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open d_res id_le_res res_elem res_monotone' valid_le_transitive valid_seq_elem)
-  moreover have "res V (d p) (seq V p a) = seq V p (res V (d p \<inter> d a) a)"
-    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) valid_comb_law_left)
-  moreover have "le V (seq V p (res V (d p \<inter> d a) a)) (res V (d p) q)"
-    using calculation(1) calculation(2) by auto
-  ultimately show ?thesis
-    by meson
-qed
-
-proposition hoare_res_rule4 :
-  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
-   and "d a \<subseteq> d q"
-  and "hoare V p a q" 
-shows "hoare V (res V (d p \<inter> d a) p) a (res V (d a) q)" 
-proof -
-  have "le V (seq V p a) q"
-    using assms(6) by force 
-  then have "le V (res V (d a) (seq V p a)) (res V (d a) q)"
-    by (smt (verit, del_insts) CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open d_res id_le_res res_elem res_monotone' valid_le_transitive valid_seq_elem)
-  moreover have "res V (d a) (seq V p a) = seq V (res V (d p \<inter> d a) p) a"
-    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) valid_comb_law_right)
-  moreover have "le V (seq V (res V (d p \<inter> d a) p) a) (res V (d a) q)"
-    using calculation(1) calculation(2) by auto
-  ultimately show ?thesis
-    by meson
-qed
-
-proposition hoare_res_rule5 :
-  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
-  assumes V_valid : "valid V"
-  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
    and "d p \<inter> d a \<subseteq> d q"
   and "hoare V p a q" 
 shows "hoare V (res V (d p \<inter> d a) p) (res V (d p \<inter> d a) a) (res V (d p \<inter> d a) q)" 
@@ -153,6 +113,45 @@ proof -
     using U_def by fastforce
 qed
 
+proposition hoare_res_rule4 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
+   and "d p \<subseteq> d q"
+  and "hoare V p a q" 
+shows "hoare V p (res V (d p \<inter> d a) a) (res V (d p) q)" 
+proof -
+  have "le V (seq V p a) q"
+    using assms(6) by force 
+  then have "le V (res V (d p) (seq V p a)) (res V (d p) q)"
+    by (smt (verit, del_insts) CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open d_res id_le_res res_elem res_monotone' valid_le_transitive valid_seq_elem)
+  moreover have "res V (d p) (seq V p a) = seq V p (res V (d p \<inter> d a) a)"
+    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) valid_comb_law_left)
+  moreover have "le V (seq V p (res V (d p \<inter> d a) a)) (res V (d p) q)"
+    using calculation(1) calculation(2) by auto
+  ultimately show ?thesis
+    by meson
+qed
+
+proposition hoare_res_rule5 :
+  fixes V :: "('A, 'a) CVA" and p a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "a \<in> elems V" and "q \<in> elems V"
+   and "d a \<subseteq> d q"
+  and "hoare V p a q" 
+shows "hoare V (res V (d p \<inter> d a) p) a (res V (d a) q)" 
+proof -
+  have "le V (seq V p a) q"
+    using assms(6) by force 
+  then have "le V (res V (d a) (seq V p a)) (res V (d a) q)"
+    by (smt (verit, del_insts) CVA.valid_welldefined OVA.valid_le V_valid assms(2) assms(3) assms(4) assms(5) d_elem_is_open d_res id_le_res res_elem res_monotone' valid_le_transitive valid_seq_elem)
+  moreover have "res V (d a) (seq V p a) = seq V (res V (d p \<inter> d a) p) a"
+    by (meson CVA.valid_welldefined V_valid assms(2) assms(3) valid_comb_law_right)
+  moreover have "le V (seq V (res V (d p \<inter> d a) p) a) (res V (d a) q)"
+    using calculation(1) calculation(2) by auto
+  ultimately show ?thesis
+    by meson
+qed
 
 (* [CKA, Lemma 5.2.1] *)
 proposition hoare_neut_seq_rule :
