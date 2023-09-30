@@ -3,6 +3,7 @@ session CVA = HOL +
 (*  theories [document = false] *)
   theories
     Tuple
+    Logic
     CVA
     OVA
     Semigroup

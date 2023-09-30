@@ -40,7 +40,11 @@ _Concurrent Valuation Algebras (CVAs) formalised in Isabelle/HOL_
 
 - [x] Proposition 1 (epsilon_le_delta, delta_seq_delta_eq_delta, epsilon_par_epsilon_eq_epsilon)
 - [x] Proposition 2 (comparitor)
+
+#### Hoare and Rely-Guarantee logics: Logic.thy
+
 - [x] Proposition 3 (hoare_concurrency_rule)
+- [x] (Many more Hoare and Rely-Guarantee rules are implemented here that are not in the paper.)
 
 ### Section 4 - Tuple systems
 
