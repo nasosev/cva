@@ -782,31 +782,30 @@ theorem res_ext_adjunction :
 shows "local_le V (d b) (res V (d b) a) b = local_le V (d a) a (ext V (d a) b)" (is "?L \<longleftrightarrow> ?R")
 proof (rule iffI)
   assume "?L"
-  define "\<epsilon>A" where "\<epsilon>A \<equiv> neut V (d a)"
-  define "a_B" where "a_B \<equiv> res V (d b) a"
-  have "local_le V (d a) (comb V \<epsilon>A a) (comb V \<epsilon>A a_B)"
-    by (smt (verit) B_le_A OVA.le_eq_local_le Poset.valid_def V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_res fst_eqD id_le_res neutral_is_element res_elem sup.order_iff valid_domain_law valid_monotone valid_neutral_law_left valid_poset valid_semigroup)
-  moreover have "local_le V (d a) (comb V \<epsilon>A a_B) (comb V \<epsilon>A b)" using  local_le_def assms a_B_def valid_comb_monotone [where ?V=V] le_eq_local_le [where ?V=V]
-    by (smt (verit) OVA.valid_welldefined \<epsilon>A_def \<open>local_le V (d b) (res V (d b) a) b\<close> comb_is_element d_elem_is_open d_res fst_eqD neutral_is_element res_elem sup.orderE valid_domain_law valid_poset valid_reflexivity)
-  moreover have "comb V \<epsilon>A b = ext V (d a) b" using \<epsilon>A_def ext_def [where ?V=V and ?A="d a" and ?b=b]
-    by (metis B_le_A V_valid a_el b_el d_elem_is_open) 
+  let ?ea = "neut V (d a)"     
+  let ?a_B = "res V (d b) a"
+  have "local_le V (d a) (comb V ?ea a) (comb V ?ea ?a_B)"
+    by (smt (verit) B_le_A OVA.le_eq_local_le V_valid a_el b_el comb_is_element d_elem_is_open d_res fst_conv id_le_res neutral_is_element res_elem res_functorial_id sup.absorb_iff1 valid_domain_law valid_monotone valid_neutral_law_left valid_semigroup)
+  moreover have "local_le V (d a) (comb V ?ea ?a_B) (comb V ?ea b)"
+    by (smt (verit) B_le_A OVA.le_eq_local_le OVA.valid_welldefined V_valid \<open>local_le V (d b) (res V (d b) a) b\<close> a_el b_el comb_is_element d_elem_is_open d_res fst_eqD neutral_is_element res_elem sup.order_iff valid_comb_monotone valid_domain_law valid_poset valid_reflexivity)
+  moreover have "comb V ?ea b = ext V (d a) b" using ext_def [where ?V=V and ?A="d a" and ?b=b]
+    by (metis B_le_A V_valid a_el b_el d_elem_is_open)
   ultimately show "?R"
-    by (smt (verit) B_le_A OVA.le_eq_local_le Poset.valid_def V_valid \<epsilon>A_def a_B_def a_el b_el comb_is_element d_elem_is_open d_ext d_res neutral_is_element res_elem valid_domain_law valid_neutral_law_left valid_poset valid_semigroup)
+    by (smt (verit) B_le_A OVA.le_eq_local_le Poset.valid_def V_valid a_el b_el comb_is_element d_elem_is_open d_ext d_res neutral_is_element res_elem valid_domain_law valid_neutral_law_left valid_poset valid_semigroup)
 next
   assume "?R"
-  define "\<epsilon>A" where "\<epsilon>A \<equiv> neut V (d a)"
-  define "a_B" where "a_B \<equiv> res V (d b) a"
-  have "local_le V (d b) a_B (res V (d b) (ext V (d a) b))" using assms a_B_def res_monotone_local [where
-          ?V=V and ?B="d b" and ?a=a and ?a'="comb V \<epsilon>A b"] le_eq_local_le [where ?V=V]
-    by (smt (verit, best) OVA.res_monotone \<open>local_le V (d a) a (ext V (d a) b)\<close> d_elem_is_open d_ext d_res ext_elem res_elem)
-  moreover have "ext V (d a) b = comb V \<epsilon>A b" using ext_def [where ?V=V]
-    by (metis B_le_A V_valid \<epsilon>A_def a_el b_el d_elem_is_open) 
-  moreover have "(res V (d b) (ext V (d a) b)) = comb V (res V (d a \<inter> d b) \<epsilon>A) b"  using valid_comb_law_right
-    by (metis V_valid \<epsilon>A_def a_el b_el calculation(2) d_elem_is_open fst_eqD neutral_is_element)
-  moreover have "comb V (res V (d a \<inter> d b) \<epsilon>A) b = comb V (neut V (d b)) b"
-    by (metis B_le_A Int_absorb1 V_valid \<epsilon>A_def a_el b_el d_elem_is_open stability) 
+  let ?ea = "neut V (d a)"     
+  let ?a_B = "res V (d b) a"
+  have "local_le V (d b) ?a_B (res V (d b) (ext V (d a) b))"
+    by (metis (no_types, lifting) B_le_A OVA.le_eq_local_le OVA.res_monotone V_valid \<open>local_le V (d a) a (ext V (d a) b)\<close> a_el b_el d_elem_is_open d_ext d_res ext_elem res_elem) 
+  moreover have "ext V (d a) b = comb V ?ea b"  using ext_def [where ?V=V and ?A="d a" and ?b=b]
+    by (meson B_le_A V_valid a_el b_el d_elem_is_open)
+  moreover have "(res V (d b) (ext V (d a) b)) = comb V (res V (d a \<inter> d b) ?ea) b"
+    by (metis V_valid a_el b_el calculation(2) d_elem_is_open fst_conv neutral_is_element valid_comb_law_right) 
+  moreover have "comb V (res V (d a \<inter> d b) ?ea) b = comb V (neut V (d b)) b"
+    by (metis B_le_A V_valid a_el b_el d_elem_is_open inf_absorb2 stability)
   ultimately show "?L"
-    by (metis V_valid a_B_def b_el valid_neutral_law_left)
+    by (metis V_valid b_el valid_neutral_law_left)
 qed
 
 lemma le_ext :
