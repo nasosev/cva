@@ -23,10 +23,14 @@ definition valid :: "'a Semigroup \<Rightarrow> bool" where
   let
     welldefined = Poset.valid_map (mult S)
                   \<and> dom (mult S) = poset S \<times>\<times> poset S;
-    associative = \<forall> a b c . a \<in> elems S \<longrightarrow> b \<in> elems S \<longrightarrow> c \<in> elems S 
+    associative = \<forall> a b c . a \<in> elems S \<longrightarrow> b \<in> elems S \<longrightarrow> c \<in> elems S
                   \<longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)
   in
     welldefined \<and> associative"
+
+definition commutative :: "'a Semigroup \<Rightarrow> bool" where
+"commutative S \<equiv> \<forall> a b . a \<in> elems S \<longrightarrow> b \<in> elems S
+                  \<longrightarrow> mul S a b = mul S b a"
 
 (* Validity *)
 
@@ -35,7 +39,7 @@ lemma validI [intro] :
   assumes welldefined : "Poset.valid_map (mult S) \<and> dom (mult S) = poset S \<times>\<times> poset S"
   and associative : "\<And> a b c . a \<in> elems S \<Longrightarrow> b \<in> elems S \<Longrightarrow> c \<in> elems S \<Longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)"
   shows "valid S"
-  using Semigroup.valid_def associative  welldefined by fastforce
+  using Semigroup.valid_def associative welldefined by fastforce
 
 lemma valid_welldefined_dom : "valid S \<Longrightarrow> dom (mult S) = poset S \<times>\<times> poset S"
   by (metis Semigroup.valid_def)
@@ -47,7 +51,7 @@ lemma valid_welldefined : "valid S \<Longrightarrow> Poset.valid_map (mult S) \<
   by (metis Semigroup.valid_def)
 
 lemma valid_poset : "valid S \<Longrightarrow> Poset.valid (poset S)"
-  by (simp add: Poset.valid_map_welldefined_cod valid_welldefined_map) 
+  by (simp add: Poset.valid_map_welldefined_cod valid_welldefined_map)
 
 lemma valid_associative :
   fixes S :: "'a Semigroup"
@@ -63,12 +67,12 @@ lemma valid_monotone :
   assumes S_valid : "valid S"
   and a1_elem : "a1 \<in> elems S" and a2_elem : "a2 \<in> elems S" and b1_elem : "b1 \<in> elems S" and b2_elem : "b2 \<in> elems S"
   and a1_le_a2: "Poset.le (poset S) a1 a2" and b1_le_b2: "Poset.le (poset S) b1 b2"
-  shows "Poset.le (poset S) (mul S a1 b1) (mul S a2 b2)" 
+  shows "Poset.le (poset S) (mul S a1 b1) (mul S a2 b2)"
 proof -
   have "(a1,b1) \<in> Poset.el (Poset.dom (mult S))"
-    by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.product_def S_valid SigmaI a1_elem b1_elem valid_welldefined_dom) 
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.product_def S_valid SigmaI a1_elem b1_elem valid_welldefined_dom)
   moreover have "(a2,b2) \<in> Poset.el (Poset.dom (mult S))"
-    by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.product_def S_valid SigmaI a2_elem b2_elem valid_welldefined_dom) 
+    by (metis (no_types, lifting) Poset.Poset.select_convs(1) Poset.product_def S_valid SigmaI a2_elem b2_elem valid_welldefined_dom)
     moreover have "Poset.le (poset S) a1 a2"
     using a1_le_a2 by blast
   moreover have "Poset.le (poset S) b1 b2"
@@ -76,14 +80,48 @@ proof -
   moreover have "Poset.le (Poset.dom (mult S)) (a1,b1) (a2,b2)" using Poset.product_def
   proof -
     have f1: "b1 \<in> el (poset S) \<and> b2 \<in> el (poset S)"
-      using b1_elem b2_elem by blast 
+      using b1_elem b2_elem by blast
     moreover have "a1 \<in> el (poset S) \<and> a2 \<in> el (poset S)"
-      using a1_elem a2_elem by blast 
+      using a1_elem a2_elem by blast
     ultimately show ?thesis
-      by (smt (verit) Poset.Poset.select_convs(2) Poset.product_def S_valid \<open>(a1, b1) \<in> el (PosetMap.dom (mult S))\<close> \<open>(a2, b2) \<in> el (PosetMap.dom (mult S))\<close> a1_le_a2 b1_le_b2 case_prodI mem_Collect_eq prod.sel(1) prod.sel(2) valid_welldefined_dom) 
+      by (smt (verit) Poset.Poset.select_convs(2) Poset.product_def S_valid \<open>(a1, b1) \<in> el (PosetMap.dom (mult S))\<close> \<open>(a2, b2) \<in> el (PosetMap.dom (mult S))\<close> a1_le_a2 b1_le_b2 case_prodI mem_Collect_eq prod.sel(1) prod.sel(2) valid_welldefined_dom)
   qed
   ultimately show ?thesis
-    by (metis S_valid comp_apply valid_map_monotone valid_welldefined_map) 
+    by (metis S_valid comp_apply valid_map_monotone valid_welldefined_map)
 qed
+
+(* Examples *)
+
+definition bools_and :: "bool Semigroup" where
+  "bools_and \<equiv> \<lparr> mult = Poset.bools_and \<rparr>"
+
+lemma bools_and_valid : "valid bools_and"
+proof (intro validI, goal_cases)
+  case 1
+  then show ?case
+    by (metis (no_types, lifting) Poset.bools_and_def PosetMap.select_convs(1) PosetMap.select_convs(2) Semigroup.bools_and_def Semigroup.simps(1) bools_and_valid comp_apply) 
+next
+  case (2 a b c)
+  then show ?case 
+    unfolding bools_and_def Poset.bools_and_def Poset.product_def Poset.bools_def
+    apply clarsimp
+    by (simp add: Poset.app_def)
+qed
+
+definition bools_or :: "bool Semigroup" where
+  "bools_or \<equiv> \<lparr> mult = Poset.bools_or \<rparr>"
+
+lemma bools_or_valid : "valid bools_or"
+proof (intro validI, goal_cases)
+  case 1
+  then show ?case
+    by (metis (no_types, lifting) Poset.bools_or_def PosetMap.select_convs(1) PosetMap.select_convs(2) Semigroup.bools_or_def Semigroup.simps(1) bools_or_valid comp_apply)
+next
+  case (2 a b c)
+  then show ?case 
+    unfolding bools_or_def Poset.bools_or_def Poset.product_def Poset.bools_def
+    apply clarsimp
+    by (simp add: Poset.app_def)
+qed 
 
 end
