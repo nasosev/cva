@@ -5,8 +5,8 @@ theory Semiring
 begin
 
 record 'a Semiring =
-  one :: "'a"
   zero :: "'a"
+  one :: "'a"
   plus :: "'a Semigroup"
   mult :: "'a Semigroup"
 
@@ -91,8 +91,8 @@ lemma distrib_right : "valid S \<Longrightarrow> (\<forall> a b c . a \<in> elem
 
 definition bools :: "bool Semiring" where
   "bools \<equiv> \<lparr> 
-    one = True, 
     zero = False, 
+    one = True, 
     plus = \<lparr> Semigroup.mult = Poset.bools_or  \<rparr>,
     mult = \<lparr> Semigroup.mult = Poset.bools_and  \<rparr> 
   \<rparr>"
