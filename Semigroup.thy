@@ -90,38 +90,5 @@ proof -
     by (metis S_valid comp_apply valid_map_monotone valid_welldefined_map)
 qed
 
-(* Examples *)
-
-definition bools_and :: "bool Semigroup" where
-  "bools_and \<equiv> \<lparr> mult = Poset.bools_and \<rparr>"
-
-lemma bools_and_valid : "valid bools_and"
-proof (intro validI, goal_cases)
-  case 1
-  then show ?case
-    by (metis (no_types, lifting) Poset.bools_and_def PosetMap.select_convs(1) PosetMap.select_convs(2) Semigroup.bools_and_def Semigroup.simps(1) bools_and_valid comp_apply) 
-next
-  case (2 a b c)
-  then show ?case 
-    unfolding bools_and_def Poset.bools_and_def Poset.product_def Poset.bools_def
-    apply clarsimp
-    by (simp add: Poset.app_def)
-qed
-
-definition bools_or :: "bool Semigroup" where
-  "bools_or \<equiv> \<lparr> mult = Poset.bools_or \<rparr>"
-
-lemma bools_or_valid : "valid bools_or"
-proof (intro validI, goal_cases)
-  case 1
-  then show ?case
-    by (metis (no_types, lifting) Poset.bools_or_def PosetMap.select_convs(1) PosetMap.select_convs(2) Semigroup.bools_or_def Semigroup.simps(1) bools_or_valid comp_apply)
-next
-  case (2 a b c)
-  then show ?case 
-    unfolding bools_or_def Poset.bools_or_def Poset.product_def Poset.bools_def
-    apply clarsimp
-    by (simp add: Poset.app_def)
-qed 
 
 end
