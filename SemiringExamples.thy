@@ -16,7 +16,7 @@ lemma valid_bools : "valid bools"
 proof (standard, goal_cases)
   case 1
   then show ?case
-    by (smt (verit, ccfv_threshold) Poset.Poset.select_convs(1) PosetExamples.bools_and_def PosetExamples.bools_def PosetExamples.bools_or_def PosetMap.select_convs(2) Semigroup.simps(1) SemigroupExamples.bools_and_def SemigroupExamples.bools_and_valid SemigroupExamples.bools_or_def SemigroupExamples.bools_or_valid Semiring.select_convs(3) Semiring.select_convs(4) SemiringExamples.bools_def UNIV_I comp_def)
+    by (smt (verit, ccfv_SIG) Poset.Poset.select_convs(1) PosetExamples.bools_and_def PosetExamples.bools_def PosetExamples.bools_or_def PosetMap.select_convs(2) Semigroup.Semigroup.simps(1) SemigroupExamples.bools_and_def SemigroupExamples.bools_and_valid SemigroupExamples.bools_or_def SemigroupExamples.bools_or_valid Semiring.select_convs(3) Semiring.select_convs(4) SemiringExamples.bools_def UNIV_I comp_def)
 next
   case 2
   then show ?case 

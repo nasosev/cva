@@ -664,7 +664,7 @@ lemma stability:
 proof -
   define i where "i \<equiv> make_inc B A"
   define "f" where "f = nat (neutral V)"
-  define "one" where "one \<equiv> dom (neutral V)"
+  define "one" where "one \<equiv> Prealgebra.dom (neutral V)"
   moreover have "\<epsilon>A_B = res V B \<epsilon>A"
     by (simp add: \<epsilon>A_B_def)
   moreover have "Space.cod i = A \<and> Space.dom i = B"

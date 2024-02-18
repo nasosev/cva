@@ -87,4 +87,42 @@ lemma distrib_right : "valid S \<Longrightarrow> (\<forall> a b c . a \<in> elem
   unfolding valid_def
   by presburger
 
+(* Semiring map *)
+
+record ('a, 'b) SemiringMap =
+  dom :: "'a Semiring"
+  cod :: "'b Semiring"
+  plus_func :: "('a, 'b) SemigroupMap"
+  mult_func :: "('a, 'b) SemigroupMap"
+
+(*
+definition valid_map :: "('a, 'b) SemiringMap \<Rightarrow> bool" where
+"valid_map f \<equiv>
+  let
+    welldefined = Semigroup.valid_map (plus_map f) \<and> Semigroup.valid_map (mult_map f)
+                  \<and> Semigroup.poset (Semigroup.dom (plus_map f)) = Semigroup.poset (Semigroup.dom (mult_map f))
+                  \<and> Semigroup.func (plus_map f) = Semigroup.func (plus_map f);
+    unital = Semigroup.app (plus_map f) (zero (
+  in                                 
+    welldefined"
+
+lemma valid_mapI [intro] :
+  fixes f :: "('a, 'b) SemigroupMap"
+  assumes welldefined : "valid (dom f) \<and> valid (cod f) \<and> Poset.valid_map (func f)
+                  \<and> Poset.dom (func f) = poset (dom f) \<and>  Poset.cod (func f) = poset (cod f)"
+  and lax_morphism : "\<forall> a b . a \<in> elems (dom f) \<longrightarrow> b \<in> elems (dom f)
+                  \<longrightarrow> le (poset (cod f)) (func f \<star> (mul (dom f) a b)) (mul (cod f) (func f \<star> a) (func f \<star> b))"
+shows "valid_map f" 
+  using assms
+  by (simp add: Semigroup.valid_map_def) 
+
+                            
+lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (valid (dom f) \<and> valid (cod f) \<and> Poset.valid_map (func f)
+                  \<and> Poset.dom (func f) = poset (dom f) \<and> Poset.cod (func f) = poset (cod f))"
+  by (simp add: Semigroup.valid_map_def)
+
+lemma valid_map_lax_morphism : "valid_map f \<Longrightarrow> \<forall> a b . a \<in> elems (dom f) \<longrightarrow> b \<in> elems (dom f)
+                  \<longrightarrow> le (poset (cod f)) (func f \<star> (mul (dom f) a b)) (mul (cod f) (func f \<star> a) (func f \<star> b))"
+  using Semigroup.valid_map_def by fastforce
+*)
 end

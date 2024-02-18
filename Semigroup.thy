@@ -36,18 +36,18 @@ definition commutative :: "'a Semigroup \<Rightarrow> bool" where
 
 lemma validI [intro] :
   fixes S :: "'a Semigroup"
-  assumes welldefined : "Poset.valid_map (mult S) \<and> dom (mult S) = poset S \<times>\<times> poset S"
+  assumes welldefined : "Poset.valid_map (mult S) \<and> Poset.dom (mult S) = poset S \<times>\<times> poset S"
   and associative : "\<And> a b c . a \<in> elems S \<Longrightarrow> b \<in> elems S \<Longrightarrow> c \<in> elems S \<Longrightarrow> mul S (mul S a b) c = mul S a (mul S b c)"
   shows "valid S"
   using Semigroup.valid_def associative welldefined by fastforce
 
-lemma valid_welldefined_dom : "valid S \<Longrightarrow> dom (mult S) = poset S \<times>\<times> poset S"
+lemma valid_welldefined_dom : "valid S \<Longrightarrow> Poset.dom (mult S) = poset S \<times>\<times> poset S"
   by (metis Semigroup.valid_def)
 
 lemma valid_welldefined_map : "valid S \<Longrightarrow> Poset.valid_map (mult S)"
   by (metis Semigroup.valid_def)
 
-lemma valid_welldefined : "valid S \<Longrightarrow> Poset.valid_map (mult S) \<and> dom (mult S) = poset S \<times>\<times> poset S"
+lemma valid_welldefined : "valid S \<Longrightarrow> Poset.valid_map (mult S) \<and> Poset.dom (mult S) = poset S \<times>\<times> poset S"
   by (metis Semigroup.valid_def)
 
 lemma valid_poset : "valid S \<Longrightarrow> Poset.valid (poset S)"
@@ -91,4 +91,45 @@ proof -
 qed
 
 
+(* Semigroup map (lax morphism *)
+
+record ('a, 'b) SemigroupMap =
+  dom :: "'a Semigroup"
+  cod :: "'b Semigroup"
+  func :: "('a, 'b) PosetMap"
+
+definition app :: "('a, 'b) SemigroupMap \<Rightarrow> 'a \<Rightarrow> 'b" where
+"app f a = (func f) \<star> a" 
+
+definition valid_map :: "('a, 'b) SemigroupMap \<Rightarrow> bool" where
+"valid_map f \<equiv>
+  let
+    welldefined = valid (dom f) \<and> valid (cod f) \<and> Poset.valid_map (func f)
+                  \<and> Poset.dom (func f) = poset (dom f) \<and>  Poset.cod (func f) = poset (cod f);
+    lax_morphism = \<forall> a b . a \<in> elems (dom f) \<longrightarrow> b \<in> elems (dom f)
+                  \<longrightarrow> le (poset (cod f)) (func f \<star> (mul (dom f) a b)) (mul (cod f) (func f \<star> a) (func f \<star> b))
+  in
+    welldefined \<and> lax_morphism"
+
+lemma valid_mapI [intro] :
+  fixes f :: "('a, 'b) SemigroupMap"
+  assumes welldefined : "valid (dom f) \<and> valid (cod f) \<and> Poset.valid_map (func f)
+                  \<and> Poset.dom (func f) = poset (dom f) \<and>  Poset.cod (func f) = poset (cod f)"
+  and lax_morphism : "\<forall> a b . a \<in> elems (dom f) \<longrightarrow> b \<in> elems (dom f)
+                  \<longrightarrow> le (poset (cod f)) (func f \<star> (mul (dom f) a b)) (mul (cod f) (func f \<star> a) (func f \<star> b))"
+shows "valid_map f" 
+  using assms
+  by (simp add: Semigroup.valid_map_def) 
+
+                            
+lemma valid_map_welldefined : "valid_map f \<Longrightarrow> (valid (dom f) \<and> valid (cod f) \<and> Poset.valid_map (func f)
+                  \<and> Poset.dom (func f) = poset (dom f) \<and> Poset.cod (func f) = poset (cod f))"
+  by (simp add: Semigroup.valid_map_def)
+
+lemma valid_map_lax_morphism : "valid_map f \<Longrightarrow> \<forall> a b . a \<in> elems (dom f) \<longrightarrow> b \<in> elems (dom f)
+                  \<longrightarrow> le (poset (cod f)) (func f \<star> (mul (dom f) a b)) (mul (cod f) (func f \<star> a) (func f \<star> b))"
+  using Semigroup.valid_map_def by fastforce
+
+
 end
+

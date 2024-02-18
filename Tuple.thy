@@ -49,7 +49,7 @@ definition rel_neutral :: "('A, 'x) TupleSystem \<Rightarrow> ('A, unit, 'x set)
       nat = \<lparr> Function.cod = UNIV , 
               func = {(A, Poset.const (Prealgebra.ob dom \<cdot> A) (Prealgebra.ob cod \<cdot> A) (ob T \<cdot> A)) | A . A \<in> opens (space T)}  \<rparr>
     in
-      \<lparr> dom = dom, cod = cod, nat = nat \<rparr>"
+      \<lparr> PrealgebraMap.dom = dom, cod = cod, nat = nat \<rparr>"
 
 definition rel_semigroup :: "('A, 'x) TupleSystem \<Rightarrow> (('A, 'x) Relation) Semigroup" where
   "rel_semigroup T \<equiv> 
@@ -403,7 +403,7 @@ lemma rel_semigroup_dom :
   defines "R \<equiv> rel_prealg T"
   shows "PosetMap.dom (mult (rel_semigroup T)) = gc R \<times>\<times> gc R"
 using rel_semigroup_def [where ?T=T]
-  by (smt (verit, best) PosetMap.select_convs(1) R_def Semigroup.select_convs(1))
+  by (smt (verit, del_insts) PosetMap.select_convs(1) R_def Semigroup.Semigroup.select_convs(1))
 
 lemma rel_semigroup_cod :  
   fixes T :: "('A, 'x) TupleSystem" and R:: "('A, 'x set) Prealgebra"
@@ -411,7 +411,7 @@ lemma rel_semigroup_cod :
   defines "R \<equiv> rel_prealg T"
   shows "PosetMap.cod (mult (rel_semigroup T)) = gc R"
 using rel_semigroup_def [where ?T=T]
-  by (smt (verit, ccfv_SIG) PosetMap.select_convs(2) R_def Semigroup.select_convs(1)) 
+  by (smt (verit, ccfv_threshold) PosetMap.select_convs(2) R_def Semigroup.Semigroup.select_convs(1))
 
 lemma rel_semigroup_mult_welldefined_dom :  
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x) Relation"
@@ -422,9 +422,9 @@ proof -
   have "PosetMap.dom (mult (rel_semigroup T)) = gc R \<times>\<times> gc R"
     using R_def T_valid rel_semigroup_dom by blast 
   moreover have "a \<in> el (gc R)" using rel_semigroup_def [where ?T=T]
-    by (smt (verit, best) Pair_inject PosetMap.select_convs(3) R_def Semigroup.select_convs(1) T_valid abc_el local_elem_gc mem_Collect_eq valid_rel_prealg valid_relation_space)
+    by (smt (verit, best) PosetMap.select_convs(3) R_def Semigroup.Semigroup.select_convs(1) T_valid abc_el fst_conv local_elem_gc mem_Collect_eq valid_rel_prealg valid_relation_space)
   moreover have "b \<in> el (gc R)" using rel_semigroup_def [where ?T=T]
-    by (smt (z3) Pair_inject PosetMap.select_convs(3) R_def Semigroup.select_convs(1) T_valid abc_el local_elem_gc mem_Collect_eq valid_rel_prealg valid_relation_space)
+    by (smt (verit, ccfv_threshold) PosetMap.select_convs(3) R_def Semigroup.Semigroup.select_convs(1) T_valid abc_el fst_conv local_elem_gc mem_Collect_eq snd_conv valid_rel_prealg valid_relation_space)
   ultimately show ?thesis using assms
     by (simp add: Poset.product_def)
 qed
@@ -448,7 +448,7 @@ proof -
     by (smt (verit) Collect_cong R_def T_valid a_el b_el c_def dc_def ec_def gc_elem_local local_dom prod.collapse valid_rel_prealg valid_relation_space)
   ultimately show ?thesis using rel_semigroup_def [where ?T=T] Poset.app_def [where ?f="mult
  (rel_semigroup T)" and ?a="(a,b)"]
-    by (smt (z3) Pair_inject PosetMap.select_convs(3) Semigroup.select_convs(1) mem_Collect_eq the_equality) 
+    by (smt (z3) Pair_inject PosetMap.select_convs(3) Semigroup.Semigroup.select_convs(1) mem_Collect_eq the_equality)
 qed
 
 lemma rel_semigroup_mult_tup_proj_el1 : 
@@ -551,19 +551,19 @@ lemma rel_semigroup_mult_welldefined_cod :
 proof -
   define "R" where "R = rel_prealg T"
   have "PosetMap.cod (mult (rel_semigroup T)) = gc R" using rel_semigroup_def [where ?T=T]
-    by (smt (verit, best) PosetMap.select_convs(2) R_def Semigroup.select_convs(1))
+    using R_def T_valid rel_semigroup_cod by blast
   moreover have "(a,b) \<in> el (PosetMap.dom (mult (rel_semigroup T)))"
     using T_valid abc_el rel_semigroup_mult_welldefined_dom by blast
   moreover have "mul (rel_semigroup T) a b = c" using rel_semigroup_def [where ?T=T] rel_semigroup_mult_val [where ?T=T and ?a=a and ?b=b]
-    by (smt (verit) CollectD Collect_cong PosetMap.select_convs(3) Semigroup.select_convs(1) T_valid abc_el fst_conv local_elem_gc snd_conv valid_rel_prealg valid_relation_space)
+    by (smt (verit) Collect_cong PosetMap.select_convs(3) Semigroup.Semigroup.select_convs(1) T_valid abc_el calculation(2) fst_conv mem_Collect_eq product_el_1 product_el_2 rel_semigroup_dom snd_conv)
   moreover have dc : "d c = d a \<union> d b"  using rel_semigroup_def [where ?T=T]
-    by (smt (verit) CollectD PosetMap.select_convs(3) Semigroup.select_convs(1) abc_el fst_conv snd_conv)
+    by (metis (no_types, lifting) T_valid calculation(2) calculation(3) product_el_1 product_el_2 rel_semigroup_dom rel_semigroup_mult_d)
   moreover have "e c \<subseteq> ob T \<cdot> (d c)" using rel_semigroup_def [where ?T=T] assms calculation
-    by (smt (verit, del_insts) CollectD PosetMap.select_convs(3) Semigroup.select_convs(1) fst_conv snd_conv subsetI)
-    moreover have da: "d a \<in> opens (space T)"
-      by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_semigroup_dom valid_rel_prealg valid_relation_space) 
-    moreover have db: "d b \<in> opens (space T)"
-      by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_semigroup_dom valid_rel_prealg valid_relation_space) 
+    by (metis (mono_tags, lifting) product_el_1 product_el_2 rel_semigroup_dom rel_semigroup_mult_local_subset)
+  moreover have da: "d a \<in> opens (space T)"
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_semigroup_dom valid_rel_prealg valid_relation_space) 
+  moreover have db: "d b \<in> opens (space T)"
+    by (smt (verit) Poset.Poset.select_convs(1) Poset.product_def T_valid calculation(2) local_dom mem_Sigma_iff rel_semigroup_dom valid_rel_prealg valid_relation_space) 
   moreover have "d c \<in> opens (space T)" using da db dc Space.valid_union2 [where ?T="space T" and ?A=da and ?B=db]
       valid_space [where ?T=T]
     by (simp add: T_valid valid_union2) 
@@ -580,7 +580,7 @@ lemma rel_semigroup_mult_deterministic :
   and "((a,b), c) \<in> PosetMap.func (mult (rel_semigroup T))" and "((a,b), c') \<in> PosetMap.func (mult (rel_semigroup T))" 
 shows "c = c'"
 using rel_semigroup_def [where ?T=T]
-  by (smt (z3) CollectD Pair_inject PosetMap.select_convs(3) Semigroup.select_convs(1) assms(2) assms(3))
+  by (smt (z3) Pair_inject PosetMap.select_convs(3) Semigroup.Semigroup.select_convs(1) assms(2) assms(3) mem_Collect_eq)
 
 lemma rel_semigroup_mult_total : 
   fixes T :: "('A, 'x) TupleSystem" and a b c :: "('A, 'x) Relation"
@@ -993,7 +993,7 @@ lemma rel_comb_func :
   fixes T :: "('A, 'x) TupleSystem"
   defines "R \<equiv> rel_ova T"
   assumes T_valid : "valid T" 
-  shows "func (mult (rel_semigroup T))
+  shows "Poset.func (mult (rel_semigroup T))
                         = { (((A,a), (B,b)), (C, c)) | A a B b C c .
                           A \<in> opens (space T)
                         \<and> B \<in> opens (space T)  
@@ -1004,7 +1004,7 @@ lemma rel_comb_func :
                                           (ar T \<cdot> (make_inc A C)) \<cdot> t \<in> a     
                                         \<and> (ar T \<cdot> (make_inc B C)) \<cdot> t \<in> b } }"
   using rel_semigroup_def [where ?T=T] assms rel_semigroup_mult_val [where ?T=T]
-  by (smt (verit) Collect_cong OVA.select_convs(1) PosetMap.select_convs(3) Semigroup.select_convs(1) rel_ova_def) 
+  by (smt (verit) Collect_cong OVA.select_convs(1) PosetMap.select_convs(3) Semigroup.Semigroup.select_convs(1) rel_ova_def)
 
 lemma rel_res_el : "valid T \<Longrightarrow> a \<in> elems (rel_ova T) \<Longrightarrow> B \<in> opens (space T) \<Longrightarrow> B \<subseteq> d a
   \<Longrightarrow> res (rel_ova T) B a \<in> elems (rel_ova T)"
