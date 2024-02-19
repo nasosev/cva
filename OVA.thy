@@ -671,7 +671,7 @@ proof -
     by (simp add: i_def)
   moreover have "i \<in> inclusions (space V)"
     using A_open B_le_A B_open calculation(3) inclusions_def by force
-  moreover have "valid_map (neutral V)"
+  moreover have "Prealgebra.valid_map (neutral V)"
     using V_valid valid_neutral by blast 
   moreover have "Prealgebra.valid one"
     by (simp add: Prealgebra.valid_map_dom calculation(5) one_def)  
