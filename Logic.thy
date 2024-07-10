@@ -972,4 +972,14 @@ proof -
       using \<open>CVA.le V (finite_seq_iter V a) g\<close> by blast
   qed
 
+
+(* Ian asks: "Can you have rules like this?" *)
+proposition hoare_choice_rule2 :
+  fixes V :: "('A, 'a) CVA" and p1 p2 q a  :: "('A,'a) Valuation"
+  assumes V_valid : "valid V" and V_rpd : "is_right_positively_disjunctive V"
+  and "p1 \<in> elems V" and "p2 \<in> elems V" and "q \<in> elems V" and "a \<in> elems V"
+shows "hoare V (join V p1 p2) a q = (hoare V p1 a q \<and> hoare V p2 a q)" 
+  oops
+
+
 end
