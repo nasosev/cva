@@ -16,9 +16,17 @@ abbreviation rg :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> (
 definition invariant :: "('A,'a) CVA \<Rightarrow> ('A, 'a) Valuation \<Rightarrow> bool" where
 "invariant V i \<equiv> 
   le V (neut_seq V (d i)) i 
-  \<and> seq V i i = i 
-  \<and> par V i i = i 
+  \<and> le V (seq V i i) i 
+  \<and> le V (par V i i) i
   \<and> (\<forall> a b . a \<in> elems V \<and> b \<in> elems V \<longrightarrow> le V (par V i (seq V a b)) (seq V (par V i a) (par V i b)))"
+
+
+proposition invariant_seq_idem :
+  fixes V :: "('A, 'a) CVA" and i :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "i \<in> elems V" and "invariant V i"
+  shows "seq V i i  = i"
+  by (smt (verit) CVA.valid_welldefined V_valid assms(2) assms(3) d_elem_is_open invariant_def neutral_is_element valid_le_antisymmetric valid_le_reflexive valid_monotone valid_neutral_law_right valid_semigroup valid_seq_elem)
 
 
 (* Hoare logic rules: https://en.wikipedia.org/wiki/Hoare_logic#Rules 
@@ -476,6 +484,30 @@ proof -
     by (smt (z3) V_valid assms(2) assms(3) assms(4) assms(5) valid_le_transitive valid_par_elem valid_seq_elem)
 qed
 
+(*
+proposition hoare_frame_rule2 :
+  fixes V :: "('A, 'a) CVA" and p f a q :: "('A,'a) Valuation"
+  assumes V_valid : "valid V"
+  and "p \<in> elems V" and "f \<in> elems V" and "a \<in> elems V" and "q \<in> elems V" 
+  and "hoare V p a q" 
+  and frame : "res V (d f) a = neut_seq V (d f)"  (* c.f. mod(a) \<inter> fv(f) = \<emptyset> *)
+  and cond1 : "le V a (seq V (neut_seq V (d a)) a)"
+shows "hoare V (par V f p) a (par V f q)" 
+proof - 
+  have "le V (seq V (par V f p) a) (seq V (par V f p) (seq V (neut_seq V (d a)) a))"
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) valid_le_reflexive valid_neutral_law_left valid_par_elem valid_seq_elem)
+  moreover have "le V (seq V (par V f p) (seq V (neut_seq V (d a)) a)) (par V (seq V f (res V (d f) a)) (seq V p a))" 
+    using valid_weak_exchange [where ?V=V and ?a1.0=f and ?a2.0=p and ?a3.0="res V (d f) a" and ?a4.0=a]
+    by (metis CVA.valid_welldefined V_valid assms(2) assms(3) assms(4) d_elem_is_open frame valid_neut_seq_elem)
+  moreover have "par V (seq V f (res V (d f) a)) (seq V p a) = par V f (seq V p a)"
+    by (metis CVA.valid_welldefined V_valid assms(3) frame valid_neutral_law_right) 
+  moreover have "le V (...) (par V f q)"
+    by (smt (verit, del_insts) V_valid assms(2) assms(3) assms(4) assms(5) assms(6) valid_le_reflexive valid_par_mono valid_seq_elem) 
+  ultimately show ?thesis
+    by (smt (z3) V_valid assms(2) assms(3) assms(4) assms(5) valid_le_transitive valid_par_elem valid_seq_elem)
+qed
+*)
+
 (* Rely-guarantee CVAs
 
 [RGR] 1. van Staden, Stephan. "On rely-guarantee reasoning." Mathematics of Program Construction: 12th International Conference, MPC 2015, Königswinter, Germany, June 29--July 1, 2015. Proceedings 12. Springer International Publishing, 2015.
@@ -493,19 +525,24 @@ lemma inv_dist_le : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow>
   using invariant_def by blast 
 
 lemma inv_dist : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> a \<in> elems V \<Longrightarrow> b \<in> elems V \<Longrightarrow> par V i (seq V a b) = seq V (par V i a) (par V i b)"
-  by (smt (verit) inv_dist_le invariant_def valid_le_antisymmetric valid_par_elem valid_seq_elem valid_weak_exchange)
+  by (smt (verit) inv_dist_le invariant_def valid_le_antisymmetric valid_par_elem valid_seq_elem valid_weak_exchange invariant_seq_idem)
 
 lemma inv_neut_seq : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> le V (neut_seq V (d i)) i"
   using invariant_def by blast 
 
+(*
 lemma inv_idem_par : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> par V i i = i"
   using invariant_def by blast 
+*)
 
-lemma inv_idem_seq : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> seq V i i = i"
+lemma inv_idem_par : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> le V (par V i i) i"
   using invariant_def by blast 
 
+
 lemma inv_par_neut_seq_le_id : "valid V \<Longrightarrow> i \<in> elems V \<Longrightarrow> invariant V i \<Longrightarrow> le V (par V (neut_seq V (d i)) i) i"
-  by (smt (verit) CVA.valid_welldefined d_elem_is_open invariant_def neutral_is_element valid_par_mono)
+  unfolding invariant_def
+  apply clarsimp
+  by (smt (verit) CVA.valid_welldefined OVA.valid_welldefined Poset.valid_map_welldefined Semigroup.valid_def comb_is_element comp_eq_dest_lhs d_elem_is_open neutral_is_element valid_le_transitive valid_par_mono valid_reflexivity)
 
 lemma inv_id_le_seq1 :
   fixes V :: "('A, 'a) CVA" and i a :: "('A,'a) Valuation"
@@ -537,6 +574,10 @@ proof -
     by (smt (verit, best) CVA.valid_welldefined V_valid a_el d_elem_is_open i_el valid_le_reflexive valid_neut_seq_elem valid_seq_mono) 
 qed
 
+(*
+
+(* The below two require `le V i (par V i i)` which we no longer assume *)
+
 lemma inv_dist_par1 :
   fixes V :: "('A, 'a) CVA" and i a b :: "('A,'a) Valuation"
   assumes V_valid : "valid V"
@@ -552,6 +593,7 @@ lemma inv_dist_par2 :
   and di_eq_da_eq_db : "d i = d a \<and> d i = d b"
 shows "le V (seq V (par V a b) i) (par V (seq V a i) (seq V b i))"
   by (smt (verit) V_valid a_el b_el inv_i invariant_def i_el valid_weak_exchange)
+*)
 
 lemma inv_iter :
   fixes V :: "('A, 'a) CVA" and i:: "('A,'a) Valuation"
@@ -592,7 +634,7 @@ proof -
         moreover have "le V (seq V a ((iter (seq_iter_map V a) m \<star> bot V))) (seq V a i)" using valid_seq_mono iter_seq_el
           using "2" V_rpd V_valid a_el i_el valid_le_reflexive by blast
         moreover have "le V (seq V a i) i"
-          by (smt (verit, del_insts) V_valid a_el a_le_i i_el inv_i inv_idem_seq valid_le_reflexive valid_seq_mono)
+          by (smt (verit, del_insts) V_valid a_el a_le_i i_el inv_i invariant_seq_idem valid_le_reflexive valid_seq_mono)
         moreover have "le V (seq V a ((iter (seq_iter_map V a) m \<star> bot V))) i"
           by (smt (verit, ccfv_threshold) V_rpd V_valid a_el calculation(7) calculation(6) i_el iter_seq_el valid_le_transitive valid_seq_elem) 
         moreover have "le V (join V (neut_seq V (d a)) (seq V a ((iter (seq_iter_map V a) m \<star> bot V)))) i"
@@ -671,12 +713,23 @@ proof -
     using V_valid assms(12) assms(5) assms(7) assms(10) rg1 rg2 valid_par_mono by blast 
   moreover have guar: "le V a2 r1 \<and> le V a1 r2"
     using V_valid assms(12) assms(3) assms(5) assms(8) assms(7) assms(10) g1_le_r2 g2_le_r1 rg1 rg2 valid_le_transitive by blast  
-  moreover have "le V (seq V p1 (par V r1 a1)) q1 \<and> le V (seq V p2 (par V r2 a2)) q2"
+  moreover have 1: "le V (seq V p1 (par V r1 a1)) q1 \<and> le V (seq V p2 (par V r2 a2)) q2"
     using rg1 rg2 by fastforce
-  moreover have "le V (seq V p1 (par V (par V r1 r1) a1)) q1 \<and> le V (seq V p2 (par V (par V r2 r2) a2)) q2"
-    by (smt (verit, best) calculation(3) comp_apply inv_r1 inv_r2 invariant_def)
+  moreover have "le V (par V (par V r1 r1) a1) (par V r1 a1)  \<and> le V (par V (par V r2 r2) a2) (par V r2 a2)"
+    by (smt (verit) V_valid assms(10) assms(3) assms(5) assms(8) inv_idem_par inv_r1 inv_r2 valid_le_reflexive valid_par_elem valid_par_mono)
+
+  moreover have 2: "le V (seq V p1 (par V (par V r1 r1) a1)) (seq V p1 (par V r1 a1))  \<and> le V (seq V p2 (par V (par V r2 r2) a2)) (seq V p2 (par V r2 a2))"
+    by (smt (verit, del_insts) CVA.valid_welldefined V_valid assms(10) assms(3) assms(4) assms(5) assms(8) assms(9) calculation(4) valid_comb_monotone valid_le_reflexive valid_par_elem)
+
+  moreover have "le V (seq V p1 (par V (par V r1 r1) a1)) q1"
+    using 1 2 
+    by (smt (verit, ccfv_threshold) V_valid assms(3) assms(4) assms(5) assms(6) valid_le_transitive valid_par_elem valid_seq_elem)
+  moreover have "le V (seq V p2 (par V (par V r2 r2) a2)) q2"
+    by (smt (verit, ccfv_threshold) "1" "2" V_valid assms(10) assms(11) assms(8) assms(9) valid_le_transitive valid_par_elem valid_seq_elem)
+  moreover have "(par V (par V r1 r1) a1) = (par V r1 (par V a1 r1)) \<and> (par V (par V r2 r2) a2) = (par V r2 (par V a2 r2))"
+    by (metis CVA.valid_welldefined OVA.valid_welldefined V_valid assms(10) assms(3) assms(5) assms(8) valid_comb_associative valid_par_comm) 
   moreover have "le V (seq V p1 (par V r1 (par V a1 r1))) q1 \<and> le V (seq V p2 (par V r2 (par V r2 a2))) q2"
-    by (smt (verit) CVA.valid_welldefined V_valid assms(3) assms(5) assms(8) assms(10) calculation(4) valid_comb_associative valid_elems valid_par_comm)
+    by (metis (no_types, opaque_lifting) V_valid assms(10) assms(8) calculation(6) calculation(7) calculation(8) valid_par_comm)
   moreover have "le V (par V a1 a2) (par V a1 r1) \<and> le V (par V a1 a2) (par V r2 a2)" 
     using assms guar valid_elems [where ?V=V] valid_le_reflexive [where ?V=V]  valid_par_mono [where ?V=V] 
     by blast 
@@ -711,10 +764,14 @@ valid_seq_mono [where ?V=V] valid_seq_elem [where ?V=V]
     by (metis V_complete assms(11) assms(3) assms(4) assms(6) assms(8) assms(9) meet_el)
 
   moreover have "le V (par V (meet V r1 r2) (par V a1 a2)) ((par V r1 (par V a1 a2)))"
-    by (smt (verit) CVA.valid_welldefined V_valid assms(10) assms(3) assms(5) calculation(13) calculation(14) comb_is_element valid_elems valid_le_reflexive valid_par_mono) 
+    using  CVA.valid_welldefined V_valid assms(10) assms(3) assms(5) calculation(13) calculation(14) comb_is_element valid_elems valid_le_reflexive valid_par_mono V_complete assms(8) meet_elems meet_smaller
+    by (smt (verit))  
+
+  moreover have "(par V (meet V r1 r2) (par V a1 a2)) \<in> elems V \<and> ((par V r1 (par V a1 a2))) \<in> elems V"
+    by (meson V_valid assms(10) assms(3) assms(5) calculation(18) valid_par_elem) 
 
   moreover have 0: "le V (seq V p1 (par V (meet V r1 r2) (par V a1 a2))) (seq V p1 (par V r1 (par V a1 a2)))"
-    by (smt (verit) CVA.valid_welldefined V_valid assms(10) assms(3) assms(4) assms(5) calculation(14) calculation(15) valid_le_reflexive valid_monotone valid_par_elem valid_semigroup) 
+    by (smt (verit, ccfv_threshold) CVA.valid_welldefined V_valid assms(4) calculation(19) calculation(20) valid_comb_monotone valid_le_reflexive) 
 
   moreover have 00: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) (seq V p1 (par V (meet V r1 r2) (par V a1 a2)))"
     by (smt (verit) V_valid assms(10) assms(4) assms(5) meet_elems meet_p1p2 valid_le_reflexive valid_par_elem valid_seq_mono) 
@@ -731,13 +788,13 @@ and ?b="(seq V p1 (par V (meet V r1 r2) (par V a1 a2)))" and ?c="(seq V p1 (par 
     by (smt (verit, del_insts) V_valid assms(10) assms(5) assms(8) meet_elems meet_r1r2 valid_le_reflexive valid_par_elem valid_par_mono)
 
   moreover have 1: "le V (seq V p2 (par V (meet V r1 r2) (par V a1 a2))) (seq V p2 (par V r2 (par V a1 a2)))"
-    by (smt (verit, ccfv_threshold) V_valid assms(10) assms(5) assms(8) assms(9) calculation(20) meet_elems valid_elems valid_le_reflexive valid_par_elem valid_seq_mono)
+    by (smt (verit, del_insts) V_valid assms(10) assms(5) assms(8) assms(9) calculation(20) calculation(25) valid_le_reflexive valid_par_elem valid_seq_mono)
 
   moreover have 11: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) (seq V p2 (par V (meet V r1 r2) (par V a1 a2)))"
     by (smt (verit) V_valid assms(10) assms(5) assms(9) meet_elems meet_p1p2 valid_le_reflexive valid_par_elem valid_seq_mono)
 
   moreover have 111: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2)))  (seq V p2 (par V r2 (par V a1 a2)))"
-    by (smt (verit, del_insts) V_valid assms(10) assms(5) assms(8) assms(9) calculation(20) meet_elems meet_p1p2 valid_par_elem valid_seq_mono)  
+    by (smt (verit, ccfv_threshold) V_valid assms(10) assms(5) assms(8) assms(9) calculation(25) meet_elems meet_p1p2 valid_par_elem valid_seq_mono)
 
  moreover have 1111: "le V (seq V (meet V p1 p2) (par V (meet V r1 r2) (par V a1 a2))) q2" using  checkpoint 111 11 1
    by (smt (verit, ccfv_threshold) V_valid assms(10) assms(11) assms(5) assms(8) assms(9) hoare_weakening_rule meet_elems meet_p1p2 valid_par_elem valid_seq_elem) 
@@ -911,7 +968,7 @@ proof -
       have "(iter (seq_iter_map V a) 0 \<star> bot V) = bot V"
         using V_rpd V_valid a_el iter_seq_zero by blast 
       moreover have "le V (par V r (bot V)) r"
-        by (metis V_rpd V_valid rpd_complete inv_idem_par inv_r par_bot1 r_el)
+        by (smt (verit, ccfv_threshold) V_rpd V_valid complete_bot_el inv_idem_par inv_r par_bot1 r_el rpd_complete valid_le_transitive valid_par_elem)
       moreover have "le V (seq V p (par V r (bot V))) (seq V p r)"
         by (smt (verit, del_insts) V_rpd V_valid bot_elem calculation(2) rpd_complete p_el r_el valid_le_reflexive valid_par_elem valid_seq_mono) 
       ultimately show ?thesis
@@ -942,13 +999,19 @@ proof -
         by (smt (verit) CVA.valid_welldefined V_valid a_el calculation(7) d_elem_is_open r_el valid_le_reflexive valid_neut_seq_elem valid_par_mono)  
       moreover have "le V (par V r (neut_seq V (d r))) (par V r r)"
         by (smt (verit, ccfv_SIG) CVA.valid_welldefined V_valid d_elem_is_open inv_neut_seq inv_r neutral_is_element r_el valid_le_reflexive valid_par_mono)
-      moreover have "par V r r = r"
+   
+      moreover have "le V (par V r r) r"
         using V_valid inv_idem_par inv_r r_el by blast
-      moreover have "le V (par V r (neut_seq V (d a))) r"
-        by (smt (verit, ccfv_SIG) CVA.valid_welldefined V_valid a_el calculation(10) calculation(7) d_elem_is_open inv_neut_seq inv_r r_el valid_le_reflexive valid_le_transitive valid_neut_seq_elem valid_par_mono)
+
       moreover have "par V r (neut_seq V (d a)) \<in> elems V"
         by (metis V_rpd V_valid a_el fiter_seq.simps(1) fiter_seq_elem r_el valid_par_elem) 
       
+      moreover have "le V (par V r (neut_seq V (d a))) r"
+        using CVA.valid_welldefined V_valid a_el d_elem_is_open inv_neut_seq inv_r r_el valid_le_reflexive valid_le_transitive valid_neut_seq_elem valid_par_mono
+        by (smt (verit, ccfv_threshold) calculation(8) calculation(9) inv_idem_par valid_par_elem)
+      
+      
+
       moreover have "le V (seq V p (par V r (neut_seq V (d a)))) (seq V p r)" using valid_seq_mono [where ?V=V]
         by (smt (z3) V_valid calculation(11) calculation(12) p_el r_el valid_le_reflexive)
 
@@ -978,7 +1041,7 @@ proposition hoare_choice_rule2 :
   fixes V :: "('A, 'a) CVA" and p1 p2 q a  :: "('A,'a) Valuation"
   assumes V_valid : "valid V" and V_rpd : "is_right_positively_disjunctive V"
   and "p1 \<in> elems V" and "p2 \<in> elems V" and "q \<in> elems V" and "a \<in> elems V"
-shows "hoare V (join V p1 p2) a q = (hoare V p1 a q \<and> hoare V p2 a q)" 
+shows "hoare V (join V p1 p2) a q = (hoare V p1  a q \<and> hoare V p2 a q)" 
   oops
 
 
