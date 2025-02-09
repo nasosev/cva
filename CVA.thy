@@ -94,9 +94,8 @@ abbreviation is_complete :: "('A,'a) CVA \<Rightarrow> bool" where
 "is_complete V \<equiv> OVA.is_complete (seq_algebra V)"
 
 definition is_right_positively_disjunctive :: "('A,'a) CVA \<Rightarrow> bool" where
-"is_right_positively_disjunctive V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> U \<noteq> {} \<longrightarrow> a \<in> elems V \<longrightarrow>
-  par V a (sup V U) = sup V {par V a u | u . u \<in> U} \<and>
-  seq V a (sup V U) = sup V {seq V a u | u . u \<in> U})"
+"is_right_positively_disjunctive V \<equiv> 
+  OVA.is_right_positively_disjunctive (par_algebra V) \<and> OVA.is_right_positively_disjunctive (seq_algebra V)"
 
 (* Constants *)
 
@@ -280,6 +279,7 @@ lemma ext_symmetric_par:
 shows "par V b (neut_par V A) = ext V A b "
   by (smt (verit, del_insts) A_open B_le_A CVA.valid_welldefined V_valid a_elem d_ext ext_elem ext_functorial_id fst_conv ova_comb_local subset_Un_eq valid_elems valid_ext valid_neut_par_elem valid_neutral_law_right)
 
+
 (* Lattice and quantale *) 
 
 lemma seq_bot1 :
@@ -341,7 +341,7 @@ shows "le V (par V a b) (par V (top V) b)"
 (* Continuity *)
 
 lemma rpd_complete : "is_right_positively_disjunctive V \<Longrightarrow> is_complete V"
-  using is_right_positively_disjunctive_def by blast 
+  using CVA.is_right_positively_disjunctive_def OVA.is_right_positively_disjunctive_def by blast
 
 lemma rpd_cocomplete : "is_right_positively_disjunctive V \<Longrightarrow> is_cocomplete (poset V)"
   using cocomplete rpd_complete by blast
@@ -350,15 +350,27 @@ lemma rpd_seq_dist :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
   assumes "valid V" and "is_right_positively_disjunctive V"
   and "a \<in> elems V" and "U \<subseteq> elems V" and "U \<noteq> {}"
-shows "seq V a (sup V U) = sup V {seq V a u | u . u \<in> U}" using is_right_positively_disjunctive_def [where ?V=V]
-  using assms(2) assms(3) assms(4) assms(5) by blast
+shows "seq V a (sup V U) = sup V {seq V a u | u . u \<in> U}"
+  using CVA.is_right_positively_disjunctive_def OVA.is_right_positively_disjunctive_def assms(2) assms(3) assms(4) assms(5) by blast
+  
+
+lemma right_positively_disjunctive_par :
+  fixes V :: "('A, 'a) CVA" and U :: "('A, 'a) Valuation set" and a :: "('A, 'a) Valuation" 
+  assumes "valid V" and "a \<in> elems V" and "U \<subseteq> elems V" and "U \<noteq> {}"
+    and "is_right_positively_disjunctive V"
+shows "par V a (sup V U) = sup V {par V a u | u . u \<in> U}"
+  using assms CVA.is_right_positively_disjunctive_def [where ?V=V] OVA.is_right_positively_disjunctive_def [where ?V="par_algebra V"]
+  unfolding is_right_positively_disjunctive_def
+  by (metis (no_types, lifting) CVA.valid_welldefined OVA.valid_welldefined)
 
 lemma rpd_par_dist :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
   assumes "valid V" and "is_right_positively_disjunctive V"
   and "a \<in> elems V" and "U \<subseteq> elems V" and "U \<noteq> {}"
-shows "par V a (sup V U) = sup V {par V a u | u . u \<in> U}" using is_right_positively_disjunctive_def [where ?V=V]
-  using assms(2) assms(3) assms(4) assms(5) by blast
+shows "par V a (sup V U) = sup V {par V a u | u . u \<in> U}"
+  using assms CVA.is_right_positively_disjunctive_def [where ?V=V] OVA.is_right_positively_disjunctive_def [where ?V="par_algebra V"]
+  unfolding is_right_positively_disjunctive_def
+  by (metis (no_types, lifting) CVA.valid_welldefined OVA.valid_welldefined)
 
 lemma rpd_par_dist_symmetric :
   fixes V :: "('A, 'a) CVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
@@ -367,7 +379,7 @@ lemma rpd_par_dist_symmetric :
 shows "par V (sup V U) a = sup V {par V u a | u . u \<in> U}" 
 proof -
   have "par V (sup V U) a = par V a (sup V U)"
-    by (metis (no_types, opaque_lifting) assms(1) assms(2) assms(3) assms(4) complete_equiv_cocomplete is_cocomplete_def is_right_positively_disjunctive_def valid_par_comm)
+    using assms(1) assms(2) assms(3) assms(4) rpd_cocomplete sup_el valid_par_comm by blast
   moreover have "{par V u a | u . u \<in> U} = {par V a u | u . u \<in> U}"
     using assms(1) assms(3) assms(4) valid_par_comm by blast
   ultimately show ?thesis
@@ -400,7 +412,7 @@ proof -
     by (simp add: Poset.join_def calculation(5))
   moreover have "join V (seq V b a) (seq V b' a) = sup V {seq V u a | u . u \<in> U}"
     by (simp add: Poset.join_def calculation(6))
-  ultimately show ?thesis using is_right_positively_disjunctive_def [where ?V=V ]  \<open>U \<subseteq> CVA.elems V\<close> assms(2) assms(3)
+  ultimately show ?thesis using  rpd_seq_dist [where ?V=V] rpd_par_dist [where ?V=V] rpd_seq_dist \<open>U \<subseteq> CVA.elems V\<close> assms(1) assms(2) assms(3)
     by presburger 
 qed
 
@@ -650,7 +662,8 @@ proof -
   have "finite_seq_iter V a = lfp f_a"
     by (simp add: finite_seq_iter_def f_a_def) 
   moreover have "Poset.valid_map f_a"
-    using V_rpd V_valid a_el f_a_def is_right_positively_disjunctive_def valid_seq_iter_map by blast 
+    using V_rpd V_valid a_el f_a_def is_right_positively_disjunctive_def valid_seq_iter_map
+    using rpd_complete by blast   
   moreover have "(\<And>A. A \<subseteq> elems V \<Longrightarrow> A \<noteq> {} \<Longrightarrow> f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A})" 
   proof -
     fix A
@@ -658,10 +671,10 @@ proof -
     assume "A \<noteq> {}"
     define "sup_A" where "sup_A = Poset.sup (CVA.poset V) A"
     have "sup_A \<in> elems V"
-      using V_rpd \<open>A \<subseteq> CVA.elems V\<close> cocomplete is_right_positively_disjunctive_def sup_A_def sup_el by blast 
+      using V_rpd \<open>A \<subseteq> CVA.elems V\<close> cocomplete is_right_positively_disjunctive_def sup_A_def sup_el rpd_cocomplete by blast 
     moreover have "Poset.valid_map f_a \<and> el (PosetMap.dom f_a) = elems V" 
     using V_rpd V_valid a_el f_a_def is_right_positively_disjunctive_def valid_seq_iter_map
-    by (smt (verit, best) PosetMap.select_convs(1) seq_iter_map_def) 
+    by (smt (verit, ccfv_threshold) PosetMap.select_convs(1) \<open>Poset.valid_map f_a\<close> seq_iter_map_def)
     moreover have "f_a \<star> sup_A \<in> elems V"  using fun_app2 [where ?f=f_a and ?a=sup_A]
       by (smt (verit, ccfv_SIG) PosetMap.select_convs(2) calculation(1) calculation(2) f_a_def seq_iter_map_def) 
     moreover have "f_a \<star> sup_A = join V (neut_seq V (d a)) (seq V a sup_A)" 
@@ -696,12 +709,11 @@ proof -
     moreover have "f_a \<star> Poset.sup (poset V) A = join V (neut_seq V (d a)) (seq V a (Poset.sup (poset V) A))"
       using calculation(4) sup_A_def by blast 
     moreover have "seq V a (sup V A) = sup V {seq V a u | u . u \<in> A}" using V_rpd is_right_positively_disjunctive_def [where ?V=V]
-      using \<open>A \<noteq> {}\<close> \<open>A \<subseteq> CVA.elems V\<close> a_el by blast
+      using \<open>A \<noteq> {}\<close> \<open>A \<subseteq> CVA.elems V\<close> a_el OVA.is_right_positively_disjunctive_def by blast  
     ultimately show "f_a \<star> Poset.sup (poset V) A = Poset.sup (poset V) {f_a \<star> a |a. a \<in> A}" unfolding f_a_def seq_iter_map_def
       by simp
   qed
-  moreover have "Poset.is_complete (CVA.poset V)" using V_rpd is_right_positively_disjunctive_def [where ?V=V]
-     by auto
+  moreover have "Poset.is_complete (CVA.poset V)" using V_rpd rpd_complete by blast 
   moreover have "Poset.valid_map f_a \<and> PosetMap.dom f_a = CVA.poset V \<and> PosetMap.cod f_a = CVA.poset V"
     by (smt (verit, ccfv_SIG) PosetMap.select_convs(1) PosetMap.select_convs(2) calculation(2) f_a_def seq_iter_map_def) 
   moreover have "Poset.is_continuous f_a"

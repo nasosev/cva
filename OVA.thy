@@ -123,6 +123,25 @@ definition is_commutative :: "('A, 'a) OVA \<Rightarrow> bool" where
 definition is_strongly_neutral :: "('A, 'a) OVA \<Rightarrow> bool" where
 "is_strongly_neutral V \<equiv> \<forall> A B . A \<in> opens (space V) \<longrightarrow> B \<in> opens (space V) \<longrightarrow> B \<subseteq> A \<longrightarrow> ext V A (neut V B) = neut V A"
 
+(* Positive disjunctivity *)
+
+definition is_right_positively_disjunctive :: "('A,'a) OVA \<Rightarrow> bool" where
+"is_right_positively_disjunctive V \<equiv> is_complete V \<and> (\<forall> a U . U \<subseteq> elems V \<longrightarrow> U \<noteq> {} \<longrightarrow> a \<in> elems V \<longrightarrow>
+  comb V a (sup V U) = sup V {comb V a u | u . u \<in> U})"
+
+lemma rpd_complete : "is_right_positively_disjunctive V \<Longrightarrow> is_complete V"
+  using is_right_positively_disjunctive_def by blast
+
+lemma rpd_cocomplete : "is_right_positively_disjunctive V \<Longrightarrow> is_cocomplete (poset V)"
+  using cocomplete rpd_complete by blast
+
+lemma rpd_comb_dist :
+  fixes V :: "('A, 'a) OVA" and a :: "('A, 'a) Valuation" and U :: "(('A, 'a) Valuation) set"
+  assumes "valid V" and "is_right_positively_disjunctive V"
+  and "a \<in> elems V" and "U \<subseteq> elems V" and "U \<noteq> {}"
+shows "comb V a (sup V U) = sup V {comb V a u | u . u \<in> U}" using is_right_positively_disjunctive_def [where ?V=V]
+  using OVA.is_right_positively_disjunctive_def assms(2) assms(3) assms(4) assms(5) by blast
+
 (* Validity *)
 
 lemma validI [intro] :
@@ -2298,6 +2317,5 @@ proof -
      using a1 a2 a3 a4 a5 a6 a7 a8 local_le_eq_le [where ?V=V and ?A=U]
      by (smt (z3) OVA.le_eq_local_le V'_valid V_valid a9 assms(15) calculation(10) calculation(11) calculation(24) calculation(28) calculation(55) comb_is_element elems_same fst_conv seq) 
  qed
-
 
 end

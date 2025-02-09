@@ -278,9 +278,9 @@ proof (rule iffI, goal_cases)
       using V_valid assms(3) assms(5) assms(6) valid_seq_elem by blast
     moreover have "le V (seq V p a) (seq V p (join V a b)) \<and> le V (seq V p b) (seq V p (join V a b))" 
       using join_greater [where ?P="poset V" and ?a="seq V p a" and ?b="seq V p b"]
-      by (metis (no_types, opaque_lifting) V_rpd calculation(2) calculation(3) cocomplete is_right_positively_disjunctive_def) 
+      using V_rpd calculation(2) calculation(3) rpd_cocomplete by fastforce
     moreover have "le V (seq V p a) q \<and> le V (seq V p b) q"
-      by (smt (verit, best) "1" V_rpd V_valid assms(4) calculation(2) calculation(3) calculation(4) is_right_positively_disjunctive_def join_elem valid_le_transitive)
+      by (smt (verit, best) "1" V_rpd V_valid assms(3) assms(4) assms(5) assms(6) calculation(4) join_el rpd_cocomplete valid_le_transitive valid_seq_elem)
     ultimately show ?thesis
       by force
   qed
@@ -370,18 +370,20 @@ proof (rule iffI, goal_cases)
     by blast
   moreover have 00: "sup V pU = sup V {seq V p u |u. u \<in> U}"
     using "0" by auto
-  moreover have "seq V p (sup V U) = sup V pU " 
-    using U_def pU_def 00 V_rpd rpd_complete [where ?V=V] is_right_positively_disjunctive_def [where ?V=V]
-    by (smt (z3) Collect_cong calculation(3) calculation(8) mem_Collect_eq p_el subsetI)
-  moreover have "sup V { seq V p ((iter (seq_iter_map V a) n) \<star> (bot V)) | n . n \<in> UNIV} = seq V p (finite_seq_iter V a)" 
-    using calculation(1) calculation(11) pU_def by presburger
+  moreover have "is_complete V"
+    using V_rpd rpd_complete by blast 
+  moreover have "seq V p (sup V U) = sup V pU "
+    using  rpd_seq_dist [where ?V=V and ?a=p and ?U=U] pU_def
+    using "00" U_def V_rpd V_valid calculation(3) calculation(8) p_el by auto
+  moreover have "sup V { seq V p ((iter (seq_iter_map V a) n) \<star> (bot V)) | n . n \<in> UNIV} = seq V p (finite_seq_iter V a)"
+    using calculation(1) calculation(12) pU_def by argo 
   ultimately show "le V (seq V p (finite_seq_iter V a)) p"
     by force 
 qed
 next
   case 2
   then show ?case
-    by (smt (verit) V_rpd V_valid p_el a_el finite_seq_iter_el hoare_weakening_rule hoare_neut_seq_rule hoare_neut_seq_rule' id_le_finite_seq_iter is_right_positively_disjunctive_def valid_seq_elem valid_seq_mono) 
+    by (smt (verit, best) CVA.valid_welldefined V_rpd V_valid a_el comb_is_element finite_seq_iter_el hoare_neut_seq_rule hoare_neut_seq_rule' hoare_weakening_rule id_le_finite_seq_iter p_el rpd_complete valid_seq_mono)
 qed
 
 (* [CKA, Lemma 5.3] *)
