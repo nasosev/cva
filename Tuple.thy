@@ -357,7 +357,7 @@ lemma rel_neutral_valid :
   fixes T :: "('A, 'x) TupleSystem"
   assumes "valid T"
   shows "Prealgebra.valid_map (rel_neutral T)"
-proof (intro valid_mapI, goal_cases)
+proof (intro Prealgebra.valid_mapI, goal_cases)
   case 1
   then show ?case
     by (smt (verit, best) Prealgebra.Prealgebra.select_convs(1) Prealgebra.const_def PrealgebraMap.select_convs(1) Presheaf.valid_space Tuple.valid_welldefined assms rel_neutral_def) 
