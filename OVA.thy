@@ -397,6 +397,47 @@ ultimately show ?thesis
   by (meson V_valid assms(2) raw_elem_is_elem) 
 qed
 
+lemma comm_with_neut:
+  fixes V :: "('A, 'a) OVA"  and a :: "('A, 'a) Valuation" and U :: "'A set"
+  assumes V_valid : "valid V"
+  and a_el : "a \<in> elems V" and U_open : "U \<in> opens (space V)" and da_sub_U : "d a \<subseteq> U"
+shows "comb V (neut V U) a = comb V a (neut V U)"
+proof -
+  define "mul" (infixl \<open>\<otimes>\<close> 55) where "a \<otimes> b = comb V a b" for a b
+  define "\<epsilon>U" where "\<epsilon>U = neut V U"
+
+  have "\<epsilon>U \<otimes> a = (\<epsilon>U \<otimes> a) \<otimes> \<epsilon>U"
+    by (metis (no_types, opaque_lifting) U_open V_valid \<epsilon>U_def a_el comb_is_element da_sub_U fstI mul_def neutral_is_element sup.order_iff valid_domain_law valid_neutral_law_right)
+  moreover have "... = \<epsilon>U \<otimes> (a \<otimes> \<epsilon>U)"
+    by (metis U_open V_valid \<epsilon>U_def a_el mul_def neutral_is_element valid_comb_associative)
+  moreover have "... = a \<otimes> \<epsilon>U"
+    by (metis (no_types, lifting) U_open V_valid \<epsilon>U_def a_el comb_is_element da_sub_U fst_eqD mul_def neutral_is_element subset_Un_eq valid_domain_law valid_neutral_law_left)
+  ultimately show ?thesis
+    by (simp add: \<epsilon>U_def mul_def)
+  qed
+  
+(* Equation 13 *)
+lemma ova_comb_local:
+  fixes V :: "('A, 'a) OVA"  and a b :: "('A, 'a) Valuation"
+  assumes V_valid : "valid V"
+  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
+shows "comb V a b = comb V (ext V (d a \<union> d b) a) (ext V (d a \<union> d b) b)"
+proof -
+  define "mul" (infixl \<open>\<otimes>\<close> 55) where "a \<otimes> b = comb V a b" for a b
+  define "\<epsilon>" where "\<epsilon> = neut V"
+  define "AB" where "AB = d a \<union> d b"
+
+  have "a \<otimes> b = (\<epsilon> AB) \<otimes> (\<epsilon> AB) \<otimes> (a \<otimes> b)"
+    by (metis (no_types, lifting) AB_def V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element valid_domain_law valid_neutral_law_left)
+  moreover have "... = (\<epsilon> AB \<otimes> a) \<otimes> (\<epsilon> AB \<otimes> b)"
+    by (smt (verit, del_insts) AB_def Un_Int_eq(1) V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element sup_inf_absorb valid_comb_associative valid_domain_law valid_neutral_law_right)
+  moreover have "... = (ext V AB a) \<otimes> (ext V AB b)" unfolding ext_def AB_def mul_def \<epsilon>_def 
+    using assms
+    by (simp add: Prealgebra.valid_space d_elem_is_open valid_prealgebra valid_union2)
+  ultimately show ?thesis
+    by (simp add: AB_def mul_def) 
+qed
+
 lemma neutral_local_element :
   fixes V :: "('A,'a) OVA" and A :: "'A Open"
   assumes V_valid : "valid V"
@@ -843,26 +884,7 @@ lemma laxity :
 shows "local_le V B (res V B (comb V a a')) (comb V (res V B a) (res V B a'))"
   by (smt (verit) B_open V_valid a'_elem a_a'_dom a_el assms(3) comb_is_element d_comb d_res id_le_res order.refl res_elem sup.orderE valid_le valid_monotone valid_semigroup)
 
-lemma ova_comb_local:
-  fixes V :: "('A, 'a) OVA"  and a b :: "('A, 'a) Valuation"
-  assumes V_valid : "valid V"
-  and a_el : "a \<in> elems V" and b_el : "b \<in> elems V"
-shows "comb V a b = comb V (ext V (d a \<union> d b) a) (ext V (d a \<union> d b) b)"
-proof -
-  define "mul" (infixl \<open>\<otimes>\<close> 55) where "a \<otimes> b = comb V a b" for a b
-  define "\<epsilon>" where "\<epsilon> = neut V"
-  define "AB" where "AB = d a \<union> d b"
 
-  have "a \<otimes> b = (\<epsilon> AB) \<otimes> (\<epsilon> AB) \<otimes> (a \<otimes> b)"
-    by (metis (no_types, lifting) AB_def V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element valid_domain_law valid_neutral_law_left)
-  moreover have "... = (\<epsilon> AB \<otimes> a) \<otimes> (\<epsilon> AB \<otimes> b)"
-    by (smt (verit, del_insts) AB_def Un_Int_eq(1) V_valid \<epsilon>_def a_el b_el comb_is_element d_elem_is_open fst_conv mul_def neutral_is_element sup_inf_absorb valid_comb_associative valid_domain_law valid_neutral_law_right)
-  moreover have "... = (ext V AB a) \<otimes> (ext V AB b)" unfolding ext_def AB_def mul_def \<epsilon>_def 
-    using assms
-    by (simp add: Prealgebra.valid_space d_elem_is_open valid_prealgebra valid_union2)
-  ultimately show ?thesis
-    by (simp add: AB_def mul_def) 
-qed
 
 (* [Corollary 1 (1/2), TMCVA] *)
 corollary strongly_neutral_combination :
